@@ -1,0 +1,10 @@
+{
+  "name": "pulse-frontend",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "echo \"TODO: init SvelteKit app\"",
+    "build": "echo \"TODO: build frontend\"",
+    "test": "echo \"TODO: frontend tests\""
+  }
+}

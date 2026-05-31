@@ -1,0 +1,55 @@
+version: "3.9"
+
+services:
+  pulse:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: pulse:local
+    container_name: pulse
+    environment:
+      PULSE_PORT: "8080"
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      influxdb:
+        condition: service_healthy
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16
+    container_name: pulse-postgres
+    environment:
+      POSTGRES_DB: pulse
+      POSTGRES_USER: pulse
+      POSTGRES_PASSWORD: pulse
+    ports:
+      - "5432:5432"
+    volumes:
+      - pulse-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pulse -d pulse"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  influxdb:
+    image: influxdb:2.7
+    container_name: pulse-influxdb
+    ports:
+      - "8086:8086"
+    volumes:
+      - pulse-influxdb-data:/var/lib/influxdb2
+    healthcheck:
+      test: ["CMD", "influx", "ping"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+volumes:
+  pulse-postgres-data:
+  pulse-influxdb-data:
