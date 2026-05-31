@@ -1,0 +1,25 @@
+# OS files
+.DS_Store
+
+# Editor
+.vscode/
+
+# Backend artifacts
+backend/pulse
+backend/*.test
+
+# Frontend artifacts
+frontend/node_modules/
+frontend/build/
+frontend/.svelte-kit/
+
+# Logs
+*.log
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Coverage
+coverage.out

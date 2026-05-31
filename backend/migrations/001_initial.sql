@@ -1,0 +1,2 @@
+-- Initial schema migration placeholder.
+-- Tables and indexes will be introduced in Milestone B.
