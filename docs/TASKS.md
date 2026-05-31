@@ -91,7 +91,7 @@ This task board converts [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.
   - Test write and range query return expected points
 
 ### TASK-008: Fail-fast dependency init
-- Status: `todo`
+- Status: `done`
 - Priority: `P0`
 - Depends on: TASK-006, TASK-007
 - Scope:
@@ -99,6 +99,11 @@ This task board converts [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.
   - Exit startup on dependency connectivity failure
 - Done when:
   - Process exits non-zero when either DB is unavailable
+- Notes:
+  - `internal/store/postgres/pool.go` adds `Connect` (pgxpool + ping).
+  - `main.go` pings Postgres and InfluxDB within a 10s startup timeout and
+    calls `log.Fatalf` (exit 1) on failure. Verified exit code 1 when Postgres
+    is unreachable and a clean boot under `docker compose up`.
 
 ## Milestone C: Security and Secrets
 

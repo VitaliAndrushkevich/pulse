@@ -1,13 +1,16 @@
-version: "3.9"
-
 services:
   backend:
-    image: golang:1.22
+    image: golang:1.25
     container_name: pulse-backend-dev
     working_dir: /workspace/backend
     command: ["sh", "-c", "go mod download && go run ./cmd/pulse"]
     environment:
       PULSE_PORT: "8080"
+      DATABASE_URL: "postgres://pulse:pulse@postgres:5432/pulse?sslmode=disable"
+      INFLUXDB_URL: "http://influxdb:8086"
+      INFLUXDB_TOKEN: "pulse-dev-token"
+      INFLUXDB_ORG: "pulse"
+      INFLUXDB_BUCKET: "pulse"
     ports:
       - "8080:8080"
     volumes:
@@ -39,6 +42,13 @@ services:
   influxdb:
     image: influxdb:2.7
     container_name: pulse-influxdb-dev
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: pulse
+      DOCKER_INFLUXDB_INIT_PASSWORD: pulse-dev-password
+      DOCKER_INFLUXDB_INIT_ORG: pulse
+      DOCKER_INFLUXDB_INIT_BUCKET: pulse
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: pulse-dev-token
     ports:
       - "8086:8086"
     volumes:

@@ -10,14 +10,14 @@ import (
 )
 
 // testStore creates a Store for integration tests.
-// Tests are skipped when INFLUXDB_URL is not set.
+// Tests are skipped when INFLUXDB_URL is not set, so `go test ./...` stays green
+// on machines without a reachable InfluxDB. Set INFLUXDB_URL (and optionally
+// INFLUXDB_TOKEN/ORG/BUCKET) to run these against a live instance.
 func testStore(t *testing.T) *influx.Store {
 	t.Helper()
 
-	// Prefer explicit URL if provided, otherwise use Docker Compose service defaults.
-	// This lets tests run inside the compose network without extra env configuration.
 	if os.Getenv("INFLUXDB_URL") == "" {
-		os.Setenv("INFLUXDB_URL", "http://influxdb:8086")
+		t.Skip("INFLUXDB_URL not set; skipping InfluxDB integration test")
 	}
 	if os.Getenv("INFLUXDB_ORG") == "" {
 		os.Setenv("INFLUXDB_ORG", "pulse")

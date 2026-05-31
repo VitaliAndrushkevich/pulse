@@ -61,6 +61,18 @@ Minimum expected updates:
 4. Start local development container profile:
    - `make dev-local`
 
+The backend fails fast on startup: it exits with a non-zero code if PostgreSQL
+or InfluxDB cannot be reached. `make dev` provisions both via Docker Compose
+(including InfluxDB org/bucket/token), so `make run` against a local stack
+expects those dependencies to be up.
+
+Key environment variables:
+
+- `PULSE_PORT` (default `8080`)
+- `DATABASE_URL` (default `postgres://pulse:pulse@localhost:5432/pulse?sslmode=disable`)
+- `INFLUXDB_URL` (default `http://influxdb:8086`)
+- `INFLUXDB_TOKEN`, `INFLUXDB_ORG` (default `pulse`), `INFLUXDB_BUCKET` (default `pulse`)
+
 Health endpoints:
 
 - `GET /healthz`
