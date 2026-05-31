@@ -23,7 +23,7 @@ This task board converts [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.
   - `go run ./cmd/pulse` starts with placeholder server
 
 ### TASK-002: Bootstrap frontend app
-- Status: `in_progress`
+- Status: `done`
 - Priority: `P1`
 - Depends on: none
 - Scope:

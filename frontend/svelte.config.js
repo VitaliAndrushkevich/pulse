@@ -1,6 +1,12 @@
-// Placeholder config. Replace during SvelteKit initialization milestone.
+import adapter from '@sveltejs/adapter-static';
+
 export default {
   kit: {
-    adapter: null
+    adapter: adapter({
+      pages: 'build',
+      assets: 'build',
+      fallback: 'index.html',
+      precompress: false
+    })
   }
 };
