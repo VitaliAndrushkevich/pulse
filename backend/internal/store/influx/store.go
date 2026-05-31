@@ -20,7 +20,7 @@ const measurement = "monitor_checks"
 //	Measurement: monitor_checks
 //	Tags:        monitor_id   - UUID of the monitor (string)
 //	             monitor_type - protocol type: http, https, tcp, udp, websocket
-//	             state        - check outcome: up, down, degraded
+//	             state        - check outcome: up, down
 //	Fields:      latency_ms   - round-trip latency in milliseconds (float64)
 //	             status_code  - HTTP status code; 0 when not applicable (int64)
 //	Timestamp:   time the check was performed (nanosecond precision)

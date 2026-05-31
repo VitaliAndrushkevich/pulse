@@ -7,9 +7,9 @@ package db
 
 import (
 	"context"
+	"time"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const countCheckResultsByMonitor = `-- name: CountCheckResultsByMonitor :one
@@ -30,12 +30,12 @@ RETURNING id, monitor_id, checked_at, state, latency_ms, status_code, error, cre
 `
 
 type CreateCheckResultParams struct {
-	MonitorID  uuid.UUID          `db:"monitor_id" json:"monitor_id"`
-	CheckedAt  pgtype.Timestamptz `db:"checked_at" json:"checked_at"`
-	State      string             `db:"state" json:"state"`
-	LatencyMs  *int32             `db:"latency_ms" json:"latency_ms"`
-	StatusCode *int32             `db:"status_code" json:"status_code"`
-	Error      *string            `db:"error" json:"error"`
+	MonitorID  uuid.UUID `db:"monitor_id" json:"monitor_id"`
+	CheckedAt  time.Time `db:"checked_at" json:"checked_at"`
+	State      string    `db:"state" json:"state"`
+	LatencyMs  *int32    `db:"latency_ms" json:"latency_ms"`
+	StatusCode *int32    `db:"status_code" json:"status_code"`
+	Error      *string   `db:"error" json:"error"`
 }
 
 func (q *Queries) CreateCheckResult(ctx context.Context, arg CreateCheckResultParams) (CheckResult, error) {
@@ -68,8 +68,8 @@ WHERE monitor_id = $1
 `
 
 type DeleteOldCheckResultsParams struct {
-	MonitorID uuid.UUID          `db:"monitor_id" json:"monitor_id"`
-	CheckedAt pgtype.Timestamptz `db:"checked_at" json:"checked_at"`
+	MonitorID uuid.UUID `db:"monitor_id" json:"monitor_id"`
+	CheckedAt time.Time `db:"checked_at" json:"checked_at"`
 }
 
 func (q *Queries) DeleteOldCheckResults(ctx context.Context, arg DeleteOldCheckResultsParams) error {

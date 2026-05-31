@@ -53,6 +53,25 @@ When implementing features, verify:
 3. Sensitive values are absent from responses/logs.
 4. Compose-based startup works from clean state.
 
+## Current Progress
+
+The project is at ~25% of MVP completion. See [docs/MILESTONES.md](../docs/MILESTONES.md) for full details.
+
+| Milestone | Status |
+|-----------|--------|
+| A: Foundations | ✅ Done |
+| B: Data Layer | ✅ Done |
+| C: Security & Secrets | 🔲 Next up |
+| D: Monitor Engine | 🔲 Todo |
+| E: API Surface | 🔲 Todo |
+| F: WebSocket Realtime | 🔲 Todo |
+| G: Frontend Product | 🔲 Todo |
+| H: Packaging & Release | 🔲 Todo |
+
+What's working: PostgreSQL schema, sqlc queries, InfluxDB helpers, Docker infrastructure, fail-fast startup, basic router with health endpoints.
+
+What's next: Milestone C (crypto, secrets, auth primitives) → then E (API handlers) and D (scheduler/checkers) in parallel.
+
 ## Development Skills
 Use these skills for domain-specific guidance:
 

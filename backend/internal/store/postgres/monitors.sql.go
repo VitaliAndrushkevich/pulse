@@ -10,7 +10,7 @@ import (
 	"encoding/json"
 
 	"github.com/google/uuid"
-	"time"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const countMonitors = `-- name: CountMonitors :one
@@ -36,15 +36,15 @@ RETURNING id, name, type, target, interval_seconds, timeout_seconds, status, sta
 `
 
 type CreateMonitorParams struct {
-	Name            string          `db:"name" json:"name"`
-	Type            string          `db:"type" json:"type"`
-	Target          string          `db:"target" json:"target"`
-	IntervalSeconds int32           `db:"interval_seconds" json:"interval_seconds"`
-	TimeoutSeconds  int32           `db:"timeout_seconds" json:"timeout_seconds"`
-	Status          string          `db:"status" json:"status"`
-	State           string          `db:"state" json:"state"`
-	Settings        json.RawMessage `db:"settings" json:"settings"`
-	NextCheckAt     **time.Time     `db:"next_check_at" json:"next_check_at"`
+	Name            string             `db:"name" json:"name"`
+	Type            string             `db:"type" json:"type"`
+	Target          string             `db:"target" json:"target"`
+	IntervalSeconds int32              `db:"interval_seconds" json:"interval_seconds"`
+	TimeoutSeconds  int32              `db:"timeout_seconds" json:"timeout_seconds"`
+	Status          string             `db:"status" json:"status"`
+	State           string             `db:"state" json:"state"`
+	Settings        json.RawMessage    `db:"settings" json:"settings"`
+	NextCheckAt     pgtype.Timestamptz `db:"next_check_at" json:"next_check_at"`
 }
 
 func (q *Queries) CreateMonitor(ctx context.Context, arg CreateMonitorParams) (Monitor, error) {
@@ -268,10 +268,10 @@ RETURNING id, name, type, target, interval_seconds, timeout_seconds, status, sta
 `
 
 type UpdateMonitorStateParams struct {
-	ID            uuid.UUID   `db:"id" json:"id"`
-	State         string      `db:"state" json:"state"`
-	LastCheckedAt **time.Time `db:"last_checked_at" json:"last_checked_at"`
-	NextCheckAt   **time.Time `db:"next_check_at" json:"next_check_at"`
+	ID            uuid.UUID          `db:"id" json:"id"`
+	State         string             `db:"state" json:"state"`
+	LastCheckedAt pgtype.Timestamptz `db:"last_checked_at" json:"last_checked_at"`
+	NextCheckAt   pgtype.Timestamptz `db:"next_check_at" json:"next_check_at"`
 }
 
 func (q *Queries) UpdateMonitorState(ctx context.Context, arg UpdateMonitorStateParams) (Monitor, error) {

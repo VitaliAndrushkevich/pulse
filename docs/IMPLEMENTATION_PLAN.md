@@ -136,6 +136,10 @@ This plan translates [.github/prompts/plan-pulseUptimeMonitor.prompt.md](../.git
 
 ## Cross-Cutting Technical Rules
 - Stable UUID resource IDs for all primary resources.
+- Monitor state vocabulary for MVP is `up` / `down` / `unknown` (per-check results
+  are `up` / `down`). A `degraded` state is out of MVP scope; introducing it
+  requires a schema change to the `monitors.state` / `check_results.state` CHECK
+  constraints plus checker semantics, and should be a deliberate future ticket.
 - Error envelope format:
   - `{ "error": { "code": "...", "message": "..." } }`
 - Pagination mandatory on all list endpoints (`page`, `limit`, optional cursor later).

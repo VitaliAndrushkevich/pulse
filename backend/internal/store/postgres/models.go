@@ -6,10 +6,10 @@ package db
 
 import (
 	"encoding/json"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
-	"time"
 )
 
 type ApiToken struct {
@@ -17,30 +17,30 @@ type ApiToken struct {
 	UserID     uuid.UUID          `db:"user_id" json:"user_id"`
 	Name       string             `db:"name" json:"name"`
 	TokenHash  string             `db:"token_hash" json:"token_hash"`
-	LastUsedAt **time.Time        `db:"last_used_at" json:"last_used_at"`
-	ExpiresAt  **time.Time        `db:"expires_at" json:"expires_at"`
-	RevokedAt  **time.Time        `db:"revoked_at" json:"revoked_at"`
-	CreatedAt  pgtype.Timestamptz `db:"created_at" json:"created_at"`
+	LastUsedAt pgtype.Timestamptz `db:"last_used_at" json:"last_used_at"`
+	ExpiresAt  pgtype.Timestamptz `db:"expires_at" json:"expires_at"`
+	RevokedAt  pgtype.Timestamptz `db:"revoked_at" json:"revoked_at"`
+	CreatedAt  time.Time          `db:"created_at" json:"created_at"`
 }
 
 type CheckResult struct {
-	ID         uuid.UUID          `db:"id" json:"id"`
-	MonitorID  uuid.UUID          `db:"monitor_id" json:"monitor_id"`
-	CheckedAt  pgtype.Timestamptz `db:"checked_at" json:"checked_at"`
-	State      string             `db:"state" json:"state"`
-	LatencyMs  *int32             `db:"latency_ms" json:"latency_ms"`
-	StatusCode *int32             `db:"status_code" json:"status_code"`
-	Error      *string            `db:"error" json:"error"`
-	CreatedAt  pgtype.Timestamptz `db:"created_at" json:"created_at"`
+	ID         uuid.UUID `db:"id" json:"id"`
+	MonitorID  uuid.UUID `db:"monitor_id" json:"monitor_id"`
+	CheckedAt  time.Time `db:"checked_at" json:"checked_at"`
+	State      string    `db:"state" json:"state"`
+	LatencyMs  *int32    `db:"latency_ms" json:"latency_ms"`
+	StatusCode *int32    `db:"status_code" json:"status_code"`
+	Error      *string   `db:"error" json:"error"`
+	CreatedAt  time.Time `db:"created_at" json:"created_at"`
 }
 
 type Incident struct {
 	ID         uuid.UUID          `db:"id" json:"id"`
 	MonitorID  uuid.UUID          `db:"monitor_id" json:"monitor_id"`
-	StartedAt  pgtype.Timestamptz `db:"started_at" json:"started_at"`
-	ResolvedAt **time.Time        `db:"resolved_at" json:"resolved_at"`
+	StartedAt  time.Time          `db:"started_at" json:"started_at"`
+	ResolvedAt pgtype.Timestamptz `db:"resolved_at" json:"resolved_at"`
 	Cause      *string            `db:"cause" json:"cause"`
-	CreatedAt  pgtype.Timestamptz `db:"created_at" json:"created_at"`
+	CreatedAt  time.Time          `db:"created_at" json:"created_at"`
 }
 
 type Monitor struct {
@@ -52,25 +52,25 @@ type Monitor struct {
 	TimeoutSeconds  int32              `db:"timeout_seconds" json:"timeout_seconds"`
 	Status          string             `db:"status" json:"status"`
 	State           string             `db:"state" json:"state"`
-	LastCheckedAt   **time.Time        `db:"last_checked_at" json:"last_checked_at"`
-	NextCheckAt     **time.Time        `db:"next_check_at" json:"next_check_at"`
+	LastCheckedAt   pgtype.Timestamptz `db:"last_checked_at" json:"last_checked_at"`
+	NextCheckAt     pgtype.Timestamptz `db:"next_check_at" json:"next_check_at"`
 	Settings        json.RawMessage    `db:"settings" json:"settings"`
-	CreatedAt       pgtype.Timestamptz `db:"created_at" json:"created_at"`
-	UpdatedAt       pgtype.Timestamptz `db:"updated_at" json:"updated_at"`
+	CreatedAt       time.Time          `db:"created_at" json:"created_at"`
+	UpdatedAt       time.Time          `db:"updated_at" json:"updated_at"`
 }
 
 type Secret struct {
-	ID             uuid.UUID          `db:"id" json:"id"`
-	Name           string             `db:"name" json:"name"`
-	EncryptedValue string             `db:"encrypted_value" json:"encrypted_value"`
-	CreatedAt      pgtype.Timestamptz `db:"created_at" json:"created_at"`
-	UpdatedAt      pgtype.Timestamptz `db:"updated_at" json:"updated_at"`
+	ID             uuid.UUID `db:"id" json:"id"`
+	Name           string    `db:"name" json:"name"`
+	EncryptedValue string    `db:"encrypted_value" json:"encrypted_value"`
+	CreatedAt      time.Time `db:"created_at" json:"created_at"`
+	UpdatedAt      time.Time `db:"updated_at" json:"updated_at"`
 }
 
 type User struct {
-	ID           uuid.UUID          `db:"id" json:"id"`
-	Email        string             `db:"email" json:"email"`
-	PasswordHash string             `db:"password_hash" json:"password_hash"`
-	CreatedAt    pgtype.Timestamptz `db:"created_at" json:"created_at"`
-	UpdatedAt    pgtype.Timestamptz `db:"updated_at" json:"updated_at"`
+	ID           uuid.UUID `db:"id" json:"id"`
+	Email        string    `db:"email" json:"email"`
+	PasswordHash string    `db:"password_hash" json:"password_hash"`
+	CreatedAt    time.Time `db:"created_at" json:"created_at"`
+	UpdatedAt    time.Time `db:"updated_at" json:"updated_at"`
 }

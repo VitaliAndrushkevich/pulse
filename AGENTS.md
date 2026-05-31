@@ -49,6 +49,25 @@ Core outcomes:
 - Keep stores deterministic and patch-merge oriented.
 - Avoid blocking renders; large monitor views must remain virtualized.
 
+## Current Progress
+
+The project is at ~25% of MVP completion. Full milestone breakdown: [docs/MILESTONES.md](docs/MILESTONES.md).
+
+| Milestone | Status |
+|-----------|--------|
+| A: Foundations | ✅ Done |
+| B: Data Layer | ✅ Done |
+| C: Security & Secrets | 🔲 Next up |
+| D: Monitor Engine | 🔲 Todo |
+| E: API Surface | 🔲 Todo |
+| F: WebSocket Realtime | 🔲 Todo |
+| G: Frontend Product | 🔲 Todo |
+| H: Packaging & Release | 🔲 Todo |
+
+Completed: PostgreSQL schema + indexes, sqlc query layer, InfluxDB helpers, Docker Compose infrastructure, fail-fast startup, migration tooling, basic gin router with X-Request-ID.
+
+Next priority: Milestone C (AES crypto, secret API, token lifecycle, log sanitization) → then Milestones D and E in parallel.
+
 ## Build and Test
 Primary commands (expected):
 - `make dev`

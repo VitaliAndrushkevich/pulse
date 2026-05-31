@@ -7,10 +7,10 @@ package db
 
 import (
 	"context"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
-	"time"
 )
 
 const countIncidentsByMonitor = `-- name: CountIncidentsByMonitor :one
@@ -31,9 +31,9 @@ RETURNING id, monitor_id, started_at, resolved_at, cause, created_at
 `
 
 type CreateIncidentParams struct {
-	MonitorID uuid.UUID          `db:"monitor_id" json:"monitor_id"`
-	StartedAt pgtype.Timestamptz `db:"started_at" json:"started_at"`
-	Cause     *string            `db:"cause" json:"cause"`
+	MonitorID uuid.UUID `db:"monitor_id" json:"monitor_id"`
+	StartedAt time.Time `db:"started_at" json:"started_at"`
+	Cause     *string   `db:"cause" json:"cause"`
 }
 
 func (q *Queries) CreateIncident(ctx context.Context, arg CreateIncidentParams) (Incident, error) {
@@ -176,8 +176,8 @@ RETURNING id, monitor_id, started_at, resolved_at, cause, created_at
 `
 
 type ResolveIncidentParams struct {
-	ID         uuid.UUID   `db:"id" json:"id"`
-	ResolvedAt **time.Time `db:"resolved_at" json:"resolved_at"`
+	ID         uuid.UUID          `db:"id" json:"id"`
+	ResolvedAt pgtype.Timestamptz `db:"resolved_at" json:"resolved_at"`
 }
 
 func (q *Queries) ResolveIncident(ctx context.Context, arg ResolveIncidentParams) (Incident, error) {

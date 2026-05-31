@@ -9,7 +9,7 @@ import (
 	"context"
 
 	"github.com/google/uuid"
-	"time"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const countAPITokensByUser = `-- name: CountAPITokensByUser :one
@@ -30,10 +30,10 @@ RETURNING id, user_id, name, token_hash, last_used_at, expires_at, revoked_at, c
 `
 
 type CreateAPITokenParams struct {
-	UserID    uuid.UUID   `db:"user_id" json:"user_id"`
-	Name      string      `db:"name" json:"name"`
-	TokenHash string      `db:"token_hash" json:"token_hash"`
-	ExpiresAt **time.Time `db:"expires_at" json:"expires_at"`
+	UserID    uuid.UUID          `db:"user_id" json:"user_id"`
+	Name      string             `db:"name" json:"name"`
+	TokenHash string             `db:"token_hash" json:"token_hash"`
+	ExpiresAt pgtype.Timestamptz `db:"expires_at" json:"expires_at"`
 }
 
 func (q *Queries) CreateAPIToken(ctx context.Context, arg CreateAPITokenParams) (ApiToken, error) {
