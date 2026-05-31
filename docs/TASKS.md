@@ -45,7 +45,7 @@ This task board converts [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.
   - `make dev` brings up services without manual edits
 
 ### TASK-004: Migration tooling setup
-- Status: `in_progress`
+- Status: `done`
 - Priority: `P0`
 - Depends on: TASK-001, TASK-003
 - Scope:

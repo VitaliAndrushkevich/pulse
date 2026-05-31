@@ -1,7 +1,10 @@
-.PHONY: dev dev-down run build test migrate rotate-key openapi
+.PHONY: dev dev-down run build test migrate migrate-down rotate-key openapi
 
 COMPOSE ?= docker compose
 COMPOSE_DEV ?= docker compose -f docker-compose.dev.yml
+
+# Default DATABASE_URL for local development (matches docker-compose postgres service).
+DATABASE_URL ?= postgres://pulse:pulse@localhost:5432/pulse?sslmode=disable
 
 dev:
 	$(COMPOSE) up --build
@@ -25,7 +28,10 @@ test:
 	cd backend && go test ./...
 
 migrate:
-	@echo "migration wiring pending (Phase 1 TASK-004): use backend/migrations with golang-migrate"
+	cd backend && DATABASE_URL=$(DATABASE_URL) go run ./cmd/migrate -direction up
+
+migrate-down:
+	cd backend && DATABASE_URL=$(DATABASE_URL) go run ./cmd/migrate -direction down
 
 rotate-key:
 	@echo "not implemented yet: key rotation workflow"
