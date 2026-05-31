@@ -23,3 +23,6 @@ frontend/.svelte-kit/
 
 # Coverage
 coverage.out
+
+# Skill files
+.agents/skills

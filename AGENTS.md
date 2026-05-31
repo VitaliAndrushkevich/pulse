@@ -62,3 +62,13 @@ Primary commands (expected):
 - MVP scope: HTTP/HTTPS, TCP, UDP, WebSocket monitors.
 - Future scope only (do not implement unless requested): QUIC, multi-tenant, status page, alert channels, Terraform provider.
 - Keep infra local-first with Docker Compose and reproducible startup.
+
+## Development Skills
+When working on code, reference these skills for domain guidance:
+
+### Frontend (Svelte)
+- **svelte-code-writer**: CLI tools for Svelte documentation lookup and code analysis. Use whenever creating/editing Svelte components (.svelte) or modules (.svelte.ts/.svelte.js).
+- **svelte-core-bestpractices**: Guidance on fast, robust, modern Svelte code (reactivity, events, styling, library integration). Load for any Svelte component work.
+
+### Backend (Golang)
+- Multiple Golang skills available for database, concurrency, error handling, testing, performance, security, observability, and troubleshooting. Load as needed per task domain.

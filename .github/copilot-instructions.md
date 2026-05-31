@@ -52,3 +52,13 @@ When implementing features, verify:
 2. OpenAPI documentation matches runtime behavior.
 3. Sensitive values are absent from responses/logs.
 4. Compose-based startup works from clean state.
+
+## Development Skills
+Use these skills for domain-specific guidance:
+
+### Frontend (Svelte)
+- **svelte-code-writer**: CLI tools for Svelte 5 documentation and code analysis. Always use when creating/editing .svelte files or Svelte TypeScript modules.
+- **svelte-core-bestpractices**: Code quality guidance for Svelte (reactivity, event handling, performance, styling). Load for component development.
+
+### Backend (Golang)
+- Comprehensive skills available for database access, concurrency patterns, error handling, testing, performance optimization, security hardening, and troubleshooting. Load per task requirements.
