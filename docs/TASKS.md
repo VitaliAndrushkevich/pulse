@@ -57,7 +57,7 @@ This task board converts [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.
 ## Milestone B: Data Layer
 
 ### TASK-005: PostgreSQL schema implementation
-- Status: `todo`
+- Status: `done`
 - Priority: `P0`
 - Depends on: TASK-004
 - Scope:
@@ -69,7 +69,7 @@ This task board converts [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.
   - Schema matches plan requirements
 
 ### TASK-006: sqlc query layer
-- Status: `todo`
+- Status: `done`
 - Priority: `P0`
 - Depends on: TASK-005
 - Scope:
@@ -81,7 +81,7 @@ This task board converts [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.
   - All list queries support `limit` and `offset` or cursor
 
 ### TASK-007: InfluxDB helpers
-- Status: `todo`
+- Status: `done`
 - Priority: `P1`
 - Depends on: TASK-001, TASK-003
 - Scope:
