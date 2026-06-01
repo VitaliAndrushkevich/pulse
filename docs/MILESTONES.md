@@ -52,7 +52,7 @@ What's delivered:
 
 Planned deliverables:
 - ✅ AES-256-GCM encryption/decryption module (`internal/crypto`)
-- Secret write-only API (values never returned in responses)
+- ✅ Secret write-only API (values never returned in responses)
 - API token create/list/revoke with bcrypt hash storage
 - Log sanitization middleware (strip auth headers and secret fields)
 - Key rotation command (`make rotate-key`) with transactional re-encryption
@@ -134,7 +134,7 @@ Planned deliverables:
 | Fail-fast startup | ✅ Complete | Exits on missing dependencies |
 | Docker infrastructure | ✅ Complete | Compose, Dockerfile, health checks |
 | Makefile | ✅ Complete | All primary targets defined |
-| API router | ⚠️ Scaffold | Only `/healthz` endpoints, no business handlers |
+| API router | ⚠️ Scaffold | `/healthz` + secret CRUD handlers wired |
 | Crypto module | ✅ Complete | AES-256-GCM encrypt/decrypt + key validation |
 | Protocol checkers | 🔲 Placeholder | Empty files for HTTP, TCP, UDP, WS |
 | Scheduler | 🔲 Placeholder | Empty file |

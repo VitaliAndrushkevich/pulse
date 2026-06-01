@@ -125,7 +125,7 @@ This task board converts [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.
   - Uses only Go standard library (no new dependencies).
 
 ### TASK-010: Secret write-only API
-- Status: `todo`
+- Status: `done`
 - Priority: `P0`
 - Depends on: TASK-006, TASK-009
 - Scope:
@@ -133,6 +133,15 @@ This task board converts [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.
   - Ensure responses never include raw values
 - Done when:
   - API responses return redacted placeholders only
+- Notes:
+  - `internal/api/handlers/secrets.go` implements full CRUD under `/api/v1/secrets`.
+  - Router refactored to accept `Deps` struct (Queries + SecretKey).
+  - `main.go` loads `PULSE_SECRET_KEY`, creates `*db.Queries`, passes both to router.
+  - Values encrypted with AES-256-GCM (base64-encoded) before DB write.
+  - Responses only expose `id`, `name`, `created_at`, `updated_at` — never raw or encrypted values.
+  - Pagination on list endpoint (`page`/`limit`, default 20, max 100).
+  - Error responses use standard envelope `{ "error": { "code", "message" } }`.
+  - 8 unit tests pass covering redaction, encryption round-trip, CRUD, and validation.
 
 ### TASK-011: API token lifecycle
 - Status: `todo`

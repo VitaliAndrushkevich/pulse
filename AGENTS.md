@@ -66,8 +66,9 @@ The project is at ~25% of MVP completion. Full milestone breakdown: [docs/MILEST
 
 Completed: PostgreSQL schema + indexes, sqlc query layer, TimescaleDB history store scaffold, Docker Compose infrastructure, fail-fast startup, migration tooling, basic gin router with X-Request-ID.
 Completed: PostgreSQL schema + indexes, sqlc query layer, InfluxDB helpers, Docker Compose infrastructure, fail-fast startup, migration tooling, basic gin router with X-Request-ID, AES-256-GCM crypto module.
+Completed: PostgreSQL schema + indexes, sqlc query layer, InfluxDB helpers, Docker Compose infrastructure, fail-fast startup, migration tooling, basic gin router with X-Request-ID, AES-256-GCM crypto module, secret write-only API (CRUD with redacted responses).
 
-Next priority: Milestone C (AES crypto, secret API, token lifecycle, log sanitization) → then Milestones D and E in parallel.
+Next priority: Milestone C (token lifecycle, log sanitization, key rotation) → then Milestones D and E in parallel.
 
 ## Build and Test
 Primary commands (expected):

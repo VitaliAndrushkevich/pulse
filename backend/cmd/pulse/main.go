@@ -7,12 +7,20 @@ import (
 
 	"github.com/VitaliAndrushkevich/pulse/internal/api"
 	"github.com/VitaliAndrushkevich/pulse/internal/config"
+	"github.com/VitaliAndrushkevich/pulse/internal/crypto"
 	db "github.com/VitaliAndrushkevich/pulse/internal/store/postgres"
 	"github.com/VitaliAndrushkevich/pulse/internal/store/timescale"
 )
 
 func main() {
 	cfg := config.LoadApp()
+
+	// Load encryption key for secrets (TASK-009/010).
+	secretKey, err := crypto.LoadKey("PULSE_SECRET_KEY")
+	if err != nil {
+		log.Fatalf("startup: %v", err)
+	}
+	log.Printf("startup: secret key loaded")
 
 	// Fail-fast dependency initialization: refuse to start when PostgreSQL or
 	// TimescaleDB extension is unavailable (TASK-008).
@@ -32,7 +40,12 @@ func main() {
 	}
 	log.Printf("startup: timescaledb extension available")
 
-	r := api.NewRouter()
+	queries := db.New(pool)
+
+	r := api.NewRouter(api.Deps{
+		Queries:   queries,
+		SecretKey: secretKey,
+	})
 	addr := ":" + cfg.Port
 	log.Printf("pulse listening on %s", addr)
 

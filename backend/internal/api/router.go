@@ -6,9 +6,18 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+
+	"github.com/VitaliAndrushkevich/pulse/internal/api/handlers"
+	db "github.com/VitaliAndrushkevich/pulse/internal/store/postgres"
 )
 
-func NewRouter() *gin.Engine {
+// Deps holds shared dependencies injected into the router.
+type Deps struct {
+	Queries   *db.Queries
+	SecretKey []byte
+}
+
+func NewRouter(deps Deps) *gin.Engine {
 	r := gin.New()
 	r.Use(gin.Recovery())
 	r.Use(requestIDMiddleware())
@@ -26,6 +35,10 @@ func NewRouter() *gin.Engine {
 			"timestamp": time.Now().UTC().Format(time.RFC3339),
 		})
 	})
+
+	// Secret write-only API (TASK-010)
+	secretHandler := handlers.NewSecretHandler(deps.Queries, deps.SecretKey)
+	secretHandler.Register(v1)
 
 	return r
 }
