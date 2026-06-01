@@ -57,7 +57,7 @@ The project is at ~25% of MVP completion. Full milestone breakdown: [docs/MILEST
 |-----------|--------|
 | A: Foundations | ✅ Done |
 | B: Data Layer | ✅ Done |
-| C: Security & Secrets | 🔲 Next up |
+| C: Security & Secrets | 🚧 In progress |
 | D: Monitor Engine | 🔲 Todo |
 | E: API Surface | 🔲 Todo |
 | F: WebSocket Realtime | 🔲 Todo |
@@ -65,6 +65,7 @@ The project is at ~25% of MVP completion. Full milestone breakdown: [docs/MILEST
 | H: Packaging & Release | 🔲 Todo |
 
 Completed: PostgreSQL schema + indexes, sqlc query layer, TimescaleDB history store scaffold, Docker Compose infrastructure, fail-fast startup, migration tooling, basic gin router with X-Request-ID.
+Completed: PostgreSQL schema + indexes, sqlc query layer, InfluxDB helpers, Docker Compose infrastructure, fail-fast startup, migration tooling, basic gin router with X-Request-ID, AES-256-GCM crypto module.
 
 Next priority: Milestone C (AES crypto, secret API, token lifecycle, log sanitization) → then Milestones D and E in parallel.
 

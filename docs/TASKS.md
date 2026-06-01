@@ -108,7 +108,7 @@ This task board converts [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.
 ## Milestone C: Security and Secrets
 
 ### TASK-009: AES-256-GCM crypto module
-- Status: `todo`
+- Status: `done`
 - Priority: `P0`
 - Depends on: TASK-005
 - Scope:
@@ -116,6 +116,13 @@ This task board converts [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.
   - Load and validate `PULSE_SECRET_KEY` (32-byte base64)
 - Done when:
   - Unit tests cover round-trip and invalid key handling
+- Notes:
+  - `LoadKey` reads env var, base64-decodes, validates 32-byte length.
+  - `Encrypt` uses AES-256-GCM with random nonce prepended to output.
+  - `Decrypt` splits nonce and authenticates before decrypting.
+  - 12 unit tests pass covering round-trip, nonce uniqueness, tamper
+    detection, truncation, and all key validation error paths.
+  - Uses only Go standard library (no new dependencies).
 
 ### TASK-010: Secret write-only API
 - Status: `todo`

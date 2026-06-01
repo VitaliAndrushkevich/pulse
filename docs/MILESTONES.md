@@ -46,12 +46,12 @@ What's delivered:
 
 ---
 
-## Milestone C: Security & Secrets 🔲 TODO (next up)
+## Milestone C: Security & Secrets 🚧 IN PROGRESS (next up)
 
 **Goal:** Secure at-rest secret handling, single-user auth primitives, API token management.
 
 Planned deliverables:
-- AES-256-GCM encryption/decryption module (`internal/crypto`)
+- ✅ AES-256-GCM encryption/decryption module (`internal/crypto`)
 - Secret write-only API (values never returned in responses)
 - API token create/list/revoke with bcrypt hash storage
 - Log sanitization middleware (strip auth headers and secret fields)
@@ -135,7 +135,7 @@ Planned deliverables:
 | Docker infrastructure | ✅ Complete | Compose, Dockerfile, health checks |
 | Makefile | ✅ Complete | All primary targets defined |
 | API router | ⚠️ Scaffold | Only `/healthz` endpoints, no business handlers |
-| Crypto module | 🔲 Placeholder | Empty file |
+| Crypto module | ✅ Complete | AES-256-GCM encrypt/decrypt + key validation |
 | Protocol checkers | 🔲 Placeholder | Empty files for HTTP, TCP, UDP, WS |
 | Scheduler | 🔲 Placeholder | Empty file |
 | WebSocket hub | 🔲 Placeholder | Empty file |
