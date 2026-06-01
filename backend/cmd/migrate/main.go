@@ -5,8 +5,8 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"os"
 
+	"github.com/VitaliAndrushkevich/pulse/internal/config"
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
@@ -17,17 +17,9 @@ func main() {
 	steps := flag.Int("steps", 0, "number of steps to apply (0 = all)")
 	flag.Parse()
 
-	dbURL := os.Getenv("DATABASE_URL")
-	if dbURL == "" {
-		dbURL = "postgres://pulse:pulse@localhost:5432/pulse?sslmode=disable"
-	}
+	cfg := config.LoadMigrate()
 
-	migrationsPath := os.Getenv("MIGRATIONS_PATH")
-	if migrationsPath == "" {
-		migrationsPath = "file://migrations"
-	}
-
-	m, err := migrate.New(migrationsPath, dbURL)
+	m, err := migrate.New(cfg.MigrationsPath, cfg.DatabaseURL)
 	if err != nil {
 		log.Fatalf("failed to create migrator: %v", err)
 	}

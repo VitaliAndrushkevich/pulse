@@ -3,31 +3,23 @@ package main
 import (
 	"context"
 	"log"
-	"os"
 	"time"
 
 	"github.com/VitaliAndrushkevich/pulse/internal/api"
+	"github.com/VitaliAndrushkevich/pulse/internal/config"
 	db "github.com/VitaliAndrushkevich/pulse/internal/store/postgres"
 	"github.com/VitaliAndrushkevich/pulse/internal/store/timescale"
 )
 
 func main() {
-	port := os.Getenv("PULSE_PORT")
-	if port == "" {
-		port = "8080"
-	}
-
-	databaseURL := os.Getenv("DATABASE_URL")
-	if databaseURL == "" {
-		databaseURL = "postgres://pulse:pulse@localhost:5432/pulse?sslmode=disable"
-	}
+	cfg := config.LoadApp()
 
 	// Fail-fast dependency initialization: refuse to start when PostgreSQL or
 	// TimescaleDB extension is unavailable (TASK-008).
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	pool, err := db.Connect(ctx, databaseURL)
+	pool, err := db.Connect(ctx, cfg.DatabaseURL)
 	if err != nil {
 		log.Fatalf("startup: postgres unavailable: %v", err)
 	}
@@ -41,7 +33,7 @@ func main() {
 	log.Printf("startup: timescaledb extension available")
 
 	r := api.NewRouter()
-	addr := ":" + port
+	addr := ":" + cfg.Port
 	log.Printf("pulse listening on %s", addr)
 
 	if err := r.Run(addr); err != nil {
