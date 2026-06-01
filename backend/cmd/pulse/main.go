@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/VitaliAndrushkevich/pulse/internal/api"
-	"github.com/VitaliAndrushkevich/pulse/internal/store/influx"
 	db "github.com/VitaliAndrushkevich/pulse/internal/store/postgres"
+	"github.com/VitaliAndrushkevich/pulse/internal/store/timescale"
 )
 
 func main() {
@@ -23,7 +23,7 @@ func main() {
 	}
 
 	// Fail-fast dependency initialization: refuse to start when PostgreSQL or
-	// InfluxDB is unreachable (TASK-008).
+	// TimescaleDB extension is unavailable (TASK-008).
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -34,12 +34,11 @@ func main() {
 	defer pool.Close()
 	log.Printf("startup: postgres connection established")
 
-	influxStore := influx.NewFromEnv()
-	defer influxStore.Close()
-	if err := influxStore.Ping(ctx); err != nil {
-		log.Fatalf("startup: influxdb unavailable: %v", err)
+	timescaleStore := timescale.New(pool)
+	if err := timescaleStore.Ping(ctx); err != nil {
+		log.Fatalf("startup: timescaledb unavailable: %v", err)
 	}
-	log.Printf("startup: influxdb connection established")
+	log.Printf("startup: timescaledb extension available")
 
 	r := api.NewRouter()
 	addr := ":" + port

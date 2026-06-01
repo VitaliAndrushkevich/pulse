@@ -13,7 +13,7 @@ Core outcomes:
 - Backend is Go (`gin` + scheduler + websocket hub) in one binary.
 - Frontend is static SvelteKit build embedded into Go.
 - PostgreSQL is source of truth for config/state.
-- InfluxDB stores time-series monitor history.
+- PostgreSQL with TimescaleDB extension stores time-series monitor history.
 - REST and OpenAPI contract must be implemented before UI integration.
 
 ## API Conventions
@@ -64,7 +64,7 @@ The project is at ~25% of MVP completion. Full milestone breakdown: [docs/MILEST
 | G: Frontend Product | 🔲 Todo |
 | H: Packaging & Release | 🔲 Todo |
 
-Completed: PostgreSQL schema + indexes, sqlc query layer, InfluxDB helpers, Docker Compose infrastructure, fail-fast startup, migration tooling, basic gin router with X-Request-ID.
+Completed: PostgreSQL schema + indexes, sqlc query layer, TimescaleDB history store scaffold, Docker Compose infrastructure, fail-fast startup, migration tooling, basic gin router with X-Request-ID.
 
 Next priority: Milestone C (AES crypto, secret API, token lifecycle, log sanitization) → then Milestones D and E in parallel.
 

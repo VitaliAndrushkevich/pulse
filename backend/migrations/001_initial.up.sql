@@ -1,6 +1,8 @@
 -- 001_initial.up.sql
 -- Full schema for Pulse MVP (TASK-005).
 
+CREATE EXTENSION IF NOT EXISTS timescaledb;
+
 -- -------------------------------------------------------
 -- users
 -- -------------------------------------------------------
@@ -86,7 +88,7 @@ CREATE INDEX idx_incidents_unresolved ON incidents (monitor_id)
     WHERE resolved_at IS NULL;
 
 -- -------------------------------------------------------
--- check_results  (recent probe outcomes; full history in InfluxDB)
+-- check_results  (time-series monitor history in TimescaleDB)
 -- -------------------------------------------------------
 CREATE TABLE check_results (
     id          UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -100,4 +102,6 @@ CREATE TABLE check_results (
 );
 
 CREATE INDEX idx_check_results_monitor_id_checked_at ON check_results (monitor_id, checked_at DESC);
+
+SELECT create_hypertable('check_results', 'checked_at', if_not_exists => TRUE);
 

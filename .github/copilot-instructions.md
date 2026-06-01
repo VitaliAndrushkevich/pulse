@@ -18,7 +18,7 @@ Build Pulse as an API-first uptime monitoring platform with strong reliability, 
 - Use diff-only WebSocket updates for monitor state changes.
 
 ## Expected Stack
-- Backend: Go 1.22+, `gin`, `pgx/v5`, `sqlc`, `golang-migrate`, InfluxDB v2 client, Prometheus client, gorilla/websocket.
+- Backend: Go 1.22+, `gin`, `pgx/v5`, `sqlc`, `golang-migrate`, TimescaleDB (PostgreSQL extension), Prometheus client, gorilla/websocket.
 - Frontend: SvelteKit + TypeScript, `@sveltejs/adapter-static`, Tailwind, virtualized monitor list, `uplot` for history charts.
 - Deployment: single Go binary embedding frontend assets; multi-stage container build; Compose-based local environments.
 
@@ -31,7 +31,7 @@ Build Pulse as an API-first uptime monitoring platform with strong reliability, 
 
 ## Data and Persistence Guidance
 - PostgreSQL tables include: `monitors`, `secrets`, `incidents`, `check_results`, `users`, `api_tokens`.
-- InfluxDB stores time-series check results and history.
+- PostgreSQL + TimescaleDB stores time-series check results and history.
 - Use explicit schema migrations for every data change.
 
 ## Security Guidance
@@ -68,7 +68,7 @@ The project is at ~25% of MVP completion. See [docs/MILESTONES.md](../docs/MILES
 | G: Frontend Product | 🔲 Todo |
 | H: Packaging & Release | 🔲 Todo |
 
-What's working: PostgreSQL schema, sqlc queries, InfluxDB helpers, Docker infrastructure, fail-fast startup, basic router with health endpoints.
+What's working: PostgreSQL schema, sqlc queries, TimescaleDB history store scaffold, Docker infrastructure, fail-fast startup, basic router with health endpoints.
 
 What's next: Milestone C (crypto, secrets, auth primitives) → then E (API handlers) and D (scheduler/checkers) in parallel.
 

@@ -22,23 +22,23 @@ This plan translates [.github/prompts/plan-pulseUptimeMonitor.prompt.md](../.git
 5. Add migration tooling (`golang-migrate`) and initial migration scaffold.
 
 ### Exit Criteria
-- `make dev` starts backend, postgres, and influxdb successfully.
+- `make dev` starts backend and postgres (with TimescaleDB extension) successfully.
 - `make migrate` applies schema without manual edits.
 
 ## Milestone 1: Data Plane (Week 2)
 ### Goals
 - Durable config/state in PostgreSQL
-- Time-series writes and reads through InfluxDB helper layer
+- Time-series writes and reads through TimescaleDB helper layer
 
 ### Tasks
 1. Implement PostgreSQL schema for `monitors`, `secrets`, `incidents`, `check_results`, `users`, `api_tokens`.
 2. Add required indexes for scheduler and monitor querying.
 3. Generate SQL access layer with `sqlc`.
-4. Implement InfluxDB write/query helpers in `backend/internal/store/influx/`.
+4. Implement TimescaleDB write/query helpers in `backend/internal/store/timescale/`.
 5. Wire fail-fast DB initialization in `main.go`.
 
 ### Exit Criteria
-- Backend refuses startup when PostgreSQL or InfluxDB is unavailable.
+- Backend refuses startup when PostgreSQL is unavailable or TimescaleDB extension is missing.
 - CRUD queries compile and pass integration smoke tests.
 
 ## Milestone 2: Security and Secret Management (Week 3)
@@ -151,7 +151,7 @@ This plan translates [.github/prompts/plan-pulseUptimeMonitor.prompt.md](../.git
 2. Compose files + Makefile
 3. Initial SQL migration + sqlc config
 4. PostgreSQL connection and health startup gates
-5. Influx store helpers
+5. TimescaleDB store helpers
 6. AES crypto module + secret key loader
 7. Secret CRUD write-only handlers
 8. HTTP checker + common checker interface
@@ -160,7 +160,7 @@ This plan translates [.github/prompts/plan-pulseUptimeMonitor.prompt.md](../.git
 
 ## Risks and Mitigations
 - Worker saturation at high monitor count: enforce bounded pool and queue metrics.
-- Influx query cost growth: enforce retention policy and bounded history windows.
+- Time-series query cost growth: enforce retention policy/chunk policy and bounded history windows.
 - API drift from docs: CI fails when generated OpenAPI differs from committed file.
 - UI jank with large datasets: virtualized rendering and incremental patch merges only.
 

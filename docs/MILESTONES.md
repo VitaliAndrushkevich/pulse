@@ -24,7 +24,7 @@ Milestones A and B are done. The project has a solid data foundation but no busi
 What's delivered:
 - Go backend module with `cmd/pulse/main.go` entrypoint
 - SvelteKit + TypeScript + Tailwind frontend scaffold
-- `docker-compose.yml` (Pulse + Postgres 16 + InfluxDB 2.7 with health checks)
+- `docker-compose.yml` (Pulse + TimescaleDB/PostgreSQL 16 with health checks)
 - `docker-compose.dev.yml` for local development
 - `Makefile` with `dev`, `build`, `test`, `migrate`, `run` targets
 - Migration tooling via `golang-migrate` (`cmd/migrate`)
@@ -34,14 +34,14 @@ What's delivered:
 
 ## Milestone B: Data Layer ✅ DONE
 
-**Goal:** Durable config/state in PostgreSQL, time-series writes/reads through InfluxDB.
+**Goal:** Durable config/state in PostgreSQL, time-series writes/reads through TimescaleDB.
 
 What's delivered:
 - Full PostgreSQL schema: `users`, `api_tokens`, `secrets`, `monitors`, `incidents`, `check_results`
 - Proper indexes for scheduler priority queue and query patterns
 - `sqlc`-generated typed query layer (CRUD + paginated lists for all resources)
-- InfluxDB write/query helpers (`WriteCheckResult`, `QueryHistory`)
-- Fail-fast startup: process exits non-zero when Postgres or InfluxDB is unreachable
+- TimescaleDB write/query helpers (`WriteCheckResult`, `QueryHistory`)
+- Fail-fast startup: process exits non-zero when Postgres is unreachable or TimescaleDB extension is unavailable
 - `X-Request-ID` middleware and `/healthz` endpoints
 
 ---
@@ -130,7 +130,7 @@ Planned deliverables:
 |-------|--------|-------|
 | PostgreSQL schema | ✅ Complete | All MVP tables, indexes, constraints |
 | sqlc query layer | ✅ Complete | CRUD + paginated lists generated |
-| InfluxDB helpers | ✅ Complete | Write + range query working |
+| TimescaleDB helpers | ✅ Complete | Write + range query scaffold |
 | Fail-fast startup | ✅ Complete | Exits on missing dependencies |
 | Docker infrastructure | ✅ Complete | Compose, Dockerfile, health checks |
 | Makefile | ✅ Complete | All primary targets defined |
@@ -163,7 +163,7 @@ Planned deliverables:
 - [ ] `make dev` starts all services cleanly
 - [ ] Auth login and protected route rejection
 - [ ] API token raw value shown once only
-- [ ] Monitor checks write visible history in InfluxDB
+- [ ] Monitor checks write visible history in TimescaleDB
 - [ ] Secrets redacted in all API responses
 - [ ] `/metrics` exposes required Prometheus series
 - [ ] Frontend handles 500 monitor mock load without freezing

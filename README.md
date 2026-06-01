@@ -15,7 +15,7 @@ Core implementation work is tracked in:
 
 - Backend: Go single binary (API, scheduler, websocket hub)
 - Frontend: SvelteKit static build embedded in backend binary
-- Storage: PostgreSQL for config and state, InfluxDB for time-series history
+- Storage: PostgreSQL for config/state and time-series history (TimescaleDB extension)
 - Observability: Prometheus metrics at /metrics
 
 ## MVP Scope
@@ -62,16 +62,14 @@ Minimum expected updates:
    - `make dev-local`
 
 The backend fails fast on startup: it exits with a non-zero code if PostgreSQL
-or InfluxDB cannot be reached. `make dev` provisions both via Docker Compose
-(including InfluxDB org/bucket/token), so `make run` against a local stack
-expects those dependencies to be up.
+is unreachable or the TimescaleDB extension is unavailable. `make dev` provisions
+TimescaleDB-enabled PostgreSQL via Docker Compose, so `make run` against a local
+stack expects that dependency to be up.
 
 Key environment variables:
 
 - `PULSE_PORT` (default `8080`)
 - `DATABASE_URL` (default `postgres://pulse:pulse@localhost:5432/pulse?sslmode=disable`)
-- `INFLUXDB_URL` (default `http://influxdb:8086`)
-- `INFLUXDB_TOKEN`, `INFLUXDB_ORG` (default `pulse`), `INFLUXDB_BUCKET` (default `pulse`)
 
 Health endpoints:
 
