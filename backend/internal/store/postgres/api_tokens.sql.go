@@ -24,14 +24,15 @@ func (q *Queries) CountAPITokensByUser(ctx context.Context, userID uuid.UUID) (i
 }
 
 const createAPIToken = `-- name: CreateAPIToken :one
-INSERT INTO api_tokens (user_id, name, token_hash, expires_at)
-VALUES ($1, $2, $3, $4)
-RETURNING id, user_id, name, token_hash, last_used_at, expires_at, revoked_at, created_at
+INSERT INTO api_tokens (user_id, name, prefix, token_hash, expires_at)
+VALUES ($1, $2, $3, $4, $5)
+RETURNING id, user_id, name, token_hash, last_used_at, expires_at, revoked_at, created_at, prefix
 `
 
 type CreateAPITokenParams struct {
 	UserID    uuid.UUID          `db:"user_id" json:"user_id"`
 	Name      string             `db:"name" json:"name"`
+	Prefix    string             `db:"prefix" json:"prefix"`
 	TokenHash string             `db:"token_hash" json:"token_hash"`
 	ExpiresAt pgtype.Timestamptz `db:"expires_at" json:"expires_at"`
 }
@@ -40,6 +41,7 @@ func (q *Queries) CreateAPIToken(ctx context.Context, arg CreateAPITokenParams) 
 	row := q.db.QueryRow(ctx, createAPIToken,
 		arg.UserID,
 		arg.Name,
+		arg.Prefix,
 		arg.TokenHash,
 		arg.ExpiresAt,
 	)
@@ -53,12 +55,13 @@ func (q *Queries) CreateAPIToken(ctx context.Context, arg CreateAPITokenParams) 
 		&i.ExpiresAt,
 		&i.RevokedAt,
 		&i.CreatedAt,
+		&i.Prefix,
 	)
 	return i, err
 }
 
 const getAPIToken = `-- name: GetAPIToken :one
-SELECT id, user_id, name, token_hash, last_used_at, expires_at, revoked_at, created_at FROM api_tokens WHERE id = $1
+SELECT id, user_id, name, token_hash, last_used_at, expires_at, revoked_at, created_at, prefix FROM api_tokens WHERE id = $1
 `
 
 func (q *Queries) GetAPIToken(ctx context.Context, id uuid.UUID) (ApiToken, error) {
@@ -73,12 +76,13 @@ func (q *Queries) GetAPIToken(ctx context.Context, id uuid.UUID) (ApiToken, erro
 		&i.ExpiresAt,
 		&i.RevokedAt,
 		&i.CreatedAt,
+		&i.Prefix,
 	)
 	return i, err
 }
 
 const getAPITokenByHash = `-- name: GetAPITokenByHash :one
-SELECT id, user_id, name, token_hash, last_used_at, expires_at, revoked_at, created_at FROM api_tokens
+SELECT id, user_id, name, token_hash, last_used_at, expires_at, revoked_at, created_at, prefix FROM api_tokens
 WHERE token_hash = $1
   AND revoked_at IS NULL
   AND (expires_at IS NULL OR expires_at > now())
@@ -96,12 +100,50 @@ func (q *Queries) GetAPITokenByHash(ctx context.Context, tokenHash string) (ApiT
 		&i.ExpiresAt,
 		&i.RevokedAt,
 		&i.CreatedAt,
+		&i.Prefix,
 	)
 	return i, err
 }
 
+const listAPITokensByPrefix = `-- name: ListAPITokensByPrefix :many
+SELECT id, user_id, name, token_hash, last_used_at, expires_at, revoked_at, created_at, prefix FROM api_tokens
+WHERE prefix = $1
+  AND revoked_at IS NULL
+  AND (expires_at IS NULL OR expires_at > now())
+`
+
+func (q *Queries) ListAPITokensByPrefix(ctx context.Context, prefix string) ([]ApiToken, error) {
+	rows, err := q.db.Query(ctx, listAPITokensByPrefix, prefix)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ApiToken{}
+	for rows.Next() {
+		var i ApiToken
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.Name,
+			&i.TokenHash,
+			&i.LastUsedAt,
+			&i.ExpiresAt,
+			&i.RevokedAt,
+			&i.CreatedAt,
+			&i.Prefix,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listAPITokensByUser = `-- name: ListAPITokensByUser :many
-SELECT id, user_id, name, token_hash, last_used_at, expires_at, revoked_at, created_at FROM api_tokens
+SELECT id, user_id, name, token_hash, last_used_at, expires_at, revoked_at, created_at, prefix FROM api_tokens
 WHERE user_id = $1
 ORDER BY created_at DESC
 LIMIT $2 OFFSET $3
@@ -131,6 +173,7 @@ func (q *Queries) ListAPITokensByUser(ctx context.Context, arg ListAPITokensByUs
 			&i.ExpiresAt,
 			&i.RevokedAt,
 			&i.CreatedAt,
+			&i.Prefix,
 		); err != nil {
 			return nil, err
 		}
@@ -144,10 +187,10 @@ func (q *Queries) ListAPITokensByUser(ctx context.Context, arg ListAPITokensByUs
 
 const revokeAPIToken = `-- name: RevokeAPIToken :one
 UPDATE api_tokens
-SET revoked_at = now()
+SET revoked_at = COALESCE(revoked_at, now())
 WHERE id = $1
   AND user_id = $2
-RETURNING id, user_id, name, token_hash, last_used_at, expires_at, revoked_at, created_at
+RETURNING id, user_id, name, token_hash, last_used_at, expires_at, revoked_at, created_at, prefix
 `
 
 type RevokeAPITokenParams struct {
@@ -167,6 +210,7 @@ func (q *Queries) RevokeAPIToken(ctx context.Context, arg RevokeAPITokenParams) 
 		&i.ExpiresAt,
 		&i.RevokedAt,
 		&i.CreatedAt,
+		&i.Prefix,
 	)
 	return i, err
 }

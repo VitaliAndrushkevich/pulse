@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/VitaliAndrushkevich/pulse/internal/api/handlers"
+	"github.com/VitaliAndrushkevich/pulse/internal/api/middleware"
 	db "github.com/VitaliAndrushkevich/pulse/internal/store/postgres"
 )
 
@@ -20,6 +21,7 @@ type Deps struct {
 func NewRouter(deps Deps) *gin.Engine {
 	r := gin.New()
 	r.Use(gin.Recovery())
+	r.Use(middleware.SanitizedLogger())
 	r.Use(requestIDMiddleware())
 
 	r.GET("/healthz", func(c *gin.Context) {
@@ -36,9 +38,17 @@ func NewRouter(deps Deps) *gin.Engine {
 		})
 	})
 
+	// Protected group — requires valid Bearer token
+	protected := v1.Group("")
+	protected.Use(middleware.BearerAuth(deps.Queries))
+
+	// Token management endpoints (protected)
+	tokenHandler := handlers.NewTokenHandler(deps.Queries)
+	tokenHandler.Register(protected)
+
 	// Secret write-only API (TASK-010)
 	secretHandler := handlers.NewSecretHandler(deps.Queries, deps.SecretKey)
-	secretHandler.Register(v1)
+	secretHandler.Register(protected)
 
 	return r
 }

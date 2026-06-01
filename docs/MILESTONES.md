@@ -6,13 +6,13 @@ Pulse is a self-hosted uptime monitoring platform (API-first, single-container d
 
 ---
 
-## Current Stage: Early Development (~20-25% complete)
+## Current Stage: Early Development (~35% complete)
 
-Milestones A and B are done. The project has a solid data foundation but no business logic, API handlers, or frontend integration yet.
+Milestones A, B, and C are done. The project has a solid data foundation with full security primitives (encryption, token auth, log sanitization, key rotation). Next up: monitor engine and API surface.
 
 ```
-[████████░░░░░░░░░░░░░░░░░░░░░░░░] ~25%
-     A ✓   B ✓   C…H todo
+[████████████░░░░░░░░░░░░░░░░░░░░] ~35%
+     A ✓   B ✓   C ✓   D…H todo
 ```
 
 ---
@@ -46,16 +46,16 @@ What's delivered:
 
 ---
 
-## Milestone C: Security & Secrets 🚧 IN PROGRESS (next up)
+## Milestone C: Security & Secrets ✅ DONE
 
 **Goal:** Secure at-rest secret handling, single-user auth primitives, API token management.
 
-Planned deliverables:
+Delivered:
 - ✅ AES-256-GCM encryption/decryption module (`internal/crypto`)
 - ✅ Secret write-only API (values never returned in responses)
-- API token create/list/revoke with bcrypt hash storage
-- Log sanitization middleware (strip auth headers and secret fields)
-- Key rotation command (`make rotate-key`) with transactional re-encryption
+- ✅ API token create/list/revoke with bcrypt hash storage
+- ✅ Log sanitization middleware (strip auth headers and secret fields)
+- ✅ Key rotation command (`make rotate-key`) with transactional re-encryption
 
 ---
 
@@ -134,7 +134,7 @@ Planned deliverables:
 | Fail-fast startup | ✅ Complete | Exits on missing dependencies |
 | Docker infrastructure | ✅ Complete | Compose, Dockerfile, health checks |
 | Makefile | ✅ Complete | All primary targets defined |
-| API router | ⚠️ Scaffold | `/healthz` + secret CRUD handlers wired |
+| API router | ⚠️ Scaffold | `/healthz` + secret CRUD + token lifecycle + BearerAuth middleware |
 | Crypto module | ✅ Complete | AES-256-GCM encrypt/decrypt + key validation |
 | Protocol checkers | 🔲 Placeholder | Empty files for HTTP, TCP, UDP, WS |
 | Scheduler | 🔲 Placeholder | Empty file |

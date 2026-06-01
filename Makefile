@@ -34,7 +34,7 @@ migrate-down:
 	cd backend && DATABASE_URL=$(DATABASE_URL) go run ./cmd/migrate -direction down
 
 rotate-key:
-	@echo "not implemented yet: key rotation workflow"
+	cd backend && DATABASE_URL=$(DATABASE_URL) go run ./cmd/rotate
 
 openapi:
 	@echo "not implemented yet: openapi generation"

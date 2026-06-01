@@ -23,5 +23,8 @@ SET
 WHERE id = $1
 RETURNING *;
 
+-- name: ListAllSecrets :many
+SELECT * FROM secrets ORDER BY id;
+
 -- name: DeleteSecret :exec
 DELETE FROM secrets WHERE id = $1;

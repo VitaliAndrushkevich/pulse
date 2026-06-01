@@ -57,7 +57,7 @@ The project is at ~25% of MVP completion. Full milestone breakdown: [docs/MILEST
 |-----------|--------|
 | A: Foundations | ✅ Done |
 | B: Data Layer | ✅ Done |
-| C: Security & Secrets | 🚧 In progress |
+| C: Security & Secrets | ✅ Done |
 | D: Monitor Engine | 🔲 Todo |
 | E: API Surface | 🔲 Todo |
 | F: WebSocket Realtime | 🔲 Todo |

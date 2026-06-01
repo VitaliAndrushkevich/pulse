@@ -144,7 +144,7 @@ This task board converts [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.
   - 8 unit tests pass covering redaction, encryption round-trip, CRUD, and validation.
 
 ### TASK-011: API token lifecycle
-- Status: `todo`
+- Status: `done`
 - Priority: `P0`
 - Depends on: TASK-006
 - Scope:
@@ -153,18 +153,31 @@ This task board converts [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.
   - Return raw token only at creation
 - Done when:
   - Created token cannot be retrieved in raw form afterward
+- Notes:
+  - Schema migration `002_api_tokens_prefix` adds `prefix` column and partial index for efficient lookup.
+  - Pure `internal/token` package: `Generate()` produces 32-byte crypto/rand token (43-char base64url), 8-char prefix, bcrypt hash (cost 10). `ValidateHash()` uses constant-time bcrypt comparison.
+  - `TokenHandler` (Create, List, Revoke) follows `SecretHandler` pattern with strict pagination validation (400 on invalid input).
+  - `BearerAuth` middleware: prefix-based lookup, bcrypt compare, dummy comparison on failure for uniform timing.
+  - Protected route group in router: both TokenHandler and SecretHandler behind BearerAuth.
+  - Idempotent revocation via `COALESCE(revoked_at, now())` in SQL.
+  - Integration tests cover full lifecycle, ordering, field completeness, idempotence, X-Request-ID, and Content-Type.
 
 ### TASK-012: Sanitized logging middleware
-- Status: `todo`
+- Status: `done`
 - Priority: `P0`
 - Depends on: TASK-001
 - Scope:
   - Add middleware that strips/masks `Authorization` and secret-like fields
 - Done when:
   - Logs contain no auth/secret values in integration checks
+- Notes:
+  - `internal/api/middleware/logging.go` implements `SanitizedLogger()` using `gin.LoggerWithFormatter`.
+  - `sanitizeHeaders()` clones request headers and replaces Authorization values with `[REDACTED]`.
+  - Integrated as global middleware in `router.go`.
+  - Unit tests verify redaction, header preservation, and no mutation of originals.
 
 ### TASK-013: Key rotation workflow
-- Status: `todo`
+- Status: `done`
 - Priority: `P1`
 - Depends on: TASK-009, TASK-010
 - Scope:
@@ -172,6 +185,14 @@ This task board converts [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.
   - Re-encrypt all rows transactionally
 - Done when:
   - Rotation succeeds atomically or rolls back fully on failure
+- Notes:
+  - `cmd/rotate/main.go` reads `PULSE_SECRET_KEY` (old) and `PULSE_SECRET_KEY_NEW` (new).
+  - Connects to Postgres, begins a transaction, fetches all secrets via `ListAllSecrets`.
+  - For each secret: base64-decode → decrypt with old key → encrypt with new key → base64-encode → update row.
+  - Commits atomically on success; any failure triggers full rollback.
+  - Added `ListAllSecrets` sqlc query (unpaginated, ordered by id).
+  - Makefile `rotate-key` target wired to `go run ./cmd/rotate`.
+  - Unit test verifies round-trip: old-key encrypt → decrypt → new-key encrypt → new-key decrypt succeeds, old-key decrypt fails.
 
 ## Milestone D: Monitor Engine
 

@@ -73,6 +73,36 @@ func (q *Queries) GetSecret(ctx context.Context, id uuid.UUID) (Secret, error) {
 	return i, err
 }
 
+const listAllSecrets = `-- name: ListAllSecrets :many
+SELECT id, name, encrypted_value, created_at, updated_at FROM secrets ORDER BY id
+`
+
+func (q *Queries) ListAllSecrets(ctx context.Context) ([]Secret, error) {
+	rows, err := q.db.Query(ctx, listAllSecrets)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Secret{}
+	for rows.Next() {
+		var i Secret
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.EncryptedValue,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listSecrets = `-- name: ListSecrets :many
 SELECT id, name, created_at, updated_at FROM secrets
 ORDER BY created_at DESC

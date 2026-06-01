@@ -21,6 +21,7 @@ type ApiToken struct {
 	ExpiresAt  pgtype.Timestamptz `db:"expires_at" json:"expires_at"`
 	RevokedAt  pgtype.Timestamptz `db:"revoked_at" json:"revoked_at"`
 	CreatedAt  time.Time          `db:"created_at" json:"created_at"`
+	Prefix     string             `db:"prefix" json:"prefix"`
 }
 
 type CheckResult struct {
