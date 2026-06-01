@@ -80,13 +80,13 @@ This task board converts [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.
   - Query generation passes in CI/local
   - All list queries support `limit` and `offset` or cursor
 
-### TASK-007: InfluxDB helpers
+### TASK-007: TimescaleDB helpers
 - Status: `done`
 - Priority: `P1`
 - Depends on: TASK-001, TASK-003
 - Scope:
-  - Add write/query adapters in `backend/internal/store/influx/`
-  - Define schema conventions for monitor history measurements and tags
+  - Add write/query adapters in `backend/internal/store/timescale/`
+  - Define schema conventions for monitor history on `check_results` hypertable
 - Done when:
   - Test write and range query return expected points
 
@@ -95,13 +95,13 @@ This task board converts [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.
 - Priority: `P0`
 - Depends on: TASK-006, TASK-007
 - Scope:
-  - Wire Postgres and Influx startup checks in `main.go`
+  - Wire Postgres and TimescaleDB startup checks in `main.go`
   - Exit startup on dependency connectivity failure
 - Done when:
   - Process exits non-zero when either DB is unavailable
 - Notes:
   - `internal/store/postgres/pool.go` adds `Connect` (pgxpool + ping).
-  - `main.go` pings Postgres and InfluxDB within a 10s startup timeout and
+  - `main.go` pings Postgres and validates TimescaleDB extension within a 10s startup timeout and
     calls `log.Fatalf` (exit 1) on failure. Verified exit code 1 when Postgres
     is unreachable and a clean boot under `docker compose up`.
 
@@ -261,7 +261,7 @@ This task board converts [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.
 - Priority: `P1`
 - Depends on: TASK-007, TASK-023
 - Scope:
-  - `GET /api/v1/monitors/{id}/history` backed by Influx query helpers
+  - `GET /api/v1/monitors/{id}/history` backed by TimescaleDB query helpers
 - Done when:
   - Response includes bounded time-series window and expected points
 
@@ -424,7 +424,7 @@ This task board converts [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.
 - VM-001: `make dev` starts all services
 - VM-002: Auth login and protected route rejection behavior
 - VM-003: API token raw value shown once only
-- VM-004: Monitor check writes visible history in InfluxDB
+- VM-004: Monitor check writes visible history in TimescaleDB
 - VM-005: Secrets redacted in monitor API responses
 - VM-006: `/metrics` exposes required series
 - VM-007: Frontend handles 500 monitor mock load without freezing
