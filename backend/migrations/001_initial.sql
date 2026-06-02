@@ -1,2 +1,0 @@
--- This file is superseded by 001_initial.up.sql / 001_initial.down.sql.
--- golang-migrate uses {version}_{title}.{up|down}.sql naming conventions.

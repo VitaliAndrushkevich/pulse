@@ -9,6 +9,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 
 	"github.com/VitaliAndrushkevich/pulse/internal/api/handlers"
+	"github.com/VitaliAndrushkevich/pulse/internal/hub"
 	db "github.com/VitaliAndrushkevich/pulse/internal/store/postgres"
 	"github.com/VitaliAndrushkevich/pulse/internal/store/timescale"
 )
@@ -38,12 +39,13 @@ type Scheduler struct {
 	queries   *db.Queries
 	tsStore   *timescale.Store
 	metrics   *handlers.Metrics
+	hub       *hub.Hub // WebSocket broadcast hub (may be nil)
 	wakeupCh  chan struct{} // signals immediate re-poll (from LISTEN/NOTIFY)
 	stopOnce  sync.Once
 }
 
 // NewScheduler creates a scheduler with the given configuration and dependencies.
-func NewScheduler(cfg SchedulerConfig, registry *Registry, queries *db.Queries, tsStore *timescale.Store, metrics *handlers.Metrics) *Scheduler {
+func NewScheduler(cfg SchedulerConfig, registry *Registry, queries *db.Queries, tsStore *timescale.Store, metrics *handlers.Metrics, wsHub *hub.Hub) *Scheduler {
 	if cfg.Workers <= 0 {
 		cfg.Workers = DefaultWorkers
 	}
@@ -59,6 +61,7 @@ func NewScheduler(cfg SchedulerConfig, registry *Registry, queries *db.Queries, 
 		queries:  queries,
 		tsStore:  tsStore,
 		metrics:  metrics,
+		hub:      wsHub,
 		wakeupCh: make(chan struct{}, 1),
 	}
 }
@@ -208,6 +211,19 @@ func (s *Scheduler) executeCheck(ctx context.Context, m db.Monitor) {
 		}
 		s.metrics.MonitorUp.WithLabelValues(labels...).Set(upVal)
 		s.metrics.MonitorResponseTime.WithLabelValues(labels...).Set(float64(result.LatencyMs) / 1000.0)
+	}
+
+	// Broadcast status update via WebSocket hub (TASK-029).
+	if s.hub != nil {
+		s.hub.Broadcast(hub.NewMonitorStatusMessage(
+			m.ID.String(),
+			result.State,
+			result.LatencyMs,
+			result.StatusCode,
+			result.SSLDaysRemaining,
+			result.Error,
+			result.CheckedAt,
+		))
 	}
 }
 

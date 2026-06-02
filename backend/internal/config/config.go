@@ -20,6 +20,8 @@ type App struct {
 	SchedulerWorkers int
 	JWTSecret        string
 	JWTExpiry        string
+	DevMode          bool
+	OpenAPIDir       string
 }
 
 // Migrate stores runtime configuration for the migration command.
@@ -36,6 +38,8 @@ func LoadApp() App {
 		SchedulerWorkers: getEnvInt("PULSE_SCHEDULER_WORKERS", defaultSchedulerWorkers),
 		JWTSecret:        getEnv("PULSE_JWT_SECRET", ""),
 		JWTExpiry:        getEnv("PULSE_JWT_EXPIRY", defaultJWTExpiry),
+		DevMode:          getEnv("PULSE_DEV", "") == "true",
+		OpenAPIDir:       getEnv("PULSE_OPENAPI_DIR", "api"),
 	}
 }
 

@@ -91,14 +91,15 @@ CREATE INDEX idx_incidents_unresolved ON incidents (monitor_id)
 -- check_results  (time-series monitor history in TimescaleDB)
 -- -------------------------------------------------------
 CREATE TABLE check_results (
-    id          UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+    id          UUID        NOT NULL DEFAULT gen_random_uuid(),
     monitor_id  UUID        NOT NULL REFERENCES monitors (id) ON DELETE CASCADE,
     checked_at  TIMESTAMPTZ NOT NULL,
     state       TEXT        NOT NULL CHECK (state IN ('up', 'down')),
     latency_ms  INTEGER,
     status_code INTEGER,
     error       TEXT,
-    created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+    created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+    PRIMARY KEY (id, checked_at)
 );
 
 CREATE INDEX idx_check_results_monitor_id_checked_at ON check_results (monitor_id, checked_at DESC);

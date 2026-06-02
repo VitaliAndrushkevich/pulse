@@ -11,6 +11,7 @@ FROM gcr.io/distroless/static-debian12 AS runtime
 
 WORKDIR /app
 COPY --from=backend-builder /out/pulse /app/pulse
+COPY backend/api/openapi.yaml /app/api/openapi.yaml
 
 EXPOSE 8080
 ENTRYPOINT ["/app/pulse"]

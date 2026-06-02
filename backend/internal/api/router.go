@@ -13,6 +13,7 @@ import (
 
 	"github.com/VitaliAndrushkevich/pulse/internal/api/handlers"
 	"github.com/VitaliAndrushkevich/pulse/internal/api/middleware"
+	"github.com/VitaliAndrushkevich/pulse/internal/hub"
 	db "github.com/VitaliAndrushkevich/pulse/internal/store/postgres"
 	"github.com/VitaliAndrushkevich/pulse/internal/store/timescale"
 	"github.com/VitaliAndrushkevich/pulse/internal/token"
@@ -27,6 +28,9 @@ type Deps struct {
 	TimescaleStore *timescale.Store
 	Metrics        *handlers.Metrics
 	PromRegistry   *prometheus.Registry
+	Hub            *hub.Hub
+	DevMode        bool
+	OpenAPIDir     string // directory containing openapi.yaml, used for swagger in dev mode
 }
 
 func NewRouter(deps Deps) *gin.Engine {
@@ -41,9 +45,21 @@ func NewRouter(deps Deps) *gin.Engine {
 		})
 	})
 
+	// Swagger UI available only in dev mode (PULSE_DEV=true).
+	if deps.DevMode {
+		handlers.RegisterSwaggerRoutes(r, deps.OpenAPIDir)
+	}
+
 	// Prometheus metrics endpoint (TASK-026) — no auth required for scraping.
 	if deps.PromRegistry != nil {
 		handlers.RegisterMetricsRoute(r, deps.PromRegistry)
+	}
+
+	// Authenticated WebSocket endpoint (TASK-030).
+	// Auth is validated via ?token= query parameter before HTTP upgrade.
+	if deps.Hub != nil {
+		wsHandler := handlers.NewWSHandler(deps.Hub, deps.Queries, deps.JWTSecret)
+		r.GET("/ws", wsHandler.Handle)
 	}
 
 	v1 := r.Group("/api/v1")

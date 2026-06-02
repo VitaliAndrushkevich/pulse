@@ -429,16 +429,24 @@ This task board converts [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.
 ## Milestone F: WebSocket and Realtime
 
 ### TASK-028: Hub implementation
-- Status: `todo`
+- Status: `done`
 - Priority: `P0`
 - Depends on: TASK-019
 - Scope:
   - Implement fan-out hub in `backend/internal/hub/hub.go`
 - Done when:
   - Multiple clients can connect/disconnect without leaks
+- Notes:
+  - `internal/hub/hub.go` implements a concurrent fan-out WebSocket hub using event-loop pattern (single goroutine, channel-based register/unregister/broadcast).
+  - `Client` struct wraps `gorilla/websocket.Conn` with buffered send channel (256 messages).
+  - Ping/pong keepalive (54s ping interval, 60s pong timeout) for connection health.
+  - Slow consumers are disconnected when their send buffer fills (no blocking fan-out).
+  - `hub.Stop()` closes all client connections on graceful shutdown.
+  - `hub.Broadcast(Message)` is non-blocking; drops messages with log warning if broadcast channel is full.
+  - Wired into `main.go` as a background goroutine; stopped on SIGINT/SIGTERM.
 
 ### TASK-029: Diff patch pipeline
-- Status: `todo`
+- Status: `done`
 - Priority: `P0`
 - Depends on: TASK-028, TASK-019
 - Scope:
@@ -446,15 +454,29 @@ This task board converts [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.
   - Broadcast changed fields only
 - Done when:
   - No full-state monitor snapshots sent on incremental updates
+- Notes:
+  - `internal/hub/messages.go` defines `MonitorStatusPayload` — a patch containing only the fields that changed: monitor_id, state, latency_ms, status_code (optional), ssl_days_remaining (optional), error (optional), checked_at, timestamp.
+  - Message envelope `{ "type": "monitor_status", "payload": {...} }` allows extensibility for future message types.
+  - Scheduler calls `hub.Broadcast(hub.NewMonitorStatusMessage(...))` after each check completes (after metrics update).
+  - Hub field is nil-checked — scheduler works without a hub for backward compatibility.
+  - No full-state snapshots: each message contains only the latest check result for one monitor.
 
 ### TASK-030: Authenticated websocket endpoint
-- Status: `todo`
+- Status: `done`
 - Priority: `P1`
 - Depends on: TASK-022, TASK-028
 - Scope:
   - Add `/ws` endpoint with auth gate
 - Done when:
   - Unauthorized clients are rejected before upgrade
+- Notes:
+  - `GET /ws` endpoint registered on the root router (outside `/api/v1` for cleaner WS URLs).
+  - Auth via `?token=` query parameter (browsers cannot set Authorization headers on WebSocket connections).
+  - Validates JWT (HS256, same secret as REST API) or API token (prefix-based bcrypt lookup) before HTTP upgrade.
+  - Unauthorized requests receive 401 JSON error response — no WebSocket upgrade occurs.
+  - On successful upgrade, sends initial `{ "type": "connected", "payload": { "client_id", "timestamp" } }` message.
+  - Dummy bcrypt comparison on all failure paths for uniform timing.
+  - `WSHandler` registered in router only when `Hub` is non-nil in `Deps`.
 
 ## Milestone G: Frontend
 

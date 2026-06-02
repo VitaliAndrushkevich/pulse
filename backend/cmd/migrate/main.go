@@ -7,9 +7,11 @@ import (
 	"log"
 
 	"github.com/VitaliAndrushkevich/pulse/internal/config"
+	"github.com/VitaliAndrushkevich/pulse/migrations"
+
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
-	_ "github.com/golang-migrate/migrate/v4/source/file"
+	"github.com/golang-migrate/migrate/v4/source/iofs"
 )
 
 func main() {
@@ -19,7 +21,12 @@ func main() {
 
 	cfg := config.LoadMigrate()
 
-	m, err := migrate.New(cfg.MigrationsPath, cfg.DatabaseURL)
+	source, err := iofs.New(migrations.FS, ".")
+	if err != nil {
+		log.Fatalf("failed to open embedded migrations: %v", err)
+	}
+
+	m, err := migrate.NewWithSourceInstance("iofs", source, cfg.DatabaseURL)
 	if err != nil {
 		log.Fatalf("failed to create migrator: %v", err)
 	}
