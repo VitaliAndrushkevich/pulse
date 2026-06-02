@@ -6,13 +6,13 @@ Pulse is a self-hosted uptime monitoring platform (API-first, single-container d
 
 ---
 
-## Current Stage: Early Development (~35% complete)
+## Current Stage: Mid Development (~50% complete)
 
-Milestones A, B, and C are done. The project has a solid data foundation with full security primitives (encryption, token auth, log sanitization, key rotation). Next up: monitor engine and API surface.
+Milestones A, B, C, and D are done. The project has a solid data foundation, full security primitives, and a complete monitor execution engine with bounded worker pool scheduler. Next up: API surface and WebSocket realtime.
 
 ```
-[████████████░░░░░░░░░░░░░░░░░░░░] ~35%
-     A ✓   B ✓   C ✓   D…H todo
+[████████████████░░░░░░░░░░░░░░░░] ~50%
+     A ✓   B ✓   C ✓   D ✓   E…H todo
 ```
 
 ---
@@ -59,16 +59,22 @@ Delivered:
 
 ---
 
-## Milestone D: Monitor Execution Engine 🔲 TODO
+## Milestone D: Monitor Execution Engine ✅ DONE
 
 **Goal:** Reliable check execution for all MVP protocols, scheduler that scales to 500+ monitors.
 
-Planned deliverables:
-- `Checker` interface and shared `Result` model
-- Protocol checkers: HTTP/HTTPS, TCP, UDP, WebSocket
-- Bounded worker pool scheduler (default concurrency 200)
-- Priority queue by `next_check_at`
-- PostgreSQL `LISTEN/NOTIFY` wakeups on monitor changes
+Delivered:
+- ✅ `Checker` interface and shared `Result` model (`internal/monitor/checker.go`)
+- ✅ HTTP/HTTPS checker with configurable expected status codes (explicit list or range), SSL certificate chain validation, expiry threshold, custom headers, redirect control
+- ✅ TCP checker — dial + latency measurement via context-aware `net.Dialer`
+- ✅ UDP checker — reachability mode (default) + payload/response validation mode
+- ✅ WebSocket checker — `gorilla/websocket` with optional handshake message validation
+- ✅ Bounded worker pool scheduler (configurable: `PULSE_SCHEDULER_WORKERS`, default 50 dev / 200 production)
+- ✅ Priority-based polling via `ListActiveMonitorsDue` (ordered by `next_check_at ASC NULLS FIRST`)
+- ✅ Dual-write results to TimescaleDB (time-series) and `check_results` table (API)
+- ✅ PostgreSQL `LISTEN/NOTIFY` wakeups — zero-delay scheduling on monitor create/update (migration `003_monitor_notify_trigger`)
+- ✅ Graceful shutdown via context cancellation; workers drain before exit
+- ✅ `gorilla/websocket` dependency added for WebSocket checker
 
 ---
 
@@ -136,8 +142,8 @@ Planned deliverables:
 | Makefile | ✅ Complete | All primary targets defined |
 | API router | ⚠️ Scaffold | `/healthz` + secret CRUD + token lifecycle + BearerAuth middleware |
 | Crypto module | ✅ Complete | AES-256-GCM encrypt/decrypt + key validation |
-| Protocol checkers | 🔲 Placeholder | Empty files for HTTP, TCP, UDP, WS |
-| Scheduler | 🔲 Placeholder | Empty file |
+| Protocol checkers | ✅ Complete | HTTP/HTTPS, TCP, UDP, WebSocket — all compiled and wired |
+| Scheduler | ✅ Complete | Bounded worker pool, LISTEN/NOTIFY wakeups, graceful shutdown |
 | WebSocket hub | 🔲 Placeholder | Empty file |
 | Metrics | 🔲 Placeholder | Empty file |
 | Frontend | ⚠️ Scaffold | Layout + static dashboard, no data integration |
@@ -149,12 +155,10 @@ Planned deliverables:
 
 ## Recommended Next Steps (Priority Order)
 
-1. **Milestone C** — Security is a prerequisite for all API work
-2. **Milestone E** — API handlers (can partially overlap with C)
-3. **Milestone D** — Monitor engine (independent of API, can parallelize)
-4. **Milestone F** — WebSocket (depends on D)
-5. **Milestone G** — Frontend (depends on E and F)
-6. **Milestone H** — Packaging (depends on everything)
+1. **Milestone E** — API surface (monitor CRUD, JWT auth, OpenAPI contract)
+2. **Milestone F** — WebSocket hub and diff/patch pipeline (can parallelize with E)
+3. **Milestone G** — Frontend product (depends on E and F)
+4. **Milestone H** — Packaging and release (depends on everything)
 
 ---
 

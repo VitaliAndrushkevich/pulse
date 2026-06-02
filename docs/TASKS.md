@@ -197,52 +197,84 @@ This task board converts [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.
 ## Milestone D: Monitor Engine
 
 ### TASK-014: Checker interface and result model
-- Status: `todo`
+- Status: `done`
 - Priority: `P0`
 - Depends on: TASK-006
 - Scope:
   - Define shared `Checker` interface and protocol-neutral result fields
 - Done when:
   - All checker implementations compile against shared interface
+- Notes:
+  - `internal/monitor/checker.go` defines `Checker` interface with `Check(ctx, target, settings) Result`.
+  - `Result` struct: `State` (up/down), `LatencyMs`, `StatusCode` (optional), `SSLDaysRemaining` (optional), `Error`.
+  - `Registry` maps type strings to implementations; `DefaultRegistry()` wires all built-in checkers.
+  - All four protocol implementations compile against the shared interface.
 
 ### TASK-015: HTTP/HTTPS checker
-- Status: `todo`
+- Status: `done`
 - Priority: `P0`
 - Depends on: TASK-014
 - Scope:
   - Status code, latency, SSL expiry days
 - Done when:
   - Checker records expected result fields for healthy and failing targets
+- Notes:
+  - `internal/monitor/http.go` implements `HTTPChecker` using stdlib `net/http`.
+  - Configurable `HTTPSettings` stored in monitor `settings` JSON column at creation time:
+    - `expected_statuses`: explicit list of acceptable codes (e.g. `[200, 201, 301]`) — takes priority over range.
+    - `expected_status_min` / `expected_status_max`: fallback range (default 200–399).
+    - `method`: HTTP verb (default GET).
+    - `headers`: custom request headers map.
+    - `follow_redirects` / `max_redirects`: redirect policy (default: don't follow).
+    - `skip_tls_verify`: disable cert verification (default false).
+    - `ssl_expiry_threshold`: fail if cert expires within N days (default 0 = disabled).
+    - `validate_cert_chain`: explicit chain validation against system CAs (default true for HTTPS).
+  - Certificate validation: full chain verified via `x509.Verify` with system root CAs; invalid/expired/wrong-hostname cert → state "down".
+  - SSL expiry threshold: if cert days remaining ≤ threshold → state "down" with clear warning.
+  - Records: response latency, status code, SSL days remaining.
 
 ### TASK-016: TCP checker
-- Status: `todo`
+- Status: `done`
 - Priority: `P1`
 - Depends on: TASK-014
 - Scope:
   - Dial target and measure latency
 - Done when:
   - Checker captures success/failure and latency
+- Notes:
+  - `internal/monitor/tcp.go` implements `TCPChecker` using `net.Dialer.DialContext`.
+  - Context carries timeout deadline; reports latency and up/down based on dial success.
 
 ### TASK-017: UDP checker
-- Status: `todo`
+- Status: `done`
 - Priority: `P1`
 - Depends on: TASK-014
 - Scope:
   - Send payload and await expected response with timeout
 - Done when:
   - Checker handles timeout and malformed response scenarios
+- Notes:
+  - `internal/monitor/udp.go` implements `UDPChecker` with two modes:
+    - Reachability mode (default): sends zero-byte datagram, treats timeout as "up" (no ICMP rejection).
+    - Payload mode: sends base64-decoded payload, validates response against `expected_response`.
+  - Handles timeout vs connection-refused vs response-mismatch as distinct error cases.
 
 ### TASK-018: WebSocket checker
-- Status: `todo`
+- Status: `done`
 - Priority: `P1`
 - Depends on: TASK-014
 - Scope:
   - Connect and optional handshake message validation
 - Done when:
   - Checker reports connect and handshake outcomes
+- Notes:
+  - `internal/monitor/websocket.go` implements `WebSocketChecker` using `gorilla/websocket`.
+  - Supports optional handshake: send message after connect, validate response.
+  - Connection success without handshake config = "up".
+  - Custom headers supported for upgrade request.
 
 ### TASK-019: Scheduler core
-- Status: `todo`
+- Status: `done`
 - Priority: `P0`
 - Depends on: TASK-015, TASK-016, TASK-017, TASK-018
 - Scope:
@@ -251,15 +283,29 @@ This task board converts [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.
   - Persistent scheduling loop
 - Done when:
   - No unbounded goroutine growth under 500 monitor load test
+- Notes:
+  - `internal/monitor/scheduler.go` implements `Scheduler` with bounded worker pool.
+  - Config: `PULSE_SCHEDULER_WORKERS` (default 50 dev, 200 production), 1s tick, 500 batch.
+  - Poll loop uses `ListActiveMonitorsDue` (ordered by `next_check_at ASC NULLS FIRST`).
+  - Workers dispatch via buffered channel — backpressure, no unbounded goroutines.
+  - Each check: run checker → write to TimescaleDB + check_results → update monitor state + next_check_at.
+  - Graceful shutdown via context cancellation; all workers drain before exit.
+  - Wakeup channel allows LISTEN/NOTIFY to trigger immediate re-poll.
 
 ### TASK-020: LISTEN/NOTIFY wakeups
-- Status: `todo`
+- Status: `done`
 - Priority: `P1`
 - Depends on: TASK-019
 - Scope:
   - Trigger scheduler wakeup on monitor create/update
 - Done when:
   - New monitor starts scheduling without polling delay
+- Notes:
+  - `internal/monitor/notify.go` implements `Listener` subscribing to `monitor_changes` channel.
+  - Migration `003_monitor_notify_trigger` adds `notify_monitor_change()` function and `trg_monitor_notify` trigger (AFTER INSERT OR UPDATE on monitors).
+  - Payload is the monitor UUID; listener calls `scheduler.Wakeup()` on each notification.
+  - Reconnects automatically on connection loss.
+  - Wired into `main.go` alongside the scheduler as background goroutines.
 
 ## Milestone E: API and Contract
 

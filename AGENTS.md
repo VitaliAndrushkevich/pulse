@@ -51,24 +51,30 @@ Core outcomes:
 
 ## Current Progress
 
-The project is at ~25% of MVP completion. Full milestone breakdown: [docs/MILESTONES.md](docs/MILESTONES.md).
+The project is at ~50% of MVP completion. Full milestone breakdown: [docs/MILESTONES.md](docs/MILESTONES.md).
 
 | Milestone | Status |
 |-----------|--------|
 | A: Foundations | ✅ Done |
 | B: Data Layer | ✅ Done |
 | C: Security & Secrets | ✅ Done |
-| D: Monitor Engine | 🔲 Todo |
+| D: Monitor Engine | ✅ Done |
 | E: API Surface | 🔲 Todo |
 | F: WebSocket Realtime | 🔲 Todo |
 | G: Frontend Product | 🔲 Todo |
 | H: Packaging & Release | 🔲 Todo |
 
-Completed: PostgreSQL schema + indexes, sqlc query layer, TimescaleDB history store scaffold, Docker Compose infrastructure, fail-fast startup, migration tooling, basic gin router with X-Request-ID.
-Completed: PostgreSQL schema + indexes, sqlc query layer, InfluxDB helpers, Docker Compose infrastructure, fail-fast startup, migration tooling, basic gin router with X-Request-ID, AES-256-GCM crypto module.
-Completed: PostgreSQL schema + indexes, sqlc query layer, InfluxDB helpers, Docker Compose infrastructure, fail-fast startup, migration tooling, basic gin router with X-Request-ID, AES-256-GCM crypto module, secret write-only API (CRUD with redacted responses).
+Completed (A–D):
+- PostgreSQL schema + indexes, sqlc query layer, TimescaleDB history store scaffold
+- Docker Compose infrastructure, fail-fast startup, migration tooling
+- Basic gin router with X-Request-ID, sanitized logging middleware
+- AES-256-GCM crypto module, secret write-only API, API token lifecycle, key rotation
+- Monitor engine: Checker interface + Result model, HTTP/HTTPS checker (expected status codes, cert chain validation, SSL expiry threshold), TCP checker, UDP checker (reachability + payload mode), WebSocket checker (gorilla/websocket)
+- Bounded worker pool scheduler (configurable via `PULSE_SCHEDULER_WORKERS`, default 50 dev / 200 prod)
+- LISTEN/NOTIFY wakeups for instant scheduling on monitor create/update
+- Graceful shutdown with context cancellation
 
-Next priority: Milestone C (token lifecycle, log sanitization, key rotation) → then Milestones D and E in parallel.
+Next priority: Milestone E (API surface — monitor CRUD, JWT auth, OpenAPI) and Milestone F (WebSocket hub) in parallel.
 
 ## Build and Test
 Primary commands (expected):
