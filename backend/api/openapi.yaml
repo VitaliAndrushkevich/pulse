@@ -1,0 +1,767 @@
+openapi: 3.0.3
+info:
+  title: Pulse API
+  description: Self-hosted uptime monitoring platform API.
+  version: 1.0.0
+  contact:
+    name: Pulse
+
+servers:
+  - url: /api/v1
+    description: API v1
+
+security:
+  - bearerAuth: []
+
+paths:
+  /auth/login:
+    post:
+      operationId: login
+      summary: Authenticate user
+      tags: [Auth]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: Successful authentication
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /monitors:
+    get:
+      operationId: listMonitors
+      summary: List all monitors
+      tags: [Monitors]
+      parameters:
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: Paginated list of monitors
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MonitorListResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    post:
+      operationId: createMonitor
+      summary: Create a new monitor
+      tags: [Monitors]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateMonitorRequest"
+      responses:
+        "201":
+          description: Monitor created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Monitor"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /monitors/{id}:
+    get:
+      operationId: getMonitor
+      summary: Get a monitor by ID
+      tags: [Monitors]
+      parameters:
+        - $ref: "#/components/parameters/MonitorID"
+      responses:
+        "200":
+          description: Monitor details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Monitor"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    put:
+      operationId: putMonitor
+      summary: Create or update a monitor (idempotent)
+      tags: [Monitors]
+      parameters:
+        - $ref: "#/components/parameters/MonitorID"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PutMonitorRequest"
+      responses:
+        "200":
+          description: Monitor created or updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Monitor"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    delete:
+      operationId: deleteMonitor
+      summary: Delete a monitor
+      tags: [Monitors]
+      parameters:
+        - $ref: "#/components/parameters/MonitorID"
+      responses:
+        "204":
+          description: Monitor deleted
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /monitors/{id}/history:
+    get:
+      operationId: getMonitorHistory
+      summary: Get check history for a monitor
+      tags: [Monitors]
+      parameters:
+        - $ref: "#/components/parameters/MonitorID"
+        - name: from
+          in: query
+          description: Start of time range (RFC 3339). Defaults to 24h ago.
+          schema:
+            type: string
+            format: date-time
+        - name: to
+          in: query
+          description: End of time range (RFC 3339). Defaults to now.
+          schema:
+            type: string
+            format: date-time
+      responses:
+        "200":
+          description: Check history points
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HistoryResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /monitors/{id}/incidents:
+    get:
+      operationId: listMonitorIncidents
+      summary: List incidents for a specific monitor
+      tags: [Incidents]
+      parameters:
+        - $ref: "#/components/parameters/MonitorID"
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: Paginated list of incidents
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IncidentListResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /incidents:
+    get:
+      operationId: listIncidents
+      summary: List all incidents
+      tags: [Incidents]
+      parameters:
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/Limit"
+        - name: status
+          in: query
+          description: Filter by status (open for unresolved only)
+          schema:
+            type: string
+            enum: [open]
+      responses:
+        "200":
+          description: Paginated list of incidents
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IncidentListResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /secrets:
+    get:
+      operationId: listSecrets
+      summary: List secrets (values redacted)
+      tags: [Secrets]
+      parameters:
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: Paginated list of secrets
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SecretListResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    post:
+      operationId: createSecret
+      summary: Create a new secret
+      tags: [Secrets]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateSecretRequest"
+      responses:
+        "201":
+          description: Secret created (value not returned)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Secret"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+  /secrets/{id}:
+    get:
+      operationId: getSecret
+      summary: Get a secret by ID (value redacted)
+      tags: [Secrets]
+      parameters:
+        - $ref: "#/components/parameters/SecretID"
+      responses:
+        "200":
+          description: Secret metadata
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Secret"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    put:
+      operationId: updateSecret
+      summary: Update a secret
+      tags: [Secrets]
+      parameters:
+        - $ref: "#/components/parameters/SecretID"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateSecretRequest"
+      responses:
+        "200":
+          description: Secret updated (value not returned)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Secret"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      operationId: deleteSecret
+      summary: Delete a secret
+      tags: [Secrets]
+      parameters:
+        - $ref: "#/components/parameters/SecretID"
+      responses:
+        "204":
+          description: Secret deleted
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /tokens:
+    get:
+      operationId: listTokens
+      summary: List API tokens
+      tags: [Tokens]
+      parameters:
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: Paginated list of tokens
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TokenListResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    post:
+      operationId: createToken
+      summary: Create a new API token (raw value returned once)
+      tags: [Tokens]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTokenRequest"
+      responses:
+        "201":
+          description: Token created (raw value shown only at creation)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateTokenResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+  /tokens/{id}:
+    delete:
+      operationId: revokeToken
+      summary: Revoke an API token
+      tags: [Tokens]
+      parameters:
+        - $ref: "#/components/parameters/TokenID"
+      responses:
+        "200":
+          description: Token revoked
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Token"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT or API Token
+
+  parameters:
+    Page:
+      name: page
+      in: query
+      description: Page number (1-based)
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    Limit:
+      name: limit
+      in: query
+      description: Items per page (max 100)
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+    MonitorID:
+      name: id
+      in: path
+      required: true
+      description: Monitor UUID
+      schema:
+        type: string
+        format: uuid
+    SecretID:
+      name: id
+      in: path
+      required: true
+      description: Secret UUID
+      schema:
+        type: string
+        format: uuid
+    TokenID:
+      name: id
+      in: path
+      required: true
+      description: Token UUID
+      schema:
+        type: string
+        format: uuid
+
+  responses:
+    BadRequest:
+      description: Validation error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    Unauthorized:
+      description: Authentication required or failed
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+
+  schemas:
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+
+    LoginResponse:
+      type: object
+      required: [token, expires_at]
+      properties:
+        token:
+          type: string
+          description: JWT token
+        expires_at:
+          type: string
+          format: date-time
+
+    Monitor:
+      type: object
+      required:
+        - id
+        - name
+        - type
+        - target
+        - interval_seconds
+        - timeout_seconds
+        - status
+        - state
+        - settings
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        type:
+          type: string
+          enum: [http, https, tcp, udp, websocket]
+        target:
+          type: string
+        interval_seconds:
+          type: integer
+        timeout_seconds:
+          type: integer
+        status:
+          type: string
+          enum: [active, paused]
+        state:
+          type: string
+          enum: [up, down, unknown]
+        last_checked_at:
+          type: string
+          format: date-time
+          nullable: true
+        next_check_at:
+          type: string
+          format: date-time
+          nullable: true
+        settings:
+          type: object
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    CreateMonitorRequest:
+      type: object
+      required: [name, type, target]
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+          enum: [http, https, tcp, udp, websocket]
+        target:
+          type: string
+        interval_seconds:
+          type: integer
+          default: 60
+        timeout_seconds:
+          type: integer
+          default: 10
+        status:
+          type: string
+          enum: [active, paused]
+          default: active
+        settings:
+          type: object
+
+    PutMonitorRequest:
+      type: object
+      required: [name, type, target]
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+          enum: [http, https, tcp, udp, websocket]
+        target:
+          type: string
+        interval_seconds:
+          type: integer
+          default: 60
+        timeout_seconds:
+          type: integer
+          default: 10
+        status:
+          type: string
+          enum: [active, paused]
+          default: active
+        settings:
+          type: object
+
+    MonitorListResponse:
+      type: object
+      required: [data, total, page, limit, total_pages]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Monitor"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+        total_pages:
+          type: integer
+
+    HistoryPoint:
+      type: object
+      required: [state, checked_at]
+      properties:
+        state:
+          type: string
+          enum: [up, down]
+        latency_ms:
+          type: integer
+          nullable: true
+        status_code:
+          type: integer
+          nullable: true
+        error:
+          type: string
+          nullable: true
+        checked_at:
+          type: string
+          format: date-time
+
+    HistoryResponse:
+      type: object
+      required: [monitor_id, from, to, points]
+      properties:
+        monitor_id:
+          type: string
+          format: uuid
+        from:
+          type: string
+          format: date-time
+        to:
+          type: string
+          format: date-time
+        points:
+          type: array
+          items:
+            $ref: "#/components/schemas/HistoryPoint"
+
+    Incident:
+      type: object
+      required: [id, monitor_id, started_at, created_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        monitor_id:
+          type: string
+          format: uuid
+        started_at:
+          type: string
+          format: date-time
+        resolved_at:
+          type: string
+          format: date-time
+          nullable: true
+        cause:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+
+    IncidentListResponse:
+      type: object
+      required: [data, total, page, limit, total_pages]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Incident"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+        total_pages:
+          type: integer
+
+    Secret:
+      type: object
+      required: [id, name, created_at, updated_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    CreateSecretRequest:
+      type: object
+      required: [name, value]
+      properties:
+        name:
+          type: string
+        value:
+          type: string
+
+    UpdateSecretRequest:
+      type: object
+      required: [name, value]
+      properties:
+        name:
+          type: string
+        value:
+          type: string
+
+    SecretListResponse:
+      type: object
+      required: [data, total, page, limit, total_pages]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Secret"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+        total_pages:
+          type: integer
+
+    Token:
+      type: object
+      required: [id, name, created_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        last_used_at:
+          type: string
+          format: date-time
+          nullable: true
+        expires_at:
+          type: string
+          format: date-time
+          nullable: true
+        revoked_at:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+
+    CreateTokenRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+        expires_at:
+          type: string
+          format: date-time
+
+    CreateTokenResponse:
+      type: object
+      required: [token, id, name, created_at]
+      properties:
+        token:
+          type: string
+          description: Raw token value (shown only once)
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        expires_at:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+
+    TokenListResponse:
+      type: object
+      required: [data, total, page, limit, total_pages]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Token"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+        total_pages:
+          type: integer

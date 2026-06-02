@@ -310,7 +310,7 @@ This task board converts [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.
 ## Milestone E: API and Contract
 
 ### TASK-021: Router and versioned API surface
-- Status: `todo`
+- Status: `done`
 - Priority: `P0`
 - Depends on: TASK-008
 - Scope:
@@ -318,18 +318,31 @@ This task board converts [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.
   - Add request ID propagation and standardized errors
 - Done when:
   - All API routes are namespaced under `/api/v1`
+- Notes:
+  - Router already configured from earlier milestones with `/api/v1` group.
+  - `requestIDMiddleware()` propagates or generates `X-Request-ID` on all responses.
+  - Standard error envelope `{ "error": { "code", "message" } }` via `apiError()` helper.
+  - `SanitizedLogger()` middleware strips auth headers from log output.
+  - Combined auth middleware supports both JWT (session) and Bearer API token (programmatic) access.
 
 ### TASK-022: Single-user auth
-- Status: `todo`
+- Status: `done`
 - Priority: `P0`
 - Depends on: TASK-021
 - Scope:
   - Login endpoint and JWT auth middleware
 - Done when:
   - Protected routes reject missing/invalid auth
+- Notes:
+  - `POST /api/v1/auth/login` accepts email + password, returns signed JWT.
+  - `middleware/jwt.go` implements `JWTAuth()` middleware and `GenerateJWT()` helper using `golang-jwt/jwt/v5` with HS256.
+  - Combined auth in `router.go` tries JWT first (dot-separated token), falls back to Bearer API token (prefix-based bcrypt lookup).
+  - Dummy bcrypt comparison on all failure paths for timing uniformity.
+  - `PULSE_JWT_SECRET` env var required at startup; `PULSE_JWT_EXPIRY` configurable (default 24h).
+  - Config extended with `JWTSecret` and `JWTExpiry` fields.
 
 ### TASK-023: Monitor CRUD with idempotent PUT
-- Status: `todo`
+- Status: `done`
 - Priority: `P0`
 - Depends on: TASK-021, TASK-006
 - Scope:
@@ -338,27 +351,47 @@ This task board converts [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.
   - Pagination on monitor list
 - Done when:
   - Repeating same `PUT` body yields no additional side effects
+- Notes:
+  - `handlers/monitors.go` implements full CRUD under `/api/v1/monitors`.
+  - `PUT /monitors/:id` uses `UpsertMonitor` sqlc query with `ON CONFLICT (id) DO UPDATE` for idempotent create-or-update.
+  - Validates monitor type against `[http, https, tcp, udp, websocket]` and status against `[active, paused]`.
+  - Defaults: `interval_seconds=60`, `timeout_seconds=10`, `status=active`, `settings={}`.
+  - List endpoint paginated with `page`/`limit` (default 20, max 100).
+  - Response includes all monitor fields; nullable timestamps as `omitempty`.
 
 ### TASK-024: Monitor history endpoint
-- Status: `todo`
+- Status: `done`
 - Priority: `P1`
 - Depends on: TASK-007, TASK-023
 - Scope:
   - `GET /api/v1/monitors/{id}/history` backed by TimescaleDB query helpers
 - Done when:
   - Response includes bounded time-series window and expected points
+- Notes:
+  - `handlers/history.go` implements `GET /api/v1/monitors/:id/history`.
+  - Query params: `from` and `to` (RFC 3339). Defaults to last 24 hours.
+  - Max window capped at 7 days to bound response size.
+  - Verifies monitor exists before querying history.
+  - Uses `timescale.Store.QueryHistory()` for time-range queries ordered by `checked_at ASC`.
+  - Response: `{ monitor_id, from, to, points: [{state, latency_ms, status_code, error, checked_at}] }`.
 
 ### TASK-025: Incidents list endpoint
-- Status: `todo`
+- Status: `done`
 - Priority: `P1`
 - Depends on: TASK-006, TASK-021
 - Scope:
   - `GET /api/v1/incidents` with pagination
 - Done when:
   - No unbounded list responses
+- Notes:
+  - `handlers/incidents.go` implements two endpoints:
+    - `GET /api/v1/incidents` — all incidents, paginated. Optional `?status=open` filter.
+    - `GET /api/v1/monitors/:id/incidents` — incidents for a specific monitor, paginated.
+  - Added `ListIncidents` and `CountIncidents` sqlc queries for global pagination.
+  - Response envelope: `{ data, total, page, limit, total_pages }`.
 
 ### TASK-026: Prometheus metrics
-- Status: `todo`
+- Status: `done`
 - Priority: `P1`
 - Depends on: TASK-019, TASK-021
 - Scope:
@@ -366,9 +399,18 @@ This task board converts [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.
   - Publish `pulse_monitor_up`, `pulse_monitor_response_time_seconds`, `pulse_monitors_total`
 - Done when:
   - Metrics endpoint scrapes cleanly and emits required series
+- Notes:
+  - `handlers/metrics.go` defines `Metrics` struct with three collectors:
+    - `pulse_monitor_up` (GaugeVec, labels: monitor_id, monitor_name, monitor_type)
+    - `pulse_monitor_response_time_seconds` (GaugeVec, same labels)
+    - `pulse_monitors_total` (Gauge)
+  - `RegisterMetricsRoute()` exposes `/metrics` via `promhttp.HandlerFor`.
+  - Uses a dedicated `prometheus.Registry` (no default process/go collectors) for clean output.
+  - Scheduler updates gauges after each check execution.
+  - No auth on `/metrics` (standard for Prometheus scraping).
 
 ### TASK-027: OpenAPI contract generation
-- Status: `todo`
+- Status: `done`
 - Priority: `P0`
 - Depends on: TASK-022, TASK-023, TASK-024, TASK-025
 - Scope:
@@ -376,6 +418,13 @@ This task board converts [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.
   - Commit generated `openapi.yaml`
 - Done when:
   - Generated output matches committed spec
+- Notes:
+  - Contract-first approach: hand-authored `backend/api/openapi.yaml` (OpenAPI 3.0.3).
+  - Covers all endpoints: auth/login, monitors CRUD, monitor history, incidents, secrets, tokens.
+  - Defines reusable components: schemas, parameters, responses, security schemes.
+  - Supports both JWT and API token auth via bearerAuth security scheme.
+  - `make openapi` validates the spec is present.
+  - All request/response schemas match the Go handler implementations.
 
 ## Milestone F: WebSocket and Realtime
 

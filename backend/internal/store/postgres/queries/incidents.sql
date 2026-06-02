@@ -32,3 +32,11 @@ SELECT * FROM incidents
 WHERE resolved_at IS NULL
 ORDER BY started_at DESC
 LIMIT $1 OFFSET $2;
+
+-- name: ListIncidents :many
+SELECT * FROM incidents
+ORDER BY started_at DESC
+LIMIT $1 OFFSET $2;
+
+-- name: CountIncidents :one
+SELECT COUNT(*) FROM incidents;

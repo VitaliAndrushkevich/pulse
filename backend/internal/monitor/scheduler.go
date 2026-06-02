@@ -8,6 +8,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgtype"
 
+	"github.com/VitaliAndrushkevich/pulse/internal/api/handlers"
 	db "github.com/VitaliAndrushkevich/pulse/internal/store/postgres"
 	"github.com/VitaliAndrushkevich/pulse/internal/store/timescale"
 )
@@ -36,12 +37,13 @@ type Scheduler struct {
 	registry  *Registry
 	queries   *db.Queries
 	tsStore   *timescale.Store
+	metrics   *handlers.Metrics
 	wakeupCh  chan struct{} // signals immediate re-poll (from LISTEN/NOTIFY)
 	stopOnce  sync.Once
 }
 
 // NewScheduler creates a scheduler with the given configuration and dependencies.
-func NewScheduler(cfg SchedulerConfig, registry *Registry, queries *db.Queries, tsStore *timescale.Store) *Scheduler {
+func NewScheduler(cfg SchedulerConfig, registry *Registry, queries *db.Queries, tsStore *timescale.Store, metrics *handlers.Metrics) *Scheduler {
 	if cfg.Workers <= 0 {
 		cfg.Workers = DefaultWorkers
 	}
@@ -56,6 +58,7 @@ func NewScheduler(cfg SchedulerConfig, registry *Registry, queries *db.Queries, 
 		registry: registry,
 		queries:  queries,
 		tsStore:  tsStore,
+		metrics:  metrics,
 		wakeupCh: make(chan struct{}, 1),
 	}
 }
@@ -194,6 +197,17 @@ func (s *Scheduler) executeCheck(ctx context.Context, m db.Monitor) {
 		},
 	}); err != nil {
 		log.Printf("scheduler: monitor %s: update state: %v", m.ID, err)
+	}
+
+	// Update Prometheus metrics (TASK-026).
+	if s.metrics != nil {
+		labels := []string{m.ID.String(), m.Name, m.Type}
+		upVal := float64(0)
+		if result.State == "up" {
+			upVal = 1
+		}
+		s.metrics.MonitorUp.WithLabelValues(labels...).Set(upVal)
+		s.metrics.MonitorResponseTime.WithLabelValues(labels...).Set(float64(result.LatencyMs) / 1000.0)
 	}
 }
 

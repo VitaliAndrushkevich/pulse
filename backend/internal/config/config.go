@@ -10,6 +10,7 @@ const (
 	defaultDatabaseURL       = "postgres://pulse:pulse@localhost:5432/pulse?sslmode=disable"
 	defaultMigrationsURI     = "file://migrations"
 	defaultSchedulerWorkers  = 50 // dev-friendly default; production deploys should set PULSE_SCHEDULER_WORKERS=200
+	defaultJWTExpiry         = "24h"
 )
 
 // App stores runtime configuration for the Pulse API process.
@@ -17,6 +18,8 @@ type App struct {
 	Port             string
 	DatabaseURL      string
 	SchedulerWorkers int
+	JWTSecret        string
+	JWTExpiry        string
 }
 
 // Migrate stores runtime configuration for the migration command.
@@ -31,6 +34,8 @@ func LoadApp() App {
 		Port:             getEnv("PULSE_PORT", defaultPulsePort),
 		DatabaseURL:      getEnv("DATABASE_URL", defaultDatabaseURL),
 		SchedulerWorkers: getEnvInt("PULSE_SCHEDULER_WORKERS", defaultSchedulerWorkers),
+		JWTSecret:        getEnv("PULSE_JWT_SECRET", ""),
+		JWTExpiry:        getEnv("PULSE_JWT_EXPIRY", defaultJWTExpiry),
 	}
 }
 

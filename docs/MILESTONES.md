@@ -6,13 +6,13 @@ Pulse is a self-hosted uptime monitoring platform (API-first, single-container d
 
 ---
 
-## Current Stage: Mid Development (~50% complete)
+## Current Stage: Mid Development (~60% complete)
 
-Milestones A, B, C, and D are done. The project has a solid data foundation, full security primitives, and a complete monitor execution engine with bounded worker pool scheduler. Next up: API surface and WebSocket realtime.
+Milestones A, B, C, D, and E are done. The project has a solid data foundation, full security primitives, a complete monitor execution engine, and a full REST API surface with OpenAPI contract. Next up: WebSocket realtime and frontend.
 
 ```
-[████████████████░░░░░░░░░░░░░░░░] ~50%
-     A ✓   B ✓   C ✓   D ✓   E…H todo
+[████████████████████░░░░░░░░░░░░] ~60%
+     A ✓   B ✓   C ✓   D ✓   E ✓   F…H todo
 ```
 
 ---
@@ -78,17 +78,18 @@ Delivered:
 
 ---
 
-## Milestone E: API Surface & Contract 🔲 TODO
+## Milestone E: API Surface & Contract ✅ DONE
 
 **Goal:** Complete versioned REST API with idempotent monitor management, OpenAPI contract.
 
-Planned deliverables:
-- Full `gin` router under `/api/v1` with standardized error envelope
-- JWT auth endpoints and middleware
-- Monitor CRUD with idempotent `PUT /monitors/{id}`
-- History and incidents read endpoints (paginated)
-- Prometheus `/metrics` endpoint
-- Generated and committed `openapi.yaml`
+Delivered:
+- ✅ Full `gin` router under `/api/v1` with standardized error envelope and X-Request-ID
+- ✅ JWT auth (`POST /api/v1/auth/login`) + combined middleware (JWT + API token)
+- ✅ Monitor CRUD with idempotent `PUT /monitors/{id}` (ON CONFLICT DO UPDATE)
+- ✅ Monitor history endpoint (`GET /monitors/{id}/history`) backed by TimescaleDB (7-day max window)
+- ✅ Incidents list endpoints (global + per-monitor, paginated, optional status=open filter)
+- ✅ Prometheus `/metrics` endpoint (`pulse_monitor_up`, `pulse_monitor_response_time_seconds`, `pulse_monitors_total`)
+- ✅ Committed `backend/api/openapi.yaml` (OpenAPI 3.0.3, all endpoints documented)
 
 ---
 
@@ -135,20 +136,20 @@ Planned deliverables:
 | Layer | Status | Notes |
 |-------|--------|-------|
 | PostgreSQL schema | ✅ Complete | All MVP tables, indexes, constraints |
-| sqlc query layer | ✅ Complete | CRUD + paginated lists generated |
+| sqlc query layer | ✅ Complete | CRUD + paginated lists + upsert generated |
 | TimescaleDB helpers | ✅ Complete | Write + range query scaffold |
 | Fail-fast startup | ✅ Complete | Exits on missing dependencies |
 | Docker infrastructure | ✅ Complete | Compose, Dockerfile, health checks |
 | Makefile | ✅ Complete | All primary targets defined |
-| API router | ⚠️ Scaffold | `/healthz` + secret CRUD + token lifecycle + BearerAuth middleware |
+| API router | ✅ Complete | Full CRUD for monitors, secrets, tokens, incidents, history |
 | Crypto module | ✅ Complete | AES-256-GCM encrypt/decrypt + key validation |
 | Protocol checkers | ✅ Complete | HTTP/HTTPS, TCP, UDP, WebSocket — all compiled and wired |
 | Scheduler | ✅ Complete | Bounded worker pool, LISTEN/NOTIFY wakeups, graceful shutdown |
+| Auth/JWT | ✅ Complete | Login endpoint + combined JWT/API-token middleware |
+| Prometheus metrics | ✅ Complete | /metrics with monitor_up, response_time, monitors_total |
+| OpenAPI spec | ✅ Complete | backend/api/openapi.yaml (3.0.3) |
 | WebSocket hub | 🔲 Placeholder | Empty file |
-| Metrics | 🔲 Placeholder | Empty file |
 | Frontend | ⚠️ Scaffold | Layout + static dashboard, no data integration |
-| Auth/JWT | 🔲 Not started | — |
-| OpenAPI spec | 🔲 Not started | — |
 | CI pipeline | 🔲 Not started | — |
 
 ---

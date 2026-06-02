@@ -8,6 +8,8 @@ services:
     environment:
       PULSE_PORT: "8080"
       DATABASE_URL: "postgres://pulse:pulse@postgres:5432/pulse?sslmode=disable"
+      PULSE_SECRET_KEY: "dGhpcyBpcyBhIDMyIGJ5dGUga2V5ISEhMTIzNA=="
+      PULSE_JWT_SECRET: "pulse-dev-jwt-secret-change-in-production"
     ports:
       - "8080:8080"
     depends_on:

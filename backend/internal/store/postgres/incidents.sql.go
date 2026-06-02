@@ -13,6 +13,17 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const countIncidents = `-- name: CountIncidents :one
+SELECT COUNT(*) FROM incidents
+`
+
+func (q *Queries) CountIncidents(ctx context.Context) (int64, error) {
+	row := q.db.QueryRow(ctx, countIncidents)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const countIncidentsByMonitor = `-- name: CountIncidentsByMonitor :one
 SELECT COUNT(*) FROM incidents WHERE monitor_id = $1
 `
@@ -87,6 +98,44 @@ func (q *Queries) GetOpenIncidentByMonitor(ctx context.Context, monitorID uuid.U
 		&i.CreatedAt,
 	)
 	return i, err
+}
+
+const listIncidents = `-- name: ListIncidents :many
+SELECT id, monitor_id, started_at, resolved_at, cause, created_at FROM incidents
+ORDER BY started_at DESC
+LIMIT $1 OFFSET $2
+`
+
+type ListIncidentsParams struct {
+	Limit  int32 `db:"limit" json:"limit"`
+	Offset int32 `db:"offset" json:"offset"`
+}
+
+func (q *Queries) ListIncidents(ctx context.Context, arg ListIncidentsParams) ([]Incident, error) {
+	rows, err := q.db.Query(ctx, listIncidents, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Incident{}
+	for rows.Next() {
+		var i Incident
+		if err := rows.Scan(
+			&i.ID,
+			&i.MonitorID,
+			&i.StartedAt,
+			&i.ResolvedAt,
+			&i.Cause,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const listIncidentsByMonitor = `-- name: ListIncidentsByMonitor :many

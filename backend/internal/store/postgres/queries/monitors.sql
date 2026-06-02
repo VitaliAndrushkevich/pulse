@@ -51,5 +51,24 @@ SET
 WHERE id = $1
 RETURNING *;
 
+-- name: UpsertMonitor :one
+INSERT INTO monitors (
+    id, name, type, target, interval_seconds, timeout_seconds,
+    status, state, settings, next_check_at
+) VALUES (
+    $1, $2, $3, $4, $5, $6,
+    $7, 'unknown', $8, now()
+)
+ON CONFLICT (id) DO UPDATE SET
+    name             = EXCLUDED.name,
+    type             = EXCLUDED.type,
+    target           = EXCLUDED.target,
+    interval_seconds = EXCLUDED.interval_seconds,
+    timeout_seconds  = EXCLUDED.timeout_seconds,
+    status           = EXCLUDED.status,
+    settings         = EXCLUDED.settings,
+    updated_at       = now()
+RETURNING *;
+
 -- name: DeleteMonitor :exec
 DELETE FROM monitors WHERE id = $1;

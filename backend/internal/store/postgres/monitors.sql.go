@@ -299,3 +299,64 @@ func (q *Queries) UpdateMonitorState(ctx context.Context, arg UpdateMonitorState
 	)
 	return i, err
 }
+
+const upsertMonitor = `-- name: UpsertMonitor :one
+INSERT INTO monitors (
+    id, name, type, target, interval_seconds, timeout_seconds,
+    status, state, settings, next_check_at
+) VALUES (
+    $1, $2, $3, $4, $5, $6,
+    $7, 'unknown', $8, now()
+)
+ON CONFLICT (id) DO UPDATE SET
+    name             = EXCLUDED.name,
+    type             = EXCLUDED.type,
+    target           = EXCLUDED.target,
+    interval_seconds = EXCLUDED.interval_seconds,
+    timeout_seconds  = EXCLUDED.timeout_seconds,
+    status           = EXCLUDED.status,
+    settings         = EXCLUDED.settings,
+    updated_at       = now()
+RETURNING id, name, type, target, interval_seconds, timeout_seconds, status, state, last_checked_at, next_check_at, settings, created_at, updated_at
+`
+
+type UpsertMonitorParams struct {
+	ID              uuid.UUID       `db:"id" json:"id"`
+	Name            string          `db:"name" json:"name"`
+	Type            string          `db:"type" json:"type"`
+	Target          string          `db:"target" json:"target"`
+	IntervalSeconds int32           `db:"interval_seconds" json:"interval_seconds"`
+	TimeoutSeconds  int32           `db:"timeout_seconds" json:"timeout_seconds"`
+	Status          string          `db:"status" json:"status"`
+	Settings        json.RawMessage `db:"settings" json:"settings"`
+}
+
+func (q *Queries) UpsertMonitor(ctx context.Context, arg UpsertMonitorParams) (Monitor, error) {
+	row := q.db.QueryRow(ctx, upsertMonitor,
+		arg.ID,
+		arg.Name,
+		arg.Type,
+		arg.Target,
+		arg.IntervalSeconds,
+		arg.TimeoutSeconds,
+		arg.Status,
+		arg.Settings,
+	)
+	var i Monitor
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Type,
+		&i.Target,
+		&i.IntervalSeconds,
+		&i.TimeoutSeconds,
+		&i.Status,
+		&i.State,
+		&i.LastCheckedAt,
+		&i.NextCheckAt,
+		&i.Settings,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}

@@ -59,7 +59,7 @@ The project is at ~50% of MVP completion. Full milestone breakdown: [docs/MILEST
 | B: Data Layer | ✅ Done |
 | C: Security & Secrets | ✅ Done |
 | D: Monitor Engine | ✅ Done |
-| E: API Surface | 🔲 Todo |
+| E: API Surface | ✅ Done |
 | F: WebSocket Realtime | 🔲 Todo |
 | G: Frontend Product | 🔲 Todo |
 | H: Packaging & Release | 🔲 Todo |
@@ -74,7 +74,7 @@ Completed (A–D):
 - LISTEN/NOTIFY wakeups for instant scheduling on monitor create/update
 - Graceful shutdown with context cancellation
 
-Next priority: Milestone E (API surface — monitor CRUD, JWT auth, OpenAPI) and Milestone F (WebSocket hub) in parallel.
+Next priority: Milestone F (WebSocket hub and realtime) and Milestone G (Frontend) in parallel.
 
 ## Build and Test
 Primary commands (expected):

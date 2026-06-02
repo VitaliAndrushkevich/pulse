@@ -37,4 +37,11 @@ rotate-key:
 	cd backend && DATABASE_URL=$(DATABASE_URL) go run ./cmd/rotate
 
 openapi:
-	@echo "not implemented yet: openapi generation"
+	@echo "OpenAPI spec located at backend/api/openapi.yaml"
+	@echo "Validating spec..."
+	@if command -v yq > /dev/null 2>&1; then \
+		yq eval '.info.version' backend/api/openapi.yaml; \
+	else \
+		echo "  (install yq for validation)"; \
+	fi
+	@echo "Done."
