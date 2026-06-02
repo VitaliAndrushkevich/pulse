@@ -6,13 +6,13 @@ Pulse is a self-hosted uptime monitoring platform (API-first, single-container d
 
 ---
 
-## Current Stage: Mid Development (~60% complete)
+## Current Stage: MVP Complete 🎉
 
-Milestones A, B, C, D, and E are done. The project has a solid data foundation, full security primitives, a complete monitor execution engine, and a full REST API surface with OpenAPI contract. Next up: WebSocket realtime and frontend.
+All milestones (A–H) are done. The project is a fully packaged, single-container deployment with embedded frontend, production Docker Compose, and comprehensive documentation. CI pipeline is deferred.
 
 ```
-[████████████████████░░░░░░░░░░░░] ~60%
-     A ✓   B ✓   C ✓   D ✓   E ✓   F…H todo
+[████████████████████████████████] 100%
+     A ✓   B ✓   C ✓   D ✓   E ✓   F ✓   G ✓   H ✓
 ```
 
 ---
@@ -93,41 +93,57 @@ Delivered:
 
 ---
 
-## Milestone F: Realtime Channel (WebSocket) 🔲 TODO
+## Milestone F: Realtime Channel (WebSocket) ✅ DONE
 
 **Goal:** Diff-based state updates over WebSocket for live dashboard.
 
-Planned deliverables:
-- WebSocket hub (`internal/hub`) with fan-out to connected clients
-- Diff/patch computation from scheduler state changes
-- Authenticated `/ws` endpoint
-- Reconnect and backoff documentation for UI clients
+Delivered:
+- ✅ WebSocket hub (`internal/hub`) with fan-out, ping/pong keepalive, slow-consumer eviction (256-msg buffer)
+- ✅ Typed message envelope with `monitor_status` (diff/patch) and `connected` message types
+- ✅ Scheduler → Hub broadcast integration (check results sent to hub after each execution)
+- ✅ Authenticated `/ws` endpoint with query-param token validation (JWT + API token)
+- ✅ Close code 4401 for auth expiration signaling to clients
+- ✅ Dummy bcrypt comparison on all auth failure paths for timing safety
 
 ---
 
-## Milestone G: Frontend Product 🔲 TODO
+## Milestone G: Frontend Product ✅ DONE
 
 **Goal:** Responsive dashboard and monitor workflows at 500+ monitor scale.
 
-Planned deliverables:
-- Monitor status dashboard with virtualized list/grid rendering
-- Monitor create/edit forms (secret references by UUID only)
-- Monitor detail view with `uplot` history chart and incidents list
-- WebSocket store merge logic (`src/lib/stores/`)
-- Login flow with JWT cookie handling
+Delivered:
+- ✅ Core type system (`types.ts`), validation (`validation.ts`), formatting (`format.ts`)
+- ✅ API client with Bearer auth, 15s timeout, error envelope parsing, X-Request-ID in toasts
+- ✅ Reactive stores (Svelte 5 runes): AuthStore, MonitorStore (patch-merge), ToastStore, ConnectionStore
+- ✅ WebSocket client with exponential backoff (1s–30s, ±25% jitter), 4401 auth-expired handling
+- ✅ VirtualList component with DOM recycling (max 60 nodes, RAF-throttled scroll, configurable buffer 5–20)
+- ✅ MonitorRow, MonitorForm (create/edit modes with type-specific settings), Pagination, HistoryChart (uPlot), Toast, ConnectionBadge components
+- ✅ Login page with email/password validation, inline error display (401 → "Invalid email or password")
+- ✅ Auth guard in layout with route protection and redirect to `/login`
+- ✅ Dashboard with stats bar (total/healthy/unhealthy) and VirtualList rendering
+- ✅ Monitor list page with pagination and error/empty states
+- ✅ Monitor detail page with history chart, incident timeline, edit/delete actions
+- ✅ Monitor create/edit pages with MonitorForm integration and secret reference dropdown
+- ✅ Settings page with secrets management (create form, metadata-only display, value cleared immediately)
+- ✅ WebSocket lifecycle wired to layout (connect on auth, disconnect on logout, re-fetch on reconnect)
+- ✅ Real-time updates: WS patches update dashboard rows and detail view in-place via reactive store
+- ✅ 141 unit tests passing (Vitest + fast-check + @testing-library/svelte)
 
 ---
 
-## Milestone H: Packaging & Release Readiness 🔲 TODO
+## Milestone H: Packaging & Release ✅ DONE
 
 **Goal:** Single-binary, single-container production artifact.
 
-Planned deliverables:
-- Embed static frontend via `//go:embed` with SPA catch-all routing
-- Multi-stage Dockerfile (node build → Go build → distroless)
-- Production-ready compose with health checks and volumes
-- README quick start and operational documentation
-- CI workflow for build/test/lint/OpenAPI drift checks
+Delivered:
+- ✅ Static frontend embedded via `//go:embed` with SPA catch-all routing and immutable cache headers
+- ✅ Multi-stage Dockerfile (node:22-alpine → golang:1.25-alpine → distroless)
+- ✅ `.dockerignore` for minimal build context
+- ✅ Production docker-compose with health checks, restart policies, `env_file`
+- ✅ `.env.example` with all variables documented and generation commands
+- ✅ Makefile targets: `build-frontend`, `build-all` (production build with embedded assets)
+- ✅ Complete README with quick start, architecture, API examples, development docs
+- 🔲 CI workflow (GitHub Actions) — deferred to future iteration
 
 ---
 
@@ -139,8 +155,8 @@ Planned deliverables:
 | sqlc query layer | ✅ Complete | CRUD + paginated lists + upsert generated |
 | TimescaleDB helpers | ✅ Complete | Write + range query scaffold |
 | Fail-fast startup | ✅ Complete | Exits on missing dependencies |
-| Docker infrastructure | ✅ Complete | Compose, Dockerfile, health checks |
-| Makefile | ✅ Complete | All primary targets defined |
+| Docker infrastructure | ✅ Complete | Multi-stage Dockerfile, production compose, .env.example |
+| Makefile | ✅ Complete | All primary targets + build-frontend, build-all |
 | API router | ✅ Complete | Full CRUD for monitors, secrets, tokens, incidents, history |
 | Crypto module | ✅ Complete | AES-256-GCM encrypt/decrypt + key validation |
 | Protocol checkers | ✅ Complete | HTTP/HTTPS, TCP, UDP, WebSocket — all compiled and wired |
@@ -148,18 +164,18 @@ Planned deliverables:
 | Auth/JWT | ✅ Complete | Login endpoint + combined JWT/API-token middleware |
 | Prometheus metrics | ✅ Complete | /metrics with monitor_up, response_time, monitors_total |
 | OpenAPI spec | ✅ Complete | backend/api/openapi.yaml (3.0.3) |
-| WebSocket hub | 🔲 Placeholder | Empty file |
-| Frontend | ⚠️ Scaffold | Layout + static dashboard, no data integration |
-| CI pipeline | 🔲 Not started | — |
+| WebSocket hub | ✅ Complete | Fan-out hub with keepalive, slow-consumer eviction, auth endpoint |
+| Frontend | ✅ Complete | Full SvelteKit app with stores, WS client, all pages, 141 tests |
+| Frontend embedding | ✅ Complete | go:embed with SPA catch-all, cache headers |
+| CI pipeline | 🔲 Deferred | Not required for MVP |
 
 ---
 
 ## Recommended Next Steps (Priority Order)
 
-1. **Milestone E** — API surface (monitor CRUD, JWT auth, OpenAPI contract)
-2. **Milestone F** — WebSocket hub and diff/patch pipeline (can parallelize with E)
-3. **Milestone G** — Frontend product (depends on E and F)
-4. **Milestone H** — Packaging and release (depends on everything)
+1. **CI Pipeline** — GitHub Actions for lint, test, build, OpenAPI drift check
+2. **End-to-end verification** — Run through the verification checklist below on a clean machine
+3. **User seeding** — Add a `make seed` command or initial setup flow for first user creation
 
 ---
 

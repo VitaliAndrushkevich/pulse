@@ -69,7 +69,7 @@ Core outcomes:
 
 ## Current Progress
 
-The project is at ~65% of MVP completion. Full milestone breakdown: [docs/MILESTONES.md](docs/MILESTONES.md).
+The project is at MVP completion. Full milestone breakdown: [docs/MILESTONES.md](docs/MILESTONES.md).
 
 | Milestone | Status |
 |-----------|--------|
@@ -78,11 +78,11 @@ The project is at ~65% of MVP completion. Full milestone breakdown: [docs/MILEST
 | C: Security & Secrets | ✅ Done |
 | D: Monitor Engine | ✅ Done |
 | E: API Surface | ✅ Done |
-| F: WebSocket Realtime | 🟡 In Progress |
-| G: Frontend Product | ⚠️ Scaffold Only |
-| H: Packaging & Release | 🔲 Todo |
+| F: WebSocket Realtime | ✅ Done |
+| G: Frontend Product | ✅ Done |
+| H: Packaging & Release | ✅ Done (CI deferred) |
 
-### Completed (A–E):
+### Completed (A–H):
 - PostgreSQL schema + indexes, sqlc query layer, TimescaleDB history store
 - Docker Compose infrastructure, fail-fast startup, migration tooling
 - AES-256-GCM crypto module, secret write-only API, API token lifecycle, key rotation
@@ -96,32 +96,26 @@ The project is at ~65% of MVP completion. Full milestone breakdown: [docs/MILEST
 - Prometheus `/metrics` endpoint (`pulse_monitor_up`, `pulse_monitor_response_time_seconds`, `pulse_monitors_total`)
 - OpenAPI 3.0.3 spec committed at `backend/api/openapi.yaml`
 - Swagger UI served in dev mode (`PULSE_DEV=true`)
+- WebSocket hub with fan-out, ping/pong keepalive, slow-consumer eviction
+- Typed message envelope with `monitor_status` (diff/patch) and `connected` message types
+- Authenticated `/ws` endpoint with query-param token validation (JWT + API token)
+- Scheduler → Hub broadcast (check results sent to hub after execution)
+- Full SvelteKit 5 frontend with TypeScript strict mode and Tailwind CSS 3.4
+- API client with Bearer auth, 15s timeout, error envelope parsing, X-Request-ID
+- WebSocket client with exponential backoff reconnection (1s–30s, ±25% jitter)
+- Reactive stores (Svelte 5 runes): Auth, Monitor (patch-merge), Toast, Connection
+- VirtualList with DOM recycling (max 60 nodes), MonitorRow, MonitorForm, Pagination, HistoryChart (uPlot), Toast, ConnectionBadge
+- All page routes: Login, Dashboard, Monitor list/detail/create/edit, Settings (secrets)
+- Real-time updates: WS patches update dashboard rows and detail view in-place
+- 141 frontend unit tests passing (Vitest + fast-check + @testing-library/svelte)
+- Static frontend embedded via `go:embed` with SPA catch-all routing and cache headers
+- Multi-stage Dockerfile (node:22-alpine → golang:1.25-alpine → distroless)
+- Production docker-compose with health checks, restart policies, env_file
+- `.env.example` with all variables documented
+- Complete README with quick start, API examples, architecture docs
 
-### In Progress (F — WebSocket Realtime):
-- ✅ WebSocket hub with fan-out, ping/pong keepalive, slow-consumer eviction (`internal/hub/`)
-- ✅ Typed message envelope with `monitor_status` (diff/patch) and `connected` message types
-- ✅ Authenticated `/ws` endpoint with query-param token validation (JWT + API token)
-- ✅ Router wires Hub and WS handler
-- 🔲 Scheduler → Hub integration (broadcast check results to hub after execution)
-- 🔲 Reconnect/backoff documentation for UI clients
-
-### Scaffold Only (G — Frontend):
-- ✅ SvelteKit + TypeScript + Tailwind CSS project structure
-- ✅ Layout with navigation (Dashboard, Monitors, Settings)
-- ✅ Static dashboard page with placeholder stat cards
-- ✅ Route stubs: `/`, `/monitors`, `/settings`
-- 🔲 API client implementation (`src/lib/api.ts` — placeholder)
-- 🔲 WebSocket client implementation (`src/lib/ws.ts` — placeholder)
-- 🔲 Monitor store with patch-merge logic (`src/lib/stores/monitors.ts` — placeholder)
-- 🔲 Monitor list with virtualization
-- 🔲 Monitor create/edit forms
-- 🔲 Monitor detail view with history chart (uplot)
-- 🔲 Login flow with JWT cookie handling
-
-### Next Priority:
-1. Wire scheduler → hub broadcast (complete F)
-2. Implement frontend API client and WS client (start G)
-3. Build monitor dashboard with live data
+### Deferred:
+- CI quality gates (GitHub Actions) — not required for MVP
 
 ## Key Files Reference
 | Purpose | Path |

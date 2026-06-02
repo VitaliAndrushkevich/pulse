@@ -1,0 +1,47 @@
+# =============================================================================
+# .dockerignore — Keep the Docker build context small and fast
+# Goal: only send frontend/ and backend/ source to Docker daemon
+# =============================================================================
+
+# --- Version control ---
+.git/
+.gitignore
+
+# --- Node modules (rebuilt inside Docker) ---
+node_modules/
+frontend/node_modules/
+
+# --- Pre-built frontend assets (rebuilt inside Docker) ---
+backend/internal/frontend/dist/
+
+# --- Documentation (not needed for build) ---
+docs/
+*.md
+!README.md
+
+# --- Test files ---
+**/*_test.go
+**/*.test.ts
+**/*.spec.ts
+frontend/vitest.config.*
+frontend/coverage/
+coverage.out
+
+# --- IDE and tooling configs ---
+.vscode/
+.idea/
+.kiro/
+.agents/
+.github/
+
+# --- Environment and secrets ---
+.env
+.env.*
+
+# --- Build artifacts and logs ---
+*.log
+tmp/
+
+# --- Docker-related (not needed inside context) ---
+docker-compose*.yml
+.dockerignore

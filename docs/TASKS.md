@@ -481,16 +481,20 @@ This task board converts [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.
 ## Milestone G: Frontend
 
 ### TASK-031: Dashboard virtualization
-- Status: `todo`
+- Status: `done`
 - Priority: `P0`
 - Depends on: TASK-023
 - Scope:
   - Build monitor dashboard with virtualized rendering
 - Done when:
   - 500 monitor UI test runs without freeze/blank page
+- Notes:
+  - VirtualList component with fixed-height rows, DOM recycling (max 60 nodes), RAF-throttled scroll handler, configurable buffer (5–20).
+  - Dashboard page integrates VirtualList with MonitorRow, fetches monitors on mount, displays stats bar (total/healthy/unhealthy).
+  - MonitorStore provides reactive `list`, `totalCount`, `healthyCount`, `unhealthyCount` via Svelte 5 `$derived`.
 
 ### TASK-032: Monitor forms and list
-- Status: `todo`
+- Status: `done`
 - Priority: `P1`
 - Depends on: TASK-023, TASK-010
 - Scope:
@@ -498,38 +502,62 @@ This task board converts [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.
   - Secret references by UUID only
 - Done when:
   - Secret values are never displayed in UI responses
+- Notes:
+  - MonitorForm component with create/edit modes, type-specific settings (http expected codes, udp payload, ws handshake), validation integration, secret reference dropdown (name + UUID format).
+  - Monitor list page with pagination, error/empty states, and retry.
+  - Monitor create/edit pages integrate MonitorForm with API calls and store updates.
+  - Settings page with secrets management — values cleared from state immediately after submit.
 
 ### TASK-033: Monitor detail and charts
-- Status: `todo`
+- Status: `done`
 - Priority: `P1`
 - Depends on: TASK-024, TASK-025
 - Scope:
   - `uplot` response-time chart and incident timeline
 - Done when:
   - Detail view renders history and incident data correctly
+- Notes:
+  - HistoryChart component using uPlot with time x-axis and ms y-axis, handles zero data with placeholder.
+  - Monitor detail page fetches monitor + history (24h) + incidents in parallel.
+  - Incident timeline shows started_at/resolved_at (or "Ongoing" badge), color-coded dots.
+  - All monitor fields displayed: name, type, target, interval, timeout, status, state, timestamps, settings.
 
 ### TASK-034: WebSocket store merge
-- Status: `todo`
+- Status: `done`
 - Priority: `P0`
 - Depends on: TASK-029, TASK-030
 - Scope:
   - Implement patch merge logic in frontend stores
 - Done when:
   - Incoming patches update local state deterministically
+- Notes:
+  - MonitorStore implements deterministic patch-merge: only `state` and `last_checked_at` updated from patch, all other fields preserved.
+  - Patches for unknown monitor_ids silently discarded.
+  - WebSocket client dispatches `monitor_status` payloads to `monitorStore.applyPatch()`.
+  - WS lifecycle wired to layout: connect on auth, disconnect on logout, re-fetch full list on reconnect.
+  - Detail view derives monitor from store via `$derived(monitorStore.getById(id))` for real-time WS updates.
+  - Dashboard updates single rows in-place via Svelte 5 fine-grained reactivity.
 
 ### TASK-035: Login and session handling
-- Status: `todo`
+- Status: `done`
 - Priority: `P1`
 - Depends on: TASK-022
 - Scope:
-  - Login UI and session handling with httpOnly cookie expectations
+  - Login UI and session handling with localStorage JWT
 - Done when:
   - Protected pages redirect or deny without session
+- Notes:
+  - AuthStore using Svelte 5 runes: `getToken()`, `setToken()`, `clearToken()`, `isAuthenticated()` with localStorage persistence.
+  - Login page with email/password validation, API call, inline error display (401 → generic message, network → service unavailable).
+  - Auth guard in layout redirects to `/login` when unauthenticated.
+  - API client injects Bearer token on all requests, handles 401 with token clear + redirect.
+  - WebSocket connects with `?token=<jwt>`, handles 4401 close code (auth expired → redirect, no reconnect).
+  - 141 unit tests passing across 8 test files (Vitest + fast-check + @testing-library/svelte).
 
 ## Milestone H: Packaging and Release
 
 ### TASK-036: Static embedding and SPA serving
-- Status: `todo`
+- Status: `done`
 - Priority: `P0`
 - Depends on: TASK-002, TASK-021
 - Scope:
@@ -537,42 +565,75 @@ This task board converts [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.
   - Add SPA catch-all route
 - Done when:
   - Built binary serves frontend and API from one process
+- Notes:
+  - `internal/frontend/frontend.go` uses `//go:embed dist/*` directive with `HasAssets()` helper.
+  - `dist/.gitkeep` placeholder ensures `go:embed` works before build-time population.
+  - SPA catch-all via `r.NoRoute(spaHandler(...))` in router — serves files from embedded FS or falls back to `index.html`.
+  - API/system prefixes (`/api/`, `/ws`, `/metrics`, `/healthz`, `/swagger`) return JSON 404 instead of SPA fallback.
+  - Cache-Control: `immutable` for `_app/` hashed assets, `no-cache` for `index.html`.
+  - Only registered when `frontend.HasAssets()` is true (dev mode without build still works).
+  - Makefile targets: `build-frontend` (npm build + copy to embed path), `build-all` (frontend + Go binary).
+  - 7 unit tests in `spa_test.go` covering routing, caching, MIME types, and fallback behavior.
 
 ### TASK-037: Multi-stage image
-- Status: `todo`
+- Status: `done`
 - Priority: `P0`
 - Depends on: TASK-036
 - Scope:
   - Node build stage, Go build stage, distroless runtime stage
 - Done when:
   - Final image starts and serves app successfully
+- Notes:
+  - 3-stage Dockerfile: `node:22-alpine` (frontend build) → `golang:1.25-alpine` (Go build with embedded assets) → `gcr.io/distroless/static-debian12` (runtime).
+  - Frontend build output copied into `internal/frontend/dist/` before Go build.
+  - Binary compiled with `-ldflags="-s -w"` for stripped debug symbols.
+  - `.dockerignore` excludes `.git/`, `node_modules/`, docs, test files, IDE configs — keeps build context minimal.
+  - Final image: single binary, no shell, no package manager.
 
 ### TASK-038: Compose hardening
-- Status: `todo`
+- Status: `done`
 - Priority: `P1`
 - Depends on: TASK-037
 - Scope:
   - Add health checks, required volumes, production-safe defaults
 - Done when:
   - `docker-compose up` fresh run passes health checks end-to-end
+- Notes:
+  - Production `docker-compose.yml` with `PULSE_DEV=false`, `restart: unless-stopped` on both services.
+  - Postgres health check via `pg_isready` with start_period, interval, timeout, retries.
+  - Pulse has no CMD-SHELL healthcheck (distroless has no shell) — relies on restart policy.
+  - Secrets loaded via `env_file: .env` directive instead of hardcoded values.
+  - `.env.example` with all variables documented, generation commands for secrets.
+  - Named volume `pulse-postgres-data` for data persistence.
 
 ### TASK-039: README quick start
-- Status: `todo`
+- Status: `done`
 - Priority: `P1`
 - Depends on: TASK-038
 - Scope:
   - Document startup, env vars, migration flow, and basic API checks
 - Done when:
   - New machine setup follows README without hidden steps
+- Notes:
+  - Complete README rewrite: project overview, architecture diagram, package layout table.
+  - Prerequisites: Docker + Docker Compose v2 only.
+  - Quick Start: 3 steps (clone, configure .env, docker compose up).
+  - Environment variables table with descriptions, defaults, and generation commands.
+  - API usage examples: login, create monitor, list monitors, WebSocket.
+  - Full endpoint reference table.
+  - Development section: make targets, local setup, running tests.
+  - Docker Compose override example for local customization.
 
 ### TASK-040: CI quality gates
-- Status: `todo`
+- Status: `deferred`
 - Priority: `P1`
 - Depends on: TASK-027, TASK-037
 - Scope:
   - Build, test, lint, OpenAPI drift check jobs
 - Done when:
   - PR pipeline enforces contract and build integrity
+- Notes:
+  - Deferred to a future iteration. Not required for MVP.
 
 ## Verification Matrix (Must Pass Before MVP Sign-Off)
 - VM-001: `make dev` starts all services

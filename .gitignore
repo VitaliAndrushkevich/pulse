@@ -13,6 +13,10 @@ frontend/node_modules/
 frontend/build/
 frontend/.svelte-kit/
 
+# Embedded frontend build output (populated at build time)
+backend/internal/frontend/dist/*
+!backend/internal/frontend/dist/.gitkeep
+
 # Logs
 *.log
 
