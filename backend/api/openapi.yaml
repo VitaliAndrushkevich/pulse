@@ -176,6 +176,147 @@ paths:
         "401":
           $ref: "#/components/responses/Unauthorized"
 
+  /monitors/{id}/stats:
+    get:
+      operationId: getMonitorStats
+      summary: Get uptime statistics, SSL info, and last error for a monitor
+      tags: [Monitors]
+      parameters:
+        - $ref: "#/components/parameters/MonitorID"
+      responses:
+        "200":
+          description: Monitor statistics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MonitorStatsResponse"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /monitors/{id}/credentials:
+    post:
+      operationId: createMonitorCredential
+      summary: Create a credential for a monitor
+      description: >
+        Creates a new authentication credential for the specified monitor.
+        The credential value is encrypted at rest and never returned in subsequent API responses.
+      tags: [Credentials]
+      parameters:
+        - $ref: "#/components/parameters/MonitorID"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateMonitorCredentialRequest"
+      responses:
+        "201":
+          description: Credential created (secret values not returned)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MonitorCredential"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    get:
+      operationId: listMonitorCredentials
+      summary: List credentials for a monitor
+      description: >
+        Returns metadata for all credentials associated with the specified monitor.
+        Secret values are never included in the response.
+      tags: [Credentials]
+      parameters:
+        - $ref: "#/components/parameters/MonitorID"
+      responses:
+        "200":
+          description: List of credential metadata
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MonitorCredentialListResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /monitors/{id}/credentials/{credentialId}:
+    put:
+      operationId: updateMonitorCredential
+      summary: Update a monitor credential
+      description: >
+        Updates an existing credential. Only the provided fields are updated.
+        The new secret value is encrypted at rest and never returned in the response.
+      tags: [Credentials]
+      parameters:
+        - $ref: "#/components/parameters/MonitorID"
+        - $ref: "#/components/parameters/CredentialID"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateMonitorCredentialRequest"
+      responses:
+        "200":
+          description: Credential updated (secret values not returned)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MonitorCredential"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deleteMonitorCredential
+      summary: Delete a monitor credential
+      description: >
+        Permanently removes a credential from the monitor. The monitor will stop
+        including this credential's authentication in subsequent health-check requests.
+      tags: [Credentials]
+      parameters:
+        - $ref: "#/components/parameters/MonitorID"
+        - $ref: "#/components/parameters/CredentialID"
+      responses:
+        "204":
+          description: Credential deleted
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   /incidents:
     get:
       operationId: listIncidents
@@ -197,94 +338,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/IncidentListResponse"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-
-  /secrets:
-    get:
-      operationId: listSecrets
-      summary: List secrets (values redacted)
-      tags: [Secrets]
-      parameters:
-        - $ref: "#/components/parameters/Page"
-        - $ref: "#/components/parameters/Limit"
-      responses:
-        "200":
-          description: Paginated list of secrets
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/SecretListResponse"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-    post:
-      operationId: createSecret
-      summary: Create a new secret
-      tags: [Secrets]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/CreateSecretRequest"
-      responses:
-        "201":
-          description: Secret created (value not returned)
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Secret"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-
-  /secrets/{id}:
-    get:
-      operationId: getSecret
-      summary: Get a secret by ID (value redacted)
-      tags: [Secrets]
-      parameters:
-        - $ref: "#/components/parameters/SecretID"
-      responses:
-        "200":
-          description: Secret metadata
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Secret"
-        "404":
-          $ref: "#/components/responses/NotFound"
-    put:
-      operationId: updateSecret
-      summary: Update a secret
-      tags: [Secrets]
-      parameters:
-        - $ref: "#/components/parameters/SecretID"
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/UpdateSecretRequest"
-      responses:
-        "200":
-          description: Secret updated (value not returned)
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Secret"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "404":
-          $ref: "#/components/responses/NotFound"
-    delete:
-      operationId: deleteSecret
-      summary: Delete a secret
-      tags: [Secrets]
-      parameters:
-        - $ref: "#/components/parameters/SecretID"
-      responses:
-        "204":
-          description: Secret deleted
         "401":
           $ref: "#/components/responses/Unauthorized"
 
@@ -375,11 +428,11 @@ components:
       schema:
         type: string
         format: uuid
-    SecretID:
-      name: id
+    CredentialID:
+      name: credentialId
       in: path
       required: true
-      description: Secret UUID
+      description: Credential UUID
       schema:
         type: string
         format: uuid
@@ -469,7 +522,7 @@ components:
           type: string
         type:
           type: string
-          enum: [http, https, tcp, udp, websocket]
+          enum: [http, tcp, udp, websocket]
         target:
           type: string
         interval_seconds:
@@ -507,7 +560,7 @@ components:
           type: string
         type:
           type: string
-          enum: [http, https, tcp, udp, websocket]
+          enum: [http, tcp, udp, websocket]
         target:
           type: string
         interval_seconds:
@@ -531,7 +584,7 @@ components:
           type: string
         type:
           type: string
-          enum: [http, https, tcp, udp, websocket]
+          enum: [http, tcp, udp, websocket]
         target:
           type: string
         interval_seconds:
@@ -580,6 +633,10 @@ components:
         error:
           type: string
           nullable: true
+        ssl_days_remaining:
+          type: integer
+          nullable: true
+          description: Days until SSL certificate expires (HTTPS monitors only)
         checked_at:
           type: string
           format: date-time
@@ -643,15 +700,31 @@ components:
         total_pages:
           type: integer
 
-    Secret:
+    MonitorCredential:
       type: object
-      required: [id, name, created_at, updated_at]
+      description: >
+        Credential metadata for a monitor. Secret values (token, password, header_value,
+        encrypted_value) are never included in API responses.
+      required: [id, auth_type, name, created_at, updated_at]
       properties:
         id:
           type: string
           format: uuid
+        auth_type:
+          type: string
+          enum: [bearer, basic, header]
+          description: The type of authentication this credential provides
         name:
           type: string
+          description: Human-readable label for the credential
+        header_name:
+          type: string
+          nullable: true
+          description: Custom header name (only present when auth_type is header)
+        username:
+          type: string
+          nullable: true
+          description: Username for basic auth (only present when auth_type is basic)
         created_at:
           type: string
           format: date-time
@@ -659,40 +732,63 @@ components:
           type: string
           format: date-time
 
-    CreateSecretRequest:
+    CreateMonitorCredentialRequest:
       type: object
-      required: [name, value]
+      required: [auth_type, name]
+      properties:
+        auth_type:
+          type: string
+          enum: [bearer, basic, header]
+          description: The type of authentication this credential provides
+        name:
+          type: string
+          description: Human-readable label for the credential
+        token:
+          type: string
+          description: Bearer token value (required when auth_type is bearer)
+        username:
+          type: string
+          description: Username for basic auth (required when auth_type is basic)
+        password:
+          type: string
+          description: Password for basic auth (required when auth_type is basic)
+        header_name:
+          type: string
+          description: Custom header name (required when auth_type is header)
+        header_value:
+          type: string
+          description: Custom header value (required when auth_type is header)
+
+    UpdateMonitorCredentialRequest:
+      type: object
       properties:
         name:
           type: string
-        value:
+          description: Updated human-readable label for the credential
+        token:
           type: string
+          description: New bearer token value (for auth_type bearer)
+        username:
+          type: string
+          description: New username for basic auth (for auth_type basic)
+        password:
+          type: string
+          description: New password for basic auth (for auth_type basic)
+        header_name:
+          type: string
+          description: New custom header name (for auth_type header)
+        header_value:
+          type: string
+          description: New custom header value (for auth_type header)
 
-    UpdateSecretRequest:
+    MonitorCredentialListResponse:
       type: object
-      required: [name, value]
-      properties:
-        name:
-          type: string
-        value:
-          type: string
-
-    SecretListResponse:
-      type: object
-      required: [data, total, page, limit, total_pages]
+      required: [data]
       properties:
         data:
           type: array
           items:
-            $ref: "#/components/schemas/Secret"
-        total:
-          type: integer
-        page:
-          type: integer
-        limit:
-          type: integer
-        total_pages:
-          type: integer
+            $ref: "#/components/schemas/MonitorCredential"
 
     Token:
       type: object
@@ -765,3 +861,57 @@ components:
           type: integer
         total_pages:
           type: integer
+
+    MonitorStatsResponse:
+      type: object
+      required: [monitor_id, uptime_24h, uptime_30d]
+      properties:
+        monitor_id:
+          type: string
+          format: uuid
+        uptime_24h:
+          $ref: "#/components/schemas/UptimeWindowStats"
+        uptime_30d:
+          $ref: "#/components/schemas/UptimeWindowStats"
+        ssl:
+          $ref: "#/components/schemas/SSLInfo"
+        last_error:
+          $ref: "#/components/schemas/LastErrorInfo"
+
+    UptimeWindowStats:
+      type: object
+      required: [total_checks, up_checks, uptime_percent, avg_latency_ms]
+      properties:
+        total_checks:
+          type: integer
+        up_checks:
+          type: integer
+        uptime_percent:
+          type: number
+          format: float
+        avg_latency_ms:
+          type: integer
+
+    SSLInfo:
+      type: object
+      required: [days_remaining, expires_at]
+      properties:
+        days_remaining:
+          type: integer
+          description: Days until certificate expires
+        expires_at:
+          type: string
+          format: date
+          description: Approximate certificate expiration date
+
+    LastErrorInfo:
+      type: object
+      required: [error, checked_at]
+      properties:
+        error:
+          type: string
+          description: The error message from the last failed check
+        checked_at:
+          type: string
+          format: date-time
+          description: When the error was recorded

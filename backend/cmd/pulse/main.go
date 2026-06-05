@@ -18,6 +18,7 @@ import (
 	"github.com/VitaliAndrushkevich/pulse/internal/monitor"
 	db "github.com/VitaliAndrushkevich/pulse/internal/store/postgres"
 	"github.com/VitaliAndrushkevich/pulse/internal/store/timescale"
+	"github.com/VitaliAndrushkevich/pulse/internal/version"
 	"github.com/VitaliAndrushkevich/pulse/migrations"
 
 	"github.com/golang-migrate/migrate/v4"
@@ -26,6 +27,8 @@ import (
 )
 
 func main() {
+	log.Printf("Pulse %s starting", version.Version)
+
 	cfg := config.LoadApp()
 
 	// Load encryption key for secrets (TASK-009/010).
@@ -101,7 +104,7 @@ func main() {
 
 	scheduler := monitor.NewScheduler(monitor.SchedulerConfig{
 		Workers: cfg.SchedulerWorkers,
-	}, registry, queries, timescaleStore, metrics, wsHub)
+	}, registry, queries, timescaleStore, metrics, wsHub, secretKey)
 
 	// Start scheduler and LISTEN/NOTIFY listener in background.
 	appCtx, appCancel := context.WithCancel(context.Background())

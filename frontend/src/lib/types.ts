@@ -1,6 +1,6 @@
 // Core TypeScript types — matches backend OpenAPI contract
 
-export type MonitorType = 'http' | 'https' | 'tcp' | 'udp' | 'websocket';
+export type MonitorType = 'http' | 'tcp' | 'udp' | 'websocket';
 
 /** Monitor — matches OpenAPI Monitor schema */
 export interface Monitor {
@@ -25,6 +25,7 @@ export interface HistoryPoint {
   latency_ms: number | null;
   status_code: number | null;
   error: string | null;
+  ssl_days_remaining: number | null;
   checked_at: string;
 }
 
@@ -71,4 +72,33 @@ export interface MonitorPatch {
   error?: string;
   checked_at: string;
   timestamp: string;
+}
+
+/** Uptime stats for a time window */
+export interface UptimeWindowStats {
+  total_checks: number;
+  up_checks: number;
+  uptime_percent: number;
+  avg_latency_ms: number;
+}
+
+/** SSL certificate information */
+export interface SSLInfo {
+  days_remaining: number;
+  expires_at: string;
+}
+
+/** Last error information */
+export interface LastErrorInfo {
+  error: string;
+  checked_at: string;
+}
+
+/** Monitor statistics — from GET /monitors/{id}/stats */
+export interface MonitorStats {
+  monitor_id: string;
+  uptime_24h: UptimeWindowStats;
+  uptime_30d: UptimeWindowStats;
+  ssl?: SSLInfo;
+  last_error?: LastErrorInfo;
 }

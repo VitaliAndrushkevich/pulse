@@ -58,7 +58,6 @@ func (r *Registry) Get(monitorType string) (Checker, error) {
 func DefaultRegistry() *Registry {
 	reg := NewRegistry()
 	reg.Register("http", &HTTPChecker{})
-	reg.Register("https", &HTTPChecker{})
 	reg.Register("tcp", &TCPChecker{})
 	reg.Register("udp", &UDPChecker{})
 	reg.Register("websocket", &WebSocketChecker{})

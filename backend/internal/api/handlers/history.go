@@ -23,11 +23,12 @@ func NewHistoryHandler(queries *db.Queries, tsStore *timescale.Store) *HistoryHa
 }
 
 type historyPointResponse struct {
-	State      string  `json:"state"`
-	LatencyMs  *int32  `json:"latency_ms,omitempty"`
-	StatusCode *int32  `json:"status_code,omitempty"`
-	Error      *string `json:"error,omitempty"`
-	CheckedAt  string  `json:"checked_at"`
+	State            string  `json:"state"`
+	LatencyMs        *int32  `json:"latency_ms,omitempty"`
+	StatusCode       *int32  `json:"status_code,omitempty"`
+	Error            *string `json:"error,omitempty"`
+	SslDaysRemaining *int32  `json:"ssl_days_remaining,omitempty"`
+	CheckedAt        string  `json:"checked_at"`
 }
 
 type historyResponse struct {
@@ -101,11 +102,12 @@ func (h *HistoryHandler) GetHistory(c *gin.Context) {
 	data := make([]historyPointResponse, 0, len(points))
 	for _, pt := range points {
 		data = append(data, historyPointResponse{
-			State:      pt.State,
-			LatencyMs:  pt.LatencyMs,
-			StatusCode: pt.StatusCode,
-			Error:      pt.Error,
-			CheckedAt:  pt.CheckedAt.Format(time.RFC3339),
+			State:            pt.State,
+			LatencyMs:        pt.LatencyMs,
+			StatusCode:       pt.StatusCode,
+			Error:            pt.Error,
+			SslDaysRemaining: pt.SslDaysRemaining,
+			CheckedAt:        pt.CheckedAt.Format(time.RFC3339),
 		})
 	}
 

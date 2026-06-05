@@ -34,17 +34,17 @@ describe('validateName', () => {
 
 describe('validateType', () => {
   it('accepts all valid types', () => {
-    for (const type of ['http', 'https', 'tcp', 'udp', 'websocket']) {
+    for (const type of ['http', 'tcp', 'udp', 'websocket']) {
       expect(validateType(type)).toEqual({ valid: true, error: null });
     }
   });
 
   it('rejects invalid type', () => {
-    expect(validateType('ftp')).toEqual({ valid: false, error: 'Type must be one of: http, https, tcp, udp, websocket' });
+    expect(validateType('ftp')).toEqual({ valid: false, error: 'Type must be one of: http, tcp, udp, websocket' });
   });
 
   it('rejects empty string', () => {
-    expect(validateType('')).toEqual({ valid: false, error: 'Type must be one of: http, https, tcp, udp, websocket' });
+    expect(validateType('')).toEqual({ valid: false, error: 'Type must be one of: http, tcp, udp, websocket' });
   });
 });
 

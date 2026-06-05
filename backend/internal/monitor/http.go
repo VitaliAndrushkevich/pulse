@@ -4,10 +4,13 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
+
+	"github.com/VitaliAndrushkevich/pulse/internal/version"
 )
 
 // HTTPSettings holds configuration for the HTTP/HTTPS checker.
@@ -62,6 +65,18 @@ type HTTPSettings struct {
 type HTTPChecker struct{}
 
 func (h *HTTPChecker) Check(ctx context.Context, target string, settings json.RawMessage) Result {
+	return h.doCheck(ctx, target, settings, nil)
+}
+
+// CheckWithAuth performs an HTTP health check with credentials injected into
+// the outbound request. All credentials are applied: bearer tokens and basic
+// auth set the Authorization header, custom headers are added by name/value.
+func (h *HTTPChecker) CheckWithAuth(ctx context.Context, target string, settings json.RawMessage, creds []AuthCredential) Result {
+	return h.doCheck(ctx, target, settings, creds)
+}
+
+// doCheck is the shared implementation for Check and CheckWithAuth.
+func (h *HTTPChecker) doCheck(ctx context.Context, target string, settings json.RawMessage, creds []AuthCredential) Result {
 	result := Result{
 		CheckedAt: time.Now().UTC(),
 	}
@@ -102,9 +117,14 @@ func (h *HTTPChecker) Check(ctx context.Context, target string, settings json.Ra
 		return result
 	}
 
+	// Set default User-Agent; allow per-monitor override via headers.
+	req.Header.Set("User-Agent", version.UserAgent())
 	for key, value := range s.Headers {
 		req.Header.Set(key, value)
 	}
+
+	// Inject authentication credentials into the request.
+	injectCredentials(req, creds)
 
 	start := time.Now()
 	resp, err := client.Do(req)
@@ -155,6 +175,23 @@ func (h *HTTPChecker) Check(ctx context.Context, target string, settings json.Ra
 	}
 
 	return result
+}
+
+// injectCredentials applies all authentication credentials to an HTTP request.
+// Bearer and Basic credentials set the Authorization header; custom header
+// credentials add arbitrary headers by name and value.
+func injectCredentials(req *http.Request, creds []AuthCredential) {
+	for _, cred := range creds {
+		switch cred.AuthType {
+		case "bearer":
+			req.Header.Set("Authorization", "Bearer "+cred.Token)
+		case "basic":
+			encoded := base64.StdEncoding.EncodeToString([]byte(cred.Username + ":" + cred.Password))
+			req.Header.Set("Authorization", "Basic "+encoded)
+		case "header":
+			req.Header.Set(cred.HeaderName, cred.HeaderValue)
+		}
+	}
 }
 
 // parseHTTPSettings unmarshals settings JSON and applies defaults.

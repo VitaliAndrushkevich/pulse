@@ -89,9 +89,9 @@ func NewRouter(deps Deps) *gin.Engine {
 	tokenHandler := handlers.NewTokenHandler(deps.Queries)
 	tokenHandler.Register(protected)
 
-	// Secret write-only API (TASK-010).
-	secretHandler := handlers.NewSecretHandler(deps.Queries, deps.SecretKey)
-	secretHandler.Register(protected)
+	// NOTE: Legacy /api/v1/secrets endpoints removed (secrets-and-auth-rework).
+	// The secrets table is deprecated and will be dropped in migration 007.
+	// Use /api/v1/monitors/{id}/credentials for monitor auth credentials instead.
 
 	// Monitor CRUD (TASK-023).
 	monitorHandler := handlers.NewMonitorHandler(deps.Queries)
@@ -106,6 +106,14 @@ func NewRouter(deps Deps) *gin.Engine {
 	// Incidents (TASK-025).
 	incidentHandler := handlers.NewIncidentHandler(deps.Queries)
 	incidentHandler.Register(protected)
+
+	// Monitor credentials (secrets-and-auth-rework).
+	credentialHandler := handlers.NewCredentialHandler(deps.Queries, deps.SecretKey)
+	credentialHandler.Register(protected)
+
+	// Monitor stats — uptime percentages + SSL info (Kuma-style details).
+	monitorStatsHandler := handlers.NewMonitorStatsHandler(deps.Queries)
+	monitorStatsHandler.Register(protected)
 
 	// SPA catch-all: serve embedded frontend assets when available (TASK-036).
 	if frontend.HasAssets() {

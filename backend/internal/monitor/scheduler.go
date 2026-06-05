@@ -2,13 +2,18 @@ package monitor
 
 import (
 	"context"
+	"encoding/base64"
+	"encoding/json"
+	"fmt"
 	"log"
+	"net/url"
 	"sync"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgtype"
 
 	"github.com/VitaliAndrushkevich/pulse/internal/api/handlers"
+	"github.com/VitaliAndrushkevich/pulse/internal/crypto"
 	"github.com/VitaliAndrushkevich/pulse/internal/hub"
 	db "github.com/VitaliAndrushkevich/pulse/internal/store/postgres"
 	"github.com/VitaliAndrushkevich/pulse/internal/store/timescale"
@@ -34,18 +39,19 @@ type SchedulerConfig struct {
 
 // Scheduler orchestrates periodic monitor checks using a bounded worker pool.
 type Scheduler struct {
-	cfg       SchedulerConfig
-	registry  *Registry
-	queries   *db.Queries
-	tsStore   *timescale.Store
-	metrics   *handlers.Metrics
-	hub       *hub.Hub // WebSocket broadcast hub (may be nil)
-	wakeupCh  chan struct{} // signals immediate re-poll (from LISTEN/NOTIFY)
-	stopOnce  sync.Once
+	cfg           SchedulerConfig
+	registry      *Registry
+	queries       *db.Queries
+	tsStore       *timescale.Store
+	metrics       *handlers.Metrics
+	hub           *hub.Hub // WebSocket broadcast hub (may be nil)
+	encryptionKey []byte   // AES-256-GCM key for credential decryption
+	wakeupCh      chan struct{} // signals immediate re-poll (from LISTEN/NOTIFY)
+	stopOnce      sync.Once
 }
 
 // NewScheduler creates a scheduler with the given configuration and dependencies.
-func NewScheduler(cfg SchedulerConfig, registry *Registry, queries *db.Queries, tsStore *timescale.Store, metrics *handlers.Metrics, wsHub *hub.Hub) *Scheduler {
+func NewScheduler(cfg SchedulerConfig, registry *Registry, queries *db.Queries, tsStore *timescale.Store, metrics *handlers.Metrics, wsHub *hub.Hub, encryptionKey []byte) *Scheduler {
 	if cfg.Workers <= 0 {
 		cfg.Workers = DefaultWorkers
 	}
@@ -56,13 +62,14 @@ func NewScheduler(cfg SchedulerConfig, registry *Registry, queries *db.Queries, 
 		cfg.BatchSize = DefaultBatchSize
 	}
 	return &Scheduler{
-		cfg:      cfg,
-		registry: registry,
-		queries:  queries,
-		tsStore:  tsStore,
-		metrics:  metrics,
-		hub:      wsHub,
-		wakeupCh: make(chan struct{}, 1),
+		cfg:           cfg,
+		registry:      registry,
+		queries:       queries,
+		tsStore:       tsStore,
+		metrics:       metrics,
+		hub:           wsHub,
+		encryptionKey: encryptionKey,
+		wakeupCh:      make(chan struct{}, 1),
 	}
 }
 
@@ -158,29 +165,67 @@ func (s *Scheduler) executeCheck(ctx context.Context, m db.Monitor) {
 	checkCtx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 
-	result := checker.Check(checkCtx, m.Target, m.Settings)
+	// Load and decrypt credentials for HTTP and WebSocket monitors.
+	var creds []AuthCredential
+	if m.Type == "http" || m.Type == "websocket" {
+		dbCreds, err := s.queries.ListCredentialsByMonitorIDInternal(ctx, m.ID)
+		if err != nil {
+			log.Printf("scheduler: monitor %s: load credentials: %v", m.ID, err)
+		}
+		for _, dc := range dbCreds {
+			payload, err := decryptCredentialPayloadLocal(s.encryptionKey, dc.EncryptedValue)
+			if err != nil {
+				errMsg := fmt.Sprintf("credential decryption failure for monitor %s", m.ID)
+				log.Printf("scheduler: %s", errMsg)
+				s.recordFailure(ctx, m, errMsg)
+				return
+			}
+			creds = append(creds, AuthCredential{
+				AuthType:    dc.AuthType,
+				Token:       payload.Token,
+				Username:    payload.Username,
+				Password:    payload.Password,
+				HeaderName:  payload.HeaderName,
+				HeaderValue: payload.HeaderValue,
+			})
+		}
+	}
+
+	// Use AuthenticatedChecker if credentials exist; otherwise fall back to Check.
+	var result Result
+	if len(creds) > 0 {
+		if ac, ok := checker.(AuthenticatedChecker); ok {
+			result = ac.CheckWithAuth(checkCtx, m.Target, m.Settings, creds)
+		} else {
+			result = checker.Check(checkCtx, m.Target, m.Settings)
+		}
+	} else {
+		result = checker.Check(checkCtx, m.Target, m.Settings)
+	}
 	result.MonitorID = m.ID
 
 	// Persist check result to TimescaleDB.
 	if err := s.tsStore.WriteCheckResult(ctx, timescale.CheckPoint{
-		MonitorID:  m.ID,
-		State:      result.State,
-		LatencyMs:  &result.LatencyMs,
-		StatusCode: result.StatusCode,
-		Error:      strPtr(result.Error),
-		CheckedAt:  result.CheckedAt,
+		MonitorID:        m.ID,
+		State:            result.State,
+		LatencyMs:        &result.LatencyMs,
+		StatusCode:       result.StatusCode,
+		Error:            strPtr(result.Error),
+		SslDaysRemaining: result.SSLDaysRemaining,
+		CheckedAt:        result.CheckedAt,
 	}); err != nil {
 		log.Printf("scheduler: monitor %s: write result: %v", m.ID, err)
 	}
 
 	// Also persist to the regular check_results table for the API layer.
 	if _, err := s.queries.CreateCheckResult(ctx, db.CreateCheckResultParams{
-		MonitorID:  m.ID,
-		CheckedAt:  result.CheckedAt,
-		State:      result.State,
-		LatencyMs:  &result.LatencyMs,
-		StatusCode: result.StatusCode,
-		Error:      strPtr(result.Error),
+		MonitorID:        m.ID,
+		CheckedAt:        result.CheckedAt,
+		State:            result.State,
+		LatencyMs:        &result.LatencyMs,
+		StatusCode:       result.StatusCode,
+		Error:            strPtr(result.Error),
+		SslDaysRemaining: result.SSLDaysRemaining,
 	}); err != nil {
 		log.Printf("scheduler: monitor %s: create check result: %v", m.ID, err)
 	}
@@ -204,7 +249,7 @@ func (s *Scheduler) executeCheck(ctx context.Context, m db.Monitor) {
 
 	// Update Prometheus metrics (TASK-026).
 	if s.metrics != nil {
-		labels := []string{m.ID.String(), m.Name, m.Type}
+		labels := []string{m.ID.String(), m.Name, m.Type, metricMonitorURLLabel(m.Target)}
 		upVal := float64(0)
 		if result.State == "up" {
 			upVal = 1
@@ -266,6 +311,58 @@ func strPtr(s string) *string {
 		return nil
 	}
 	return &s
+}
+
+// metricMonitorURLLabel sanitizes a monitor target for safe exposure as a metric label.
+func metricMonitorURLLabel(target string) string {
+	u, err := url.Parse(target)
+	if err != nil {
+		return target
+	}
+
+	if u.Scheme == "" && u.Host == "" {
+		return target
+	}
+
+	u.User = nil
+	u.RawQuery = ""
+	u.ForceQuery = false
+	u.Fragment = ""
+
+	return u.String()
+}
+
+// credentialPayload mirrors the handlers.CredentialPayload struct to avoid
+// circular imports between monitor and handlers packages.
+type credentialPayload struct {
+	Token       string `json:"token,omitempty"`
+	Username    string `json:"username,omitempty"`
+	Password    string `json:"password,omitempty"`
+	HeaderName  string `json:"header_name,omitempty"`
+	HeaderValue string `json:"header_value,omitempty"`
+}
+
+// decryptCredentialPayloadLocal decodes base64, decrypts via AES-256-GCM, and
+// unmarshals into a credentialPayload. This is a local copy of the decryption
+// logic to avoid circular imports with the handlers package.
+func decryptCredentialPayloadLocal(key []byte, encrypted string) (credentialPayload, error) {
+	var payload credentialPayload
+
+	ciphertext, err := base64.StdEncoding.DecodeString(encrypted)
+	if err != nil {
+		return payload, fmt.Errorf("credential crypto: decode base64: %w", err)
+	}
+
+	plaintext, err := crypto.Decrypt(key, ciphertext)
+	if err != nil {
+		return payload, fmt.Errorf("credential crypto: decrypt: %w", err)
+	}
+
+	if err := json.Unmarshal(plaintext, &payload); err != nil {
+		return payload, fmt.Errorf("credential crypto: unmarshal payload: %w", err)
+	}
+
+	return payload, nil
 }
 
 

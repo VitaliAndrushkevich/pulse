@@ -71,11 +71,6 @@ func main() {
 		log.Fatalf("failed to list secrets: %v", err)
 	}
 
-	if len(secrets) == 0 {
-		fmt.Println("no secrets to rotate")
-		return
-	}
-
 	fmt.Printf("rotating %d secret(s)...\n", len(secrets))
 
 	// Re-encrypt each secret.
@@ -111,11 +106,57 @@ func main() {
 		fmt.Printf("  [%d/%d] rotated secret %q (%s)\n", i+1, len(secrets), s.Name, s.ID)
 	}
 
+	// Fetch all monitor credentials.
+	credentials, err := queries.ListAllCredentials(ctx)
+	if err != nil {
+		log.Fatalf("failed to list monitor credentials: %v", err)
+	}
+
+	fmt.Printf("rotating %d monitor credential(s)...\n", len(credentials))
+
+	// Re-encrypt each monitor credential.
+	for i, c := range credentials {
+		// Decode the stored base64 ciphertext.
+		ciphertext, err := base64.StdEncoding.DecodeString(c.EncryptedValue)
+		if err != nil {
+			log.Fatalf("credential %s: failed to decode stored value: %v", c.ID, err)
+		}
+
+		// Decrypt with old key.
+		plaintext, err := crypto.Decrypt(oldKey, ciphertext)
+		if err != nil {
+			log.Fatalf("credential %s: failed to decrypt with old key: %v", c.ID, err)
+		}
+
+		// Encrypt with new key.
+		newCiphertext, err := crypto.Encrypt(newKey, plaintext)
+		if err != nil {
+			log.Fatalf("credential %s: failed to encrypt with new key: %v", c.ID, err)
+		}
+
+		// Update in database (within transaction).
+		err = queries.UpdateCredentialEncryptedValue(ctx, db.UpdateCredentialEncryptedValueParams{
+			ID:             c.ID,
+			EncryptedValue: base64.StdEncoding.EncodeToString(newCiphertext),
+		})
+		if err != nil {
+			log.Fatalf("credential %s: failed to update: %v", c.ID, err)
+		}
+
+		fmt.Printf("  [%d/%d] rotated credential (%s)\n", i+1, len(credentials), c.ID)
+	}
+
+	totalRotated := len(secrets) + len(credentials)
+	if totalRotated == 0 {
+		fmt.Println("no secrets or credentials to rotate")
+		return
+	}
+
 	// Commit transaction.
 	if err := tx.Commit(ctx); err != nil {
 		log.Fatalf("failed to commit transaction: %v", err)
 	}
 
-	fmt.Printf("\nsuccessfully rotated %d secret(s)\n", len(secrets))
+	fmt.Printf("\nsuccessfully rotated %d secret(s) and %d credential(s)\n", len(secrets), len(credentials))
 	fmt.Println("update PULSE_SECRET_KEY to the new key value and remove PULSE_SECRET_KEY_NEW")
 }

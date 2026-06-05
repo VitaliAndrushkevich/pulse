@@ -60,6 +60,7 @@ Core outcomes:
 
 ## Frontend Conventions
 - Svelte 5 with SvelteKit, TypeScript strict, Tailwind CSS 3.4.
+- **pnpm** is the package manager for the `frontend/` directory — use `pnpm` for dependency installation (`pnpm install`), script execution (`pnpm <script>`), and lockfile management (`pnpm-lock.yaml`).
 - Static adapter (`@sveltejs/adapter-static`) — output embedded into Go binary.
 - Place API client in `frontend/src/lib/api.ts`.
 - Place WebSocket client in `frontend/src/lib/ws.ts`.
@@ -138,19 +139,22 @@ The project is at MVP completion. Full milestone breakdown: [docs/MILESTONES.md]
 
 ## Build and Test
 Primary commands:
-- `make dev` — full stack via docker-compose (Pulse + TimescaleDB)
+- `make dev` — full stack via docker-compose (Pulse + TimescaleDB + frontend dev server)
 - `make dev-local` — lightweight compose (backend + postgres only)
 - `make run` — `go run ./cmd/pulse` (requires local postgres)
 - `make build` — `go build ./cmd/pulse`
 - `make test` — `go test ./...`
+- `pnpm test` — run frontend unit tests via Vitest (execute from `frontend/` directory)
+- `pnpm dev` — run Vite frontend dev server locally with HMR (execute from `frontend/` directory)
 - `make migrate` — run migrations up
 - `make migrate-down` — roll back last migration
 - `make rotate-key` — AES key rotation with transactional re-encryption
 - `make openapi` — validate OpenAPI spec
 
 ## Infrastructure
-- `docker-compose.dev.yml`: Go 1.25 container (hot-reload via `go run`) + TimescaleDB 2.17.2-pg16
+- `docker-compose.dev.yml`: Go 1.25 container (hot-reload via `go run`) + TimescaleDB 2.17.2-pg16 + frontend dev server
 - Backend port: 8080
+- Frontend dev container: service `frontend`, base image `node:22-alpine`, port 5173, runs Vite dev server with HMR for local frontend development
 - Postgres: `pulse:pulse@localhost:5432/pulse`
 - Environment variables: `PULSE_PORT`, `PULSE_DEV`, `PULSE_SECRET_KEY`, `PULSE_JWT_SECRET`, `DATABASE_URL`, `PULSE_SCHEDULER_WORKERS`
 

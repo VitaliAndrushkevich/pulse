@@ -304,6 +304,11 @@ export async function getMonitorHistory(
   return envelope.points ?? [];
 }
 
+/** GET /api/v1/monitors/:id/stats — uptime percentages, SSL info, last error */
+export async function getMonitorStats(id: string): Promise<import('$lib/types').MonitorStats> {
+  return apiRequest<import('$lib/types').MonitorStats>('GET', `/monitors/${id}/stats`);
+}
+
 /** GET /api/v1/monitors/:id/incidents?page=&limit= */
 export async function getMonitorIncidents(
   id: string,
@@ -317,11 +322,109 @@ export async function getMonitorIncidents(
 }
 
 /** GET /api/v1/secrets */
-export async function getSecrets(): Promise<Secret[]> {
-  return apiRequest<Secret[]>('GET', '/secrets');
+export async function getSecrets(
+  page: number = 1,
+  limit: number = 100
+): Promise<PaginatedList<Secret>> {
+  return apiRequest<PaginatedList<Secret>>('GET', `/secrets?page=${page}&limit=${limit}`);
 }
 
 /** POST /api/v1/secrets */
 export async function createSecret(data: CreateSecretRequest): Promise<Secret> {
   return apiRequest<Secret>('POST', '/secrets', data, { skipToast: true });
+}
+
+// ---------------------------------------------------------------------------
+// Monitor Credentials
+// ---------------------------------------------------------------------------
+
+export interface Credential {
+  id: string;
+  auth_type: 'bearer' | 'basic' | 'header';
+  name: string;
+  header_name?: string;
+  username?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateCredentialRequest {
+  auth_type: 'bearer' | 'basic' | 'header';
+  name: string;
+  token?: string;
+  username?: string;
+  password?: string;
+  header_name?: string;
+  header_value?: string;
+}
+
+/** POST /api/v1/monitors/:id/credentials */
+export async function createCredential(
+  monitorId: string,
+  req: CreateCredentialRequest
+): Promise<Credential> {
+  return apiRequest<Credential>('POST', `/monitors/${monitorId}/credentials`, req);
+}
+
+/** GET /api/v1/monitors/:id/credentials */
+export async function listCredentials(monitorId: string): Promise<Credential[]> {
+  return apiRequest<Credential[]>('GET', `/monitors/${monitorId}/credentials`);
+}
+
+/** PUT /api/v1/monitors/:id/credentials/:credentialId */
+export async function updateCredential(
+  monitorId: string,
+  credId: string,
+  req: Partial<CreateCredentialRequest>
+): Promise<Credential> {
+  return apiRequest<Credential>('PUT', `/monitors/${monitorId}/credentials/${credId}`, req);
+}
+
+/** DELETE /api/v1/monitors/:id/credentials/:credentialId */
+export async function deleteCredential(monitorId: string, credId: string): Promise<void> {
+  return apiRequest<void>('DELETE', `/monitors/${monitorId}/credentials/${credId}`);
+}
+
+// ---------------------------------------------------------------------------
+// API Tokens
+// ---------------------------------------------------------------------------
+
+export interface ApiToken {
+  id: string;
+  name: string;
+  last_used_at?: string | null;
+  expires_at?: string | null;
+  revoked_at?: string | null;
+  created_at: string;
+}
+
+export interface CreateApiTokenRequest {
+  name: string;
+  expires_at?: string;
+}
+
+export interface CreateApiTokenResponse {
+  token: string;
+  id: string;
+  name: string;
+  expires_at?: string | null;
+  created_at: string;
+}
+
+/** GET /api/v1/tokens?page=&limit= */
+export async function listApiTokens(
+  page: number = 1,
+  limit: number = 100
+): Promise<PaginatedList<ApiToken>> {
+  return apiRequest<PaginatedList<ApiToken>>('GET', `/tokens?page=${page}&limit=${limit}`);
+}
+
+/** POST /api/v1/tokens */
+export async function createApiToken(data: CreateApiTokenRequest): Promise<CreateApiTokenResponse> {
+  return apiRequest<CreateApiTokenResponse>('POST', '/tokens', data, { skipToast: true });
+}
+
+/** DELETE /api/v1/tokens/:id (revoke) */
+export async function revokeApiToken(id: string): Promise<ApiToken> {
+  return apiRequest<ApiToken>('DELETE', `/tokens/${id}`);
 }

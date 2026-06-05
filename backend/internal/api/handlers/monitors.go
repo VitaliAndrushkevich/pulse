@@ -265,7 +265,7 @@ func (h *MonitorHandler) Delete(c *gin.Context) {
 
 func isValidMonitorType(t string) bool {
 	switch t {
-	case "http", "https", "tcp", "udp", "websocket":
+	case "http", "tcp", "udp", "websocket":
 		return true
 	}
 	return false

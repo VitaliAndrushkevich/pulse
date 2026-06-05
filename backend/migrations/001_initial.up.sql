@@ -32,6 +32,12 @@ CREATE INDEX idx_api_tokens_user_id ON api_tokens (user_id);
 
 -- -------------------------------------------------------
 -- secrets  (AES-256-GCM encrypted at rest, never returned raw)
+--
+-- DEPRECATED: This table is deprecated as of the secrets-and-auth-rework.
+-- No new writes should target this table. Monitor authentication credentials
+-- now live in the monitor_credentials table (migration 006).
+-- A future migration (007) will drop this table after confirming all existing
+-- data has been migrated or is no longer needed.
 -- -------------------------------------------------------
 CREATE TABLE secrets (
     id              UUID        PRIMARY KEY DEFAULT gen_random_uuid(),

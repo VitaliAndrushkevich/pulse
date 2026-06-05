@@ -147,6 +147,19 @@ Delivered:
 
 ---
 
+## Post-MVP Enhancements ✅
+
+**Goal:** Developer-experience improvements applied after MVP completion.
+
+Delivered:
+- ✅ Replaced npm with pnpm as the frontend package manager — faster installs, stricter dependency resolution, `pnpm-lock.yaml` committed, `package-lock.json` removed
+- ✅ Added frontend dev container with HMR to `docker-compose.dev.yml` — `node:22-alpine` service running `pnpm dev --host` (Vite) on port 5173 with bind-mounted sources and named volume for `node_modules`
+- ✅ Updated Dockerfile frontend stage to use corepack + pnpm (`pnpm install --frozen-lockfile`, `pnpm run build`)
+- ✅ Updated Makefile `build-frontend` target with pnpm guard and pnpm commands
+- ✅ All project documentation updated (README, AGENTS.md, copilot-instructions, MILESTONES)
+
+---
+
 ## What Exists Today (Inventory)
 
 | Layer | Status | Notes |

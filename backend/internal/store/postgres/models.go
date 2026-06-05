@@ -25,14 +25,15 @@ type ApiToken struct {
 }
 
 type CheckResult struct {
-	ID         uuid.UUID `db:"id" json:"id"`
-	MonitorID  uuid.UUID `db:"monitor_id" json:"monitor_id"`
-	CheckedAt  time.Time `db:"checked_at" json:"checked_at"`
-	State      string    `db:"state" json:"state"`
-	LatencyMs  *int32    `db:"latency_ms" json:"latency_ms"`
-	StatusCode *int32    `db:"status_code" json:"status_code"`
-	Error      *string   `db:"error" json:"error"`
-	CreatedAt  time.Time `db:"created_at" json:"created_at"`
+	ID               uuid.UUID `db:"id" json:"id"`
+	MonitorID        uuid.UUID `db:"monitor_id" json:"monitor_id"`
+	CheckedAt        time.Time `db:"checked_at" json:"checked_at"`
+	State            string    `db:"state" json:"state"`
+	LatencyMs        *int32    `db:"latency_ms" json:"latency_ms"`
+	StatusCode       *int32    `db:"status_code" json:"status_code"`
+	Error            *string   `db:"error" json:"error"`
+	SslDaysRemaining *int32    `db:"ssl_days_remaining" json:"ssl_days_remaining"`
+	CreatedAt        time.Time `db:"created_at" json:"created_at"`
 }
 
 type Incident struct {
@@ -58,6 +59,16 @@ type Monitor struct {
 	Settings        json.RawMessage    `db:"settings" json:"settings"`
 	CreatedAt       time.Time          `db:"created_at" json:"created_at"`
 	UpdatedAt       time.Time          `db:"updated_at" json:"updated_at"`
+}
+
+type MonitorCredential struct {
+	ID             uuid.UUID `db:"id" json:"id"`
+	MonitorID      uuid.UUID `db:"monitor_id" json:"monitor_id"`
+	AuthType       string    `db:"auth_type" json:"auth_type"`
+	Name           string    `db:"name" json:"name"`
+	EncryptedValue string    `db:"encrypted_value" json:"encrypted_value"`
+	CreatedAt      time.Time `db:"created_at" json:"created_at"`
+	UpdatedAt      time.Time `db:"updated_at" json:"updated_at"`
 }
 
 type Secret struct {

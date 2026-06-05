@@ -1,6 +1,16 @@
 // Package handlers contains HTTP handler implementations for the Pulse API.
 package handlers
 
+// DEPRECATED: This file and all its endpoints are deprecated as part of the
+// secrets-and-auth-rework. The /api/v1/secrets routes have been removed from
+// the router. Use /api/v1/monitors/{id}/credentials for monitor auth credentials
+// and /api/v1/tokens for API token management.
+//
+// This handler is retained temporarily because the key rotation command
+// (cmd/rotate) still references the underlying sqlc queries (ListAllSecrets,
+// UpdateSecret) for migrating existing data. The secrets table will be dropped
+// in migration 007 once all data has been migrated.
+
 import (
 	"encoding/base64"
 	"net/http"
@@ -15,6 +25,9 @@ import (
 
 // SecretHandler provides CRUD operations for secrets with write-only semantics.
 // Secret values are encrypted at rest and never returned in API responses.
+//
+// Deprecated: This handler is no longer registered in the router. The legacy
+// /api/v1/secrets endpoints have been removed. See monitor credentials instead.
 type SecretHandler struct {
 	queries *db.Queries
 	key     []byte

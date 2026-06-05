@@ -21,14 +21,14 @@ func NewMetrics(reg prometheus.Registerer) *Metrics {
 				Name: "pulse_monitor_up",
 				Help: "Whether the monitor is up (1) or down (0).",
 			},
-			[]string{"monitor_id", "monitor_name", "monitor_type"},
+			[]string{"monitor_id", "monitor_name", "monitor_type", "monitor_url"},
 		),
 		MonitorResponseTime: prometheus.NewGaugeVec(
 			prometheus.GaugeOpts{
 				Name: "pulse_monitor_response_time_seconds",
 				Help: "Last recorded response time in seconds.",
 			},
-			[]string{"monitor_id", "monitor_name", "monitor_type"},
+			[]string{"monitor_id", "monitor_name", "monitor_type", "monitor_url"},
 		),
 		MonitorsTotal: prometheus.NewGauge(
 			prometheus.GaugeOpts{

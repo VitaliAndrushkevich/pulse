@@ -19,8 +19,9 @@ Build Pulse as an API-first uptime monitoring platform with strong reliability, 
 
 ## Expected Stack
 - Backend: Go 1.22+, `gin`, `pgx/v5`, `sqlc`, `golang-migrate`, TimescaleDB (PostgreSQL extension), Prometheus client, gorilla/websocket.
-- Frontend: SvelteKit + TypeScript, `@sveltejs/adapter-static`, Tailwind, virtualized monitor list, `uplot` for history charts.
+- Frontend: SvelteKit + TypeScript, `@sveltejs/adapter-static`, Tailwind, pnpm (package manager), virtualized monitor list, `uplot` for history charts.
 - Deployment: single Go binary embedding frontend assets; multi-stage container build; Compose-based local environments.
+- Frontend Dev Container: a `frontend` service in `docker-compose.dev.yml` running the Vite dev server with HMR via `pnpm dev --host`, accessible on host port 5173.
 
 ## API Contract Guidance
 - REST first, UI second.

@@ -54,4 +54,5 @@ require (
 	golang.org/x/sys v0.41.0 // indirect
 	golang.org/x/text v0.34.0 // indirect
 	google.golang.org/protobuf v1.36.10 // indirect
+	pgregory.net/rapid v1.3.0 // indirect
 )

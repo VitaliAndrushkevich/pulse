@@ -181,6 +181,7 @@ Full API reference: [`backend/api/openapi.yaml`](backend/api/openapi.yaml)
 
 - Go 1.25+
 - Node.js 22+
+- pnpm 9+ (install via `corepack enable` or [pnpm.io/installation](https://pnpm.io/installation))
 - PostgreSQL 16 with TimescaleDB 2.17+
 - Make
 
@@ -213,8 +214,18 @@ make migrate
 make run
 
 # In a separate terminal — start frontend dev server
-cd frontend && npm install && npm run dev
+cd frontend && pnpm install && pnpm dev
 ```
+
+#### Frontend Dev Container
+
+For containerized frontend development with hot module replacement (HMR), use the `frontend` service in `docker-compose.dev.yml`:
+
+```bash
+docker compose -f docker-compose.dev.yml up frontend
+```
+
+This starts the Vite dev server on port **5173** with HMR enabled — source file changes are reflected in the browser instantly. The service uses `node:22-alpine` with pnpm and bind-mounts `./frontend` for live editing.
 
 ### Running Tests
 
@@ -223,7 +234,7 @@ cd frontend && npm install && npm run dev
 make test
 
 # Frontend tests
-cd frontend && npm test
+cd frontend && pnpm test
 ```
 
 ## Docker Compose Override

@@ -2,6 +2,7 @@ package monitor
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -20,10 +21,20 @@ type WebSocketSettings struct {
 	ExpectedResponse string `json:"expected_response,omitempty"`
 }
 
-// WebSocketChecker implements the Checker interface for WebSocket monitors.
+// WebSocketChecker implements the Checker and AuthenticatedChecker interfaces
+// for WebSocket monitors.
 type WebSocketChecker struct{}
 
 func (w *WebSocketChecker) Check(ctx context.Context, target string, settings json.RawMessage) Result {
+	return w.check(ctx, target, settings, nil)
+}
+
+func (w *WebSocketChecker) CheckWithAuth(ctx context.Context, target string, settings json.RawMessage, creds []AuthCredential) Result {
+	return w.check(ctx, target, settings, creds)
+}
+
+// check is the shared implementation used by both Check and CheckWithAuth.
+func (w *WebSocketChecker) check(ctx context.Context, target string, settings json.RawMessage, creds []AuthCredential) Result {
 	result := Result{
 		CheckedAt: time.Now().UTC(),
 	}
@@ -37,6 +48,21 @@ func (w *WebSocketChecker) Check(ctx context.Context, target string, settings js
 	header := http.Header{}
 	for key, value := range s.Headers {
 		header.Set(key, value)
+	}
+
+	// Inject auth credential headers into the upgrade request.
+	for _, cred := range creds {
+		switch cred.AuthType {
+		case "bearer":
+			header.Set("Authorization", "Bearer "+cred.Token)
+		case "basic":
+			encoded := base64.StdEncoding.EncodeToString(
+				[]byte(cred.Username + ":" + cred.Password),
+			)
+			header.Set("Authorization", "Basic "+encoded)
+		case "header":
+			header.Set(cred.HeaderName, cred.HeaderValue)
+		}
 	}
 
 	dialer := &websocket.Dialer{

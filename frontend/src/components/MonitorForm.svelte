@@ -2,6 +2,7 @@
   import type { MonitorType } from '$lib/types';
   import { validateName, validateTarget, validateInterval, validateTimeout, validateType } from '$lib/validation';
   import { formatSecretReference } from '$lib/format';
+  import AuthSection from './AuthSection.svelte';
 
   interface MonitorFormValues {
     name: string;
@@ -17,16 +18,20 @@
     mode: 'create' | 'edit';
     initialValues?: Partial<MonitorFormValues>;
     secrets?: Array<{ id: string; name: string }>;
+    monitorId?: string;
     onSubmit: (values: MonitorFormValues) => Promise<void>;
     onCancel: () => void;
   }
 
-  let { mode, initialValues, secrets = [], onSubmit, onCancel }: Props = $props();
+  let { mode, initialValues, secrets = [], monitorId, onSubmit, onCancel }: Props = $props();
 
   // Form field state
   let name = $state(initialValues?.name ?? '');
   let type: MonitorType = $state(initialValues?.type ?? 'http');
   let target = $state(initialValues?.target ?? '');
+
+  // Whether the auth section should be visible (HTTP and WebSocket only)
+  let showAuthSection = $derived(type === 'http' || type === 'websocket');
   let interval_seconds = $state(initialValues?.interval_seconds ?? 60);
   let timeout_seconds = $state(initialValues?.timeout_seconds ?? 10);
   let status: 'active' | 'paused' = $state(initialValues?.status ?? 'active');
@@ -72,7 +77,7 @@
   function buildSettings(): Record<string, unknown> {
     const settings: Record<string, unknown> = {};
 
-    if ((type === 'http' || type === 'https') && expectedStatusCodes.trim()) {
+    if (type === 'http' && expectedStatusCodes.trim()) {
       const codes = expectedStatusCodes
         .split(',')
         .map(s => parseInt(s.trim(), 10))
@@ -127,7 +132,7 @@
     }
   }
 
-  const monitorTypes: MonitorType[] = ['http', 'https', 'tcp', 'udp', 'websocket'];
+  const monitorTypes: MonitorType[] = ['http', 'tcp', 'udp', 'websocket'];
 </script>
 
 <form onsubmit={handleSubmit} class="mx-auto max-w-2xl space-y-6" data-testid="monitor-form">
@@ -171,7 +176,7 @@
       data-testid="input-type"
     >
       {#each monitorTypes as t}
-        <option value={t}>{t.toUpperCase()}</option>
+        <option value={t}>{t === 'http' ? 'HTTP(S)' : t.toUpperCase()}</option>
       {/each}
     </select>
     {#if touched.type && !typeValidation.valid}
@@ -261,7 +266,7 @@
   </fieldset>
 
   <!-- Type-specific settings -->
-  {#if type === 'http' || type === 'https'}
+  {#if type === 'http'}
     <div>
       <label for="monitor-status-codes" class="block text-sm font-medium text-slate-700">
         Expected Status Codes
@@ -306,6 +311,22 @@
       />
       <p class="mt-1 text-xs text-slate-500">Message to send after WebSocket connection is established</p>
     </div>
+  {/if}
+
+  <!-- Authentication Section (HTTP and WebSocket only) -->
+  {#if showAuthSection}
+    {#if mode === 'edit' && monitorId}
+      <AuthSection {monitorId} />
+    {:else}
+      <section class="space-y-2" data-testid="auth-section-placeholder">
+        <div>
+          <h3 class="text-sm font-medium text-slate-900">Authentication</h3>
+          <p class="mt-1 text-xs text-slate-500">
+            Save the monitor first to configure authentication credentials.
+          </p>
+        </div>
+      </section>
+    {/if}
   {/if}
 
   <!-- Secret Reference Dropdown -->

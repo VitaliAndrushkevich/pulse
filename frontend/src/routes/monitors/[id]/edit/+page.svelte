@@ -2,13 +2,12 @@
   import { page } from '$app/stores';
   import { goto } from '$app/navigation';
   import { untrack } from 'svelte';
-  import { getMonitor, getSecrets, updateMonitor, ApiRequestError } from '$lib/api';
+  import { getMonitor, updateMonitor, ApiRequestError } from '$lib/api';
   import { monitorStore } from '$lib/stores/monitors.svelte';
   import MonitorForm from '../../../../components/MonitorForm.svelte';
   import type { Monitor } from '$lib/types';
 
   let monitor = $state<Monitor | null>(null);
-  let secrets = $state<Array<{ id: string; name: string }>>([]);
   let loading = $state(true);
   let error = $state<string | null>(null);
   let notFound = $state(false);
@@ -21,13 +20,7 @@
     notFound = false;
 
     try {
-      const [monitorData, secretsData] = await Promise.all([
-        getMonitor(monitorId),
-        getSecrets().catch(() => [] as Array<{ id: string; name: string; created_at: string; updated_at: string }>)
-      ]);
-
-      monitor = monitorData;
-      secrets = secretsData.map((s) => ({ id: s.id, name: s.name }));
+      monitor = await getMonitor(monitorId);
     } catch (err: unknown) {
       if (err instanceof ApiRequestError && err.statusCode === 404) {
         notFound = true;
@@ -97,6 +90,7 @@
   {:else if monitor}
     <MonitorForm
       mode="edit"
+      monitorId={monitorId}
       initialValues={{
         name: monitor.name,
         type: monitor.type,
@@ -106,7 +100,6 @@
         status: monitor.status,
         settings: monitor.settings
       }}
-      {secrets}
       onSubmit={handleSubmit}
       onCancel={handleCancel}
     />

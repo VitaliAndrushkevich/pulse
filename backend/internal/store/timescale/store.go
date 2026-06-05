@@ -11,12 +11,13 @@ import (
 
 // CheckPoint is a single monitor check result stored in PostgreSQL/TimescaleDB.
 type CheckPoint struct {
-	MonitorID  uuid.UUID
-	State      string
-	LatencyMs  *int32
-	StatusCode *int32
-	Error      *string
-	CheckedAt  time.Time
+	MonitorID        uuid.UUID
+	State            string
+	LatencyMs        *int32
+	StatusCode       *int32
+	Error            *string
+	SslDaysRemaining *int32
+	CheckedAt        time.Time
 }
 
 // Store uses the shared PostgreSQL pool with TimescaleDB extension enabled.
@@ -47,14 +48,15 @@ func (s *Store) Ping(ctx context.Context) error {
 func (s *Store) WriteCheckResult(ctx context.Context, pt CheckPoint) error {
 	_, err := s.pool.Exec(
 		ctx,
-		`INSERT INTO check_results (monitor_id, checked_at, state, latency_ms, status_code, error)
-		 VALUES ($1, $2, $3, $4, $5, $6)`,
+		`INSERT INTO check_results (monitor_id, checked_at, state, latency_ms, status_code, error, ssl_days_remaining)
+		 VALUES ($1, $2, $3, $4, $5, $6, $7)`,
 		pt.MonitorID,
 		pt.CheckedAt,
 		pt.State,
 		pt.LatencyMs,
 		pt.StatusCode,
 		pt.Error,
+		pt.SslDaysRemaining,
 	)
 	if err != nil {
 		return fmt.Errorf("timescaledb write: %w", err)
@@ -67,7 +69,7 @@ func (s *Store) WriteCheckResult(ctx context.Context, pt CheckPoint) error {
 func (s *Store) QueryHistory(ctx context.Context, monitorID uuid.UUID, start, end time.Time) ([]CheckPoint, error) {
 	rows, err := s.pool.Query(
 		ctx,
-		`SELECT monitor_id, state, latency_ms, status_code, error, checked_at
+		`SELECT monitor_id, state, latency_ms, status_code, error, ssl_days_remaining, checked_at
 		 FROM check_results
 		 WHERE monitor_id = $1
 		   AND checked_at >= $2
@@ -91,6 +93,7 @@ func (s *Store) QueryHistory(ctx context.Context, monitorID uuid.UUID, start, en
 			&point.LatencyMs,
 			&point.StatusCode,
 			&point.Error,
+			&point.SslDaysRemaining,
 			&point.CheckedAt,
 		); err != nil {
 			return nil, fmt.Errorf("timescaledb scan: %w", err)

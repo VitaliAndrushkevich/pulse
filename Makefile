@@ -3,6 +3,10 @@
 COMPOSE ?= docker compose
 COMPOSE_DEV ?= docker compose -f docker-compose.dev.yml
 
+# Version injected at build time via ldflags.
+VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo "dev")
+LDFLAGS := -X github.com/VitaliAndrushkevich/pulse/internal/version.Version=$(VERSION)
+
 # Default DATABASE_URL for local development (matches docker-compose postgres service).
 DATABASE_URL ?= postgres://pulse:pulse@localhost:5432/pulse?sslmode=disable
 
@@ -30,11 +34,12 @@ run:
 		go run ./cmd/pulse
 
 build:
-	cd backend && go build ./cmd/pulse
+	cd backend && go build -ldflags "$(LDFLAGS)" ./cmd/pulse
 
 # Build frontend and copy output to the Go embed path.
 build-frontend:
-	cd frontend && npm run build
+	@command -v pnpm >/dev/null 2>&1 || { echo "Error: pnpm is required but not found in PATH. Install it: https://pnpm.io/installation"; exit 1; }
+	cd frontend && pnpm run build
 	rm -rf backend/internal/frontend/dist
 	mkdir -p backend/internal/frontend/dist
 	cp -r frontend/build/* backend/internal/frontend/dist/
@@ -42,7 +47,7 @@ build-frontend:
 
 # Production build: builds frontend, embeds assets, then compiles Go binary.
 build-all: build-frontend
-	cd backend && go build -o pulse ./cmd/pulse
+	cd backend && go build -ldflags "$(LDFLAGS)" -o pulse ./cmd/pulse
 
 test:
 	cd backend && go test ./...

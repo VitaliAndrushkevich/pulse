@@ -4,11 +4,12 @@
 FROM node:22-alpine AS node-builder
 
 WORKDIR /src/frontend
-COPY frontend/package.json frontend/package-lock.json ./
-RUN npm ci
+RUN corepack enable
+COPY frontend/package.json frontend/pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile
 
 COPY frontend/ ./
-RUN npm run build
+RUN pnpm run build
 
 # =============================================================================
 # Stage 2: Build Go Binary (with embedded frontend assets)

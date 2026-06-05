@@ -8,6 +8,7 @@
 import { getToken, clearToken } from '$lib/stores/auth.svelte';
 import { monitorStore } from '$lib/stores/monitors.svelte';
 import { connectionStore, type ConnectionStatus } from '$lib/stores/connection.svelte';
+import { patchBus } from '$lib/stores/patchBus.svelte';
 import type { MonitorPatch, WsEnvelope } from '$lib/types';
 
 // ---------------------------------------------------------------------------
@@ -229,9 +230,12 @@ export function createWsClient(options: WsClientOptions): WsClient {
 				setStatus('connected');
 				break;
 
-			case 'monitor_status':
-				monitorStore.applyPatch(envelope.payload as MonitorPatch);
+			case 'monitor_status': {
+				const patch = envelope.payload as MonitorPatch;
+				monitorStore.applyPatch(patch);
+				patchBus.publish(patch);
 				break;
+			}
 		}
 
 		// Forward to optional external handler
