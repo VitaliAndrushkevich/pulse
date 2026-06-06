@@ -1,6 +1,25 @@
 // Core TypeScript types — matches backend OpenAPI contract
 
-export type MonitorType = 'http' | 'tcp' | 'udp' | 'websocket';
+export type MonitorType = 'http' | 'tcp' | 'udp' | 'websocket' | 'grpc';
+
+/** TLS connection mode for gRPC monitors */
+export type TlsMode = 'plaintext' | 'tls' | 'tls_skip_verify';
+
+/** gRPC monitor settings — matches backend OpenAPI contract */
+export interface GrpcSettings {
+  service_method: string;
+  tls_mode: TlsMode;
+  ssl_expiry_threshold?: number;
+  metadata?: Record<string, string>;
+  expected_statuses: number[];
+  request_payload?: string;
+}
+
+/** Tag — key-value pair associated with a monitor */
+export interface Tag {
+  key: string;
+  value: string;
+}
 
 /** Monitor — matches OpenAPI Monitor schema */
 export interface Monitor {
@@ -15,8 +34,17 @@ export interface Monitor {
   last_checked_at: string | null;
   next_check_at: string | null;
   settings: Record<string, unknown>;
+  tags: Tag[];
   created_at: string;
   updated_at: string;
+}
+
+/** Filter state for monitor listing */
+export interface MonitorFilters {
+  types: MonitorType[];
+  tags: Tag[];
+  page: number;
+  limit: number;
 }
 
 /** History point — from GET /monitors/{id}/history */
@@ -71,6 +99,13 @@ export interface MonitorPatch {
   ssl_days_remaining?: number;
   error?: string;
   checked_at: string;
+  timestamp: string;
+}
+
+/** Payload from WebSocket monitor_tags_changed messages */
+export interface MonitorTagsChangedPayload {
+  monitor_id: string;
+  tags: Tag[];
   timestamp: string;
 }
 

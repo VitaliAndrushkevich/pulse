@@ -2,45 +2,60 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/jackc/pgx/v5/pgxpool"
 
+	"github.com/VitaliAndrushkevich/pulse/internal/hub"
 	db "github.com/VitaliAndrushkevich/pulse/internal/store/postgres"
+	"github.com/VitaliAndrushkevich/pulse/internal/tags"
 )
 
 // MonitorHandler provides CRUD operations for monitors.
 type MonitorHandler struct {
 	queries *db.Queries
+	pool    *pgxpool.Pool
+	hub     *hub.Hub // WebSocket broadcast hub (may be nil)
 }
 
-// NewMonitorHandler creates a handler with the given query layer.
-func NewMonitorHandler(queries *db.Queries) *MonitorHandler {
-	return &MonitorHandler{queries: queries}
+// NewMonitorHandler creates a handler with the given query layer, connection pool, and WebSocket hub.
+func NewMonitorHandler(queries *db.Queries, pool *pgxpool.Pool, wsHub *hub.Hub) *MonitorHandler {
+	return &MonitorHandler{queries: queries, pool: pool, hub: wsHub}
 }
 
 // --- Request/Response types ---
 
 type createMonitorRequest struct {
-	Name            string          `json:"name" binding:"required"`
-	Type            string          `json:"type" binding:"required"`
-	Target          string          `json:"target" binding:"required"`
-	IntervalSeconds *int32          `json:"interval_seconds,omitempty"`
-	TimeoutSeconds  *int32          `json:"timeout_seconds,omitempty"`
-	Status          *string         `json:"status,omitempty"`
-	Settings        json.RawMessage `json:"settings,omitempty"`
+	Name            string               `json:"name" binding:"required"`
+	Type            string               `json:"type" binding:"required"`
+	Target          string               `json:"target" binding:"required"`
+	IntervalSeconds *int32               `json:"interval_seconds,omitempty"`
+	TimeoutSeconds  *int32               `json:"timeout_seconds,omitempty"`
+	Status          *string              `json:"status,omitempty"`
+	Settings        json.RawMessage      `json:"settings,omitempty"`
+	Tags            []tags.TagRequest    `json:"tags,omitempty"`
 }
 
 type putMonitorRequest struct {
-	Name            string          `json:"name" binding:"required"`
-	Type            string          `json:"type" binding:"required"`
-	Target          string          `json:"target" binding:"required"`
-	IntervalSeconds *int32          `json:"interval_seconds,omitempty"`
-	TimeoutSeconds  *int32          `json:"timeout_seconds,omitempty"`
-	Status          *string         `json:"status,omitempty"`
-	Settings        json.RawMessage `json:"settings,omitempty"`
+	Name            string            `json:"name" binding:"required"`
+	Type            string            `json:"type" binding:"required"`
+	Target          string            `json:"target" binding:"required"`
+	IntervalSeconds *int32            `json:"interval_seconds,omitempty"`
+	TimeoutSeconds  *int32            `json:"timeout_seconds,omitempty"`
+	Status          *string           `json:"status,omitempty"`
+	Settings        json.RawMessage   `json:"settings,omitempty"`
+	Tags            []tags.TagRequest `json:"tags,omitempty"`
+}
+
+type tagResponse struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
 }
 
 type monitorResponse struct {
@@ -55,6 +70,7 @@ type monitorResponse struct {
 	LastCheckedAt   *time.Time      `json:"last_checked_at,omitempty"`
 	NextCheckAt     *time.Time      `json:"next_check_at,omitempty"`
 	Settings        json.RawMessage `json:"settings"`
+	Tags            []tagResponse   `json:"tags"`
 	CreatedAt       time.Time       `json:"created_at"`
 	UpdatedAt       time.Time       `json:"updated_at"`
 }
@@ -94,6 +110,14 @@ func (h *MonitorHandler) Create(c *gin.Context) {
 		return
 	}
 
+	// Validate tags if provided.
+	if req.Tags != nil {
+		if err := tags.ValidateTags(req.Tags); err != nil {
+			apiError(c, http.StatusBadRequest, "INVALID_TAGS", err.Error())
+			return
+		}
+	}
+
 	interval := int32(60)
 	if req.IntervalSeconds != nil && *req.IntervalSeconds > 0 {
 		interval = *req.IntervalSeconds
@@ -114,7 +138,19 @@ func (h *MonitorHandler) Create(c *gin.Context) {
 		settings = req.Settings
 	}
 
-	m, err := h.queries.CreateMonitor(c.Request.Context(), db.CreateMonitorParams{
+	ctx := c.Request.Context()
+
+	// Use a transaction to persist the monitor and its tags atomically.
+	tx, err := h.pool.Begin(ctx)
+	if err != nil {
+		apiError(c, http.StatusInternalServerError, "DB_ERROR", "failed to begin transaction")
+		return
+	}
+	defer tx.Rollback(ctx) //nolint:errcheck
+
+	qtx := h.queries.WithTx(tx)
+
+	m, err := qtx.CreateMonitor(ctx, db.CreateMonitorParams{
 		Name:            req.Name,
 		Type:            req.Type,
 		Target:          req.Target,
@@ -129,24 +165,77 @@ func (h *MonitorHandler) Create(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, toMonitorResponse(m))
+	// Persist tags within the same transaction.
+	if len(req.Tags) > 0 {
+		if err := qtx.DeleteMonitorTags(ctx, m.ID); err != nil {
+			apiError(c, http.StatusInternalServerError, "DB_ERROR", "failed to set monitor tags")
+			return
+		}
+		for _, tag := range req.Tags {
+			if err := qtx.InsertMonitorTag(ctx, db.InsertMonitorTagParams{
+				MonitorID: m.ID,
+				Key:       tag.Key,
+				Value:     tag.Value,
+			}); err != nil {
+				apiError(c, http.StatusInternalServerError, "DB_ERROR", "failed to set monitor tags")
+				return
+			}
+		}
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		apiError(c, http.StatusInternalServerError, "DB_ERROR", "failed to commit transaction")
+		return
+	}
+
+	// Fetch persisted tags to include in response.
+	monitorTags, err := h.queries.ListTagsByMonitor(ctx, m.ID)
+	if err != nil {
+		// Monitor was created successfully; return without tags rather than failing.
+		monitorTags = []db.MonitorTag{}
+	}
+
+	// Broadcast tag change notification via WebSocket if tags were provided.
+	if h.hub != nil && len(req.Tags) > 0 {
+		h.hub.Broadcast(hub.NewMonitorTagsChangedMessage(m.ID.String(), toHubTagInfo(monitorTags)))
+	}
+
+	c.JSON(http.StatusCreated, toMonitorResponseWithTags(m, monitorTags))
 }
 
-// List handles GET /monitors with pagination.
+// List handles GET /monitors with pagination and optional type/tag filters.
 func (h *MonitorHandler) List(c *gin.Context) {
 	page, limit := parsePagination(c)
-	offset := int32((page - 1) * limit)
 
-	monitors, err := h.queries.ListMonitors(c.Request.Context(), db.ListMonitorsParams{
-		Limit:  int32(limit),
-		Offset: offset,
+	// Enforce max page size of 100.
+	if limit > 100 {
+		limit = 100
+	}
+
+	offset := int32((page - 1) * limit)
+	ctx := c.Request.Context()
+
+	// Parse optional type filter.
+	typeFilter := c.Query("type")
+
+	// Parse optional tag filters (format: key:value, AND semantics).
+	tagFilters := c.QueryArray("tag")
+
+	monitors, err := h.queries.ListMonitorsFiltered(ctx, db.ListMonitorsFilteredParams{
+		Column1: typeFilter,
+		Column2: tagFilters,
+		Limit:   int32(limit),
+		Offset:  offset,
 	})
 	if err != nil {
 		apiError(c, http.StatusInternalServerError, "DB_ERROR", "failed to list monitors")
 		return
 	}
 
-	total, err := h.queries.CountMonitors(c.Request.Context())
+	total, err := h.queries.CountMonitorsFiltered(ctx, db.CountMonitorsFilteredParams{
+		Column1: typeFilter,
+		Column2: tagFilters,
+	})
 	if err != nil {
 		apiError(c, http.StatusInternalServerError, "DB_ERROR", "failed to count monitors")
 		return
@@ -154,12 +243,19 @@ func (h *MonitorHandler) List(c *gin.Context) {
 
 	data := make([]monitorResponse, 0, len(monitors))
 	for _, m := range monitors {
-		data = append(data, toMonitorResponse(m))
+		monitorTags, err := h.queries.ListTagsByMonitor(ctx, m.ID)
+		if err != nil {
+			monitorTags = []db.MonitorTag{}
+		}
+		data = append(data, toMonitorResponseWithTags(m, monitorTags))
 	}
 
 	totalPages := int(total) / limit
 	if int(total)%limit != 0 {
 		totalPages++
+	}
+	if total == 0 {
+		totalPages = 0
 	}
 
 	c.JSON(http.StatusOK, monitorListResponse{
@@ -179,13 +275,20 @@ func (h *MonitorHandler) Get(c *gin.Context) {
 		return
 	}
 
-	m, err := h.queries.GetMonitor(c.Request.Context(), id)
+	ctx := c.Request.Context()
+
+	m, err := h.queries.GetMonitor(ctx, id)
 	if err != nil {
 		apiError(c, http.StatusNotFound, "NOT_FOUND", "monitor not found")
 		return
 	}
 
-	c.JSON(http.StatusOK, toMonitorResponse(m))
+	monitorTags, err := h.queries.ListTagsByMonitor(ctx, m.ID)
+	if err != nil {
+		monitorTags = []db.MonitorTag{}
+	}
+
+	c.JSON(http.StatusOK, toMonitorResponseWithTags(m, monitorTags))
 }
 
 // Put handles PUT /monitors/:id with idempotent create-or-update semantics.
@@ -207,6 +310,14 @@ func (h *MonitorHandler) Put(c *gin.Context) {
 		return
 	}
 
+	// Validate tags if provided.
+	if req.Tags != nil {
+		if err := tags.ValidateTags(req.Tags); err != nil {
+			apiError(c, http.StatusBadRequest, "INVALID_TAGS", err.Error())
+			return
+		}
+	}
+
 	interval := int32(60)
 	if req.IntervalSeconds != nil && *req.IntervalSeconds > 0 {
 		interval = *req.IntervalSeconds
@@ -227,7 +338,34 @@ func (h *MonitorHandler) Put(c *gin.Context) {
 		settings = req.Settings
 	}
 
-	m, err := h.queries.UpsertMonitor(c.Request.Context(), db.UpsertMonitorParams{
+	ctx := c.Request.Context()
+
+	// Use a transaction with row-level locking for concurrent modification safety.
+	tx, err := h.pool.Begin(ctx)
+	if err != nil {
+		apiError(c, http.StatusInternalServerError, "DB_ERROR", "failed to begin transaction")
+		return
+	}
+	defer tx.Rollback(ctx) //nolint:errcheck
+
+	qtx := h.queries.WithTx(tx)
+
+	// Acquire row-level lock on the monitor (SELECT FOR UPDATE).
+	// This prevents concurrent modifications from corrupting tag state.
+	_, lockErr := qtx.GetMonitorForUpdate(ctx, id)
+	if lockErr != nil && !errors.Is(lockErr, pgx.ErrNoRows) {
+		// Check for lock conflict / serialization failure.
+		var pgErr *pgconn.PgError
+		if errors.As(lockErr, &pgErr) && (pgErr.Code == "40001" || pgErr.Code == "40P01" || pgErr.Code == "55P03") {
+			apiError(c, http.StatusConflict, "CONFLICT", "concurrent modification detected, please retry")
+			return
+		}
+		apiError(c, http.StatusInternalServerError, "DB_ERROR", "failed to lock monitor for update")
+		return
+	}
+
+	// Upsert the monitor.
+	m, err := qtx.UpsertMonitor(ctx, db.UpsertMonitorParams{
 		ID:              id,
 		Name:            req.Name,
 		Type:            req.Type,
@@ -242,7 +380,46 @@ func (h *MonitorHandler) Put(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, toMonitorResponse(m))
+	// Replace tags within the same transaction.
+	if err := qtx.DeleteMonitorTags(ctx, m.ID); err != nil {
+		apiError(c, http.StatusInternalServerError, "DB_ERROR", "failed to replace monitor tags")
+		return
+	}
+	for _, tag := range req.Tags {
+		if err := qtx.InsertMonitorTag(ctx, db.InsertMonitorTagParams{
+			MonitorID: m.ID,
+			Key:       tag.Key,
+			Value:     tag.Value,
+		}); err != nil {
+			apiError(c, http.StatusInternalServerError, "DB_ERROR", "failed to replace monitor tags")
+			return
+		}
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		// Check for serialization failure on commit.
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && (pgErr.Code == "40001" || pgErr.Code == "40P01") {
+			apiError(c, http.StatusConflict, "CONFLICT", "concurrent modification detected, please retry")
+			return
+		}
+		apiError(c, http.StatusInternalServerError, "DB_ERROR", "failed to commit transaction")
+		return
+	}
+
+	// Fetch persisted tags to include in response.
+	monitorTags, err := h.queries.ListTagsByMonitor(ctx, m.ID)
+	if err != nil {
+		monitorTags = []db.MonitorTag{}
+	}
+
+	// Broadcast tag change notification via WebSocket.
+	// Always broadcast on PUT since tags are fully replaced (even if empty).
+	if h.hub != nil {
+		h.hub.Broadcast(hub.NewMonitorTagsChangedMessage(m.ID.String(), toHubTagInfo(monitorTags)))
+	}
+
+	c.JSON(http.StatusOK, toMonitorResponseWithTags(m, monitorTags))
 }
 
 // Delete handles DELETE /monitors/:id.
@@ -286,6 +463,7 @@ func toMonitorResponse(m db.Monitor) monitorResponse {
 		Status:          m.Status,
 		State:           m.State,
 		Settings:        m.Settings,
+		Tags:            []tagResponse{},
 		CreatedAt:       m.CreatedAt,
 		UpdatedAt:       m.UpdatedAt,
 	}
@@ -300,4 +478,24 @@ func toMonitorResponse(m db.Monitor) monitorResponse {
 	}
 
 	return resp
+}
+
+func toMonitorResponseWithTags(m db.Monitor, tags []db.MonitorTag) monitorResponse {
+	resp := toMonitorResponse(m)
+	if len(tags) > 0 {
+		resp.Tags = make([]tagResponse, 0, len(tags))
+		for _, t := range tags {
+			resp.Tags = append(resp.Tags, tagResponse{Key: t.Key, Value: t.Value})
+		}
+	}
+	return resp
+}
+
+// toHubTagInfo converts persisted tags to the hub TagInfo slice for WebSocket broadcast.
+func toHubTagInfo(tags []db.MonitorTag) []hub.TagInfo {
+	info := make([]hub.TagInfo, 0, len(tags))
+	for _, t := range tags {
+		info = append(info, hub.TagInfo{Key: t.Key, Value: t.Value})
+	}
+	return info
 }

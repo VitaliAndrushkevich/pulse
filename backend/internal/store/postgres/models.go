@@ -32,8 +32,8 @@ type CheckResult struct {
 	LatencyMs        *int32    `db:"latency_ms" json:"latency_ms"`
 	StatusCode       *int32    `db:"status_code" json:"status_code"`
 	Error            *string   `db:"error" json:"error"`
-	SslDaysRemaining *int32    `db:"ssl_days_remaining" json:"ssl_days_remaining"`
 	CreatedAt        time.Time `db:"created_at" json:"created_at"`
+	SslDaysRemaining *int32    `db:"ssl_days_remaining" json:"ssl_days_remaining"`
 }
 
 type Incident struct {
@@ -69,6 +69,13 @@ type MonitorCredential struct {
 	EncryptedValue string    `db:"encrypted_value" json:"encrypted_value"`
 	CreatedAt      time.Time `db:"created_at" json:"created_at"`
 	UpdatedAt      time.Time `db:"updated_at" json:"updated_at"`
+}
+
+type MonitorTag struct {
+	ID        uuid.UUID `db:"id" json:"id"`
+	MonitorID uuid.UUID `db:"monitor_id" json:"monitor_id"`
+	Key       string    `db:"key" json:"key"`
+	Value     string    `db:"value" json:"value"`
 }
 
 type Secret struct {

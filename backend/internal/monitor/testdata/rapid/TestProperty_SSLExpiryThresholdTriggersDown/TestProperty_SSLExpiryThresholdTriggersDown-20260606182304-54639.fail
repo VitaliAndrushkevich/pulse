@@ -1,0 +1,11 @@
+# 2026/06/06 18:23:04.227275 [TestProperty_SSLExpiryThresholdTriggersDown] [rapid] draw daysOffset: 3
+# 2026/06/06 18:23:04.227277 [TestProperty_SSLExpiryThresholdTriggersDown] [rapid] draw threshold: 1
+# 2026/06/06 18:23:04.228013 [TestProperty_SSLExpiryThresholdTriggersDown] expected state 'up' for daysOffset=3 > threshold=1, got "down" (error: unexpected gRPC status 13 Internal: cardinality violation: received no response message from non-server-streaming RPC)
+# 
+v0.4.8#2059117181434499525
+0x0
+0x357e16ece5410
+0x3
+0x0
+0x0
+0x0

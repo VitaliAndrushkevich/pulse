@@ -9,7 +9,7 @@ import { getToken, clearToken } from '$lib/stores/auth.svelte';
 import { monitorStore } from '$lib/stores/monitors.svelte';
 import { connectionStore, type ConnectionStatus } from '$lib/stores/connection.svelte';
 import { patchBus } from '$lib/stores/patchBus.svelte';
-import type { MonitorPatch, WsEnvelope } from '$lib/types';
+import type { MonitorPatch, MonitorTagsChangedPayload, WsEnvelope } from '$lib/types';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -23,8 +23,8 @@ export interface WsClientOptions {
 }
 
 export interface WsMessage {
-	type: 'connected' | 'monitor_status';
-	payload: ConnectedPayload | MonitorStatusPayload;
+	type: 'connected' | 'monitor_status' | 'monitor_tags_changed';
+	payload: ConnectedPayload | MonitorStatusPayload | MonitorTagsChangedPayload;
 }
 
 export interface ConnectedPayload {
@@ -234,6 +234,12 @@ export function createWsClient(options: WsClientOptions): WsClient {
 				const patch = envelope.payload as MonitorPatch;
 				monitorStore.applyPatch(patch);
 				patchBus.publish(patch);
+				break;
+			}
+
+			case 'monitor_tags_changed': {
+				const tagsPayload = envelope.payload as MonitorTagsChangedPayload;
+				monitorStore.applyTagsChange(tagsPayload.monitor_id, tagsPayload.tags);
 				break;
 			}
 		}

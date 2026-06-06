@@ -15,6 +15,7 @@ function makeMonitor(overrides: Partial<Monitor> = {}): Monitor {
 		last_checked_at: '2024-01-01T00:00:00Z',
 		next_check_at: '2024-01-01T00:01:00Z',
 		settings: {},
+		tags: [],
 		created_at: '2024-01-01T00:00:00Z',
 		updated_at: '2024-01-01T00:00:00Z',
 		...overrides

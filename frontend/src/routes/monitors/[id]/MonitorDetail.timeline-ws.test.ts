@@ -140,6 +140,7 @@ const mockMonitor: Monitor = {
   last_checked_at: recentTime(1),
   next_check_at: new Date(now + 60 * 1000).toISOString(),
   settings: {},
+  tags: [],
   created_at: recentTime(120),
   updated_at: recentTime(1)
 };

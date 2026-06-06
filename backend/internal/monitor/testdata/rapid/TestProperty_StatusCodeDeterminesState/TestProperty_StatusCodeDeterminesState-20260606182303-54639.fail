@@ -1,0 +1,45 @@
+# 2026/06/06 18:23:03.243817 [TestProperty_StatusCodeDeterminesState] [rapid] draw statusCode: 0
+# 2026/06/06 18:23:03.243819 [TestProperty_StatusCodeDeterminesState] [rapid] draw perm: []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16}
+# 2026/06/06 18:23:03.243822 [TestProperty_StatusCodeDeterminesState] [rapid] draw subsetSize: 1
+# 2026/06/06 18:23:03.244176 [TestProperty_StatusCodeDeterminesState] expected state 'up' for code 0 in expected list [0], got "down" (error: unexpected gRPC status 13 Internal: cardinality violation: received no response message from non-server-streaming RPC)
+# 
+v0.4.8#3578729785261463111
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0

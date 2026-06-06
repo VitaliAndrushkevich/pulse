@@ -26,7 +26,7 @@ func (q *Queries) CountCheckResultsByMonitor(ctx context.Context, monitorID uuid
 const createCheckResult = `-- name: CreateCheckResult :one
 INSERT INTO check_results (monitor_id, checked_at, state, latency_ms, status_code, error, ssl_days_remaining)
 VALUES ($1, $2, $3, $4, $5, $6, $7)
-RETURNING id, monitor_id, checked_at, state, latency_ms, status_code, error, ssl_days_remaining, created_at
+RETURNING id, monitor_id, checked_at, state, latency_ms, status_code, error, created_at, ssl_days_remaining
 `
 
 type CreateCheckResultParams struct {
@@ -58,8 +58,8 @@ func (q *Queries) CreateCheckResult(ctx context.Context, arg CreateCheckResultPa
 		&i.LatencyMs,
 		&i.StatusCode,
 		&i.Error,
-		&i.SslDaysRemaining,
 		&i.CreatedAt,
+		&i.SslDaysRemaining,
 	)
 	return i, err
 }
@@ -81,7 +81,7 @@ func (q *Queries) DeleteOldCheckResults(ctx context.Context, arg DeleteOldCheckR
 }
 
 const getLatestCheckResult = `-- name: GetLatestCheckResult :one
-SELECT id, monitor_id, checked_at, state, latency_ms, status_code, error, ssl_days_remaining, created_at FROM check_results
+SELECT id, monitor_id, checked_at, state, latency_ms, status_code, error, created_at, ssl_days_remaining FROM check_results
 WHERE monitor_id = $1
 ORDER BY checked_at DESC
 LIMIT 1
@@ -98,53 +98,25 @@ func (q *Queries) GetLatestCheckResult(ctx context.Context, monitorID uuid.UUID)
 		&i.LatencyMs,
 		&i.StatusCode,
 		&i.Error,
-		&i.SslDaysRemaining,
 		&i.CreatedAt,
+		&i.SslDaysRemaining,
 	)
 	return i, err
 }
 
-const listCheckResultsByMonitor = `-- name: ListCheckResultsByMonitor :many
-SELECT id, monitor_id, checked_at, state, latency_ms, status_code, error, ssl_days_remaining, created_at FROM check_results
+const getLatestSSLDaysRemaining = `-- name: GetLatestSSLDaysRemaining :one
+SELECT ssl_days_remaining FROM check_results
 WHERE monitor_id = $1
+  AND ssl_days_remaining IS NOT NULL
 ORDER BY checked_at DESC
-LIMIT $2 OFFSET $3
+LIMIT 1
 `
 
-type ListCheckResultsByMonitorParams struct {
-	MonitorID uuid.UUID `db:"monitor_id" json:"monitor_id"`
-	Limit     int32     `db:"limit" json:"limit"`
-	Offset    int32     `db:"offset" json:"offset"`
-}
-
-func (q *Queries) ListCheckResultsByMonitor(ctx context.Context, arg ListCheckResultsByMonitorParams) ([]CheckResult, error) {
-	rows, err := q.db.Query(ctx, listCheckResultsByMonitor, arg.MonitorID, arg.Limit, arg.Offset)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	items := []CheckResult{}
-	for rows.Next() {
-		var i CheckResult
-		if err := rows.Scan(
-			&i.ID,
-			&i.MonitorID,
-			&i.CheckedAt,
-			&i.State,
-			&i.LatencyMs,
-			&i.StatusCode,
-			&i.Error,
-			&i.SslDaysRemaining,
-			&i.CreatedAt,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
+func (q *Queries) GetLatestSSLDaysRemaining(ctx context.Context, monitorID uuid.UUID) (*int32, error) {
+	row := q.db.QueryRow(ctx, getLatestSSLDaysRemaining, monitorID)
+	var ssl_days_remaining *int32
+	err := row.Scan(&ssl_days_remaining)
+	return ssl_days_remaining, err
 }
 
 const getMonitorUptimeStats = `-- name: GetMonitorUptimeStats :one
@@ -175,17 +147,45 @@ func (q *Queries) GetMonitorUptimeStats(ctx context.Context, arg GetMonitorUptim
 	return i, err
 }
 
-const getLatestSSLDaysRemaining = `-- name: GetLatestSSLDaysRemaining :one
-SELECT ssl_days_remaining FROM check_results
+const listCheckResultsByMonitor = `-- name: ListCheckResultsByMonitor :many
+SELECT id, monitor_id, checked_at, state, latency_ms, status_code, error, created_at, ssl_days_remaining FROM check_results
 WHERE monitor_id = $1
-  AND ssl_days_remaining IS NOT NULL
 ORDER BY checked_at DESC
-LIMIT 1
+LIMIT $2 OFFSET $3
 `
 
-func (q *Queries) GetLatestSSLDaysRemaining(ctx context.Context, monitorID uuid.UUID) (*int32, error) {
-	row := q.db.QueryRow(ctx, getLatestSSLDaysRemaining, monitorID)
-	var sslDaysRemaining *int32
-	err := row.Scan(&sslDaysRemaining)
-	return sslDaysRemaining, err
+type ListCheckResultsByMonitorParams struct {
+	MonitorID uuid.UUID `db:"monitor_id" json:"monitor_id"`
+	Limit     int32     `db:"limit" json:"limit"`
+	Offset    int32     `db:"offset" json:"offset"`
+}
+
+func (q *Queries) ListCheckResultsByMonitor(ctx context.Context, arg ListCheckResultsByMonitorParams) ([]CheckResult, error) {
+	rows, err := q.db.Query(ctx, listCheckResultsByMonitor, arg.MonitorID, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []CheckResult{}
+	for rows.Next() {
+		var i CheckResult
+		if err := rows.Scan(
+			&i.ID,
+			&i.MonitorID,
+			&i.CheckedAt,
+			&i.State,
+			&i.LatencyMs,
+			&i.StatusCode,
+			&i.Error,
+			&i.CreatedAt,
+			&i.SslDaysRemaining,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }

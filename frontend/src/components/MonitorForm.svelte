@@ -1,8 +1,9 @@
 <script lang="ts">
-  import type { MonitorType } from '$lib/types';
+  import type { MonitorType, GrpcSettings } from '$lib/types';
   import { validateName, validateTarget, validateInterval, validateTimeout, validateType } from '$lib/validation';
   import { formatSecretReference } from '$lib/format';
   import AuthSection from './AuthSection.svelte';
+  import GrpcSettingsForm from './GrpcSettingsForm.svelte';
 
   interface MonitorFormValues {
     name: string;
@@ -46,6 +47,24 @@
   let handshakeMessage = $state((initialValues?.settings?.handshake_message as string) ?? '');
   let selectedSecretId = $state((initialValues?.settings?.secret_id as string) ?? '');
 
+  // gRPC-specific settings
+  let grpcSettings: GrpcSettings = $state(
+    initialValues?.type === 'grpc' && initialValues?.settings
+      ? {
+          service_method: (initialValues.settings.service_method as string) ?? 'grpc.health.v1.Health/Check',
+          tls_mode: (initialValues.settings.tls_mode as GrpcSettings['tls_mode']) ?? 'tls',
+          ssl_expiry_threshold: initialValues.settings.ssl_expiry_threshold as number | undefined,
+          metadata: initialValues.settings.metadata as Record<string, string> | undefined,
+          expected_statuses: (initialValues.settings.expected_statuses as number[]) ?? [0],
+          request_payload: initialValues.settings.request_payload as string | undefined,
+        }
+      : {
+          service_method: 'grpc.health.v1.Health/Check',
+          tls_mode: 'tls',
+          expected_statuses: [0],
+        }
+  );
+
   // UI state
   let submitting = $state(false);
   let apiError = $state<string | null>(null);
@@ -75,6 +94,10 @@
 
   // Build settings object based on type
   function buildSettings(): Record<string, unknown> {
+    if (type === 'grpc') {
+      return grpcSettings as unknown as Record<string, unknown>;
+    }
+
     const settings: Record<string, unknown> = {};
 
     if (type === 'http' && expectedStatusCodes.trim()) {
@@ -132,7 +155,7 @@
     }
   }
 
-  const monitorTypes: MonitorType[] = ['http', 'tcp', 'udp', 'websocket'];
+  const monitorTypes: MonitorType[] = ['http', 'tcp', 'udp', 'websocket', 'grpc'];
 </script>
 
 <form onsubmit={handleSubmit} class="mx-auto max-w-2xl space-y-6" data-testid="monitor-form">
@@ -176,7 +199,7 @@
       data-testid="input-type"
     >
       {#each monitorTypes as t}
-        <option value={t}>{t === 'http' ? 'HTTP(S)' : t.toUpperCase()}</option>
+        <option value={t}>{t === 'http' ? 'HTTP(S)' : t === 'grpc' ? 'gRPC' : t.toUpperCase()}</option>
       {/each}
     </select>
     {#if touched.type && !typeValidation.valid}
@@ -311,6 +334,10 @@
       />
       <p class="mt-1 text-xs text-slate-500">Message to send after WebSocket connection is established</p>
     </div>
+  {/if}
+
+  {#if type === 'grpc'}
+    <GrpcSettingsForm bind:settings={grpcSettings} />
   {/if}
 
   <!-- Authentication Section (HTTP and WebSocket only) -->

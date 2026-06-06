@@ -2,7 +2,7 @@
 
 import { getToken, clearToken } from '$lib/stores/auth.svelte';
 import { toastStore } from '$lib/stores/toast.svelte';
-import type { Monitor, PaginatedList, HistoryPoint, Incident, Secret } from '$lib/types';
+import type { Monitor, PaginatedList, HistoryPoint, Incident, Secret, Tag } from '$lib/types';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -34,6 +34,7 @@ export interface CreateMonitorRequest {
   timeout_seconds: number;
   status?: 'active' | 'paused';
   settings?: Record<string, unknown>;
+  tags?: Tag[];
 }
 
 export interface UpdateMonitorRequest {
@@ -44,6 +45,7 @@ export interface UpdateMonitorRequest {
   timeout_seconds: number;
   status?: 'active' | 'paused';
   settings?: Record<string, unknown>;
+  tags?: Tag[];
 }
 
 export interface CreateSecretRequest {
@@ -263,12 +265,27 @@ export async function setupAdmin(credentials: LoginRequest): Promise<LoginRespon
   });
 }
 
-/** GET /api/v1/monitors?page=&limit= */
+/** GET /api/v1/monitors?page=&limit=&type=&tag=key:value */
 export async function getMonitors(
   page: number = 1,
-  limit: number = 20
+  limit: number = 20,
+  options?: { type?: string; tags?: string[] }
 ): Promise<PaginatedList<Monitor>> {
-  return apiRequest<PaginatedList<Monitor>>('GET', `/monitors?page=${page}&limit=${limit}`);
+  const params = new URLSearchParams();
+  params.set('page', String(page));
+  params.set('limit', String(limit));
+
+  if (options?.type) {
+    params.set('type', options.type);
+  }
+
+  if (options?.tags) {
+    for (const tag of options.tags) {
+      params.append('tag', tag);
+    }
+  }
+
+  return apiRequest<PaginatedList<Monitor>>('GET', `/monitors?${params.toString()}`);
 }
 
 /** GET /api/v1/monitors/:id */
@@ -289,6 +306,18 @@ export async function updateMonitor(id: string, data: UpdateMonitorRequest): Pro
 /** DELETE /api/v1/monitors/:id */
 export async function deleteMonitor(id: string): Promise<void> {
   return apiRequest<void>('DELETE', `/monitors/${id}`);
+}
+
+/** GET /api/v1/tags — list all distinct tag keys */
+export async function getTags(): Promise<string[]> {
+  const envelope = await apiRequest<{ data: string[] }>('GET', '/tags');
+  return envelope.data;
+}
+
+/** GET /api/v1/tags/:key — list distinct values for a tag key */
+export async function getTagValues(key: string): Promise<string[]> {
+  const envelope = await apiRequest<{ data: string[] }>('GET', `/tags/${encodeURIComponent(key)}`);
+  return envelope.data;
 }
 
 /** GET /api/v1/monitors/:id/history?from=&to= */

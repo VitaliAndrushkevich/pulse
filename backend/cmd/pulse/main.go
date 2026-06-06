@@ -11,7 +11,6 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 
 	"github.com/VitaliAndrushkevich/pulse/internal/api"
-	"github.com/VitaliAndrushkevich/pulse/internal/api/handlers"
 	"github.com/VitaliAndrushkevich/pulse/internal/config"
 	"github.com/VitaliAndrushkevich/pulse/internal/crypto"
 	"github.com/VitaliAndrushkevich/pulse/internal/hub"
@@ -92,7 +91,11 @@ func main() {
 
 	// Initialize Prometheus metrics (TASK-026).
 	promRegistry := prometheus.NewRegistry()
-	metrics := handlers.NewMetrics(promRegistry)
+
+	// Initialize DynamicMetrics for tag-aware scheduler metrics.
+	// DynamicMetrics registers itself as an unchecked collector with the registry
+	// and handles pulse_monitor_up, pulse_monitor_response_time_seconds, and pulse_monitors_total.
+	dynMetrics := monitor.NewDynamicMetrics(promRegistry)
 
 	// Initialize monitor engine (TASK-014 through TASK-020).
 	registry := monitor.DefaultRegistry()
@@ -104,7 +107,7 @@ func main() {
 
 	scheduler := monitor.NewScheduler(monitor.SchedulerConfig{
 		Workers: cfg.SchedulerWorkers,
-	}, registry, queries, timescaleStore, metrics, wsHub, secretKey)
+	}, registry, queries, timescaleStore, dynMetrics, wsHub, secretKey)
 
 	// Start scheduler and LISTEN/NOTIFY listener in background.
 	appCtx, appCancel := context.WithCancel(context.Background())
@@ -116,11 +119,12 @@ func main() {
 
 	r := api.NewRouter(api.Deps{
 		Queries:        queries,
+		Pool:           pool,
 		SecretKey:      secretKey,
 		JWTSecret:      jwtSecret,
 		JWTExpiry:      jwtExpiry,
 		TimescaleStore: timescaleStore,
-		Metrics:        metrics,
+		Metrics:        nil,
 		PromRegistry:   promRegistry,
 		Hub:            wsHub,
 		DevMode:        cfg.DevMode,

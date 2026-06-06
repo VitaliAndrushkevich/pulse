@@ -1,0 +1,29 @@
+# 2026/06/06 18:09:49.436825 [TestProperty_InvalidBase64PayloadRejection/invalid_base64_chars_rejected] [rapid] draw base: "++++"
+# 2026/06/06 18:09:49.436837 [TestProperty_InvalidBase64PayloadRejection/invalid_base64_chars_rejected] [rapid] draw invalidCharIdx: 28
+# 2026/06/06 18:09:49.436838 [TestProperty_InvalidBase64PayloadRejection/invalid_base64_chars_rejected] [rapid] draw insertPos: 0
+# 2026/06/06 18:09:49.436838 [TestProperty_InvalidBase64PayloadRejection/invalid_base64_chars_rejected] expected invalid base64 string "\n++++" to be rejected, got nil error
+# 
+v0.4.8#4544716197663377089
+0x5555555555555
+0x0
+0x0
+0x0
+0x5555555555555
+0x0
+0x0
+0x0
+0x5555555555555
+0x0
+0x0
+0x0
+0x5555555555555
+0x0
+0x0
+0x0
+0x0
+0x0
+0x1f2b5a0e61c3a6
+0x0
+0x0
+0x0
+0x0

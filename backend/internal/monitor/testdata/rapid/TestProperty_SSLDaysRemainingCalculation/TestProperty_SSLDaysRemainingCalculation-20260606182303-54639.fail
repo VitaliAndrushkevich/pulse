@@ -1,0 +1,7 @@
+# 2026/06/06 18:23:03.250871 [TestProperty_SSLDaysRemainingCalculation] [rapid] draw dayOffset: 0
+# 2026/06/06 18:23:03.251561 [TestProperty_SSLDaysRemainingCalculation] expected state 'up', got "down" (error: unexpected gRPC status 13 Internal: cardinality violation: received no response message from non-server-streaming RPC)
+# 
+v0.4.8#5692837765226185535
+0x0
+0x0
+0x0

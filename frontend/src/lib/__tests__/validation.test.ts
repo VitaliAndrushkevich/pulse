@@ -40,11 +40,11 @@ describe('validateType', () => {
   });
 
   it('rejects invalid type', () => {
-    expect(validateType('ftp')).toEqual({ valid: false, error: 'Type must be one of: http, tcp, udp, websocket' });
+    expect(validateType('ftp')).toEqual({ valid: false, error: 'Type must be one of: http, tcp, udp, websocket, grpc' });
   });
 
   it('rejects empty string', () => {
-    expect(validateType('')).toEqual({ valid: false, error: 'Type must be one of: http, tcp, udp, websocket' });
+    expect(validateType('')).toEqual({ valid: false, error: 'Type must be one of: http, tcp, udp, websocket, grpc' });
   });
 });
 

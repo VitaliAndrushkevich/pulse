@@ -1,9 +1,10 @@
 <script lang="ts">
   import { untrack } from 'svelte';
   import { getMonitors } from '$lib/api';
-  import type { Monitor, PaginatedList } from '$lib/types';
+  import type { Monitor, MonitorType, PaginatedList, Tag } from '$lib/types';
   import MonitorRow from '../../components/MonitorRow.svelte';
   import Pagination from '../../components/Pagination.svelte';
+  import FilterBar from '../../components/FilterBar.svelte';
 
   let page = $state(1);
   let monitors = $state<Monitor[]>([]);
@@ -12,13 +13,28 @@
   let loading = $state(true);
   let error = $state<string | null>(null);
 
+  // Filter state
+  let activeFilters = $state<{ types: MonitorType[]; tags: Tag[] }>({ types: [], tags: [] });
+  const availableTypes: MonitorType[] = ['http', 'tcp', 'udp', 'websocket'];
+
   const LIMIT = 20;
 
   async function fetchMonitors() {
     loading = true;
     error = null;
     try {
-      const result: PaginatedList<Monitor> = await getMonitors(page, LIMIT);
+      // Build filter options for the API call
+      const filterOptions: { type?: string; tags?: string[] } = {};
+
+      if (activeFilters.types.length === 1) {
+        filterOptions.type = activeFilters.types[0];
+      }
+
+      if (activeFilters.tags.length > 0) {
+        filterOptions.tags = activeFilters.tags.map((t) => `${t.key}:${t.value}`);
+      }
+
+      const result: PaginatedList<Monitor> = await getMonitors(page, LIMIT, filterOptions);
       monitors = result.data;
       total = result.total;
       totalPages = result.total_pages;
@@ -27,6 +43,12 @@
     } finally {
       loading = false;
     }
+  }
+
+  function handleFilterChange(filters: { types: MonitorType[]; tags: Tag[] }) {
+    activeFilters = filters;
+    page = 1;
+    fetchMonitors();
   }
 
   function handlePageChange(newPage: number) {
@@ -51,6 +73,13 @@
       Create Monitor
     </a>
   </div>
+
+  <!-- Filter Bar -->
+  <FilterBar
+    {availableTypes}
+    {activeFilters}
+    onFilterChange={handleFilterChange}
+  />
 
   <!-- Loading state -->
   {#if loading}

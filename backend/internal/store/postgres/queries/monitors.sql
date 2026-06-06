@@ -17,6 +17,23 @@ WHERE status = 'active'
 ORDER BY next_check_at ASC NULLS FIRST
 LIMIT $1;
 
+-- name: ListActiveMonitorsDueWithTags :many
+SELECT m.id, m.name, m.type, m.target, m.interval_seconds, m.timeout_seconds,
+       m.status, m.state, m.last_checked_at, m.next_check_at, m.settings,
+       m.created_at, m.updated_at,
+       COALESCE(
+         json_agg(json_build_object('key', mt.key, 'value', mt.value))
+         FILTER (WHERE mt.key IS NOT NULL),
+         '[]'::json
+       ) AS tags_json
+FROM monitors m
+LEFT JOIN monitor_tags mt ON mt.monitor_id = m.id
+WHERE m.status = 'active'
+  AND (m.next_check_at IS NULL OR m.next_check_at <= now())
+GROUP BY m.id
+ORDER BY m.next_check_at ASC NULLS FIRST
+LIMIT $1;
+
 -- name: CreateMonitor :one
 INSERT INTO monitors (
     name, type, target, interval_seconds, timeout_seconds,
@@ -69,6 +86,11 @@ ON CONFLICT (id) DO UPDATE SET
     settings         = EXCLUDED.settings,
     updated_at       = now()
 RETURNING *;
+
+-- name: GetMonitorForUpdate :one
+SELECT * FROM monitors
+WHERE id = $1
+FOR UPDATE;
 
 -- name: DeleteMonitor :exec
 DELETE FROM monitors WHERE id = $1;

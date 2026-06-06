@@ -44,6 +44,23 @@ paths:
       parameters:
         - $ref: "#/components/parameters/Page"
         - $ref: "#/components/parameters/Limit"
+        - name: type
+          in: query
+          description: Filter by monitor type
+          schema:
+            type: string
+            enum: [http, tcp, udp, websocket, grpc]
+        - name: tag
+          in: query
+          description: >
+            Filter by tags in key:value format. Multiple tag parameters use AND semantics
+            (monitor must have ALL specified tags). Example: ?tag=env:prod&tag=team:infra
+          schema:
+            type: array
+            items:
+              type: string
+          style: form
+          explode: true
       responses:
         "200":
           description: Paginated list of monitors
@@ -63,6 +80,19 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/CreateMonitorRequest"
+            example:
+              name: "gRPC Health Check"
+              type: "grpc"
+              target: "grpc.example.com:443"
+              interval_seconds: 30
+              timeout_seconds: 10
+              settings:
+                service_method: "grpc.health.v1.Health/Check"
+                tls_mode: "tls"
+                ssl_expiry_threshold: 30
+                metadata:
+                  authorization: "Bearer token123"
+                expected_statuses: [0]
       responses:
         "201":
           description: Monitor created
@@ -317,6 +347,46 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /tags:
+    get:
+      operationId: listTagKeys
+      summary: List all distinct tag keys
+      description: Returns all distinct tag keys currently in use across all monitors. Used for frontend autocomplete.
+      tags: [Tags]
+      responses:
+        "200":
+          description: List of distinct tag keys
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TagKeysResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /tags/{key}:
+    get:
+      operationId: listTagValues
+      summary: List distinct values for a tag key
+      description: Returns all distinct values associated with the specified tag key across all monitors. Used for frontend autocomplete.
+      tags: [Tags]
+      parameters:
+        - name: key
+          in: path
+          required: true
+          description: Tag key to list values for
+          schema:
+            type: string
+            pattern: "^[a-z][a-z0-9_-]{0,63}$"
+      responses:
+        "200":
+          description: List of distinct values for the tag key
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TagValuesResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
   /incidents:
     get:
       operationId: listIncidents
@@ -476,6 +546,10 @@ components:
           properties:
             code:
               type: string
+              description: >
+                Machine-readable error code. Known codes include:
+                INVALID_TAGS - tag validation failed (invalid key format, value too long,
+                too many tags, duplicate key-value pairs, or reserved prefix usage)
             message:
               type: string
 
@@ -522,7 +596,7 @@ components:
           type: string
         type:
           type: string
-          enum: [http, tcp, udp, websocket]
+          enum: [http, tcp, udp, websocket, grpc]
         target:
           type: string
         interval_seconds:
@@ -545,6 +619,12 @@ components:
           nullable: true
         settings:
           type: object
+          description: "Type-specific settings. For type=grpc, see GRPCSettings schema."
+        tags:
+          type: array
+          items:
+            $ref: "#/components/schemas/Tag"
+          description: Key-value tags associated with this monitor
         created_at:
           type: string
           format: date-time
@@ -560,7 +640,7 @@ components:
           type: string
         type:
           type: string
-          enum: [http, tcp, udp, websocket]
+          enum: [http, tcp, udp, websocket, grpc]
         target:
           type: string
         interval_seconds:
@@ -575,6 +655,12 @@ components:
           default: active
         settings:
           type: object
+          description: "Type-specific settings. For type=grpc, see GRPCSettings schema."
+        tags:
+          type: array
+          items:
+            $ref: "#/components/schemas/Tag"
+          description: Optional key-value tags to associate with the monitor (max 20)
 
     PutMonitorRequest:
       type: object
@@ -584,7 +670,7 @@ components:
           type: string
         type:
           type: string
-          enum: [http, tcp, udp, websocket]
+          enum: [http, tcp, udp, websocket, grpc]
         target:
           type: string
         interval_seconds:
@@ -599,6 +685,12 @@ components:
           default: active
         settings:
           type: object
+          description: "Type-specific settings. For type=grpc, see GRPCSettings schema."
+        tags:
+          type: array
+          items:
+            $ref: "#/components/schemas/Tag"
+          description: Optional key-value tags to associate with the monitor (max 20)
 
     MonitorListResponse:
       type: object
@@ -915,3 +1007,106 @@ components:
           type: string
           format: date-time
           description: When the error was recorded
+
+    GRPCSettings:
+      type: object
+      required: [service_method, tls_mode]
+      properties:
+        service_method:
+          type: string
+          description: "Fully-qualified gRPC service and method in package.Service/Method format"
+          example: "grpc.health.v1.Health/Check"
+          maxLength: 512
+        tls_mode:
+          type: string
+          enum: [plaintext, tls, tls_skip_verify]
+          description: "Connection security mode"
+        ssl_expiry_threshold:
+          type: integer
+          minimum: 1
+          maximum: 3650
+          description: "Minimum acceptable days until certificate expiry"
+        metadata:
+          type: object
+          additionalProperties:
+            type: string
+            maxLength: 4096
+          maxProperties: 20
+          description: "Key-value pairs sent as gRPC request metadata"
+        expected_statuses:
+          type: array
+          items:
+            type: integer
+            minimum: 0
+            maximum: 16
+          maxItems: 17
+          description: "gRPC status codes considered healthy (default: [0] = OK)"
+        request_payload:
+          type: string
+          format: byte
+          maxLength: 65536
+          description: "Base64-encoded protobuf request message"
+
+    Tag:
+      type: object
+      description: A key-value tag pair associated with a monitor
+      required: [key, value]
+      properties:
+        key:
+          type: string
+          description: >
+            Tag key. Must be lowercase alphanumeric with hyphens and underscores,
+            start with a letter, and not use the reserved `__` prefix.
+          pattern: "^[a-z][a-z0-9_-]{0,63}$"
+          minLength: 1
+          maxLength: 64
+        value:
+          type: string
+          description: Tag value. Printable UTF-8, no control characters.
+          minLength: 1
+          maxLength: 256
+
+    TagKeysResponse:
+      type: object
+      description: Response containing distinct tag keys
+      required: [data]
+      properties:
+        data:
+          type: array
+          items:
+            type: string
+          description: List of distinct tag keys currently in use
+
+    TagValuesResponse:
+      type: object
+      description: Response containing distinct values for a tag key
+      required: [data]
+      properties:
+        data:
+          type: array
+          items:
+            type: string
+          description: List of distinct values for the specified tag key
+
+    MonitorTagsChangedMessage:
+      type: object
+      description: >
+        WebSocket message broadcast when monitor tags are modified via the API.
+        Message type: `monitor_tags_changed`. This is sent as part of the standard
+        WebSocket envelope: {"type": "monitor_tags_changed", "payload": {...}}.
+        Regular `monitor_status` check messages do NOT include tags.
+      required: [monitor_id, tags, timestamp]
+      properties:
+        monitor_id:
+          type: string
+          format: uuid
+          description: ID of the monitor whose tags changed
+        tags:
+          type: array
+          items:
+            $ref: "#/components/schemas/Tag"
+          description: Complete updated tags array for the monitor
+        timestamp:
+          type: string
+          format: date-time
+          description: When the tag change occurred

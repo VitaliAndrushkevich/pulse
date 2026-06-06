@@ -12,7 +12,6 @@ import (
 
 	"github.com/jackc/pgx/v5/pgtype"
 
-	"github.com/VitaliAndrushkevich/pulse/internal/api/handlers"
 	"github.com/VitaliAndrushkevich/pulse/internal/crypto"
 	"github.com/VitaliAndrushkevich/pulse/internal/hub"
 	db "github.com/VitaliAndrushkevich/pulse/internal/store/postgres"
@@ -43,7 +42,7 @@ type Scheduler struct {
 	registry      *Registry
 	queries       *db.Queries
 	tsStore       *timescale.Store
-	metrics       *handlers.Metrics
+	dynMetrics    *DynamicMetrics
 	hub           *hub.Hub // WebSocket broadcast hub (may be nil)
 	encryptionKey []byte   // AES-256-GCM key for credential decryption
 	wakeupCh      chan struct{} // signals immediate re-poll (from LISTEN/NOTIFY)
@@ -51,7 +50,7 @@ type Scheduler struct {
 }
 
 // NewScheduler creates a scheduler with the given configuration and dependencies.
-func NewScheduler(cfg SchedulerConfig, registry *Registry, queries *db.Queries, tsStore *timescale.Store, metrics *handlers.Metrics, wsHub *hub.Hub, encryptionKey []byte) *Scheduler {
+func NewScheduler(cfg SchedulerConfig, registry *Registry, queries *db.Queries, tsStore *timescale.Store, dynMetrics *DynamicMetrics, wsHub *hub.Hub, encryptionKey []byte) *Scheduler {
 	if cfg.Workers <= 0 {
 		cfg.Workers = DefaultWorkers
 	}
@@ -66,7 +65,7 @@ func NewScheduler(cfg SchedulerConfig, registry *Registry, queries *db.Queries, 
 		registry:      registry,
 		queries:       queries,
 		tsStore:       tsStore,
-		metrics:       metrics,
+		dynMetrics:    dynMetrics,
 		hub:           wsHub,
 		encryptionKey: encryptionKey,
 		wakeupCh:      make(chan struct{}, 1),
@@ -90,7 +89,7 @@ func (s *Scheduler) Run(ctx context.Context) {
 		s.cfg.Workers, s.cfg.TickInterval, s.cfg.BatchSize)
 
 	// Buffered job channel provides backpressure.
-	jobs := make(chan db.Monitor, s.cfg.BatchSize)
+	jobs := make(chan monitorJob, s.cfg.BatchSize)
 
 	// Start bounded worker pool.
 	var wg sync.WaitGroup
@@ -121,38 +120,131 @@ func (s *Scheduler) Run(ctx context.Context) {
 	}
 }
 
-// poll fetches due monitors and dispatches them to the worker pool.
-func (s *Scheduler) poll(ctx context.Context, jobs chan<- db.Monitor) {
-	monitors, err := s.queries.ListActiveMonitorsDue(ctx, s.cfg.BatchSize)
+// monitorJob carries a monitor and its pre-loaded tags to a worker goroutine.
+type monitorJob struct {
+	monitor db.Monitor
+	tags    map[string]string // key → value for metric labels
+}
+
+// tagEntry is used to unmarshal the JSON array returned by ListActiveMonitorsDueWithTags.
+type tagEntry struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
+}
+
+// parseTagsJSON converts the tags_json interface{} from the query into a map.
+func parseTagsJSON(raw interface{}) map[string]string {
+	if raw == nil {
+		return nil
+	}
+
+	var data []byte
+	switch v := raw.(type) {
+	case []byte:
+		data = v
+	case string:
+		data = []byte(v)
+	default:
+		// Try JSON marshaling as fallback for unexpected types.
+		var err error
+		data, err = json.Marshal(v)
+		if err != nil {
+			return nil
+		}
+	}
+
+	var entries []tagEntry
+	if err := json.Unmarshal(data, &entries); err != nil {
+		return nil
+	}
+	if len(entries) == 0 {
+		return nil
+	}
+
+	result := make(map[string]string, len(entries))
+	for _, e := range entries {
+		result[e.Key] = e.Value
+	}
+	return result
+}
+
+// poll fetches due monitors with tags and dispatches them to the worker pool.
+// It also triggers a RebuildLabels call when the set of tag keys changes.
+func (s *Scheduler) poll(ctx context.Context, jobs chan<- monitorJob) {
+	// Rebuild labels on every poll tick. This ensures new tag keys from
+	// monitor create/update (triggered via LISTEN/NOTIFY wakeup) are picked
+	// up even if no monitors are currently due. RebuildLabels is a no-op
+	// when labels are unchanged.
+	if s.dynMetrics != nil {
+		allKeys, err := s.queries.ListAllTagKeys(ctx)
+		if err != nil {
+			log.Printf("scheduler: list tag keys for rebuild: %v", err)
+		} else {
+			s.dynMetrics.RebuildLabels(allKeys)
+		}
+
+		// Update total monitors gauge.
+		count, err := s.queries.CountMonitors(ctx)
+		if err == nil {
+			s.dynMetrics.MonitorsTotal.Set(float64(count))
+		}
+	}
+
+	rows, err := s.queries.ListActiveMonitorsDueWithTags(ctx, s.cfg.BatchSize)
 	if err != nil {
 		log.Printf("scheduler: poll error: %v", err)
 		return
 	}
-	if len(monitors) == 0 {
+	if len(rows) == 0 {
 		return
 	}
 
-	for _, m := range monitors {
+	// Build monitor jobs with pre-loaded tags.
+	var monitorJobs []monitorJob
+
+	for _, row := range rows {
+		tags := parseTagsJSON(row.TagsJson)
+		monitorJobs = append(monitorJobs, monitorJob{
+			monitor: db.Monitor{
+				ID:              row.ID,
+				Name:            row.Name,
+				Type:            row.Type,
+				Target:          row.Target,
+				IntervalSeconds: row.IntervalSeconds,
+				TimeoutSeconds:  row.TimeoutSeconds,
+				Status:          row.Status,
+				State:           row.State,
+				LastCheckedAt:   row.LastCheckedAt,
+				NextCheckAt:     row.NextCheckAt,
+				Settings:        row.Settings,
+				CreatedAt:       row.CreatedAt,
+				UpdatedAt:       row.UpdatedAt,
+			},
+			tags: tags,
+		})
+	}
+
+	for _, job := range monitorJobs {
 		select {
 		case <-ctx.Done():
 			return
-		case jobs <- m:
+		case jobs <- job:
 		}
 	}
 }
 
 // worker processes monitors from the jobs channel.
-func (s *Scheduler) worker(ctx context.Context, jobs <-chan db.Monitor) {
-	for m := range jobs {
+func (s *Scheduler) worker(ctx context.Context, jobs <-chan monitorJob) {
+	for job := range jobs {
 		if ctx.Err() != nil {
 			return
 		}
-		s.executeCheck(ctx, m)
+		s.executeCheck(ctx, job.monitor, job.tags)
 	}
 }
 
 // executeCheck runs the appropriate checker for a monitor and persists results.
-func (s *Scheduler) executeCheck(ctx context.Context, m db.Monitor) {
+func (s *Scheduler) executeCheck(ctx context.Context, m db.Monitor, tags map[string]string) {
 	checker, err := s.registry.Get(m.Type)
 	if err != nil {
 		log.Printf("scheduler: monitor %s: %v", m.ID, err)
@@ -247,15 +339,18 @@ func (s *Scheduler) executeCheck(ctx context.Context, m db.Monitor) {
 		log.Printf("scheduler: monitor %s: update state: %v", m.ID, err)
 	}
 
-	// Update Prometheus metrics (TASK-026).
-	if s.metrics != nil {
-		labels := []string{m.ID.String(), m.Name, m.Type, metricMonitorURLLabel(m.Target)}
-		upVal := float64(0)
-		if result.State == "up" {
-			upVal = 1
-		}
-		s.metrics.MonitorUp.WithLabelValues(labels...).Set(upVal)
-		s.metrics.MonitorResponseTime.WithLabelValues(labels...).Set(float64(result.LatencyMs) / 1000.0)
+	// Update Prometheus metrics via DynamicMetrics (tag-aware labels).
+	if s.dynMetrics != nil {
+		up := result.State == "up"
+		s.dynMetrics.RecordCheck(
+			m.ID.String(),
+			m.Name,
+			m.Type,
+			metricMonitorURLLabel(m.Target),
+			tags,
+			up,
+			float64(result.LatencyMs)/1000.0,
+		)
 	}
 
 	// Broadcast status update via WebSocket hub (TASK-029).

@@ -8,6 +8,7 @@ package db
 import (
 	"context"
 	"encoding/json"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -113,6 +114,33 @@ func (q *Queries) GetMonitor(ctx context.Context, id uuid.UUID) (Monitor, error)
 	return i, err
 }
 
+const getMonitorForUpdate = `-- name: GetMonitorForUpdate :one
+SELECT id, name, type, target, interval_seconds, timeout_seconds, status, state, last_checked_at, next_check_at, settings, created_at, updated_at FROM monitors
+WHERE id = $1
+FOR UPDATE
+`
+
+func (q *Queries) GetMonitorForUpdate(ctx context.Context, id uuid.UUID) (Monitor, error) {
+	row := q.db.QueryRow(ctx, getMonitorForUpdate, id)
+	var i Monitor
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Type,
+		&i.Target,
+		&i.IntervalSeconds,
+		&i.TimeoutSeconds,
+		&i.Status,
+		&i.State,
+		&i.LastCheckedAt,
+		&i.NextCheckAt,
+		&i.Settings,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const listActiveMonitorsDue = `-- name: ListActiveMonitorsDue :many
 SELECT id, name, type, target, interval_seconds, timeout_seconds, status, state, last_checked_at, next_check_at, settings, created_at, updated_at FROM monitors
 WHERE status = 'active'
@@ -144,6 +172,76 @@ func (q *Queries) ListActiveMonitorsDue(ctx context.Context, limit int32) ([]Mon
 			&i.Settings,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listActiveMonitorsDueWithTags = `-- name: ListActiveMonitorsDueWithTags :many
+SELECT m.id, m.name, m.type, m.target, m.interval_seconds, m.timeout_seconds,
+       m.status, m.state, m.last_checked_at, m.next_check_at, m.settings,
+       m.created_at, m.updated_at,
+       COALESCE(
+         json_agg(json_build_object('key', mt.key, 'value', mt.value))
+         FILTER (WHERE mt.key IS NOT NULL),
+         '[]'::json
+       ) AS tags_json
+FROM monitors m
+LEFT JOIN monitor_tags mt ON mt.monitor_id = m.id
+WHERE m.status = 'active'
+  AND (m.next_check_at IS NULL OR m.next_check_at <= now())
+GROUP BY m.id
+ORDER BY m.next_check_at ASC NULLS FIRST
+LIMIT $1
+`
+
+type ListActiveMonitorsDueWithTagsRow struct {
+	ID              uuid.UUID          `db:"id" json:"id"`
+	Name            string             `db:"name" json:"name"`
+	Type            string             `db:"type" json:"type"`
+	Target          string             `db:"target" json:"target"`
+	IntervalSeconds int32              `db:"interval_seconds" json:"interval_seconds"`
+	TimeoutSeconds  int32              `db:"timeout_seconds" json:"timeout_seconds"`
+	Status          string             `db:"status" json:"status"`
+	State           string             `db:"state" json:"state"`
+	LastCheckedAt   pgtype.Timestamptz `db:"last_checked_at" json:"last_checked_at"`
+	NextCheckAt     pgtype.Timestamptz `db:"next_check_at" json:"next_check_at"`
+	Settings        json.RawMessage    `db:"settings" json:"settings"`
+	CreatedAt       time.Time          `db:"created_at" json:"created_at"`
+	UpdatedAt       time.Time          `db:"updated_at" json:"updated_at"`
+	TagsJson        interface{}        `db:"tags_json" json:"tags_json"`
+}
+
+func (q *Queries) ListActiveMonitorsDueWithTags(ctx context.Context, limit int32) ([]ListActiveMonitorsDueWithTagsRow, error) {
+	rows, err := q.db.Query(ctx, listActiveMonitorsDueWithTags, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListActiveMonitorsDueWithTagsRow{}
+	for rows.Next() {
+		var i ListActiveMonitorsDueWithTagsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Type,
+			&i.Target,
+			&i.IntervalSeconds,
+			&i.TimeoutSeconds,
+			&i.Status,
+			&i.State,
+			&i.LastCheckedAt,
+			&i.NextCheckAt,
+			&i.Settings,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.TagsJson,
 		); err != nil {
 			return nil, err
 		}

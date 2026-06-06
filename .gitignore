@@ -31,3 +31,4 @@ coverage.out
 
 # Skill files
 .agents/skills
+.kiro/skills

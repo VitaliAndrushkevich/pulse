@@ -10,6 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/prometheus/client_golang/prometheus"
 	"golang.org/x/crypto/bcrypt"
 
@@ -25,6 +26,7 @@ import (
 // Deps holds shared dependencies injected into the router.
 type Deps struct {
 	Queries        *db.Queries
+	Pool           *pgxpool.Pool
 	SecretKey      []byte
 	JWTSecret      []byte
 	JWTExpiry      time.Duration
@@ -94,7 +96,7 @@ func NewRouter(deps Deps) *gin.Engine {
 	// Use /api/v1/monitors/{id}/credentials for monitor auth credentials instead.
 
 	// Monitor CRUD (TASK-023).
-	monitorHandler := handlers.NewMonitorHandler(deps.Queries)
+	monitorHandler := handlers.NewMonitorHandler(deps.Queries, deps.Pool, deps.Hub)
 	monitorHandler.Register(protected)
 
 	// Monitor history (TASK-024).
@@ -114,6 +116,10 @@ func NewRouter(deps Deps) *gin.Engine {
 	// Monitor stats — uptime percentages + SSL info (Kuma-style details).
 	monitorStatsHandler := handlers.NewMonitorStatsHandler(deps.Queries)
 	monitorStatsHandler.Register(protected)
+
+	// Tag autocomplete endpoints (monitor-tagging).
+	tagHandler := handlers.NewTagHandler(deps.Queries)
+	tagHandler.Register(protected)
 
 	// SPA catch-all: serve embedded frontend assets when available (TASK-036).
 	if frontend.HasAssets() {

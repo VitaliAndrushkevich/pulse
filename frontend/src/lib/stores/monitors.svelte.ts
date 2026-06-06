@@ -12,7 +12,7 @@
  * Requirements: 1.4, 5.2, 5.3, 5.6
  */
 
-import type { Monitor, MonitorPatch } from '$lib/types';
+import type { Monitor, MonitorPatch, Tag } from '$lib/types';
 
 // --- Pure patch-merge function ---
 
@@ -101,6 +101,23 @@ function removeMonitor(id: string): void {
 }
 
 /**
+ * Apply a monitor_tags_changed WebSocket message.
+ * Merges new tags into the affected monitor's local state.
+ * Discards updates for unknown monitor_ids.
+ */
+function applyTagsChange(monitorId: string, tags: Tag[]): void {
+	const existing = monitors.get(monitorId);
+	if (!existing) {
+		// Discard tag change for unknown monitor_id
+		return;
+	}
+	const updated: Monitor = { ...existing, tags };
+	const next = new Map(monitors);
+	next.set(monitorId, updated);
+	monitors = next;
+}
+
+/**
  * Clear all monitors from the store.
  */
 function clear(): void {
@@ -134,6 +151,7 @@ export const monitorStore = {
 	},
 	setMonitors,
 	applyPatch,
+	applyTagsChange,
 	updateMonitor,
 	removeMonitor,
 	getById,

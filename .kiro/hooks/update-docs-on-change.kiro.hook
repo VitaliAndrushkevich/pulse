@@ -1,0 +1,27 @@
+{
+  "enabled": true,
+  "name": "Update Docs on Source Change",
+  "description": "When source files (Go, TypeScript, Svelte, SQL, YAML configs, Dockerfile, Makefile, docker-compose) are edited, asks the agent to review the change and update relevant documentation in README.md or the docs/ folder to keep them in sync. Documentation and tasks progress should be reflected after each implementation step. ",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "*.go",
+      "*.ts",
+      "*.svelte",
+      "*.sql",
+      "*.yaml",
+      "*.yml",
+      "Makefile",
+      "Dockerfile",
+      "docker-compose*.yml",
+      ".env.example"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A source file was just edited. Review the change and determine if any documentation needs updating. If the change affects public APIs, configuration, build commands, architecture, environment variables, or user-facing behavior, update the relevant documentation in README.md or the docs/ folder. Only make documentation changes when the source change meaningfully impacts what users or developers need to know. Do not update docs for trivial internal refactors. Also please review if the changes should be reflected in AGENTS.md and copilot instructions."
+  },
+  "workspaceFolderName": "pulse",
+  "shortName": "update-docs-on-change"
+}

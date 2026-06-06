@@ -8,6 +8,8 @@ const (
 	TypeMonitorStatus = "monitor_status"
 	// TypeConnected is sent once to a client after successful connection.
 	TypeConnected = "connected"
+	// TypeMonitorTagsChanged is sent when a monitor's tags are modified.
+	TypeMonitorTagsChanged = "monitor_tags_changed"
 )
 
 // MonitorStatusPayload is the diff/patch payload broadcast after each check.
@@ -28,6 +30,19 @@ type MonitorStatusPayload struct {
 type ConnectedPayload struct {
 	ClientID  string `json:"client_id"`
 	Timestamp string `json:"timestamp"`
+}
+
+// TagInfo represents a single key-value tag pair in WebSocket payloads.
+type TagInfo struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
+}
+
+// MonitorTagsChangedPayload is broadcast when a monitor's tags are modified via the API.
+type MonitorTagsChangedPayload struct {
+	MonitorID string    `json:"monitor_id"`
+	Tags      []TagInfo `json:"tags"`
+	Timestamp string    `json:"timestamp"` // RFC3339 format
 }
 
 // NewMonitorStatusMessage creates a broadcast-ready Message from check result fields.
@@ -61,6 +76,18 @@ func NewConnectedMessage(clientID string) Message {
 		Type: TypeConnected,
 		Payload: ConnectedPayload{
 			ClientID:  clientID,
+			Timestamp: time.Now().UTC().Format(time.RFC3339Nano),
+		},
+	}
+}
+
+// NewMonitorTagsChangedMessage creates a broadcast message for tag modifications.
+func NewMonitorTagsChangedMessage(monitorID string, tags []TagInfo) Message {
+	return Message{
+		Type: TypeMonitorTagsChanged,
+		Payload: MonitorTagsChangedPayload{
+			MonitorID: monitorID,
+			Tags:      tags,
 			Timestamp: time.Now().UTC().Format(time.RFC3339Nano),
 		},
 	}
