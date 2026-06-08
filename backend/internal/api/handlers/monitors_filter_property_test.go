@@ -58,7 +58,7 @@ func filterMonitors(monitors []testMonitor, f testFilter) []testMonitor {
 
 // --- Generators ---
 
-var monitorTypes = []string{"http", "tcp", "udp", "websocket"}
+var monitorTypes = []string{"http", "http3", "tcp", "udp", "websocket", "grpc"}
 
 // genMonitorType generates a valid monitor type.
 func genMonitorType() *rapid.Generator[string] {

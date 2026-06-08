@@ -31,8 +31,8 @@
   let type: MonitorType = $state(initialValues?.type ?? 'http');
   let target = $state(initialValues?.target ?? '');
 
-  // Whether the auth section should be visible (HTTP and WebSocket only)
-  let showAuthSection = $derived(type === 'http' || type === 'websocket');
+  // Whether the auth section should be visible (HTTP-family and WebSocket)
+  let showAuthSection = $derived(type === 'http' || type === 'http3' || type === 'websocket');
   let interval_seconds = $state(initialValues?.interval_seconds ?? 60);
   let timeout_seconds = $state(initialValues?.timeout_seconds ?? 10);
   let status: 'active' | 'paused' = $state(initialValues?.status ?? 'active');
@@ -43,6 +43,7 @@
       ? (initialValues.settings.expected_status_codes as number[]).join(', ')
       : ''
   );
+  let skipTLSVerify = $state((initialValues?.settings?.skip_tls_verify as boolean) ?? false);
   let payload = $state((initialValues?.settings?.payload as string) ?? '');
   let handshakeMessage = $state((initialValues?.settings?.handshake_message as string) ?? '');
   let selectedSecretId = $state((initialValues?.settings?.secret_id as string) ?? '');
@@ -100,13 +101,17 @@
 
     const settings: Record<string, unknown> = {};
 
-    if (type === 'http' && expectedStatusCodes.trim()) {
+    if ((type === 'http' || type === 'http3') && expectedStatusCodes.trim()) {
       const codes = expectedStatusCodes
         .split(',')
         .map(s => parseInt(s.trim(), 10))
         .filter(n => !isNaN(n));
       if (codes.length > 0) {
         settings.expected_status_codes = codes;
+      }
+      // include skip_tls_verify for HTTP-family monitors (disable certificate verification)
+      if (skipTLSVerify) {
+        settings.skip_tls_verify = true;
       }
     }
 
@@ -155,7 +160,7 @@
     }
   }
 
-  const monitorTypes: MonitorType[] = ['http', 'tcp', 'udp', 'websocket', 'grpc'];
+  const monitorTypes: MonitorType[] = ['http', 'http3', 'tcp', 'udp', 'websocket', 'grpc'];
 </script>
 
 <form onsubmit={handleSubmit} class="mx-auto max-w-2xl space-y-6" data-testid="monitor-form">
@@ -199,7 +204,7 @@
       data-testid="input-type"
     >
       {#each monitorTypes as t}
-        <option value={t}>{t === 'http' ? 'HTTP(S)' : t === 'grpc' ? 'gRPC' : t.toUpperCase()}</option>
+        <option value={t}>{t === 'http' ? 'HTTP(S)' : t === 'http3' ? 'HTTP/3' : t === 'grpc' ? 'gRPC' : t.toUpperCase()}</option>
       {/each}
     </select>
     {#if touched.type && !typeValidation.valid}
@@ -289,7 +294,7 @@
   </fieldset>
 
   <!-- Type-specific settings -->
-  {#if type === 'http'}
+  {#if type === 'http' || type === 'http3'}
     <div>
       <label for="monitor-status-codes" class="block text-sm font-medium text-slate-700">
         Expected Status Codes
@@ -304,6 +309,14 @@
       />
       <p class="mt-1 text-xs text-slate-500">Comma-separated HTTP status codes considered successful</p>
     </div>
+    <div class="mt-2">
+      <label class="inline-flex items-center gap-2 text-sm text-slate-700">
+        <input id="skip-tls-verify" type="checkbox" bind:checked={skipTLSVerify} class="h-4 w-4" data-testid="input-skip-tls-verify" />
+        <span>Disable certificate verification (skip TLS verification)</span>
+      </label>
+      <p class="mt-1 text-xs text-slate-500">When enabled, the monitor will skip TLS certificate chain and hostname verification. Use with caution.</p>
+    </div>
+
   {/if}
 
   {#if type === 'udp'}

@@ -49,7 +49,7 @@ paths:
           description: Filter by monitor type
           schema:
             type: string
-            enum: [http, tcp, udp, websocket, grpc]
+            enum: [http, http3, tcp, udp, websocket, grpc]
         - name: tag
           in: query
           description: >
@@ -596,7 +596,7 @@ components:
           type: string
         type:
           type: string
-          enum: [http, tcp, udp, websocket, grpc]
+          enum: [http, http3, tcp, udp, websocket, grpc]
         target:
           type: string
         interval_seconds:
@@ -640,7 +640,7 @@ components:
           type: string
         type:
           type: string
-          enum: [http, tcp, udp, websocket, grpc]
+          enum: [http, http3, tcp, udp, websocket, grpc]
         target:
           type: string
         interval_seconds:
@@ -670,7 +670,7 @@ components:
           type: string
         type:
           type: string
-          enum: [http, tcp, udp, websocket, grpc]
+          enum: [http, http3, tcp, udp, websocket, grpc]
         target:
           type: string
         interval_seconds:

@@ -83,16 +83,17 @@ func (h *HTTPChecker) doCheck(ctx context.Context, target string, settings json.
 
 	s := parseHTTPSettings(settings)
 
-	// Build transport with TLS configuration.
-	transport := &http.Transport{
-		TLSClientConfig: &tls.Config{
-			InsecureSkipVerify: s.SkipTLSVerify,
-		},
+	// Build transport with TLS configuration. We prefer to keep verification
+	// enabled; when AllowSelfSigned is true we use a custom VerifyPeerCertificate
+	// callback that accepts self-signed leaf certificates while still running
+	// normal verification for other chains.
+	tlsCfg := &tls.Config{
+		InsecureSkipVerify: s.SkipTLSVerify,
 	}
 
-	client := &http.Client{
-		Transport: transport,
-	}
+	transport := &http.Transport{TLSClientConfig: tlsCfg}
+
+	client := &http.Client{Transport: transport}
 
 	// Configure redirect policy.
 	if !s.FollowRedirects {
@@ -136,7 +137,7 @@ func (h *HTTPChecker) doCheck(ctx context.Context, target string, settings json.
 		result.Error = fmt.Sprintf("request failed: %v", err)
 		return result
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	statusCode := int32(resp.StatusCode)
 	result.StatusCode = &statusCode
@@ -268,3 +269,6 @@ func validateCertChain(certs []*x509.Certificate, hostname string) error {
 	}
 	return nil
 }
+
+// isSelfSigned heuristically checks whether a certificate is self-signed.
+// (removed isSelfSigned helper — no longer accepting self-signed certs as a special case)

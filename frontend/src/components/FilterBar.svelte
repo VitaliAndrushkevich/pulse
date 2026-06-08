@@ -112,9 +112,11 @@
   // Type display labels
   const typeLabels: Record<MonitorType, string> = {
     http: 'HTTP(S)',
+    http3: 'HTTP/3',
     tcp: 'TCP',
     udp: 'UDP',
-    websocket: 'WebSocket'
+    websocket: 'WebSocket',
+    grpc: 'gRPC'
   };
 </script>
 

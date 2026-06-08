@@ -43,8 +43,8 @@ type Scheduler struct {
 	queries       *db.Queries
 	tsStore       *timescale.Store
 	dynMetrics    *DynamicMetrics
-	hub           *hub.Hub // WebSocket broadcast hub (may be nil)
-	encryptionKey []byte   // AES-256-GCM key for credential decryption
+	hub           *hub.Hub      // WebSocket broadcast hub (may be nil)
+	encryptionKey []byte        // AES-256-GCM key for credential decryption
 	wakeupCh      chan struct{} // signals immediate re-poll (from LISTEN/NOTIFY)
 	stopOnce      sync.Once
 }
@@ -259,7 +259,7 @@ func (s *Scheduler) executeCheck(ctx context.Context, m db.Monitor, tags map[str
 
 	// Load and decrypt credentials for HTTP and WebSocket monitors.
 	var creds []AuthCredential
-	if m.Type == "http" || m.Type == "websocket" {
+	if m.Type == "http" || m.Type == "http3" || m.Type == "websocket" {
 		dbCreds, err := s.queries.ListCredentialsByMonitorIDInternal(ctx, m.ID)
 		if err != nil {
 			log.Printf("scheduler: monitor %s: load credentials: %v", m.ID, err)
@@ -459,5 +459,3 @@ func decryptCredentialPayloadLocal(key []byte, encrypted string) (credentialPayl
 
 	return payload, nil
 }
-
-

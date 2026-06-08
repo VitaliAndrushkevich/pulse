@@ -14,9 +14,9 @@ type Result struct {
 	MonitorID        uuid.UUID
 	State            string // "up" or "down"
 	LatencyMs        int32
-	StatusCode       *int32  // HTTP-only
-	SSLDaysRemaining *int32  // HTTPS-only
-	Error            string  // empty on success
+	StatusCode       *int32 // HTTP-only
+	SSLDaysRemaining *int32 // HTTPS-only
+	Error            string // empty on success
 	CheckedAt        time.Time
 }
 
@@ -58,6 +58,7 @@ func (r *Registry) Get(monitorType string) (Checker, error) {
 func DefaultRegistry() *Registry {
 	reg := NewRegistry()
 	reg.Register("http", &HTTPChecker{})
+	reg.Register("http3", &HTTP3Checker{})
 	reg.Register("tcp", &TCPChecker{})
 	reg.Register("udp", &UDPChecker{})
 	reg.Register("websocket", &WebSocketChecker{})

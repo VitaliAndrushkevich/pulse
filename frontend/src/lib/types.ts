@@ -1,6 +1,6 @@
 // Core TypeScript types — matches backend OpenAPI contract
 
-export type MonitorType = 'http' | 'tcp' | 'udp' | 'websocket' | 'grpc';
+export type MonitorType = 'http' | 'http3' | 'tcp' | 'udp' | 'websocket' | 'grpc';
 
 /** TLS connection mode for gRPC monitors */
 export type TlsMode = 'plaintext' | 'tls' | 'tls_skip_verify';

@@ -22,9 +22,11 @@
 
   const typeBadgeColors: Record<string, string> = {
     http: 'bg-blue-100 text-blue-700',
+    http3: 'bg-cyan-100 text-cyan-700',
     tcp: 'bg-purple-100 text-purple-700',
     udp: 'bg-amber-100 text-amber-700',
-    websocket: 'bg-pink-100 text-pink-700'
+    websocket: 'bg-pink-100 text-pink-700',
+    grpc: 'bg-indigo-100 text-indigo-700'
   };
 </script>
 
@@ -51,7 +53,7 @@
     class="flex-shrink-0 rounded-full px-2 py-0.5 text-xs font-medium {typeBadgeColors[monitor.type] ?? 'bg-slate-100 text-slate-700'}"
     data-testid="monitor-type"
   >
-    {monitor.type === 'http' ? 'HTTP(S)' : monitor.type.toUpperCase()}
+    {monitor.type === 'http' ? 'HTTP(S)' : monitor.type === 'http3' ? 'HTTP/3' : monitor.type === 'grpc' ? 'gRPC' : monitor.type.toUpperCase()}
   </span>
 
   <!-- Target -->

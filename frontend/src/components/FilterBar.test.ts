@@ -16,7 +16,7 @@ vi.mock('$lib/api', () => ({
   }),
 }));
 
-const availableTypes: MonitorType[] = ['http', 'tcp', 'udp', 'websocket'];
+const availableTypes: MonitorType[] = ['http', 'http3', 'tcp', 'udp', 'websocket'];
 
 function defaultProps(overrides: Partial<{
   availableTypes: MonitorType[];
@@ -46,6 +46,7 @@ describe('FilterBar', () => {
 
     await waitFor(() => {
       expect(screen.getByTestId('type-pill-http')).toBeTruthy();
+      expect(screen.getByTestId('type-pill-http3')).toBeTruthy();
       expect(screen.getByTestId('type-pill-tcp')).toBeTruthy();
       expect(screen.getByTestId('type-pill-udp')).toBeTruthy();
       expect(screen.getByTestId('type-pill-websocket')).toBeTruthy();
