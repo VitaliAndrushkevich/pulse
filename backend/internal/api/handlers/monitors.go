@@ -32,14 +32,14 @@ func NewMonitorHandler(queries *db.Queries, pool *pgxpool.Pool, wsHub *hub.Hub) 
 // --- Request/Response types ---
 
 type createMonitorRequest struct {
-	Name            string               `json:"name" binding:"required"`
-	Type            string               `json:"type" binding:"required"`
-	Target          string               `json:"target" binding:"required"`
-	IntervalSeconds *int32               `json:"interval_seconds,omitempty"`
-	TimeoutSeconds  *int32               `json:"timeout_seconds,omitempty"`
-	Status          *string              `json:"status,omitempty"`
-	Settings        json.RawMessage      `json:"settings,omitempty"`
-	Tags            []tags.TagRequest    `json:"tags,omitempty"`
+	Name            string            `json:"name" binding:"required"`
+	Type            string            `json:"type" binding:"required"`
+	Target          string            `json:"target" binding:"required"`
+	IntervalSeconds *int32            `json:"interval_seconds,omitempty"`
+	TimeoutSeconds  *int32            `json:"timeout_seconds,omitempty"`
+	Status          *string           `json:"status,omitempty"`
+	Settings        json.RawMessage   `json:"settings,omitempty"`
+	Tags            []tags.TagRequest `json:"tags,omitempty"`
 }
 
 type putMonitorRequest struct {
@@ -106,7 +106,7 @@ func (h *MonitorHandler) Create(c *gin.Context) {
 	}
 
 	if !isValidMonitorType(req.Type) {
-		apiError(c, http.StatusBadRequest, "VALIDATION_ERROR", "type must be one of: http, https, tcp, udp, websocket")
+		apiError(c, http.StatusBadRequest, "VALIDATION_ERROR", "type must be one of: http, http3, tcp, udp, websocket, grpc")
 		return
 	}
 
@@ -161,6 +161,13 @@ func (h *MonitorHandler) Create(c *gin.Context) {
 		Settings:        settings,
 	})
 	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == "23514" {
+			// CHECK constraint violated: commonly caused by DB enum/check not
+			// including the new type (e.g., http3) because migrations weren't applied.
+			apiError(c, http.StatusBadRequest, "VALIDATION_ERROR", "type must be one of: http, http3, tcp, udp, websocket, grpc (ensure database migrations are applied)")
+			return
+		}
 		apiError(c, http.StatusInternalServerError, "DB_ERROR", "failed to create monitor")
 		return
 	}
@@ -306,7 +313,7 @@ func (h *MonitorHandler) Put(c *gin.Context) {
 	}
 
 	if !isValidMonitorType(req.Type) {
-		apiError(c, http.StatusBadRequest, "VALIDATION_ERROR", "type must be one of: http, https, tcp, udp, websocket")
+		apiError(c, http.StatusBadRequest, "VALIDATION_ERROR", "type must be one of: http, http3, tcp, udp, websocket, grpc")
 		return
 	}
 
@@ -376,6 +383,11 @@ func (h *MonitorHandler) Put(c *gin.Context) {
 		Settings:        settings,
 	})
 	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == "23514" {
+			apiError(c, http.StatusBadRequest, "VALIDATION_ERROR", "type must be one of: http, http3, tcp, udp, websocket, grpc (ensure database migrations are applied)")
+			return
+		}
 		apiError(c, http.StatusInternalServerError, "DB_ERROR", "failed to create or update monitor")
 		return
 	}
@@ -442,7 +454,7 @@ func (h *MonitorHandler) Delete(c *gin.Context) {
 
 func isValidMonitorType(t string) bool {
 	switch t {
-	case "http", "tcp", "udp", "websocket":
+	case "http", "http3", "tcp", "udp", "websocket", "grpc":
 		return true
 	}
 	return false

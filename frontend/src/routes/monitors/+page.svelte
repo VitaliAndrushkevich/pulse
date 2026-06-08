@@ -15,7 +15,7 @@
 
   // Filter state
   let activeFilters = $state<{ types: MonitorType[]; tags: Tag[] }>({ types: [], tags: [] });
-  const availableTypes: MonitorType[] = ['http', 'tcp', 'udp', 'websocket'];
+  const availableTypes: MonitorType[] = ['http', 'http3', 'tcp', 'udp', 'websocket'];
 
   const LIMIT = 20;
 
