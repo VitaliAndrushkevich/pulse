@@ -220,6 +220,9 @@ func (h *MonitorHandler) List(c *gin.Context) {
 
 	// Parse optional tag filters (format: key:value, AND semantics).
 	tagFilters := c.QueryArray("tag")
+	if tagFilters == nil {
+		tagFilters = []string{}
+	}
 
 	monitors, err := h.queries.ListMonitorsFiltered(ctx, db.ListMonitorsFilteredParams{
 		Column1: typeFilter,

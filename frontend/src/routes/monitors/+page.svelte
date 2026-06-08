@@ -65,7 +65,7 @@
 <section class="space-y-6">
   <!-- Header -->
   <div class="flex items-center justify-between">
-    <h1 class="text-2xl font-bold tracking-tight text-slate-900">Monitors</h1>
+    <h1 class="text-2xl font-bold tracking-tight text-primary">Monitors</h1>
     <a
       href="/monitors/create"
       class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
@@ -83,8 +83,8 @@
 
   <!-- Loading state -->
   {#if loading}
-    <div class="flex items-center justify-center rounded-xl border border-slate-200 bg-white p-12" data-testid="loading-state">
-      <div class="flex items-center gap-3 text-slate-500">
+    <div class="flex items-center justify-center rounded-xl border border-[var(--color-border)] bg-surface p-12" data-testid="loading-state">
+      <div class="flex items-center gap-3 text-secondary">
         <svg class="h-5 w-5 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
           <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
@@ -108,8 +108,8 @@
 
   <!-- Empty state -->
   {:else if total === 0}
-    <div class="rounded-xl border border-dashed border-slate-300 bg-white p-12 text-center" data-testid="empty-state">
-      <p class="text-slate-600">No monitors found.</p>
+    <div class="rounded-xl border border-dashed border-[var(--color-border)] bg-surface p-12 text-center" data-testid="empty-state">
+      <p class="text-secondary">No monitors found.</p>
       <a
         href="/monitors/create"
         class="mt-3 inline-block text-sm font-medium text-indigo-600 hover:text-indigo-700"
@@ -120,7 +120,7 @@
 
   <!-- Monitor list -->
   {:else}
-    <div class="overflow-hidden rounded-xl border border-slate-200 bg-white" data-testid="monitor-list">
+    <div class="overflow-hidden rounded-xl border border-[var(--color-border)] bg-surface" data-testid="monitor-list">
       {#each monitors as monitor (monitor.id)}
         <MonitorRow {monitor} />
       {/each}

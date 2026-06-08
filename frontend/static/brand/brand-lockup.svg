@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 32" width="140" height="32">
+  <!-- Logo Mark -->
+  <g fill="none" stroke="#0ea5e9" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M2 20 L8 20 L11 24 L16 8 L21 24 L24 20 L30 20" />
+  </g>
+  <!-- Wordmark -->
+  <text x="38" y="23" font-family="Inter, system-ui, -apple-system, sans-serif" font-weight="600" font-size="20" letter-spacing="-0.5" fill="#0f172a">Pulse</text>
+</svg>

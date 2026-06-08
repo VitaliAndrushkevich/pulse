@@ -11,6 +11,8 @@ Pulse is a self-hosted uptime monitoring platform. It ships as a single binary w
 - **Prometheus metrics** — built-in `/metrics` endpoint
 - **Security** — AES-256-GCM secret encryption, JWT + API token auth
 - **Scalable** — bounded worker pools, designed for 500+ concurrent monitors
+- **Light/Dark theming** — CSS custom properties theme system with FOUC-free switching and WCAG AA contrast compliance
+- **Brand identity** — ECG-inspired logo mark with responsive lockup, self-hosted Inter typography, and static asset exports
 
 ## Architecture
 
@@ -18,20 +20,20 @@ Pulse runs as a single Go process serving both the API and the frontend:
 
 ```
 ┌─────────────────────────────────────────────────┐
-│                 Pulse Binary                      │
-│                                                   │
+│                 Pulse Binary                    │
+│                                                 │
 │  ┌──────────┐  ┌───────────┐  ┌──────────────┐  │
 │  │ gin HTTP │  │ Scheduler │  │ WebSocket Hub│  │
 │  │  Router  │  │  + Workers│  │  (fan-out)   │  │
 │  └────┬─────┘  └─────┬─────┘  └──────┬───────┘  │
-│       │               │               │          │
-│  ┌────┴───────────────┴───────────────┴───────┐  │
-│  │           PostgreSQL + TimescaleDB          │  │
-│  └─────────────────────────────────────────────┘  │
-│                                                   │
-│  ┌─────────────────────────────────────────────┐  │
-│  │        Embedded SvelteKit Frontend          │  │
-│  └─────────────────────────────────────────────┘  │
+│       │              │               │          │
+│  ┌────┴──────────────┴───────────────┴───────┐  │
+│  │           PostgreSQL + TimescaleDB        │  │
+│  └───────────────────────────────────────────┘  │
+│                                                 │
+│  ┌───────────────────────────────────────────┐  │
+│  │        Embedded SvelteKit Frontend        │  │
+│  └───────────────────────────────────────────┘  │
 └─────────────────────────────────────────────────┘
 ```
 
@@ -46,6 +48,7 @@ Pulse runs as a single Go process serving both the API and the frontend:
 | `backend/internal/store/` | Database layer (postgres + timescale) |
 | `backend/internal/frontend/` | Embedded SPA assets (`go:embed`) |
 | `frontend/` | SvelteKit source code |
+| `frontend/static/brand/` | Logo SVGs, PNG exports, usage guidelines |
 | `backend/api/openapi.yaml` | OpenAPI 3.0.3 specification |
 | `backend/migrations/` | SQL migration files |
 
@@ -233,8 +236,22 @@ This starts the Vite dev server on port **5173** with HMR enabled — source fil
 # Backend tests
 make test
 
-# Frontend tests
+# Frontend tests (218 tests — unit + property-based)
 cd frontend && pnpm test
+```
+
+### Brand Assets
+
+Logo files and brand guidelines are in `frontend/static/brand/`. To regenerate PNG exports from the SVG source:
+
+```bash
+cd frontend && node scripts/generate-brand-pngs.mjs
+```
+
+To regenerate favicon and PWA icons:
+
+```bash
+cd frontend && node scripts/generate-icons.mjs
 ```
 
 ## Docker Compose Override

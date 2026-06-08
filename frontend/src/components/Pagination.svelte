@@ -28,12 +28,12 @@
     type="button"
     onclick={handlePrev}
     disabled={isPrevDisabled}
-    class="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-white"
+    class="rounded-md border border-[var(--color-border)] bg-surface px-3 py-2 text-sm font-medium text-primary transition hover:bg-[var(--color-bg-surface-hover)] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-surface"
   >
     Previous
   </button>
 
-  <span class="text-sm text-slate-600">
+  <span class="text-sm text-secondary">
     Page {page} of {totalPages}
   </span>
 
@@ -41,7 +41,7 @@
     type="button"
     onclick={handleNext}
     disabled={isNextDisabled}
-    class="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-white"
+    class="rounded-md border border-[var(--color-border)] bg-surface px-3 py-2 text-sm font-medium text-primary transition hover:bg-[var(--color-bg-surface-hover)] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-surface"
   >
     Next
   </button>

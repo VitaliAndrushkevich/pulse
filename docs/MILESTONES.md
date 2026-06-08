@@ -6,13 +6,13 @@ Pulse is a self-hosted uptime monitoring platform (API-first, single-container d
 
 ---
 
-## Current Stage: MVP Complete 🎉
+## Current Stage: MVP Complete + Branding 🎉
 
-All milestones (A–H) are done. The project is a fully packaged, single-container deployment with embedded frontend, production Docker Compose, and comprehensive documentation. CI pipeline is deferred.
+All milestones (A–I) are done. The project is a fully packaged, single-container deployment with embedded frontend, production Docker Compose, cohesive brand identity, and comprehensive documentation. CI pipeline is deferred.
 
 ```
-[████████████████████████████████] 100%
-     A ✓   B ✓   C ✓   D ✓   E ✓   F ✓   G ✓   H ✓
+[████████████████████████████████████] 100%
+  A ✓  B ✓  C ✓  D ✓  E ✓  F ✓  G ✓  H ✓  I ✓
 ```
 
 ---
@@ -127,7 +127,7 @@ Delivered:
 - ✅ Settings page with secrets management (create form, metadata-only display, value cleared immediately)
 - ✅ WebSocket lifecycle wired to layout (connect on auth, disconnect on logout, re-fetch on reconnect)
 - ✅ Real-time updates: WS patches update dashboard rows and detail view in-place via reactive store
-- ✅ 141 unit tests passing (Vitest + fast-check + @testing-library/svelte)
+- ✅ 141 unit tests passing (Vitest + fast-check + @testing-library/svelte) (expanded to 218 with branding tests in Milestone I)
 
 ---
 
@@ -160,6 +160,29 @@ Delivered:
 
 ---
 
+## Milestone I: Branding & Theming ✅ DONE
+
+**Goal:** Cohesive visual identity with ECG-inspired logo, theme-aware color system, and light/dark switching.
+
+Delivered:
+- ✅ CSS custom properties theme system (`:root`/`[data-theme="light"]` + `[data-theme="dark"]` overrides) with full token set: brand-primary, brand-hover, bg-page, bg-surface, text-primary, text-secondary, border, success, warning, error, and brand scale 50–900
+- ✅ Tailwind integration: `darkMode: ['selector', '[data-theme="dark"]']`, brand color scale, semantic aliases (success, warning, error), fontFamily.brand with Inter
+- ✅ FOUC prevention inline script in `app.html` (reads localStorage, validates, falls back to `prefers-color-scheme`)
+- ✅ Self-hosted Inter font (WOFF2, semi-bold 600, `font-display: swap`)
+- ✅ BrandLockup component: inline SVG ECG peak with proportional scaling (size prop), full/compact variants, `currentColor` + CSS variable fallback
+- ✅ ThemeSwitcher component: toggle with `data-theme` attribute update, localStorage persistence, sun/moon icons, aria-labels, SecurityError resilience
+- ✅ Static brand assets: `logo-mark.svg`, `brand-lockup.svg`, `brand-lockup-dark.svg`, PNG exports (1x/2x/4x), README guidelines
+- ✅ PNG generation scripts (`generate-brand-pngs.mjs`, `generate-icons.mjs`) using `sharp`
+- ✅ Favicon (32×32), Apple Touch Icon (180×180), PWA icons (192/512), `site.webmanifest`
+- ✅ Layout integration: responsive BrandLockup in header (full > 640px, compact ≤ 640px), ThemeSwitcher in nav
+- ✅ Login/setup pages: centered BrandLockup at 48px with viewport overflow scaling
+- ✅ Theme-aware layout styles: all hardcoded slate/sky classes replaced with CSS variable references
+- ✅ Property-based tests (6 properties): stroke proportionality, scaling, WCAG contrast, toggle persistence, icon correctness, token mapping
+- ✅ Unit tests: BrandLockup (17 tests), ThemeSwitcher (12 tests)
+- ✅ Total frontend tests: 218 (up from 141)
+
+---
+
 ## What Exists Today (Inventory)
 
 | Layer | Status | Notes |
@@ -178,7 +201,8 @@ Delivered:
 | Prometheus metrics | ✅ Complete | /metrics with monitor_up, response_time, monitors_total |
 | OpenAPI spec | ✅ Complete | backend/api/openapi.yaml (3.0.3) |
 | WebSocket hub | ✅ Complete | Fan-out hub with keepalive, slow-consumer eviction, auth endpoint |
-| Frontend | ✅ Complete | Full SvelteKit app with stores, WS client, all pages, 141 tests |
+| Frontend | ✅ Complete | Full SvelteKit app with stores, WS client, all pages, 218 tests |
+| Branding & Theming | ✅ Complete | Logo, theme system, light/dark switch, brand assets, property tests |
 | Frontend embedding | ✅ Complete | go:embed with SPA catch-all, cache headers |
 | CI pipeline | 🔲 Deferred | Not required for MVP |
 

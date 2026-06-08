@@ -103,8 +103,8 @@
 
 <section class="space-y-4" data-testid="auth-section">
   <div>
-    <h3 class="text-sm font-medium text-slate-900">Authentication</h3>
-    <p class="mt-1 text-xs text-slate-500">
+    <h3 class="text-sm font-medium text-primary">Authentication</h3>
+    <p class="mt-1 text-xs text-secondary">
       Configure credentials for this monitor's health-check requests.
     </p>
   </div>

@@ -64,7 +64,7 @@
     open
     aria-label="Secret value — shown once only"
     aria-modal="true"
-    class="relative m-0 w-full max-w-lg rounded-xl border border-slate-200 bg-white p-6 shadow-2xl"
+    class="relative m-0 w-full max-w-lg rounded-xl border border-[var(--color-border)] bg-surface p-6 shadow-2xl"
     tabindex="-1"
     onkeydown={(e) => {
       if (e.key === 'Escape') e.preventDefault();
@@ -78,7 +78,7 @@
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
           </svg>
         </span>
-        <h2 class="text-lg font-semibold text-slate-900">Your Secret Value</h2>
+        <h2 class="text-lg font-semibold text-primary">Your Secret Value</h2>
       </div>
 
       <!-- Warning -->
@@ -90,20 +90,20 @@
 
       <!-- Secret display -->
       <div class="flex flex-col gap-2">
-        <label for="secret-value" class="text-sm font-medium text-slate-700">Secret value</label>
+        <label for="secret-value" class="text-sm font-medium text-primary">Secret value</label>
         <div class="flex gap-2">
           <input
             id="secret-value"
             type="text"
             readonly
             value={displaySecret}
-            class="flex-1 rounded-md border border-slate-300 bg-slate-50 px-3 py-2 font-mono text-sm text-slate-900 select-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+            class="flex-1 rounded-md border border-[var(--color-border)] bg-page px-3 py-2 font-mono text-sm text-primary select-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
             aria-label="Secret value"
           />
           <button
             type="button"
             onclick={handleCopy}
-            class="inline-flex items-center gap-1.5 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+            class="inline-flex items-center gap-1.5 rounded-md border border-[var(--color-border)] bg-surface px-3 py-2 text-sm font-medium text-primary transition hover:bg-[var(--color-bg-surface-hover)] focus:outline-none focus:ring-2 focus:ring-blue-500/20"
             aria-label={copied ? 'Copied to clipboard' : 'Copy secret to clipboard'}
           >
             {#if copied}

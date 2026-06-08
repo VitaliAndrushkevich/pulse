@@ -50,23 +50,23 @@
 
 <div class="space-y-3" data-testid="credential-list">
   {#if credentials.length === 0}
-    <p class="text-sm text-slate-500" data-testid="credential-list-empty">
+    <p class="text-sm text-secondary" data-testid="credential-list-empty">
       No credentials configured for this monitor.
     </p>
   {:else}
-    <ul class="divide-y divide-slate-200 rounded-md border border-slate-200">
+    <ul class="divide-y divide-slate-200 rounded-md border border-[var(--color-border)]">
       {#each credentials as credential (credential.id)}
         <li class="flex items-center justify-between px-4 py-3" data-testid="credential-item">
           <div class="min-w-0 flex-1">
             <div class="flex items-center gap-2">
-              <span class="text-sm font-medium text-slate-900" data-testid="credential-name">
+              <span class="text-sm font-medium text-primary" data-testid="credential-name">
                 {credential.name}
               </span>
-              <span class="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600" data-testid="credential-auth-type">
+              <span class="inline-flex items-center rounded-full bg-[var(--color-bg-surface-hover)] px-2 py-0.5 text-xs font-medium text-secondary" data-testid="credential-auth-type">
                 {formatAuthType(credential.auth_type)}
               </span>
             </div>
-            <p class="mt-0.5 text-xs text-slate-500" data-testid="credential-created-at">
+            <p class="mt-0.5 text-xs text-secondary" data-testid="credential-created-at">
               Created {formatDate(credential.created_at)}
             </p>
           </div>
@@ -87,7 +87,7 @@
               <button
                 type="button"
                 onclick={cancelDelete}
-                class="inline-flex items-center rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-50"
+                class="inline-flex items-center rounded-md border border-[var(--color-border)] bg-surface px-2.5 py-1.5 text-xs font-medium text-primary transition hover:bg-[var(--color-bg-surface-hover)]"
                 data-testid="btn-cancel-delete"
                 aria-label="Cancel delete"
               >
@@ -98,7 +98,7 @@
                 type="button"
                 onclick={() => onReplace(credential)}
                 disabled={loading}
-                class="inline-flex items-center rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-50 disabled:opacity-50"
+                class="inline-flex items-center rounded-md border border-[var(--color-border)] bg-surface px-2.5 py-1.5 text-xs font-medium text-primary transition hover:bg-[var(--color-bg-surface-hover)] disabled:opacity-50"
                 data-testid="btn-replace-credential"
                 aria-label="Replace credential {credential.name}"
               >
@@ -108,7 +108,7 @@
                 type="button"
                 onclick={() => handleDeleteClick(credential.id)}
                 disabled={loading}
-                class="inline-flex items-center rounded-md border border-rose-200 bg-white px-2.5 py-1.5 text-xs font-medium text-rose-600 transition hover:bg-rose-50 disabled:opacity-50"
+                class="inline-flex items-center rounded-md border border-rose-200 bg-surface px-2.5 py-1.5 text-xs font-medium text-rose-600 transition hover:bg-rose-50 disabled:opacity-50"
                 data-testid="btn-delete-credential"
                 aria-label="Delete credential {credential.name}"
               >

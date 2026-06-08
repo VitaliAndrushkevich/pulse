@@ -211,7 +211,7 @@
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div class="w-full" data-testid="status-timeline" onkeydown={handleKeydown} onclick={handleClickOutside}>
   {#if data.length === 0}
-    <div class="flex items-center justify-center rounded-lg border border-slate-200 bg-slate-50 py-8 text-sm text-slate-500">
+    <div class="flex items-center justify-center rounded-lg border border-[var(--color-border)] bg-page py-8 text-sm text-secondary">
       No check data available for the selected time range
     </div>
   {:else}
@@ -219,11 +219,11 @@
     <div class="mb-3 flex items-center justify-between">
       <div class="flex items-center gap-4">
         {#if uptimePercent !== null}
-          <span class="text-sm font-medium text-slate-700">
+          <span class="text-sm font-medium text-primary">
             Uptime: <span class="font-semibold {Number(uptimePercent) >= 99 ? 'text-emerald-600' : Number(uptimePercent) >= 95 ? 'text-amber-600' : 'text-rose-600'}">{uptimePercent}%</span>
           </span>
         {/if}
-        <div class="flex items-center gap-3 text-xs text-slate-500">
+        <div class="flex items-center gap-3 text-xs text-secondary">
           <span class="flex items-center gap-1">
             <span class="inline-block h-2.5 w-2.5 rounded-sm bg-emerald-500"></span> Healthy
           </span>
@@ -235,7 +235,7 @@
           </span>
         </div>
       </div>
-      <span class="text-xs text-slate-400">{data.length} checks</span>
+      <span class="text-xs text-[var(--color-text-muted)]">{data.length} checks</span>
     </div>
 
     <!-- Heartbeat bar -->
@@ -260,7 +260,7 @@
           {@const leftPercent = ((i + 0.5) / beats.length) * 100}
           {@const failures = getPopoverFailures(beat)}
           <div
-            class="absolute bottom-full z-50 mb-2 w-72 -translate-x-1/2 rounded-lg border border-slate-200 bg-white p-3 shadow-lg"
+            class="absolute bottom-full z-50 mb-2 w-72 -translate-x-1/2 rounded-lg border border-[var(--color-border)] bg-surface p-3 shadow-lg"
             style="left: clamp(8rem, {leftPercent}%, calc(100% - 8rem))"
             data-testid="beat-popover"
             bind:this={popoverElement}
@@ -273,7 +273,7 @@
               </span>
               <button
                 type="button"
-                class="text-slate-400 hover:text-slate-600"
+                class="text-[var(--color-text-muted)] hover:text-secondary"
                 onclick={closePopover}
                 aria-label="Close popover"
               >
@@ -285,34 +285,34 @@
               <!-- Single check — show full details -->
               {@const pt = beat.points[0]}
               <div class="space-y-1.5">
-                <div class="text-xs text-slate-500">
+                <div class="text-xs text-secondary">
                   {formatDateTime(new Date(pt.checked_at).getTime())}
                 </div>
                 {#if pt.error}
-                  <p class="text-xs font-medium text-slate-800">{pt.error}</p>
+                  <p class="text-xs font-medium text-primary">{pt.error}</p>
                 {/if}
                 {#if pt.status_code != null}
-                  <p class="text-xs text-slate-600">HTTP {pt.status_code}</p>
+                  <p class="text-xs text-secondary">HTTP {pt.status_code}</p>
                 {/if}
                 {#if pt.latency_ms != null}
-                  <p class="text-xs text-slate-500">Response: {pt.latency_ms}ms</p>
+                  <p class="text-xs text-secondary">Response: {pt.latency_ms}ms</p>
                 {/if}
               </div>
             {:else}
               <!-- Multiple checks in bucket — show failures list -->
-              <div class="mb-2 text-xs text-slate-500">
+              <div class="mb-2 text-xs text-secondary">
                 {beat.points.filter(p => p.state === 'down').length} of {beat.points.length} checks failed
               </div>
               {#if failures.length > 0}
                 <div class="max-h-40 space-y-2 overflow-y-auto">
                   {#each failures.slice(0, 5) as failure}
-                    <div class="rounded border border-slate-100 bg-slate-50 px-2 py-1.5">
-                      <div class="text-[10px] text-slate-400">{formatDateTime(new Date(failure.checked_at).getTime())}</div>
-                      <div class="text-xs text-slate-700">{failure.error}</div>
+                    <div class="rounded border border-[var(--color-border)] bg-page px-2 py-1.5">
+                      <div class="text-[10px] text-[var(--color-text-muted)]">{formatDateTime(new Date(failure.checked_at).getTime())}</div>
+                      <div class="text-xs text-primary">{failure.error}</div>
                     </div>
                   {/each}
                   {#if failures.length > 5}
-                    <p class="text-[10px] text-slate-400">+ {failures.length - 5} more</p>
+                    <p class="text-[10px] text-[var(--color-text-muted)]">+ {failures.length - 5} more</p>
                   {/if}
                 </div>
               {/if}
@@ -323,7 +323,7 @@
     </div>
 
     <!-- Time labels -->
-    <div class="mt-1.5 flex items-center justify-between text-xs text-slate-400">
+    <div class="mt-1.5 flex items-center justify-between text-xs text-[var(--color-text-muted)]">
       <span>{timeRange.start}</span>
       <span>{timeRange.end}</span>
     </div>
