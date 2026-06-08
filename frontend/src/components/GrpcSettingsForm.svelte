@@ -87,7 +87,7 @@
 <div class="space-y-6" data-testid="grpc-settings-form">
   <!-- Service Method -->
   <div>
-    <label for="grpc-service-method" class="block text-sm font-medium text-slate-700">Service Method</label>
+    <label for="grpc-service-method" class="block text-sm font-medium text-primary">Service Method</label>
     <input
       id="grpc-service-method"
       type="text"
@@ -95,19 +95,19 @@
       required
       maxlength={512}
       placeholder="grpc.health.v1.Health/Check"
-      class="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+      class="mt-1 block w-full rounded-md border border-[var(--color-border)] px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
       data-testid="grpc-service-method"
     />
-    <p class="mt-1 text-xs text-slate-500">Fully-qualified gRPC service and method (package.Service/Method)</p>
+    <p class="mt-1 text-xs text-secondary">Fully-qualified gRPC service and method (package.Service/Method)</p>
   </div>
 
   <!-- TLS Mode -->
   <div>
-    <label for="grpc-tls-mode" class="block text-sm font-medium text-slate-700">TLS Mode</label>
+    <label for="grpc-tls-mode" class="block text-sm font-medium text-primary">TLS Mode</label>
     <select
       id="grpc-tls-mode"
       bind:value={tlsMode}
-      class="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+      class="mt-1 block w-full rounded-md border border-[var(--color-border)] px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
       data-testid="grpc-tls-mode"
     >
       <option value="plaintext">Plaintext</option>
@@ -119,7 +119,7 @@
   <!-- SSL Expiry Threshold (hidden when plaintext) -->
   {#if tlsMode !== 'plaintext'}
     <div>
-      <label for="grpc-ssl-expiry" class="block text-sm font-medium text-slate-700">SSL Expiry Threshold (days)</label>
+      <label for="grpc-ssl-expiry" class="block text-sm font-medium text-primary">SSL Expiry Threshold (days)</label>
       <input
         id="grpc-ssl-expiry"
         type="number"
@@ -127,22 +127,22 @@
         min={1}
         max={3650}
         placeholder="30"
-        class="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+        class="mt-1 block w-full rounded-md border border-[var(--color-border)] px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
         data-testid="grpc-ssl-expiry"
       />
-      <p class="mt-1 text-xs text-slate-500">Alert when certificate expires within this many days</p>
+      <p class="mt-1 text-xs text-secondary">Alert when certificate expires within this many days</p>
     </div>
   {/if}
 
   <!-- Metadata Key-Value Rows -->
   <div>
     <div class="flex items-center justify-between">
-      <span class="block text-sm font-medium text-slate-700">Metadata</span>
+      <span class="block text-sm font-medium text-primary">Metadata</span>
       <button
         type="button"
         onclick={addMetadataRow}
         disabled={metadataRows.length >= MAX_METADATA_ROWS}
-        class="rounded-md border border-slate-300 bg-white px-3 py-1 text-xs font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+        class="rounded-md border border-[var(--color-border)] bg-surface px-3 py-1 text-xs font-medium text-primary transition hover:bg-[var(--color-bg-surface-hover)] disabled:cursor-not-allowed disabled:opacity-50"
         data-testid="grpc-add-metadata"
       >
         Add Metadata
@@ -159,7 +159,7 @@
               maxlength={128}
               placeholder="Key"
               aria-label="Metadata key {index + 1}"
-              class="block w-1/3 rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              class="block w-1/3 rounded-md border border-[var(--color-border)] px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
               data-testid="grpc-metadata-key-{index}"
             />
             <input
@@ -168,14 +168,14 @@
               maxlength={4096}
               placeholder="Value"
               aria-label="Metadata value {index + 1}"
-              class="block flex-1 rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              class="block flex-1 rounded-md border border-[var(--color-border)] px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
               data-testid="grpc-metadata-value-{index}"
             />
             <button
               type="button"
               onclick={() => removeMetadataRow(index)}
               aria-label="Remove metadata row {index + 1}"
-              class="rounded-md border border-slate-300 bg-white px-2 py-2 text-xs text-rose-600 transition hover:bg-rose-50"
+              class="rounded-md border border-[var(--color-border)] bg-surface px-2 py-2 text-xs text-rose-600 transition hover:bg-rose-50"
               data-testid="grpc-metadata-remove-{index}"
             >
               ✕
@@ -185,41 +185,41 @@
       </div>
     {/if}
 
-    <p class="mt-1 text-xs text-slate-500">Custom gRPC metadata headers sent with each request</p>
+    <p class="mt-1 text-xs text-secondary">Custom gRPC metadata headers sent with each request</p>
   </div>
 
   <!-- Expected Status Codes -->
   <fieldset>
-    <legend class="block text-sm font-medium text-slate-700">Expected Status Codes</legend>
+    <legend class="block text-sm font-medium text-primary">Expected Status Codes</legend>
     <div class="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 sm:grid-cols-3" data-testid="grpc-expected-statuses">
       {#each GRPC_STATUS_CODES as { code, name }}
-        <label class="flex items-center gap-2 text-sm text-slate-600">
+        <label class="flex items-center gap-2 text-sm text-secondary">
           <input
             type="checkbox"
             checked={expectedStatuses.includes(code)}
             onchange={() => toggleStatus(code)}
-            class="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+            class="rounded border-[var(--color-border)] text-blue-600 focus:ring-blue-500"
             data-testid="grpc-status-{code}"
           />
           {code} ({name})
         </label>
       {/each}
     </div>
-    <p class="mt-1 text-xs text-slate-500">gRPC status codes considered a healthy response</p>
+    <p class="mt-1 text-xs text-secondary">gRPC status codes considered a healthy response</p>
   </fieldset>
 
   <!-- Request Payload -->
   <div>
-    <label for="grpc-request-payload" class="block text-sm font-medium text-slate-700">Request Payload (Base64)</label>
+    <label for="grpc-request-payload" class="block text-sm font-medium text-primary">Request Payload (Base64)</label>
     <textarea
       id="grpc-request-payload"
       bind:value={requestPayload}
       maxlength={65536}
       rows={3}
       placeholder="Base64-encoded protobuf message"
-      class="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+      class="mt-1 block w-full rounded-md border border-[var(--color-border)] px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
       data-testid="grpc-request-payload"
     ></textarea>
-    <p class="mt-1 text-xs text-slate-500">Optional base64-encoded protobuf request body</p>
+    <p class="mt-1 text-xs text-secondary">Optional base64-encoded protobuf request body</p>
   </div>
 </div>

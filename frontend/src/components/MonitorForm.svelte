@@ -1,8 +1,10 @@
 <script lang="ts">
   import type { MonitorType, GrpcSettings } from '$lib/types';
+  import type { CreateCredentialRequest } from '$lib/api';
   import { validateName, validateTarget, validateInterval, validateTimeout, validateType } from '$lib/validation';
   import { formatSecretReference } from '$lib/format';
   import AuthSection from './AuthSection.svelte';
+  import CredentialForm from './CredentialForm.svelte';
   import GrpcSettingsForm from './GrpcSettingsForm.svelte';
 
   interface MonitorFormValues {
@@ -15,12 +17,17 @@
     settings: Record<string, unknown>;
   }
 
+  export interface MonitorFormSubmitData {
+    values: MonitorFormValues;
+    pendingCredential?: CreateCredentialRequest;
+  }
+
   interface Props {
     mode: 'create' | 'edit';
     initialValues?: Partial<MonitorFormValues>;
     secrets?: Array<{ id: string; name: string }>;
     monitorId?: string;
-    onSubmit: (values: MonitorFormValues) => Promise<void>;
+    onSubmit: (values: MonitorFormValues, pendingCredential?: CreateCredentialRequest) => Promise<void>;
     onCancel: () => void;
   }
 
@@ -65,6 +72,17 @@
           expected_statuses: [0],
         }
   );
+
+  // Pending credential for create mode (saved locally, sent after monitor creation)
+  let pendingCredential = $state<CreateCredentialRequest | null>(null);
+
+  function handlePendingCredential(req: CreateCredentialRequest) {
+    pendingCredential = req;
+  }
+
+  function clearPendingCredential() {
+    pendingCredential = null;
+  }
 
   // UI state
   let submitting = $state(false);
@@ -148,7 +166,7 @@
     };
 
     try {
-      await onSubmit(values);
+      await onSubmit(values, pendingCredential ?? undefined);
     } catch (err: unknown) {
       if (err instanceof Error) {
         apiError = err.message;
@@ -178,14 +196,14 @@
 
   <!-- Name -->
   <div>
-    <label for="monitor-name" class="block text-sm font-medium text-slate-700">Name</label>
+    <label for="monitor-name" class="block text-sm font-medium text-primary">Name</label>
     <input
       id="monitor-name"
       type="text"
       bind:value={name}
       onblur={() => markTouched('name')}
       placeholder="My Monitor"
-      class="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+      class="mt-1 block w-full rounded-md border border-[var(--color-border)] bg-surface px-3 py-2 text-sm text-primary shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
       data-testid="input-name"
     />
     {#if touched.name && !nameValidation.valid}
@@ -195,12 +213,12 @@
 
   <!-- Type -->
   <div>
-    <label for="monitor-type" class="block text-sm font-medium text-slate-700">Type</label>
+    <label for="monitor-type" class="block text-sm font-medium text-primary">Type</label>
     <select
       id="monitor-type"
       bind:value={type}
       onblur={() => markTouched('type')}
-      class="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+      class="mt-1 block w-full rounded-md border border-[var(--color-border)] bg-surface px-3 py-2 text-sm text-primary shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
       data-testid="input-type"
     >
       {#each monitorTypes as t}
@@ -214,14 +232,14 @@
 
   <!-- Target -->
   <div>
-    <label for="monitor-target" class="block text-sm font-medium text-slate-700">Target</label>
+    <label for="monitor-target" class="block text-sm font-medium text-primary">Target</label>
     <input
       id="monitor-target"
       type="text"
       bind:value={target}
       onblur={() => markTouched('target')}
       placeholder="https://example.com"
-      class="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+      class="mt-1 block w-full rounded-md border border-[var(--color-border)] bg-surface px-3 py-2 text-sm text-primary shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
       data-testid="input-target"
     />
     {#if touched.target && !targetValidation.valid}
@@ -232,7 +250,7 @@
   <!-- Interval and Timeout -->
   <div class="grid grid-cols-2 gap-4">
     <div>
-      <label for="monitor-interval" class="block text-sm font-medium text-slate-700">Interval (seconds)</label>
+      <label for="monitor-interval" class="block text-sm font-medium text-primary">Interval (seconds)</label>
       <input
         id="monitor-interval"
         type="number"
@@ -240,7 +258,7 @@
         onblur={() => markTouched('interval')}
         min="10"
         max="86400"
-        class="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+        class="mt-1 block w-full rounded-md border border-[var(--color-border)] bg-surface px-3 py-2 text-sm text-primary shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
         data-testid="input-interval"
       />
       {#if touched.interval && !intervalValidation.valid}
@@ -249,7 +267,7 @@
     </div>
 
     <div>
-      <label for="monitor-timeout" class="block text-sm font-medium text-slate-700">Timeout (seconds)</label>
+      <label for="monitor-timeout" class="block text-sm font-medium text-primary">Timeout (seconds)</label>
       <input
         id="monitor-timeout"
         type="number"
@@ -257,7 +275,7 @@
         onblur={() => markTouched('timeout')}
         min="1"
         max="300"
-        class="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+        class="mt-1 block w-full rounded-md border border-[var(--color-border)] bg-surface px-3 py-2 text-sm text-primary shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
         data-testid="input-timeout"
       />
       {#if touched.timeout && !timeoutValidation.valid}
@@ -268,9 +286,9 @@
 
   <!-- Status Toggle -->
   <fieldset>
-    <legend class="block text-sm font-medium text-slate-700">Status</legend>
+    <legend class="block text-sm font-medium text-primary">Status</legend>
     <div class="mt-1 flex items-center gap-4">
-      <label class="flex items-center gap-2 text-sm text-slate-600">
+      <label class="flex items-center gap-2 text-sm text-secondary">
         <input
           type="radio"
           bind:group={status}
@@ -280,7 +298,7 @@
         />
         Active
       </label>
-      <label class="flex items-center gap-2 text-sm text-slate-600">
+      <label class="flex items-center gap-2 text-sm text-secondary">
         <input
           type="radio"
           bind:group={status}
@@ -296,7 +314,7 @@
   <!-- Type-specific settings -->
   {#if type === 'http' || type === 'http3'}
     <div>
-      <label for="monitor-status-codes" class="block text-sm font-medium text-slate-700">
+      <label for="monitor-status-codes" class="block text-sm font-medium text-primary">
         Expected Status Codes
       </label>
       <input
@@ -304,10 +322,10 @@
         type="text"
         bind:value={expectedStatusCodes}
         placeholder="200, 201, 204"
-        class="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+        class="mt-1 block w-full rounded-md border border-[var(--color-border)] bg-surface px-3 py-2 text-sm text-primary shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
         data-testid="input-expected-status-codes"
       />
-      <p class="mt-1 text-xs text-slate-500">Comma-separated HTTP status codes considered successful</p>
+      <p class="mt-1 text-xs text-secondary">Comma-separated HTTP status codes considered successful</p>
     </div>
     <div class="mt-2">
       <label class="inline-flex items-center gap-2 text-sm text-slate-700">
@@ -321,31 +339,31 @@
 
   {#if type === 'udp'}
     <div>
-      <label for="monitor-payload" class="block text-sm font-medium text-slate-700">Payload</label>
+      <label for="monitor-payload" class="block text-sm font-medium text-primary">Payload</label>
       <input
         id="monitor-payload"
         type="text"
         bind:value={payload}
         placeholder="ping"
-        class="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+        class="mt-1 block w-full rounded-md border border-[var(--color-border)] bg-surface px-3 py-2 text-sm text-primary shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
         data-testid="input-payload"
       />
-      <p class="mt-1 text-xs text-slate-500">Data to send to the UDP target</p>
+      <p class="mt-1 text-xs text-secondary">Data to send to the UDP target</p>
     </div>
   {/if}
 
   {#if type === 'websocket'}
     <div>
-      <label for="monitor-handshake" class="block text-sm font-medium text-slate-700">Handshake Message</label>
+      <label for="monitor-handshake" class="block text-sm font-medium text-primary">Handshake Message</label>
       <input
         id="monitor-handshake"
         type="text"
         bind:value={handshakeMessage}
         placeholder="ping"
-        class="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+        class="mt-1 block w-full rounded-md border border-[var(--color-border)] bg-surface px-3 py-2 text-sm text-primary shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
         data-testid="input-handshake-message"
       />
-      <p class="mt-1 text-xs text-slate-500">Message to send after WebSocket connection is established</p>
+      <p class="mt-1 text-xs text-secondary">Message to send after WebSocket connection is established</p>
     </div>
   {/if}
 
@@ -358,13 +376,31 @@
     {#if mode === 'edit' && monitorId}
       <AuthSection {monitorId} />
     {:else}
-      <section class="space-y-2" data-testid="auth-section-placeholder">
+      <section class="space-y-4" data-testid="auth-section-create">
         <div>
-          <h3 class="text-sm font-medium text-slate-900">Authentication</h3>
-          <p class="mt-1 text-xs text-slate-500">
-            Save the monitor first to configure authentication credentials.
+          <h3 class="text-sm font-medium text-primary">Authentication</h3>
+          <p class="mt-1 text-xs text-secondary">
+            Optional credentials for this monitor's health-check requests.
           </p>
         </div>
+
+        {#if pendingCredential}
+          <div class="flex items-center justify-between rounded-md border border-green-200 bg-green-50 px-3 py-2">
+            <p class="text-sm text-green-800">
+              <span class="font-medium">{pendingCredential.auth_type}</span> credential "{pendingCredential.name}" will be created with the monitor.
+            </p>
+            <button
+              type="button"
+              onclick={clearPendingCredential}
+              class="text-xs font-medium text-green-700 hover:text-green-900"
+              data-testid="btn-remove-pending-credential"
+            >
+              Remove
+            </button>
+          </div>
+        {:else}
+          <CredentialForm onSubmit={handlePendingCredential} inline />
+        {/if}
       </section>
     {/if}
   {/if}
@@ -372,11 +408,11 @@
   <!-- Secret Reference Dropdown -->
   {#if secrets && secrets.length > 0}
     <div>
-      <label for="monitor-secret" class="block text-sm font-medium text-slate-700">Secret Reference</label>
+      <label for="monitor-secret" class="block text-sm font-medium text-primary">Secret Reference</label>
       <select
         id="monitor-secret"
         bind:value={selectedSecretId}
-        class="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+        class="mt-1 block w-full rounded-md border border-[var(--color-border)] bg-surface px-3 py-2 text-sm text-primary shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
         data-testid="input-secret"
       >
         <option value="">None</option>
@@ -384,16 +420,16 @@
           <option value={secret.id}>{formatSecretReference(secret.name, secret.id)}</option>
         {/each}
       </select>
-      <p class="mt-1 text-xs text-slate-500">Optional secret to attach to this monitor</p>
+      <p class="mt-1 text-xs text-secondary">Optional secret to attach to this monitor</p>
     </div>
   {/if}
 
   <!-- Form Actions -->
-  <div class="flex items-center justify-end gap-3 border-t border-slate-200 pt-4">
+  <div class="flex items-center justify-end gap-3 border-t border-[var(--color-border)] pt-4">
     <button
       type="button"
       onclick={onCancel}
-      class="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+      class="rounded-md border border-[var(--color-border)] bg-surface px-4 py-2 text-sm font-medium text-primary transition hover:bg-[var(--color-bg-surface-hover)]"
       data-testid="btn-cancel"
     >
       Cancel

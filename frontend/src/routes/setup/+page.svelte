@@ -4,6 +4,7 @@
   import { setupAdmin, getSetupStatus, ApiRequestError, NetworkError } from '$lib/api';
   import { setToken } from '$lib/stores/auth.svelte';
   import { validateEmail, validatePassword } from '$lib/validation';
+  import BrandLockup from '../../components/BrandLockup.svelte';
 
   let email = $state('');
   let password = $state('');
@@ -69,14 +70,20 @@
 
 {#if loading}
   <div class="flex min-h-[calc(100vh-80px)] items-center justify-center px-4">
-    <p class="text-slate-500">Checking setup status…</p>
+    <p class="text-secondary">Checking setup status…</p>
   </div>
 {:else}
   <div class="flex min-h-[calc(100vh-80px)] items-center justify-center px-4">
-    <div class="w-full max-w-sm rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
+    <div class="w-full max-w-sm">
+      <div class="mb-6 flex justify-center">
+        <div style="max-width: 100%; height: auto;">
+          <BrandLockup size={48} variant="full" />
+        </div>
+      </div>
+      <div class="rounded-xl border border-[var(--color-border)] bg-surface p-8 shadow-sm">
       <div class="mb-6 text-center">
-        <h1 class="text-2xl font-semibold tracking-tight text-slate-900">Welcome to Pulse</h1>
-        <p class="mt-1 text-sm text-slate-500">Create your admin account to get started</p>
+        <h1 class="text-2xl font-semibold tracking-tight text-primary">Welcome to Pulse</h1>
+        <p class="mt-1 text-sm text-secondary">Create your admin account to get started</p>
       </div>
 
       {#if error}
@@ -90,25 +97,25 @@
 
       <form onsubmit={handleSubmit} class="space-y-4">
         <div>
-          <label for="email" class="block text-sm font-medium text-slate-700">Email</label>
+          <label for="email" class="block text-sm font-medium text-primary">Email</label>
           <input
             id="email"
             type="email"
             autocomplete="email"
             bind:value={email}
-            class="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm placeholder:text-slate-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+            class="mt-1 block w-full rounded-md border border-[var(--color-border)] bg-surface px-3 py-2 text-sm text-primary shadow-sm placeholder:text-[var(--color-text-muted)] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
             placeholder="admin@example.com"
           />
         </div>
 
         <div>
-          <label for="password" class="block text-sm font-medium text-slate-700">Password</label>
+          <label for="password" class="block text-sm font-medium text-primary">Password</label>
           <input
             id="password"
             type="password"
             autocomplete="new-password"
             bind:value={password}
-            class="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm placeholder:text-slate-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+            class="mt-1 block w-full rounded-md border border-[var(--color-border)] bg-surface px-3 py-2 text-sm text-primary shadow-sm placeholder:text-[var(--color-text-muted)] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
             placeholder="••••••••"
           />
           {#if password.length > 0 && password.length < 8}
@@ -117,7 +124,7 @@
         </div>
 
         <div>
-          <label for="confirm-password" class="block text-sm font-medium text-slate-700"
+          <label for="confirm-password" class="block text-sm font-medium text-primary"
             >Confirm Password</label
           >
           <input
@@ -125,7 +132,7 @@
             type="password"
             autocomplete="new-password"
             bind:value={confirmPassword}
-            class="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm placeholder:text-slate-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+            class="mt-1 block w-full rounded-md border border-[var(--color-border)] bg-surface px-3 py-2 text-sm text-primary shadow-sm placeholder:text-[var(--color-text-muted)] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
             placeholder="••••••••"
           />
           {#if confirmPassword.length > 0 && !passwordsMatch}
@@ -145,6 +152,7 @@
           {/if}
         </button>
       </form>
+      </div>
     </div>
   </div>
 {/if}

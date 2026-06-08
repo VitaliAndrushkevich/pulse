@@ -15,7 +15,7 @@ const countMonitorsFiltered = `-- name: CountMonitorsFiltered :one
 SELECT COUNT(*) FROM monitors m
 WHERE ($1::text = '' OR m.type = $1)
   AND (
-    cardinality($2::text[]) = 0
+    COALESCE(cardinality($2::text[]), 0) = 0
     OR m.id IN (
       SELECT mt.monitor_id FROM monitor_tags mt
       WHERE (mt.key || ':' || mt.value) = ANY($2::text[])
@@ -91,7 +91,7 @@ const listMonitorsFiltered = `-- name: ListMonitorsFiltered :many
 SELECT m.id, m.name, m.type, m.target, m.interval_seconds, m.timeout_seconds, m.status, m.state, m.last_checked_at, m.next_check_at, m.settings, m.created_at, m.updated_at FROM monitors m
 WHERE ($1::text = '' OR m.type = $1)
   AND (
-    cardinality($2::text[]) = 0
+    COALESCE(cardinality($2::text[]), 0) = 0
     OR m.id IN (
       SELECT mt.monitor_id FROM monitor_tags mt
       WHERE (mt.key || ':' || mt.value) = ANY($2::text[])

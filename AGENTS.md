@@ -67,6 +67,8 @@ Core outcomes:
 - Place stores in `frontend/src/lib/stores/` — deterministic, patch-merge oriented.
 - Reusable components in `frontend/src/components/`.
 - Avoid blocking renders; large monitor views must remain virtualized.
+- **Theming:** Use CSS custom properties from `app.css` (e.g., `var(--color-brand-primary)`) instead of hardcoded Tailwind color classes. Tailwind brand utilities (`bg-brand-500`, `text-brand-600`) resolve to CSS variables automatically.
+- **Dark mode:** Controlled via `data-theme` attribute on `<html>`. Never use Tailwind's `dark:` prefix — use `[data-theme="dark"]` selector strategy already configured.
 
 ## Current Progress
 
@@ -82,6 +84,7 @@ The project is at MVP completion. Full milestone breakdown: [docs/MILESTONES.md]
 | F: WebSocket Realtime | ✅ Done |
 | G: Frontend Product | ✅ Done |
 | H: Packaging & Release | ✅ Done (CI deferred) |
+| I: Branding & Theming | ✅ Done |
 
 ### Completed (A–H):
 - PostgreSQL schema + indexes, sqlc query layer, TimescaleDB history store
@@ -108,12 +111,25 @@ The project is at MVP completion. Full milestone breakdown: [docs/MILESTONES.md]
 - VirtualList with DOM recycling (max 60 nodes), MonitorRow, MonitorForm, Pagination, HistoryChart (uPlot), Toast, ConnectionBadge
 - All page routes: Login, Dashboard, Monitor list/detail/create/edit, Settings (secrets)
 - Real-time updates: WS patches update dashboard rows and detail view in-place
-- 141 frontend unit tests passing (Vitest + fast-check + @testing-library/svelte)
+- 218 frontend tests passing (Vitest + fast-check + @testing-library/svelte) — unit + property-based
 - Static frontend embedded via `go:embed` with SPA catch-all routing and cache headers
 - Multi-stage Dockerfile (node:22-alpine → golang:1.25-alpine → distroless)
 - Production docker-compose with health checks, restart policies, env_file
 - `.env.example` with all variables documented
 - Complete README with quick start, API examples, architecture docs
+
+### Completed (I: Branding & Theming):
+- ECG-inspired logo mark (inline SVG, proportional stroke scaling)
+- BrandLockup component (full/compact variants, proportional sizing from `size` prop)
+- ThemeSwitcher component (light/dark toggle, localStorage persistence, FOUC prevention)
+- CSS custom properties theme system (`:root`/`[data-theme="dark"]` token overrides)
+- Tailwind integration: `darkMode: ['selector', '[data-theme="dark"]']`, brand color scale (50–900), semantic aliases
+- Self-hosted Inter font (WOFF2, `font-display: swap`)
+- Static brand assets (`frontend/static/brand/` — SVG, PNG exports, dark variant, README)
+- Favicon, Apple Touch Icon, PWA manifest (`site.webmanifest`)
+- Layout integration: responsive lockup in header, ThemeSwitcher in nav, theme-aware token styles
+- Login/setup pages with centered BrandLockup
+- Property-based tests: stroke proportionality, scaling, WCAG contrast, toggle persistence, icon correctness, token mapping
 
 ### Deferred:
 - CI quality gates (GitHub Actions) — not required for MVP
@@ -136,6 +152,12 @@ The project is at MVP completion. Full milestone breakdown: [docs/MILESTONES.md]
 | Frontend WS client | `frontend/src/lib/ws.ts` |
 | Frontend stores | `frontend/src/lib/stores/` |
 | Frontend routes | `frontend/src/routes/` |
+| Brand lockup component | `frontend/src/components/BrandLockup.svelte` |
+| Theme switcher component | `frontend/src/components/ThemeSwitcher.svelte` |
+| Theme tokens (CSS) | `frontend/src/app.css` |
+| Static brand assets | `frontend/static/brand/` |
+| Brand PNG generator | `frontend/scripts/generate-brand-pngs.mjs` |
+| Icon PNG generator | `frontend/scripts/generate-icons.mjs` |
 
 ## Build and Test
 Primary commands:

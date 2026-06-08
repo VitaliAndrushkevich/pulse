@@ -50,11 +50,11 @@
 </script>
 
 <section class="space-y-6">
-  <h1 class="text-2xl font-bold tracking-tight text-slate-900">Edit Monitor</h1>
+  <h1 class="text-2xl font-bold tracking-tight text-primary">Edit Monitor</h1>
 
   {#if loading}
     <div class="flex items-center justify-center p-12" data-testid="loading-state">
-      <div class="flex items-center gap-3 text-slate-500">
+      <div class="flex items-center gap-3 text-secondary">
         <svg class="h-5 w-5 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
           <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
@@ -64,9 +64,9 @@
     </div>
 
   {:else if notFound}
-    <div class="rounded-xl border border-slate-200 bg-white p-12 text-center" data-testid="not-found-state">
-      <p class="text-lg font-medium text-slate-700">Monitor not found</p>
-      <p class="mt-2 text-sm text-slate-500">The monitor you're looking for doesn't exist or has been deleted.</p>
+    <div class="rounded-xl border border-[var(--color-border)] bg-surface p-12 text-center" data-testid="not-found-state">
+      <p class="text-lg font-medium text-primary">Monitor not found</p>
+      <p class="mt-2 text-sm text-secondary">The monitor you're looking for doesn't exist or has been deleted.</p>
       <a
         href="/monitors"
         class="mt-4 inline-block rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-700"

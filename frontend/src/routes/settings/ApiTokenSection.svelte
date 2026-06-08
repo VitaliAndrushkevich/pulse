@@ -119,15 +119,15 @@
 <section class="space-y-6">
   <!-- Section header -->
   <div>
-    <h2 class="text-lg font-medium text-slate-900">API Tokens</h2>
-    <p class="mt-1 text-sm text-slate-500">
+    <h2 class="text-lg font-medium text-[var(--color-text-primary)]">API Tokens</h2>
+    <p class="mt-1 text-sm text-[var(--color-text-secondary)]">
       API tokens provide programmatic access to the Pulse API. Use them for CI/CD pipelines, automation scripts, and external integrations.
     </p>
   </div>
 
   <!-- Create Token Form -->
-  <div class="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
-    <h3 class="text-sm font-medium text-slate-900">Create New Token</h3>
+  <div class="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-surface)] p-6 shadow-sm">
+    <h3 class="text-sm font-medium text-[var(--color-text-primary)]">Create New Token</h3>
 
     {#if createError}
       <div
@@ -140,14 +140,14 @@
 
     <form onsubmit={handleCreateToken} class="mt-3 flex items-end gap-3">
       <div class="flex-1">
-        <label for="token-name" class="block text-sm font-medium text-slate-700">Token name</label>
+        <label for="token-name" class="block text-sm font-medium text-[var(--color-text-secondary)]">Token name</label>
         <input
           id="token-name"
           type="text"
           maxlength={128}
           bind:value={tokenName}
           placeholder="e.g. ci-deploy, grafana-read"
-          class="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm placeholder:text-slate-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+          class="mt-1 block w-full rounded-md border border-[var(--color-border)] bg-[var(--color-bg-surface)] px-3 py-2 text-sm text-[var(--color-text-primary)] shadow-sm placeholder:text-[var(--color-text-muted)] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
         />
       </div>
       <button
@@ -165,14 +165,14 @@
   </div>
 
   <!-- Token List -->
-  <div class="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
-    <h3 class="text-sm font-medium text-slate-900">Existing Tokens</h3>
-    <p class="mt-1 text-xs text-slate-400">
+  <div class="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-surface)] p-6 shadow-sm">
+    <h3 class="text-sm font-medium text-[var(--color-text-primary)]">Existing Tokens</h3>
+    <p class="mt-1 text-xs text-[var(--color-text-muted)]">
       Token values are never displayed after creation. Only metadata is shown.
     </p>
 
     {#if loading}
-      <div class="mt-4 flex items-center gap-2 text-sm text-slate-500">
+      <div class="mt-4 flex items-center gap-2 text-sm text-[var(--color-text-secondary)]">
         <svg class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
           <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
@@ -190,23 +190,23 @@
         </button>
       </div>
     {:else if tokens.length === 0}
-      <p class="mt-4 text-sm text-slate-500">No API tokens created yet.</p>
+      <p class="mt-4 text-sm text-[var(--color-text-secondary)]">No API tokens created yet.</p>
     {:else}
       <div class="mt-4 overflow-x-auto">
         <table class="w-full text-left text-sm">
           <thead>
-            <tr class="border-b border-slate-200">
-              <th class="pb-2 pr-4 font-medium text-slate-600">Name</th>
-              <th class="pb-2 pr-4 font-medium text-slate-600">Created</th>
-              <th class="pb-2 pr-4 font-medium text-slate-600">Last Used</th>
-              <th class="pb-2 pr-4 font-medium text-slate-600">Expires</th>
-              <th class="pb-2 font-medium text-slate-600">Actions</th>
+            <tr class="border-b border-[var(--color-border)]">
+              <th class="pb-2 pr-4 font-medium text-[var(--color-text-secondary)]">Name</th>
+              <th class="pb-2 pr-4 font-medium text-[var(--color-text-secondary)]">Created</th>
+              <th class="pb-2 pr-4 font-medium text-[var(--color-text-secondary)]">Last Used</th>
+              <th class="pb-2 pr-4 font-medium text-[var(--color-text-secondary)]">Expires</th>
+              <th class="pb-2 font-medium text-[var(--color-text-secondary)]">Actions</th>
             </tr>
           </thead>
           <tbody>
             {#each tokens as token (token.id)}
-              <tr class="border-b border-slate-100 last:border-0" class:opacity-50={isRevoked(token)}>
-                <td class="py-3 pr-4 text-sm font-medium text-slate-800">
+              <tr class="border-b border-[var(--color-border)]/50 last:border-0" class:opacity-50={isRevoked(token)}>
+                <td class="py-3 pr-4 text-sm font-medium text-[var(--color-text-primary)]">
                   {token.name}
                   {#if isRevoked(token)}
                     <span class="ml-2 inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">
@@ -214,13 +214,13 @@
                     </span>
                   {/if}
                 </td>
-                <td class="py-3 pr-4 text-sm text-slate-600">
+                <td class="py-3 pr-4 text-sm text-[var(--color-text-secondary)]">
                   {formatDate(token.created_at)}
                 </td>
-                <td class="py-3 pr-4 text-sm text-slate-600">
+                <td class="py-3 pr-4 text-sm text-[var(--color-text-secondary)]">
                   {formatDate(token.last_used_at ?? null, 'Never')}
                 </td>
-                <td class="py-3 pr-4 text-sm text-slate-600">
+                <td class="py-3 pr-4 text-sm text-[var(--color-text-secondary)]">
                   {getExpirationStatus(token)}
                 </td>
                 <td class="py-3">

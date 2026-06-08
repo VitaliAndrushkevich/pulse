@@ -111,15 +111,15 @@
   }
 
   function sslBorderColor(days: number): string {
-    if (days > 30) return 'border-emerald-200';
-    if (days > 14) return 'border-amber-200';
-    return 'border-rose-200';
+    if (days > 30) return 'border-emerald-500/30';
+    if (days > 14) return 'border-amber-500/30';
+    return 'border-rose-500/30';
   }
 
   function sslBgColor(days: number): string {
-    if (days > 30) return 'bg-emerald-50';
-    if (days > 14) return 'bg-amber-50';
-    return 'bg-rose-50';
+    if (days > 30) return 'bg-emerald-500/10';
+    if (days > 14) return 'bg-amber-500/10';
+    return 'bg-rose-500/10';
   }
 
   // Initial fetch on mount
@@ -186,8 +186,8 @@
 
 <!-- Loading state -->
 {#if loading}
-  <div class="flex items-center justify-center rounded-xl border border-slate-200 bg-white p-12" data-testid="loading-state">
-    <div class="flex items-center gap-3 text-slate-500">
+  <div class="flex items-center justify-center rounded-xl border border-[var(--color-border)] bg-surface p-12" data-testid="loading-state">
+    <div class="flex items-center gap-3 text-secondary">
       <svg class="h-5 w-5 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
@@ -198,9 +198,9 @@
 
 <!-- 404 Not Found -->
 {:else if notFound}
-  <div class="rounded-xl border border-slate-200 bg-white p-12 text-center" data-testid="not-found">
-    <h2 class="text-lg font-semibold text-slate-900">Monitor not found</h2>
-    <p class="mt-2 text-sm text-slate-500">The monitor you're looking for doesn't exist or has been deleted.</p>
+  <div class="rounded-xl border border-[var(--color-border)] bg-surface p-12 text-center" data-testid="not-found">
+    <h2 class="text-lg font-semibold text-primary">Monitor not found</h2>
+    <p class="mt-2 text-sm text-secondary">The monitor you're looking for doesn't exist or has been deleted.</p>
     <a
       href="/monitors"
       class="mt-4 inline-block rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
@@ -228,14 +228,14 @@
     <!-- Header with actions -->
     <div class="flex items-center justify-between">
       <div class="flex items-center gap-3">
-        <a href="/monitors" class="text-slate-400 hover:text-slate-600 transition" aria-label="Back to monitors">
+        <a href="/monitors" class="text-[var(--color-text-muted)] hover:text-secondary transition" aria-label="Back to monitors">
           <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
           </svg>
         </a>
-        <h1 class="text-2xl font-bold tracking-tight text-slate-900" data-testid="monitor-name">{monitor.name}</h1>
+        <h1 class="text-2xl font-bold tracking-tight text-primary" data-testid="monitor-name">{monitor.name}</h1>
         <span
-          class="rounded-full px-2.5 py-0.5 text-xs font-medium {typeBadgeColors[monitor.type] ?? 'bg-slate-100 text-slate-700'}"
+          class="rounded-full px-2.5 py-0.5 text-xs font-medium {typeBadgeColors[monitor.type] ?? 'bg-[var(--color-bg-surface-hover)] text-primary'}"
           data-testid="monitor-type"
         >
           {monitor.type === 'http' ? 'HTTP(S)' : monitor.type.toUpperCase()}
@@ -244,7 +244,7 @@
       <div class="flex items-center gap-2">
         <a
           href="/monitors/{monitor.id}/edit"
-          class="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+          class="rounded-md border border-[var(--color-border)] bg-surface px-4 py-2 text-sm font-medium text-primary transition hover:bg-[var(--color-bg-surface-hover)] focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
           data-testid="edit-button"
         >
           Edit
@@ -262,21 +262,21 @@
     </div>
 
     <!-- Status bar with current state + error highlight -->
-    <div class="rounded-lg border border-slate-200 bg-white" data-testid="status-bar">
+    <div class="rounded-lg border border-[var(--color-border)] bg-surface" data-testid="status-bar">
       <div class="flex items-center gap-4 px-5 py-3">
         <span
           class="h-3 w-3 rounded-full {stateColors[monitor.state] ?? 'bg-slate-400'}"
           data-testid="state-indicator"
         ></span>
-        <span class="text-sm font-semibold {monitor.state === 'up' ? 'text-emerald-700' : monitor.state === 'down' ? 'text-rose-700' : 'text-slate-700'}" data-testid="monitor-state">
+        <span class="text-sm font-semibold {monitor.state === 'up' ? 'text-emerald-700' : monitor.state === 'down' ? 'text-rose-700' : 'text-primary'}" data-testid="monitor-state">
           {stateLabels[monitor.state] ?? 'Unknown'}
         </span>
-        <span class="text-sm text-slate-400">·</span>
-        <span class="text-sm text-slate-500" data-testid="monitor-status">
+        <span class="text-sm text-[var(--color-text-muted)]">·</span>
+        <span class="text-sm text-secondary" data-testid="monitor-status">
           {statusLabels[monitor.status] ?? monitor.status}
         </span>
-        <span class="text-sm text-slate-400">·</span>
-        <span class="text-xs text-slate-400">
+        <span class="text-sm text-[var(--color-text-muted)]">·</span>
+        <span class="text-xs text-[var(--color-text-muted)]">
           Checking every {monitor.interval_seconds}s
         </span>
       </div>
@@ -303,143 +303,143 @@
     <!-- Stats cards (Kuma-style) -->
     <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 {monitor.type === 'http' ? 'lg:grid-cols-5' : 'lg:grid-cols-4'}" data-testid="stats-cards">
       <!-- Response time (current) -->
-      <div class="rounded-lg border border-slate-200 bg-white p-4 text-center">
-        <dt class="text-xs font-medium uppercase tracking-wider text-slate-400">Response</dt>
-        <dd class="mt-1 text-lg font-semibold text-slate-900" data-testid="stat-response">
+      <div class="rounded-lg border border-[var(--color-border)] bg-surface p-4 text-center">
+        <dt class="text-xs font-medium uppercase tracking-wider text-[var(--color-text-muted)]">Response</dt>
+        <dd class="mt-1 text-lg font-semibold text-primary" data-testid="stat-response">
           {#if history.length > 0 && history[history.length - 1].latency_ms != null}
             {history[history.length - 1].latency_ms}ms
           {:else}
             N/A
           {/if}
         </dd>
-        <span class="text-[10px] text-slate-400">(Current)</span>
+        <span class="text-[10px] text-[var(--color-text-muted)]">(Current)</span>
       </div>
 
       <!-- Avg response time 24h -->
-      <div class="rounded-lg border border-slate-200 bg-white p-4 text-center">
-        <dt class="text-xs font-medium uppercase tracking-wider text-slate-400">Avg. Response</dt>
-        <dd class="mt-1 text-lg font-semibold text-slate-900" data-testid="stat-avg-response">
+      <div class="rounded-lg border border-[var(--color-border)] bg-surface p-4 text-center">
+        <dt class="text-xs font-medium uppercase tracking-wider text-[var(--color-text-muted)]">Avg. Response</dt>
+        <dd class="mt-1 text-lg font-semibold text-primary" data-testid="stat-avg-response">
           {#if stats && stats.uptime_24h.avg_latency_ms > 0}
             {stats.uptime_24h.avg_latency_ms}ms
           {:else}
             N/A
           {/if}
         </dd>
-        <span class="text-[10px] text-slate-400">(24 hours)</span>
+        <span class="text-[10px] text-[var(--color-text-muted)]">(24 hours)</span>
       </div>
 
       <!-- Uptime 24h -->
-      <div class="rounded-lg border border-slate-200 bg-white p-4 text-center">
-        <dt class="text-xs font-medium uppercase tracking-wider text-slate-400">Uptime</dt>
-        <dd class="mt-1 text-lg font-semibold {stats ? uptimeColor(stats.uptime_24h.uptime_percent) : 'text-slate-900'}" data-testid="stat-uptime-24h">
+      <div class="rounded-lg border border-[var(--color-border)] bg-surface p-4 text-center">
+        <dt class="text-xs font-medium uppercase tracking-wider text-[var(--color-text-muted)]">Uptime</dt>
+        <dd class="mt-1 text-lg font-semibold {stats ? uptimeColor(stats.uptime_24h.uptime_percent) : 'text-primary'}" data-testid="stat-uptime-24h">
           {#if stats && stats.uptime_24h.total_checks > 0}
             {formatUptime(stats.uptime_24h.uptime_percent)}
           {:else}
             N/A
           {/if}
         </dd>
-        <span class="text-[10px] text-slate-400">(24 hours)</span>
+        <span class="text-[10px] text-[var(--color-text-muted)]">(24 hours)</span>
       </div>
 
       <!-- Uptime 30d -->
-      <div class="rounded-lg border border-slate-200 bg-white p-4 text-center">
-        <dt class="text-xs font-medium uppercase tracking-wider text-slate-400">Uptime</dt>
-        <dd class="mt-1 text-lg font-semibold {stats ? uptimeColor(stats.uptime_30d.uptime_percent) : 'text-slate-900'}" data-testid="stat-uptime-30d">
+      <div class="rounded-lg border border-[var(--color-border)] bg-surface p-4 text-center">
+        <dt class="text-xs font-medium uppercase tracking-wider text-[var(--color-text-muted)]">Uptime</dt>
+        <dd class="mt-1 text-lg font-semibold {stats ? uptimeColor(stats.uptime_30d.uptime_percent) : 'text-primary'}" data-testid="stat-uptime-30d">
           {#if stats && stats.uptime_30d.total_checks > 0}
             {formatUptime(stats.uptime_30d.uptime_percent)}
           {:else}
             N/A
           {/if}
         </dd>
-        <span class="text-[10px] text-slate-400">(30 days)</span>
+        <span class="text-[10px] text-[var(--color-text-muted)]">(30 days)</span>
       </div>
 
       <!-- SSL Certificate (only for HTTP monitors) -->
       {#if monitor.type === 'http'}
         {#if stats?.ssl}
           <div class="rounded-lg border {sslBorderColor(stats.ssl.days_remaining)} {sslBgColor(stats.ssl.days_remaining)} p-4 text-center" data-testid="stat-ssl">
-            <dt class="text-xs font-medium uppercase tracking-wider text-slate-400">Cert. Expiry</dt>
+            <dt class="text-xs font-medium uppercase tracking-wider text-[var(--color-text-muted)]">Cert. Expiry</dt>
             <dd class="mt-1 text-lg font-semibold {sslColor(stats.ssl.days_remaining)}">
               {stats.ssl.days_remaining} days
             </dd>
-            <span class="text-[10px] text-slate-500">({stats.ssl.expires_at})</span>
+            <span class="text-[10px] text-secondary">({stats.ssl.expires_at})</span>
           </div>
         {:else}
-          <div class="rounded-lg border border-slate-200 bg-white p-4 text-center" data-testid="stat-ssl">
-            <dt class="text-xs font-medium uppercase tracking-wider text-slate-400">Cert. Expiry</dt>
-            <dd class="mt-1 text-lg font-semibold text-slate-400">N/A</dd>
-            <span class="text-[10px] text-slate-400">(no data yet)</span>
+          <div class="rounded-lg border border-[var(--color-border)] bg-surface p-4 text-center" data-testid="stat-ssl">
+            <dt class="text-xs font-medium uppercase tracking-wider text-[var(--color-text-muted)]">Cert. Expiry</dt>
+            <dd class="mt-1 text-lg font-semibold text-[var(--color-text-muted)]">N/A</dd>
+            <span class="text-[10px] text-[var(--color-text-muted)]">(no data yet)</span>
           </div>
         {/if}
       {/if}
     </div>
 
     <!-- Status timeline -->
-    <div class="rounded-xl border border-slate-200 bg-white p-5" data-testid="status-timeline-section">
-      <h2 class="mb-4 text-sm font-semibold text-slate-700">Status Timeline (24h)</h2>
+    <div class="rounded-xl border border-[var(--color-border)] bg-surface p-5" data-testid="status-timeline-section">
+      <h2 class="mb-4 text-sm font-semibold text-primary">Status Timeline (24h)</h2>
       <StatusTimeline data={history} />
     </div>
 
     <!-- History chart -->
-    <div class="rounded-xl border border-slate-200 bg-white p-5" data-testid="history-section">
-      <h2 class="mb-4 text-sm font-semibold text-slate-700">Response Time (24h)</h2>
+    <div class="rounded-xl border border-[var(--color-border)] bg-surface p-5" data-testid="history-section">
+      <h2 class="mb-4 text-sm font-semibold text-primary">Response Time (24h)</h2>
       <HistoryChart data={history} />
     </div>
 
     <!-- Monitor details grid -->
-    <div class="rounded-xl border border-slate-200 bg-white" data-testid="monitor-details">
-      <div class="border-b border-slate-100 px-5 py-3">
-        <h2 class="text-sm font-semibold text-slate-700">Configuration</h2>
+    <div class="rounded-xl border border-[var(--color-border)] bg-surface" data-testid="monitor-details">
+      <div class="border-b border-[var(--color-border)] px-5 py-3">
+        <h2 class="text-sm font-semibold text-primary">Configuration</h2>
       </div>
       <div class="grid grid-cols-1 divide-y divide-slate-100 sm:grid-cols-2 sm:divide-y-0 sm:divide-x">
         <div class="space-y-4 p-5">
           <div>
-            <dt class="text-xs font-medium uppercase tracking-wider text-slate-400">Target</dt>
-            <dd class="mt-1 break-all text-sm text-slate-900" data-testid="monitor-target">{monitor.target}</dd>
+            <dt class="text-xs font-medium uppercase tracking-wider text-[var(--color-text-muted)]">Target</dt>
+            <dd class="mt-1 break-all text-sm text-primary" data-testid="monitor-target">{monitor.target}</dd>
           </div>
           <div>
-            <dt class="text-xs font-medium uppercase tracking-wider text-slate-400">Interval</dt>
-            <dd class="mt-1 text-sm text-slate-900" data-testid="monitor-interval">{monitor.interval_seconds}s</dd>
+            <dt class="text-xs font-medium uppercase tracking-wider text-[var(--color-text-muted)]">Interval</dt>
+            <dd class="mt-1 text-sm text-primary" data-testid="monitor-interval">{monitor.interval_seconds}s</dd>
           </div>
           <div>
-            <dt class="text-xs font-medium uppercase tracking-wider text-slate-400">Timeout</dt>
-            <dd class="mt-1 text-sm text-slate-900" data-testid="monitor-timeout">{monitor.timeout_seconds}s</dd>
+            <dt class="text-xs font-medium uppercase tracking-wider text-[var(--color-text-muted)]">Timeout</dt>
+            <dd class="mt-1 text-sm text-primary" data-testid="monitor-timeout">{monitor.timeout_seconds}s</dd>
           </div>
         </div>
         <div class="space-y-4 p-5">
           <div>
-            <dt class="text-xs font-medium uppercase tracking-wider text-slate-400">Last Checked</dt>
-            <dd class="mt-1 text-sm text-slate-900" data-testid="monitor-last-checked">{formatDate(monitor.last_checked_at)}</dd>
+            <dt class="text-xs font-medium uppercase tracking-wider text-[var(--color-text-muted)]">Last Checked</dt>
+            <dd class="mt-1 text-sm text-primary" data-testid="monitor-last-checked">{formatDate(monitor.last_checked_at)}</dd>
           </div>
           <div>
-            <dt class="text-xs font-medium uppercase tracking-wider text-slate-400">Next Check</dt>
-            <dd class="mt-1 text-sm text-slate-900" data-testid="monitor-next-check">{formatDate(monitor.next_check_at, 'Not scheduled')}</dd>
+            <dt class="text-xs font-medium uppercase tracking-wider text-[var(--color-text-muted)]">Next Check</dt>
+            <dd class="mt-1 text-sm text-primary" data-testid="monitor-next-check">{formatDate(monitor.next_check_at, 'Not scheduled')}</dd>
           </div>
           <div>
-            <dt class="text-xs font-medium uppercase tracking-wider text-slate-400">Created</dt>
-            <dd class="mt-1 text-sm text-slate-900" data-testid="monitor-created">{formatDate(monitor.created_at)}</dd>
+            <dt class="text-xs font-medium uppercase tracking-wider text-[var(--color-text-muted)]">Created</dt>
+            <dd class="mt-1 text-sm text-primary" data-testid="monitor-created">{formatDate(monitor.created_at)}</dd>
           </div>
         </div>
       </div>
     </div>
 
     <!-- Incident timeline -->
-    <div class="rounded-xl border border-slate-200 bg-white p-5" data-testid="incidents-section">
-      <h2 class="mb-4 text-sm font-semibold text-slate-700">Recent Incidents</h2>
+    <div class="rounded-xl border border-[var(--color-border)] bg-surface p-5" data-testid="incidents-section">
+      <h2 class="mb-4 text-sm font-semibold text-primary">Recent Incidents</h2>
       {#if incidents.length === 0}
-        <p class="text-sm text-slate-400">No incidents recorded.</p>
+        <p class="text-sm text-[var(--color-text-muted)]">No incidents recorded.</p>
       {:else}
         <div class="space-y-3">
           {#each incidents as incident (incident.id)}
-            <div class="flex items-start gap-3 rounded-lg border border-slate-100 bg-slate-50 p-3" data-testid="incident-item">
+            <div class="flex items-start gap-3 rounded-lg border border-[var(--color-border)] bg-page p-3" data-testid="incident-item">
               <div class="mt-0.5 h-2.5 w-2.5 flex-shrink-0 rounded-full {incident.resolved_at ? 'bg-emerald-500' : 'bg-rose-500'}"></div>
               <div class="min-w-0 flex-1">
                 <div class="flex items-center gap-2 text-sm">
-                  <span class="font-medium text-slate-700" data-testid="incident-started">
+                  <span class="font-medium text-primary" data-testid="incident-started">
                     {formatDate(incident.started_at)}
                   </span>
-                  <span class="text-slate-400">→</span>
-                  <span class="text-slate-600" data-testid="incident-resolved">
+                  <span class="text-[var(--color-text-muted)]">→</span>
+                  <span class="text-secondary" data-testid="incident-resolved">
                     {#if incident.resolved_at}
                       {formatDate(incident.resolved_at)}
                     {:else}
@@ -448,7 +448,7 @@
                   </span>
                 </div>
                 {#if incident.cause}
-                  <p class="mt-1 text-xs text-slate-500">{incident.cause}</p>
+                  <p class="mt-1 text-xs text-secondary">{incident.cause}</p>
                 {/if}
               </div>
             </div>

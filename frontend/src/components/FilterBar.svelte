@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { untrack } from 'svelte';
   import type { MonitorType, Tag } from '$lib/types';
   import { getTags, getTagValues } from '$lib/api';
 
@@ -28,9 +29,9 @@
   // Auto-expand when filters are active
   let showBar = $derived(isExpanded || hasActiveFilters);
 
-  // Fetch and cache tag keys + values on mount
+  // Fetch and cache tag keys + values on mount (once)
   $effect(() => {
-    fetchTagOptions();
+    untrack(() => fetchTagOptions());
   });
 
   async function fetchTagOptions(): Promise<void> {
@@ -125,7 +126,7 @@
   <button
     type="button"
     onclick={handleExpandClick}
-    class="rounded-md border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
+    class="rounded-md border border-[var(--color-border)] bg-surface px-3 py-1.5 text-sm font-medium text-secondary transition hover:bg-[var(--color-bg-surface-hover)]"
     data-testid="filter-expand-button"
   >
     <span class="inline-flex items-center gap-1.5">
@@ -138,7 +139,7 @@
 {:else}
   <!-- Expanded filter bar -->
   <div
-    class="flex flex-wrap items-center gap-2 rounded-lg border border-slate-200 bg-white p-3"
+    class="flex flex-wrap items-center gap-2 rounded-lg border border-[var(--color-border)] bg-surface p-3"
     data-testid="filter-bar"
   >
     <!-- Type pill toggles -->
@@ -150,7 +151,7 @@
           onclick={() => toggleType(type)}
           class="rounded-full px-3 py-1 text-xs font-medium transition {isActive
             ? 'bg-blue-600 text-white'
-            : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}"
+            : 'bg-[var(--color-bg-surface-hover)] text-secondary hover:bg-[var(--color-bg-surface-hover)]'}"
           aria-pressed={isActive}
           data-testid="type-pill-{type}"
         >
@@ -161,7 +162,7 @@
 
     <!-- Separator when both type and tag filters present -->
     {#if availableTypes.length > 0 && (activeFilters.tags.length > 0 || tagKeys.length > 0)}
-      <div class="h-5 w-px bg-slate-200" aria-hidden="true"></div>
+      <div class="h-5 w-px bg-[var(--color-border)]" aria-hidden="true"></div>
     {/if}
 
     <!-- Active tag chips -->
@@ -196,7 +197,7 @@
           <button
             type="button"
             onclick={openTagSelector}
-            class="inline-flex items-center gap-1 rounded-full border border-dashed border-slate-300 px-2.5 py-0.5 text-xs font-medium text-slate-500 transition hover:border-slate-400 hover:text-slate-700"
+            class="inline-flex items-center gap-1 rounded-full border border-dashed border-[var(--color-border)] px-2.5 py-0.5 text-xs font-medium text-secondary transition hover:border-[var(--color-border)] hover:text-primary"
             data-testid="add-tag-button"
           >
             <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -207,17 +208,17 @@
         {:else}
           <!-- Tag selector dropdown -->
           <div
-            class="absolute left-0 top-full z-10 mt-1 min-w-[160px] rounded-md border border-slate-200 bg-white py-1 shadow-lg"
+            class="absolute left-0 top-full z-10 mt-1 min-w-[160px] rounded-md border border-[var(--color-border)] bg-surface py-1 shadow-lg"
             data-testid="tag-selector"
           >
             {#if selectedTagKey === null}
               <!-- Key selection -->
-              <div class="px-2 py-1 text-xs font-medium text-slate-400">Select key</div>
+              <div class="px-2 py-1 text-xs font-medium text-[var(--color-text-muted)]">Select key</div>
               {#each tagKeys as key}
                 <button
                   type="button"
                   onclick={() => selectTagKey(key)}
-                  class="block w-full px-3 py-1.5 text-left text-xs text-slate-700 transition hover:bg-slate-50"
+                  class="block w-full px-3 py-1.5 text-left text-xs text-primary transition hover:bg-[var(--color-bg-surface-hover)]"
                   data-testid="tag-key-option-{key}"
                 >
                   {key}
@@ -225,12 +226,12 @@
               {/each}
             {:else}
               <!-- Value selection for chosen key -->
-              <div class="px-2 py-1 text-xs font-medium text-slate-400">{selectedTagKey} =</div>
+              <div class="px-2 py-1 text-xs font-medium text-[var(--color-text-muted)]">{selectedTagKey} =</div>
               {#each tagValuesCache[selectedTagKey] ?? [] as value}
                 <button
                   type="button"
                   onclick={() => addTag(selectedTagKey!, value)}
-                  class="block w-full px-3 py-1.5 text-left text-xs text-slate-700 transition hover:bg-slate-50"
+                  class="block w-full px-3 py-1.5 text-left text-xs text-primary transition hover:bg-[var(--color-bg-surface-hover)]"
                   data-testid="tag-value-option-{value}"
                 >
                   {value}
@@ -239,7 +240,7 @@
               <button
                 type="button"
                 onclick={() => (selectedTagKey = null)}
-                class="block w-full border-t border-slate-100 px-3 py-1.5 text-left text-xs text-slate-400 transition hover:bg-slate-50"
+                class="block w-full border-t border-[var(--color-border)] px-3 py-1.5 text-left text-xs text-[var(--color-text-muted)] transition hover:bg-[var(--color-bg-surface-hover)]"
               >
                 ← Back
               </button>
@@ -247,7 +248,7 @@
             <button
               type="button"
               onclick={closeTagSelector}
-              class="block w-full border-t border-slate-100 px-3 py-1.5 text-left text-xs text-slate-400 transition hover:bg-slate-50"
+              class="block w-full border-t border-[var(--color-border)] px-3 py-1.5 text-left text-xs text-[var(--color-text-muted)] transition hover:bg-[var(--color-bg-surface-hover)]"
               data-testid="tag-selector-close"
             >
               Cancel
@@ -262,7 +263,7 @@
       <button
         type="button"
         onclick={handleCollapseClick}
-        class="ml-auto inline-flex h-5 w-5 items-center justify-center rounded text-slate-400 transition hover:text-slate-600"
+        class="ml-auto inline-flex h-5 w-5 items-center justify-center rounded text-[var(--color-text-muted)] transition hover:text-secondary"
         aria-label="Collapse filter bar"
         data-testid="filter-collapse-button"
       >

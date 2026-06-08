@@ -31,6 +31,11 @@
 
     const width = chartContainer.clientWidth || 600;
 
+    // Read theme colors from CSS custom properties
+    const styles = getComputedStyle(document.documentElement);
+    const axisStroke = styles.getPropertyValue('--color-text-muted').trim() || '#64748b';
+    const gridStroke = styles.getPropertyValue('--color-border').trim() || '#e2e8f0';
+
     const opts: uPlot.Options = {
       width,
       height: 250,
@@ -45,12 +50,12 @@
       ],
       axes: [
         {
-          stroke: '#64748b',
-          grid: { stroke: '#e2e8f0' }
+          stroke: axisStroke,
+          grid: { stroke: gridStroke + '40' }
         },
         {
-          stroke: '#64748b',
-          grid: { stroke: '#e2e8f0' },
+          stroke: axisStroke,
+          grid: { stroke: gridStroke + '40' },
           label: 'Latency (ms)'
         }
       ],
@@ -81,7 +86,7 @@
 
 <div class="w-full">
   {#if data.length === 0}
-    <div class="flex items-center justify-center rounded-lg border border-slate-200 bg-slate-50 py-12 text-sm text-slate-500">
+    <div class="flex items-center justify-center rounded-lg border border-[var(--color-border)] bg-page py-12 text-sm text-secondary">
       No check data available for the selected time range
     </div>
   {:else}

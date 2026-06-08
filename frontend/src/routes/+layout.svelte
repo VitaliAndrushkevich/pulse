@@ -3,6 +3,8 @@
   import { isAuthenticated, clearToken } from '$lib/stores/auth.svelte';
   import Toast from '../components/Toast.svelte';
   import ConnectionBadge from '../components/ConnectionBadge.svelte';
+  import ThemeSwitcher from '../components/ThemeSwitcher.svelte';
+  import BrandLockup from '../components/BrandLockup.svelte';
   import { goto } from '$app/navigation';
   import { page } from '$app/stores';
   import { createWsClient } from '$lib/ws';
@@ -65,20 +67,27 @@
   }
 </script>
 
-<div class="min-h-screen bg-gradient-to-b from-sky-100 via-slate-50 to-slate-100">
+<div class="min-h-screen bg-[var(--color-bg-page)]">
   {#if isPublicRoute}
     <main class="mx-auto max-w-6xl px-6 py-8">
       <slot />
     </main>
   {:else if authed}
-    <header class="border-b border-slate-200/70 bg-white/80 backdrop-blur">
+    <header class="border-b border-[var(--color-border)] backdrop-blur" style="background-color: color-mix(in srgb, var(--color-bg-surface) 80%, transparent)">
       <div class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-        <a href="/" class="text-xl font-semibold tracking-tight text-brand-700">Pulse</a>
+        <a href="/" aria-label="Pulse — Home" class="inline-flex items-center">
+          <span class="hidden sm:inline-flex">
+            <BrandLockup size={32} variant="full" />
+          </span>
+          <span class="inline-flex sm:hidden">
+            <BrandLockup size={32} variant="compact" />
+          </span>
+        </a>
         <nav class="flex items-center gap-2">
           {#each navLinks as link}
             <a
               href={link.href}
-              class="rounded-md px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-brand-50 hover:text-brand-700"
+              class="rounded-md px-3 py-2 text-sm font-medium text-[var(--color-text-primary)] transition hover:bg-brand-50 hover:text-brand-700"
               class:bg-brand-50={currentPath === link.href}
               class:text-brand-700={currentPath === link.href}
             >
@@ -86,9 +95,10 @@
             </a>
           {/each}
           <ConnectionBadge />
+          <ThemeSwitcher />
           <button
             onclick={logout}
-            class="ml-2 rounded-md px-3 py-2 text-sm font-medium text-slate-500 transition hover:bg-red-50 hover:text-red-700"
+            class="ml-2 rounded-md px-3 py-2 text-sm font-medium text-[var(--color-text-secondary)] transition hover:bg-red-50 hover:text-red-700"
           >
             Logout
           </button>

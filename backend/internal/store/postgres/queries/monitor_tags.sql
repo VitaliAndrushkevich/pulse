@@ -23,7 +23,7 @@ ORDER BY value;
 SELECT m.* FROM monitors m
 WHERE ($1::text = '' OR m.type = $1)
   AND (
-    cardinality($2::text[]) = 0
+    COALESCE(cardinality($2::text[]), 0) = 0
     OR m.id IN (
       SELECT mt.monitor_id FROM monitor_tags mt
       WHERE (mt.key || ':' || mt.value) = ANY($2::text[])
@@ -38,7 +38,7 @@ LIMIT $3 OFFSET $4;
 SELECT COUNT(*) FROM monitors m
 WHERE ($1::text = '' OR m.type = $1)
   AND (
-    cardinality($2::text[]) = 0
+    COALESCE(cardinality($2::text[]), 0) = 0
     OR m.id IN (
       SELECT mt.monitor_id FROM monitor_tags mt
       WHERE (mt.key || ':' || mt.value) = ANY($2::text[])

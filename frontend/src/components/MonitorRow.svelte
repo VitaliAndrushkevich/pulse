@@ -32,7 +32,7 @@
 
 <a
   href="/monitors/{monitor.id}"
-  class="flex h-16 items-center gap-4 border-b border-slate-200 bg-white px-4 transition hover:bg-slate-50"
+  class="flex h-16 items-center gap-4 border-b border-[var(--color-border)] bg-surface px-4 transition hover:bg-[var(--color-bg-surface-hover)]"
   data-testid="monitor-row"
 >
   <!-- State indicator dot -->
@@ -44,25 +44,25 @@
   ></span>
 
   <!-- Name -->
-  <span class="min-w-0 flex-1 truncate text-sm font-medium text-slate-900" data-testid="monitor-name">
+  <span class="min-w-0 flex-1 truncate text-sm font-medium text-primary" data-testid="monitor-name">
     {monitor.name}
   </span>
 
   <!-- Type badge -->
   <span
-    class="flex-shrink-0 rounded-full px-2 py-0.5 text-xs font-medium {typeBadgeColors[monitor.type] ?? 'bg-slate-100 text-slate-700'}"
+    class="flex-shrink-0 rounded-full px-2 py-0.5 text-xs font-medium {typeBadgeColors[monitor.type] ?? 'bg-[var(--color-bg-surface-hover)] text-primary'}"
     data-testid="monitor-type"
   >
     {monitor.type === 'http' ? 'HTTP(S)' : monitor.type === 'http3' ? 'HTTP/3' : monitor.type === 'grpc' ? 'gRPC' : monitor.type.toUpperCase()}
   </span>
 
   <!-- Target -->
-  <span class="hidden min-w-0 max-w-48 flex-shrink truncate text-sm text-slate-500 sm:inline" data-testid="monitor-target">
+  <span class="hidden min-w-0 max-w-48 flex-shrink truncate text-sm text-secondary sm:inline" data-testid="monitor-target">
     {monitor.target}
   </span>
 
   <!-- Last checked -->
-  <span class="flex-shrink-0 text-xs text-slate-400" data-testid="monitor-last-checked">
+  <span class="flex-shrink-0 text-xs text-[var(--color-text-muted)]" data-testid="monitor-last-checked">
     {formatDate(monitor.last_checked_at)}
   </span>
 </a>
