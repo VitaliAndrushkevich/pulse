@@ -6,10 +6,19 @@
     <script>
       (function() {
         try {
-          var stored = localStorage.getItem('pulse-theme');
-          var theme = stored === 'dark' || stored === 'light'
-            ? stored
-            : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+          var mode = localStorage.getItem('pulse-theme-mode');
+          var theme;
+          if (mode === 'light' || mode === 'dark') {
+            theme = mode;
+          } else if (mode === 'system' || !mode) {
+            // 'system' or no mode stored — check legacy key then fall back to OS
+            var legacy = localStorage.getItem('pulse-theme');
+            if (!mode && (legacy === 'light' || legacy === 'dark')) {
+              theme = legacy;
+            } else {
+              theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+            }
+          }
           document.documentElement.setAttribute('data-theme', theme);
         } catch (e) {
           var theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';

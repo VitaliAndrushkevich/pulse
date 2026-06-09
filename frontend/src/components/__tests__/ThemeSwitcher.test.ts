@@ -1,17 +1,54 @@
 /**
- * Unit tests for the ThemeSwitcher component.
+ * Unit tests for the ThemeSwitcher component (tri-state: light / dark / system).
  *
- * Validates Requirements 6.1–6.7:
- * - Reads initial theme from document root data-theme attribute
- * - Toggles between light and dark on click
- * - Persists theme to localStorage under 'pulse-theme'
- * - Displays correct icons for each theme state
+ * Validates:
+ * - Defaults to system mode (follows OS preference)
+ * - Cycles through light → dark → system on click
+ * - Persists mode to localStorage under 'pulse-theme-mode'
+ * - Backwards compatible with legacy 'pulse-theme' key
+ * - Displays correct icons for each mode
  * - Provides accessible aria-label values
+ * - Listens to matchMedia changes in system mode
  * - Handles localStorage unavailability gracefully
  */
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, cleanup } from '@testing-library/svelte';
 import ThemeSwitcher from '../ThemeSwitcher.svelte';
+
+// -- matchMedia mock --------------------------------------------------------
+
+function createMatchMediaMock(prefersDark: boolean) {
+  const listeners: Array<(e: MediaQueryListEvent) => void> = [];
+  const mql: MediaQueryList = {
+    matches: prefersDark,
+    media: '(prefers-color-scheme: dark)',
+    onchange: null,
+    addEventListener: (_event: string, handler: any) => {
+      listeners.push(handler);
+    },
+    removeEventListener: (_event: string, handler: any) => {
+      const idx = listeners.indexOf(handler);
+      if (idx !== -1) listeners.splice(idx, 1);
+    },
+    addListener: () => {},
+    removeListener: () => {},
+    dispatchEvent: () => true,
+  };
+  return { mql, listeners, setPrefersDark: (v: boolean) => { (mql as any).matches = v; } };
+}
+
+let matchMediaState: ReturnType<typeof createMatchMediaMock>;
+
+beforeEach(() => {
+  matchMediaState = createMatchMediaMock(false);
+  vi.stubGlobal('matchMedia', () => matchMediaState.mql);
+});
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
+
+// ---------------------------------------------------------------------------
 
 describe('ThemeSwitcher', () => {
   beforeEach(() => {
@@ -25,143 +62,167 @@ describe('ThemeSwitcher', () => {
     document.documentElement.removeAttribute('data-theme');
   });
 
-  describe('initial render', () => {
-    it('reads theme from document.documentElement.dataset.theme', () => {
-      document.documentElement.dataset.theme = 'dark';
-
+  describe('initial render — system mode (default)', () => {
+    it('defaults to system mode when no localStorage keys exist', () => {
       const { container } = render(ThemeSwitcher);
       const button = container.querySelector('button');
 
-      // When dark theme is active, aria-label should indicate switch to light
+      // System mode → aria-label says "Switch to light theme" (next in cycle)
       expect(button?.getAttribute('aria-label')).toBe('Switch to light theme');
     });
 
-    it('defaults to light theme when no data-theme attribute is set', () => {
-      const { container } = render(ThemeSwitcher);
-      const button = container.querySelector('button');
+    it('applies OS light theme when prefers-color-scheme is light', () => {
+      matchMediaState.setPrefersDark(false);
 
-      // Default is light, so aria-label should indicate switch to dark
-      expect(button?.getAttribute('aria-label')).toBe('Switch to dark theme');
-    });
-  });
-
-  describe('toggle behavior', () => {
-    it('toggles data-theme attribute from light to dark on click', () => {
-      document.documentElement.setAttribute('data-theme', 'light');
-
-      const { container } = render(ThemeSwitcher);
-      const button = container.querySelector('button')!;
-
-      button.click();
-
-      expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
-    });
-
-    it('toggles data-theme attribute from dark to light on click', () => {
-      document.documentElement.setAttribute('data-theme', 'dark');
-
-      const { container } = render(ThemeSwitcher);
-      const button = container.querySelector('button')!;
-
-      button.click();
+      render(ThemeSwitcher);
 
       expect(document.documentElement.getAttribute('data-theme')).toBe('light');
     });
 
-    it('persists theme to localStorage under key pulse-theme', () => {
-      document.documentElement.setAttribute('data-theme', 'light');
+    it('applies OS dark theme when prefers-color-scheme is dark', () => {
+      matchMediaState.setPrefersDark(true);
 
-      const { container } = render(ThemeSwitcher);
-      const button = container.querySelector('button')!;
+      render(ThemeSwitcher);
 
-      button.click();
-
-      expect(localStorage.getItem('pulse-theme')).toBe('dark');
+      expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
     });
 
-    it('persists correct value after multiple toggles', () => {
-      document.documentElement.setAttribute('data-theme', 'light');
-
+    it('shows monitor icon in system mode', () => {
       const { container } = render(ThemeSwitcher);
-      const button = container.querySelector('button')!;
 
-      button.click();
-      expect(localStorage.getItem('pulse-theme')).toBe('dark');
-
-      button.click();
-      expect(localStorage.getItem('pulse-theme')).toBe('light');
+      // Monitor icon has a <rect> element
+      const rect = container.querySelector('svg rect');
+      expect(rect).not.toBeNull();
     });
   });
 
-  describe('icon display', () => {
-    it('displays sun icon when dark theme is active', () => {
-      document.documentElement.dataset.theme = 'dark';
-
-      const { container } = render(ThemeSwitcher);
-
-      // Sun icon has a <circle> element
-      const circle = container.querySelector('svg circle');
-      expect(circle).not.toBeNull();
-
-      // Should not have the moon crescent path
-      const moonPath = container.querySelector('svg path[d*="12.79"]');
-      expect(moonPath).toBeNull();
-    });
-
-    it('displays moon icon when light theme is active', () => {
-      document.documentElement.dataset.theme = 'light';
-
-      const { container } = render(ThemeSwitcher);
-
-      // Moon icon has a <path> with the crescent d attribute
-      const moonPath = container.querySelector('svg path[d*="12.79"]');
-      expect(moonPath).not.toBeNull();
-
-      // Should not have the sun circle
-      const circle = container.querySelector('svg circle');
-      expect(circle).toBeNull();
-    });
-  });
-
-  describe('aria-label accessibility', () => {
-    it('has aria-label "Switch to light theme" when dark theme is active', () => {
-      document.documentElement.dataset.theme = 'dark';
-
-      const { container } = render(ThemeSwitcher);
-      const button = container.querySelector('button');
-
-      expect(button?.getAttribute('aria-label')).toBe('Switch to light theme');
-    });
-
-    it('has aria-label "Switch to dark theme" when light theme is active', () => {
-      document.documentElement.dataset.theme = 'light';
+  describe('initial render — from stored mode', () => {
+    it('reads pulse-theme-mode = light from localStorage', () => {
+      localStorage.setItem('pulse-theme-mode', 'light');
 
       const { container } = render(ThemeSwitcher);
       const button = container.querySelector('button');
 
       expect(button?.getAttribute('aria-label')).toBe('Switch to dark theme');
+      expect(document.documentElement.getAttribute('data-theme')).toBe('light');
     });
 
-    it('updates aria-label after toggle', async () => {
-      document.documentElement.dataset.theme = 'light';
+    it('reads pulse-theme-mode = dark from localStorage', () => {
+      localStorage.setItem('pulse-theme-mode', 'dark');
+
+      const { container } = render(ThemeSwitcher);
+      const button = container.querySelector('button');
+
+      expect(button?.getAttribute('aria-label')).toBe('Switch to system theme');
+      expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
+    });
+
+    it('reads legacy pulse-theme key when pulse-theme-mode is absent', () => {
+      localStorage.setItem('pulse-theme', 'dark');
+
+      const { container } = render(ThemeSwitcher);
+      const button = container.querySelector('button');
+
+      expect(button?.getAttribute('aria-label')).toBe('Switch to system theme');
+      expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
+    });
+  });
+
+  describe('cycle behavior', () => {
+    it('cycles light → dark → system → light', async () => {
+      localStorage.setItem('pulse-theme-mode', 'light');
 
       const { container } = render(ThemeSwitcher);
       const button = container.querySelector('button')!;
 
+      // Start: light. Click → dark
       button.click();
+      await tick();
+      expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
+      expect(button.getAttribute('aria-label')).toBe('Switch to system theme');
 
-      // Svelte 5 reactivity flushes asynchronously in jsdom
-      await new Promise((resolve) => setTimeout(resolve, 0));
-
+      // Click → system
+      button.click();
+      await tick();
+      // System resolves to OS (mocked as light)
+      expect(document.documentElement.getAttribute('data-theme')).toBe('light');
       expect(button.getAttribute('aria-label')).toBe('Switch to light theme');
+
+      // Click → light
+      button.click();
+      await tick();
+      expect(document.documentElement.getAttribute('data-theme')).toBe('light');
+      expect(button.getAttribute('aria-label')).toBe('Switch to dark theme');
+    });
+
+    it('persists mode to pulse-theme-mode in localStorage', () => {
+      localStorage.setItem('pulse-theme-mode', 'light');
+
+      const { container } = render(ThemeSwitcher);
+      const button = container.querySelector('button')!;
+
+      button.click(); // → dark
+      expect(localStorage.getItem('pulse-theme-mode')).toBe('dark');
+      expect(localStorage.getItem('pulse-theme')).toBe('dark');
+
+      button.click(); // → system
+      expect(localStorage.getItem('pulse-theme-mode')).toBe('system');
+      // When system, pulse-theme is removed
+      expect(localStorage.getItem('pulse-theme')).toBeNull();
+    });
+  });
+
+  describe('icon display', () => {
+    it('displays sun icon when mode is light', () => {
+      localStorage.setItem('pulse-theme-mode', 'light');
+
+      const { container } = render(ThemeSwitcher);
+
+      const circle = container.querySelector('svg circle');
+      expect(circle).not.toBeNull();
+    });
+
+    it('displays moon icon when mode is dark', () => {
+      localStorage.setItem('pulse-theme-mode', 'dark');
+
+      const { container } = render(ThemeSwitcher);
+
+      const moonPath = container.querySelector('svg path[d*="12.79"]');
+      expect(moonPath).not.toBeNull();
+    });
+
+    it('displays monitor icon when mode is system', () => {
+      // Default (no stored mode) = system
+      const { container } = render(ThemeSwitcher);
+
+      const rect = container.querySelector('svg rect');
+      expect(rect).not.toBeNull();
+    });
+  });
+
+  describe('system mode reactivity', () => {
+    it('updates theme when OS preference changes in system mode', async () => {
+      // Start in system mode, OS = light
+      matchMediaState.setPrefersDark(false);
+
+      render(ThemeSwitcher);
+      expect(document.documentElement.getAttribute('data-theme')).toBe('light');
+
+      // Simulate OS switching to dark
+      matchMediaState.setPrefersDark(true);
+      // Fire the listener
+      for (const handler of matchMediaState.listeners) {
+        handler({ matches: true } as MediaQueryListEvent);
+      }
+
+      expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
     });
   });
 
   describe('localStorage unavailable', () => {
     it('handles SecurityError gracefully when localStorage is unavailable', () => {
-      document.documentElement.setAttribute('data-theme', 'light');
+      localStorage.setItem('pulse-theme-mode', 'light');
 
-      // Mock localStorage.setItem to throw SecurityError
       const setItemSpy = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
         throw new DOMException('Access denied', 'SecurityError');
       });
@@ -172,10 +233,15 @@ describe('ThemeSwitcher', () => {
       // Should not throw — toggle still works for the session
       expect(() => button.click()).not.toThrow();
 
-      // data-theme should still be updated (session-only theming)
+      // data-theme should still be updated
       expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
 
       setItemSpy.mockRestore();
     });
   });
 });
+
+// Helper: wait for Svelte reactivity flush
+function tick(): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, 0));
+}

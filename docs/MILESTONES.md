@@ -170,7 +170,7 @@ Delivered:
 - ✅ FOUC prevention inline script in `app.html` (reads localStorage, validates, falls back to `prefers-color-scheme`)
 - ✅ Self-hosted Inter font (WOFF2, semi-bold 600, `font-display: swap`)
 - ✅ BrandLockup component: inline SVG ECG peak with proportional scaling (size prop), full/compact variants, `currentColor` + CSS variable fallback
-- ✅ ThemeSwitcher component: toggle with `data-theme` attribute update, localStorage persistence, sun/moon icons, aria-labels, SecurityError resilience
+- ✅ ThemeSwitcher component: tri-state cycling (light → dark → system) with `data-theme` attribute update, `pulse-theme-mode` localStorage persistence, sun/moon/monitor icons, aria-labels, OS preference tracking via matchMedia, SecurityError resilience
 - ✅ Static brand assets: `logo-mark.svg`, `brand-lockup.svg`, `brand-lockup-dark.svg`, PNG exports (1x/2x/4x), README guidelines
 - ✅ PNG generation scripts (`generate-brand-pngs.mjs`, `generate-icons.mjs`) using `sharp`
 - ✅ Favicon (32×32), Apple Touch Icon (180×180), PWA icons (192/512), `site.webmanifest`

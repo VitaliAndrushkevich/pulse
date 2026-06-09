@@ -212,50 +212,64 @@ describe('Property 3: Dark theme WCAG contrast compliance', () => {
   });
 });
 
-// Feature: pulse-branding, Property 5: Theme icon indicates target theme
+// Feature: pulse-branding, Property 5: Theme icon indicates active mode
 
 /**
- * The ThemeSwitcher displays a sun icon when the dark theme is active (indicating
- * the user will switch TO light), and a moon icon when the light theme is active
- * (indicating the user will switch TO dark).
+ * The ThemeSwitcher displays:
+ *   - Sun icon (circle) when mode is 'light'
+ *   - Moon icon (crescent path) when mode is 'dark'
+ *   - Monitor icon (rect) when mode is 'system'
  *
- * This property test generates random theme values and verifies the correct icon
- * is rendered for each theme state.
+ * This property test generates random mode values and verifies the correct icon
+ * is rendered for each mode state.
  *
  * **Validates: Requirements 6.6**
  */
-describe('Property 5: Theme icon indicates target theme', () => {
-  it('displays sun icon (circle) when dark is active, moon icon (path) when light is active', async () => {
-    // Dynamically import render + cleanup to avoid module-level side effects
+describe('Property 5: Theme icon indicates active mode', () => {
+  it('displays correct icon for each theme mode', async () => {
     const { render: renderComponent, cleanup } = await import('@testing-library/svelte');
     const { default: ThemeSwitcher } = await import('../ThemeSwitcher.svelte');
+    const { vi } = await import('vitest');
+
+    // Mock matchMedia for system mode support
+    const mockMql = {
+      matches: false,
+      media: '(prefers-color-scheme: dark)',
+      onchange: null,
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      addListener: () => {},
+      removeListener: () => {},
+      dispatchEvent: () => true,
+    };
+    vi.stubGlobal('matchMedia', () => mockMql);
 
     fc.assert(
       fc.property(
-        fc.constantFrom('light' as const, 'dark' as const),
-        (theme) => {
-          // Set the document theme before rendering
-          document.documentElement.dataset.theme = theme;
+        fc.constantFrom('light' as const, 'dark' as const, 'system' as const),
+        (mode) => {
+          // Set the mode in localStorage
+          localStorage.clear();
+          localStorage.setItem('pulse-theme-mode', mode);
+          document.documentElement.removeAttribute('data-theme');
 
           const { container } = renderComponent(ThemeSwitcher);
 
           const svg = container.querySelector('svg');
           expect(svg).not.toBeNull();
 
-          if (theme === 'dark') {
-            // Sun icon: contains a <circle> element (sun body)
+          if (mode === 'light') {
+            // Sun icon: contains a <circle> element
             const circle = container.querySelector('svg circle');
             expect(circle).not.toBeNull();
-            // Should NOT have the moon crescent path
-            const moonPath = container.querySelector('svg path[d*="12.79"]');
-            expect(moonPath).toBeNull();
-          } else {
-            // Moon icon: contains a <path> with the crescent "d" attribute
+          } else if (mode === 'dark') {
+            // Moon icon: contains a <path> with the crescent d attribute
             const moonPath = container.querySelector('svg path[d*="12.79"]');
             expect(moonPath).not.toBeNull();
-            // Should NOT have the sun circle
-            const circle = container.querySelector('svg circle');
-            expect(circle).toBeNull();
+          } else {
+            // Monitor icon: contains a <rect> element
+            const rect = container.querySelector('svg rect');
+            expect(rect).not.toBeNull();
           }
 
           cleanup();
@@ -263,6 +277,8 @@ describe('Property 5: Theme icon indicates target theme', () => {
       ),
       { numRuns: 100 }
     );
+
+    vi.unstubAllGlobals();
   });
 });
 
@@ -352,38 +368,52 @@ describe('Property 6: Tailwind brand scale token mapping', () => {
 // Feature: pulse-branding, Property 4: Theme toggle round-trip persistence
 
 /**
- * For any initial theme state (light or dark), activating the ThemeSwitcher
- * SHALL: (a) set `document.documentElement.dataset.theme` to the opposite value,
- * and (b) store that same opposite value in `localStorage.getItem('pulse-theme')`.
- * Reading the stored value back produces the active theme.
+ * For any initial mode (light or dark), clicking the ThemeSwitcher SHALL
+ * advance to the next mode in the cycle (light→dark, dark→system) and
+ * persist the mode to `localStorage.getItem('pulse-theme-mode')`.
  *
  * **Validates: Requirements 6.1, 6.2**
  */
 describe('Property 4: Theme toggle round-trip persistence', () => {
-  it('toggle sets opposite theme on data-theme and persists same value to localStorage', async () => {
+  it('cycle advances mode and persists to pulse-theme-mode in localStorage', async () => {
     const { render: renderComponent, cleanup } = await import('@testing-library/svelte');
     const { default: ThemeSwitcher } = await import('../ThemeSwitcher.svelte');
+    const { vi } = await import('vitest');
+
+    // Mock matchMedia for system mode support
+    const mockMql = {
+      matches: false,
+      media: '(prefers-color-scheme: dark)',
+      onchange: null,
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      addListener: () => {},
+      removeListener: () => {},
+      dispatchEvent: () => true,
+    };
+    vi.stubGlobal('matchMedia', () => mockMql);
+
+    const cycleOrder = ['light', 'dark', 'system'] as const;
 
     fc.assert(
       fc.property(
-        fc.constantFrom('light' as const, 'dark' as const),
-        (startingTheme) => {
-          // Arrange: set the initial theme on the document root
-          document.documentElement.setAttribute('data-theme', startingTheme);
+        fc.constantFrom('light' as const, 'dark' as const, 'system' as const),
+        (startingMode) => {
+          // Arrange: set the initial mode
           localStorage.clear();
+          localStorage.setItem('pulse-theme-mode', startingMode);
+          document.documentElement.removeAttribute('data-theme');
 
-          // Act: render ThemeSwitcher and click the toggle button
+          // Act: render and click
           const { container } = renderComponent(ThemeSwitcher);
           const button = container.querySelector('button');
           expect(button).not.toBeNull();
           button!.click();
 
-          // Assert: data-theme should be the OPPOSITE of starting theme
-          const expectedTheme = startingTheme === 'light' ? 'dark' : 'light';
-          expect(document.documentElement.getAttribute('data-theme')).toBe(expectedTheme);
-
-          // Assert: localStorage should persist the same opposite value
-          expect(localStorage.getItem('pulse-theme')).toBe(expectedTheme);
+          // Assert: mode advances to next in cycle
+          const idx = cycleOrder.indexOf(startingMode);
+          const expectedMode = cycleOrder[(idx + 1) % cycleOrder.length];
+          expect(localStorage.getItem('pulse-theme-mode')).toBe(expectedMode);
 
           // Cleanup for next iteration
           cleanup();
@@ -393,5 +423,7 @@ describe('Property 4: Theme toggle round-trip persistence', () => {
       ),
       { numRuns: 100 }
     );
+
+    vi.unstubAllGlobals();
   });
 });

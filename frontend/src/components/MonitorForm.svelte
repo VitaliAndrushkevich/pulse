@@ -387,7 +387,7 @@
         {#if pendingCredential}
           <div class="flex items-center justify-between rounded-md border border-green-200 bg-green-50 px-3 py-2">
             <p class="text-sm text-green-800">
-              <span class="font-medium">{pendingCredential.auth_type}</span> credential "{pendingCredential.name}" will be created with the monitor.
+              <span class="font-medium">{pendingCredential.auth_type}</span> credential will be created with the monitor.
             </p>
             <button
               type="button"

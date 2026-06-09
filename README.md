@@ -11,7 +11,7 @@ Pulse is a self-hosted uptime monitoring platform. It ships as a single binary w
 - **Prometheus metrics** — built-in `/metrics` endpoint
 - **Security** — AES-256-GCM secret encryption, JWT + API token auth
 - **Scalable** — bounded worker pools, designed for 500+ concurrent monitors
-- **Light/Dark theming** — CSS custom properties theme system with FOUC-free switching and WCAG AA contrast compliance
+- **Light/Dark/System theming** — CSS custom properties theme system with tri-state cycling (light → dark → system), OS preference tracking, and WCAG AA contrast compliance
 - **Brand identity** — ECG-inspired logo mark with responsive lockup, self-hosted Inter typography, and static asset exports
 
 ## Architecture

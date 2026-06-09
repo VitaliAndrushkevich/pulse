@@ -121,7 +121,7 @@ The project is at MVP completion. Full milestone breakdown: [docs/MILESTONES.md]
 ### Completed (I: Branding & Theming):
 - ECG-inspired logo mark (inline SVG, proportional stroke scaling)
 - BrandLockup component (full/compact variants, proportional sizing from `size` prop)
-- ThemeSwitcher component (light/dark toggle, localStorage persistence, FOUC prevention)
+- ThemeSwitcher component (light/dark/system tri-state cycling, localStorage persistence under `pulse-theme-mode`, FOUC prevention)
 - CSS custom properties theme system (`:root`/`[data-theme="dark"]` token overrides)
 - Tailwind integration: `darkMode: ['selector', '[data-theme="dark"]']`, brand color scale (50–900), semantic aliases
 - Self-hosted Inter font (WOFF2, `font-display: swap`)
@@ -129,7 +129,7 @@ The project is at MVP completion. Full milestone breakdown: [docs/MILESTONES.md]
 - Favicon, Apple Touch Icon, PWA manifest (`site.webmanifest`)
 - Layout integration: responsive lockup in header, ThemeSwitcher in nav, theme-aware token styles
 - Login/setup pages with centered BrandLockup
-- Property-based tests: stroke proportionality, scaling, WCAG contrast, toggle persistence, icon correctness, token mapping
+- Property-based tests: stroke proportionality, scaling, WCAG contrast, cycle persistence, icon correctness, token mapping
 
 ### Deferred:
 - CI quality gates (GitHub Actions) — not required for MVP
