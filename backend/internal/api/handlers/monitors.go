@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -15,6 +16,7 @@ import (
 	"github.com/VitaliAndrushkevich/pulse/internal/hub"
 	db "github.com/VitaliAndrushkevich/pulse/internal/store/postgres"
 	"github.com/VitaliAndrushkevich/pulse/internal/tags"
+	"github.com/VitaliAndrushkevich/pulse/internal/target"
 )
 
 // MonitorHandler provides CRUD operations for monitors.
@@ -32,25 +34,27 @@ func NewMonitorHandler(queries *db.Queries, pool *pgxpool.Pool, wsHub *hub.Hub) 
 // --- Request/Response types ---
 
 type createMonitorRequest struct {
-	Name            string            `json:"name" binding:"required"`
-	Type            string            `json:"type" binding:"required"`
-	Target          string            `json:"target" binding:"required"`
-	IntervalSeconds *int32            `json:"interval_seconds,omitempty"`
-	TimeoutSeconds  *int32            `json:"timeout_seconds,omitempty"`
-	Status          *string           `json:"status,omitempty"`
-	Settings        json.RawMessage   `json:"settings,omitempty"`
-	Tags            []tags.TagRequest `json:"tags,omitempty"`
+	Name                 string            `json:"name" binding:"required"`
+	Type                 string            `json:"type" binding:"required"`
+	Target               string            `json:"target" binding:"required"`
+	IntervalSeconds      *int32            `json:"interval_seconds,omitempty"`
+	TimeoutSeconds       *int32            `json:"timeout_seconds,omitempty"`
+	Status               *string           `json:"status,omitempty"`
+	Settings             json.RawMessage   `json:"settings,omitempty"`
+	Tags                 []tags.TagRequest `json:"tags,omitempty"`
+	HistoryRetentionDays *int32            `json:"history_retention_days,omitempty"`
 }
 
 type putMonitorRequest struct {
-	Name            string            `json:"name" binding:"required"`
-	Type            string            `json:"type" binding:"required"`
-	Target          string            `json:"target" binding:"required"`
-	IntervalSeconds *int32            `json:"interval_seconds,omitempty"`
-	TimeoutSeconds  *int32            `json:"timeout_seconds,omitempty"`
-	Status          *string           `json:"status,omitempty"`
-	Settings        json.RawMessage   `json:"settings,omitempty"`
-	Tags            []tags.TagRequest `json:"tags,omitempty"`
+	Name                 string            `json:"name" binding:"required"`
+	Type                 string            `json:"type" binding:"required"`
+	Target               string            `json:"target" binding:"required"`
+	IntervalSeconds      *int32            `json:"interval_seconds,omitempty"`
+	TimeoutSeconds       *int32            `json:"timeout_seconds,omitempty"`
+	Status               *string           `json:"status,omitempty"`
+	Settings             json.RawMessage   `json:"settings,omitempty"`
+	Tags                 []tags.TagRequest `json:"tags,omitempty"`
+	HistoryRetentionDays *int32            `json:"history_retention_days,omitempty"`
 }
 
 type tagResponse struct {
@@ -59,20 +63,21 @@ type tagResponse struct {
 }
 
 type monitorResponse struct {
-	ID              uuid.UUID       `json:"id"`
-	Name            string          `json:"name"`
-	Type            string          `json:"type"`
-	Target          string          `json:"target"`
-	IntervalSeconds int32           `json:"interval_seconds"`
-	TimeoutSeconds  int32           `json:"timeout_seconds"`
-	Status          string          `json:"status"`
-	State           string          `json:"state"`
-	LastCheckedAt   *time.Time      `json:"last_checked_at,omitempty"`
-	NextCheckAt     *time.Time      `json:"next_check_at,omitempty"`
-	Settings        json.RawMessage `json:"settings"`
-	Tags            []tagResponse   `json:"tags"`
-	CreatedAt       time.Time       `json:"created_at"`
-	UpdatedAt       time.Time       `json:"updated_at"`
+	ID                   uuid.UUID       `json:"id"`
+	Name                 string          `json:"name"`
+	Type                 string          `json:"type"`
+	Target               string          `json:"target"`
+	IntervalSeconds      int32           `json:"interval_seconds"`
+	TimeoutSeconds       int32           `json:"timeout_seconds"`
+	Status               string          `json:"status"`
+	State                string          `json:"state"`
+	LastCheckedAt        *time.Time      `json:"last_checked_at,omitempty"`
+	NextCheckAt          *time.Time      `json:"next_check_at,omitempty"`
+	Settings             json.RawMessage `json:"settings"`
+	Tags                 []tagResponse   `json:"tags"`
+	HistoryRetentionDays int32           `json:"history_retention_days"`
+	CreatedAt            time.Time       `json:"created_at"`
+	UpdatedAt            time.Time       `json:"updated_at"`
 }
 
 type monitorListResponse struct {
@@ -118,6 +123,14 @@ func (h *MonitorHandler) Create(c *gin.Context) {
 		}
 	}
 
+	// Normalize target based on monitor type (add default scheme, validate format).
+	normalizedTarget, err := target.Normalize(req.Type, req.Target)
+	if err != nil {
+		apiError(c, http.StatusBadRequest, "VALIDATION_ERROR", err.Error())
+		return
+	}
+	req.Target = normalizedTarget
+
 	interval := int32(60)
 	if req.IntervalSeconds != nil && *req.IntervalSeconds > 0 {
 		interval = *req.IntervalSeconds
@@ -138,6 +151,12 @@ func (h *MonitorHandler) Create(c *gin.Context) {
 		settings = req.Settings
 	}
 
+	retentionDays, err := validateRetentionDays(req.HistoryRetentionDays)
+	if err != nil {
+		apiError(c, http.StatusBadRequest, "INVALID_RETENTION_PERIOD", err.Error())
+		return
+	}
+
 	ctx := c.Request.Context()
 
 	// Use a transaction to persist the monitor and its tags atomically.
@@ -151,14 +170,15 @@ func (h *MonitorHandler) Create(c *gin.Context) {
 	qtx := h.queries.WithTx(tx)
 
 	m, err := qtx.CreateMonitor(ctx, db.CreateMonitorParams{
-		Name:            req.Name,
-		Type:            req.Type,
-		Target:          req.Target,
-		IntervalSeconds: interval,
-		TimeoutSeconds:  timeout,
-		Status:          status,
-		State:           "unknown",
-		Settings:        settings,
+		Name:                 req.Name,
+		Type:                 req.Type,
+		Target:               req.Target,
+		IntervalSeconds:      interval,
+		TimeoutSeconds:       timeout,
+		Status:               status,
+		State:                "unknown",
+		Settings:             settings,
+		HistoryRetentionDays: retentionDays,
 	})
 	if err != nil {
 		var pgErr *pgconn.PgError
@@ -328,6 +348,14 @@ func (h *MonitorHandler) Put(c *gin.Context) {
 		}
 	}
 
+	// Normalize target based on monitor type (add default scheme, validate format).
+	normalizedTarget, err := target.Normalize(req.Type, req.Target)
+	if err != nil {
+		apiError(c, http.StatusBadRequest, "VALIDATION_ERROR", err.Error())
+		return
+	}
+	req.Target = normalizedTarget
+
 	interval := int32(60)
 	if req.IntervalSeconds != nil && *req.IntervalSeconds > 0 {
 		interval = *req.IntervalSeconds
@@ -346,6 +374,12 @@ func (h *MonitorHandler) Put(c *gin.Context) {
 	settings := json.RawMessage("{}")
 	if req.Settings != nil {
 		settings = req.Settings
+	}
+
+	retentionDays, err := validateRetentionDays(req.HistoryRetentionDays)
+	if err != nil {
+		apiError(c, http.StatusBadRequest, "INVALID_RETENTION_PERIOD", err.Error())
+		return
 	}
 
 	ctx := c.Request.Context()
@@ -376,14 +410,15 @@ func (h *MonitorHandler) Put(c *gin.Context) {
 
 	// Upsert the monitor.
 	m, err := qtx.UpsertMonitor(ctx, db.UpsertMonitorParams{
-		ID:              id,
-		Name:            req.Name,
-		Type:            req.Type,
-		Target:          req.Target,
-		IntervalSeconds: interval,
-		TimeoutSeconds:  timeout,
-		Status:          status,
-		Settings:        settings,
+		ID:                   id,
+		Name:                 req.Name,
+		Type:                 req.Type,
+		Target:               req.Target,
+		IntervalSeconds:      interval,
+		TimeoutSeconds:       timeout,
+		Status:               status,
+		Settings:             settings,
+		HistoryRetentionDays: retentionDays,
 	})
 	if err != nil {
 		var pgErr *pgconn.PgError
@@ -467,20 +502,34 @@ func isValidStatus(s string) bool {
 	return s == "active" || s == "paused"
 }
 
+// validateRetentionDays validates the optional history_retention_days field.
+// Returns the effective retention period: default 30 if nil, the provided value
+// if in [1,365], or an error if out of range.
+func validateRetentionDays(days *int32) (int32, error) {
+	if days == nil {
+		return 30, nil
+	}
+	if *days < 1 || *days > 365 {
+		return 0, fmt.Errorf("history_retention_days must be between 1 and 365, got %d", *days)
+	}
+	return *days, nil
+}
+
 func toMonitorResponse(m db.Monitor) monitorResponse {
 	resp := monitorResponse{
-		ID:              m.ID,
-		Name:            m.Name,
-		Type:            m.Type,
-		Target:          m.Target,
-		IntervalSeconds: m.IntervalSeconds,
-		TimeoutSeconds:  m.TimeoutSeconds,
-		Status:          m.Status,
-		State:           m.State,
-		Settings:        m.Settings,
-		Tags:            []tagResponse{},
-		CreatedAt:       m.CreatedAt,
-		UpdatedAt:       m.UpdatedAt,
+		ID:                   m.ID,
+		Name:                 m.Name,
+		Type:                 m.Type,
+		Target:               m.Target,
+		IntervalSeconds:      m.IntervalSeconds,
+		TimeoutSeconds:       m.TimeoutSeconds,
+		Status:               m.Status,
+		State:                m.State,
+		Settings:             m.Settings,
+		Tags:                 []tagResponse{},
+		HistoryRetentionDays: m.HistoryRetentionDays,
+		CreatedAt:            m.CreatedAt,
+		UpdatedAt:            m.UpdatedAt,
 	}
 
 	if m.LastCheckedAt.Valid {

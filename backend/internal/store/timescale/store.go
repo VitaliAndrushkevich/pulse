@@ -20,6 +20,16 @@ type CheckPoint struct {
 	CheckedAt        time.Time
 }
 
+// AggregatedPoint represents a time-bucketed aggregation of check results.
+type AggregatedPoint struct {
+	Timestamp   time.Time
+	MinLatency  *int32
+	MaxLatency  *int32
+	AvgLatency  *int32
+	CheckCount  int32
+	UptimeRatio float64
+}
+
 // Store uses the shared PostgreSQL pool with TimescaleDB extension enabled.
 type Store struct {
 	pool *pgxpool.Pool
@@ -102,6 +112,64 @@ func (s *Store) QueryHistory(ctx context.Context, monitorID uuid.UUID, start, en
 	}
 	if err := rows.Err(); err != nil {
 		return nil, fmt.Errorf("timescaledb rows: %w", err)
+	}
+
+	return points, nil
+}
+
+// QueryHistoryAggregated returns downsampled check results for one monitor in [start, end),
+// aggregated into time buckets of the specified step duration. Each bucket includes
+// min/max/avg latency, check count, and uptime ratio.
+func (s *Store) QueryHistoryAggregated(
+	ctx context.Context,
+	monitorID uuid.UUID,
+	start, end time.Time,
+	stepSeconds int,
+) ([]AggregatedPoint, error) {
+	interval := fmt.Sprintf("%d seconds", stepSeconds)
+
+	rows, err := s.pool.Query(
+		ctx,
+		`SELECT
+			time_bucket($4::interval, checked_at) AS bucket,
+			MIN(latency_ms) AS min_latency_ms,
+			MAX(latency_ms) AS max_latency_ms,
+			AVG(latency_ms)::integer AS avg_latency_ms,
+			COUNT(*) AS check_count,
+			COUNT(*) FILTER (WHERE state = 'up')::float / COUNT(*) AS uptime_ratio
+		 FROM check_results
+		 WHERE monitor_id = $1
+		   AND checked_at >= $2
+		   AND checked_at < $3
+		 GROUP BY bucket
+		 ORDER BY bucket ASC`,
+		monitorID,
+		start,
+		end,
+		interval,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("timescaledb aggregated query: %w", err)
+	}
+	defer rows.Close()
+
+	points := make([]AggregatedPoint, 0)
+	for rows.Next() {
+		var point AggregatedPoint
+		if err := rows.Scan(
+			&point.Timestamp,
+			&point.MinLatency,
+			&point.MaxLatency,
+			&point.AvgLatency,
+			&point.CheckCount,
+			&point.UptimeRatio,
+		); err != nil {
+			return nil, fmt.Errorf("timescaledb aggregated scan: %w", err)
+		}
+		points = append(points, point)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("timescaledb aggregated rows: %w", err)
 	}
 
 	return points, nil

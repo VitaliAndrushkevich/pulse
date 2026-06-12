@@ -88,7 +88,7 @@ func (q *Queries) ListAllTagKeys(ctx context.Context) ([]string, error) {
 }
 
 const listMonitorsFiltered = `-- name: ListMonitorsFiltered :many
-SELECT m.id, m.name, m.type, m.target, m.interval_seconds, m.timeout_seconds, m.status, m.state, m.last_checked_at, m.next_check_at, m.settings, m.created_at, m.updated_at FROM monitors m
+SELECT m.id, m.name, m.type, m.target, m.interval_seconds, m.timeout_seconds, m.status, m.state, m.last_checked_at, m.next_check_at, m.settings, m.created_at, m.updated_at, m.history_retention_days FROM monitors m
 WHERE ($1::text = '' OR m.type = $1)
   AND (
     COALESCE(cardinality($2::text[]), 0) = 0
@@ -138,6 +138,7 @@ func (q *Queries) ListMonitorsFiltered(ctx context.Context, arg ListMonitorsFilt
 			&i.Settings,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.HistoryRetentionDays,
 		); err != nil {
 			return nil, err
 		}

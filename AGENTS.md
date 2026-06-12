@@ -143,6 +143,7 @@ The project is at MVP completion. Full milestone breakdown: [docs/MILESTONES.md]
 | WS messages | `backend/internal/hub/messages.go` |
 | WS handler | `backend/internal/api/handlers/ws.go` |
 | Scheduler | `backend/internal/monitor/scheduler.go` |
+| Target normalization | `backend/internal/target/normalize.go` |
 | Checkers | `backend/internal/monitor/{http,tcp,udp,websocket}.go` |
 | sqlc queries | `backend/internal/store/postgres/` |
 | TimescaleDB | `backend/internal/store/timescale/` |

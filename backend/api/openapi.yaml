@@ -101,7 +101,14 @@ paths:
               schema:
                 $ref: "#/components/schemas/Monitor"
         "400":
-          $ref: "#/components/responses/BadRequest"
+          description: >
+            Validation error. Possible error codes: VALIDATION_ERROR (general field
+            validation failure), INVALID_TAGS (tag constraint violation),
+            INVALID_RETENTION_PERIOD (history_retention_days outside range 1–365).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "401":
           $ref: "#/components/responses/Unauthorized"
 
@@ -141,7 +148,14 @@ paths:
               schema:
                 $ref: "#/components/schemas/Monitor"
         "400":
-          $ref: "#/components/responses/BadRequest"
+          description: >
+            Validation error. Possible error codes: VALIDATION_ERROR (general field
+            validation failure), INVALID_TAGS (tag constraint violation),
+            INVALID_RETENTION_PERIOD (history_retention_days outside range 1–365).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "401":
           $ref: "#/components/responses/Unauthorized"
     delete:
@@ -160,6 +174,12 @@ paths:
     get:
       operationId: getMonitorHistory
       summary: Get check history for a monitor
+      description: >
+        Returns check history for the specified monitor within the given time range.
+        When `step` is provided (or auto-calculated for ranges > 24h), the response
+        contains aggregated data points in `aggregated_points` instead of raw `points`.
+        The time range is clamped to the monitor's configured retention period; if
+        clamping occurs, `truncated` is set to true in the response.
       tags: [Monitors]
       parameters:
         - $ref: "#/components/parameters/MonitorID"
@@ -175,9 +195,20 @@ paths:
           schema:
             type: string
             format: date-time
+        - name: step
+          in: query
+          description: >
+            Aggregation interval in seconds. When provided, responses are
+            aggregated into time buckets of the specified duration. If omitted
+            and the requested range exceeds 24 hours, a step is auto-calculated
+            as ceil(range_seconds / 1000) to cap the response at ~1000 points.
+          schema:
+            type: integer
+            minimum: 60
+            maximum: 86400
       responses:
         "200":
-          description: Check history points
+          description: Check history points (raw or aggregated depending on step)
           content:
             application/json:
               schema:
@@ -549,7 +580,10 @@ components:
               description: >
                 Machine-readable error code. Known codes include:
                 INVALID_TAGS - tag validation failed (invalid key format, value too long,
-                too many tags, duplicate key-value pairs, or reserved prefix usage)
+                too many tags, duplicate key-value pairs, or reserved prefix usage);
+                INVALID_RETENTION_PERIOD - history_retention_days value is outside the
+                valid range of 1–365 or is not a valid integer;
+                INVALID_STEP - step query parameter is outside the valid range of 60–86400
             message:
               type: string
 
@@ -620,6 +654,15 @@ components:
         settings:
           type: object
           description: "Type-specific settings. For type=grpc, see GRPCSettings schema."
+        history_retention_days:
+          type: integer
+          minimum: 1
+          maximum: 365
+          nullable: true
+          default: 30
+          description: >
+            Number of days to retain check history data for this monitor.
+            When not specified, defaults to 30 days.
         tags:
           type: array
           items:
@@ -643,6 +686,11 @@ components:
           enum: [http, http3, tcp, udp, websocket, grpc]
         target:
           type: string
+          description: >
+            Monitor target address. Smart normalization is applied based on type:
+            http/http3 — bare domain gets "https://" prefix (e.g., "example.com" → "https://example.com");
+            websocket — bare domain gets "wss://" prefix;
+            tcp/udp/grpc — must be host:port without scheme.
         interval_seconds:
           type: integer
           default: 60
@@ -656,6 +704,16 @@ components:
         settings:
           type: object
           description: "Type-specific settings. For type=grpc, see GRPCSettings schema."
+        history_retention_days:
+          type: integer
+          minimum: 1
+          maximum: 365
+          nullable: true
+          default: 30
+          description: >
+            Number of days to retain check history data for this monitor.
+            When not specified, defaults to 30 days. Values outside the range
+            1–365 will result in an INVALID_RETENTION_PERIOD error.
         tags:
           type: array
           items:
@@ -673,6 +731,11 @@ components:
           enum: [http, http3, tcp, udp, websocket, grpc]
         target:
           type: string
+          description: >
+            Monitor target address. Smart normalization is applied based on type:
+            http/http3 — bare domain gets "https://" prefix (e.g., "example.com" → "https://example.com");
+            websocket — bare domain gets "wss://" prefix;
+            tcp/udp/grpc — must be host:port without scheme.
         interval_seconds:
           type: integer
           default: 60
@@ -686,6 +749,16 @@ components:
         settings:
           type: object
           description: "Type-specific settings. For type=grpc, see GRPCSettings schema."
+        history_retention_days:
+          type: integer
+          minimum: 1
+          maximum: 365
+          nullable: true
+          default: 30
+          description: >
+            Number of days to retain check history data for this monitor.
+            When not specified, defaults to 30 days. Values outside the range
+            1–365 will result in an INVALID_RETENTION_PERIOD error.
         tags:
           type: array
           items:
@@ -746,10 +819,68 @@ components:
         to:
           type: string
           format: date-time
+        truncated:
+          type: boolean
+          description: >
+            Indicates whether the requested time range was clamped to the
+            monitor's retention boundary. When true, the `from` value in this
+            response reflects the clamped start time, not the originally requested one.
+        step:
+          type: integer
+          description: >
+            The aggregation interval used (in seconds). Present when the response
+            contains aggregated data points (either from an explicit `step` parameter
+            or auto-calculated for ranges exceeding 24 hours).
         points:
           type: array
           items:
             $ref: "#/components/schemas/HistoryPoint"
+          description: >
+            Raw check result data points. Present when no aggregation is applied
+            (range ≤ 24h and no explicit step parameter).
+        aggregated_points:
+          type: array
+          items:
+            $ref: "#/components/schemas/AggregatedHistoryPoint"
+          description: >
+            Downsampled/aggregated data points. Present when aggregation is applied
+            (explicit step parameter or auto-calculated for ranges > 24h).
+
+    AggregatedHistoryPoint:
+      type: object
+      description: >
+        A single aggregated time bucket summarizing multiple check results.
+        Used in place of HistoryPoint when the `step` parameter is active.
+      required: [timestamp, check_count, uptime_ratio]
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+          description: Start time of the aggregation bucket
+        min_latency_ms:
+          type: integer
+          nullable: true
+          description: Minimum latency observed in this bucket (null if all checks had no latency)
+        max_latency_ms:
+          type: integer
+          nullable: true
+          description: Maximum latency observed in this bucket (null if all checks had no latency)
+        avg_latency_ms:
+          type: integer
+          nullable: true
+          description: Average latency observed in this bucket, rounded to nearest integer (null if all checks had no latency)
+        check_count:
+          type: integer
+          minimum: 1
+          description: Total number of check results in this bucket
+        uptime_ratio:
+          type: number
+          format: float
+          minimum: 0.0
+          maximum: 1.0
+          description: >
+            Ratio of checks with state "up" to total checks in this bucket,
+            expressed as a value between 0.0 and 1.0
 
     Incident:
       type: object

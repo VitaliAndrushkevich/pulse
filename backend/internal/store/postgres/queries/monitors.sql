@@ -20,7 +20,7 @@ LIMIT $1;
 -- name: ListActiveMonitorsDueWithTags :many
 SELECT m.id, m.name, m.type, m.target, m.interval_seconds, m.timeout_seconds,
        m.status, m.state, m.last_checked_at, m.next_check_at, m.settings,
-       m.created_at, m.updated_at,
+       m.created_at, m.updated_at, m.history_retention_days,
        COALESCE(
          json_agg(json_build_object('key', mt.key, 'value', mt.value))
          FILTER (WHERE mt.key IS NOT NULL),
@@ -37,24 +37,25 @@ LIMIT $1;
 -- name: CreateMonitor :one
 INSERT INTO monitors (
     name, type, target, interval_seconds, timeout_seconds,
-    status, state, settings, next_check_at
+    status, state, settings, next_check_at, history_retention_days
 ) VALUES (
     $1, $2, $3, $4, $5,
-    $6, $7, $8, $9
+    $6, $7, $8, $9, $10
 )
 RETURNING *;
 
 -- name: UpdateMonitor :one
 UPDATE monitors
 SET
-    name             = $2,
-    type             = $3,
-    target           = $4,
-    interval_seconds = $5,
-    timeout_seconds  = $6,
-    status           = $7,
-    settings         = $8,
-    updated_at       = now()
+    name                 = $2,
+    type                 = $3,
+    target               = $4,
+    interval_seconds     = $5,
+    timeout_seconds      = $6,
+    status               = $7,
+    settings             = $8,
+    history_retention_days = $9,
+    updated_at           = now()
 WHERE id = $1
 RETURNING *;
 
@@ -71,20 +72,21 @@ RETURNING *;
 -- name: UpsertMonitor :one
 INSERT INTO monitors (
     id, name, type, target, interval_seconds, timeout_seconds,
-    status, state, settings, next_check_at
+    status, state, settings, next_check_at, history_retention_days
 ) VALUES (
     $1, $2, $3, $4, $5, $6,
-    $7, 'unknown', $8, now()
+    $7, 'unknown', $8, now(), $9
 )
 ON CONFLICT (id) DO UPDATE SET
-    name             = EXCLUDED.name,
-    type             = EXCLUDED.type,
-    target           = EXCLUDED.target,
-    interval_seconds = EXCLUDED.interval_seconds,
-    timeout_seconds  = EXCLUDED.timeout_seconds,
-    status           = EXCLUDED.status,
-    settings         = EXCLUDED.settings,
-    updated_at       = now()
+    name                 = EXCLUDED.name,
+    type                 = EXCLUDED.type,
+    target               = EXCLUDED.target,
+    interval_seconds     = EXCLUDED.interval_seconds,
+    timeout_seconds      = EXCLUDED.timeout_seconds,
+    status               = EXCLUDED.status,
+    settings             = EXCLUDED.settings,
+    history_retention_days = EXCLUDED.history_retention_days,
+    updated_at           = now()
 RETURNING *;
 
 -- name: GetMonitorForUpdate :one

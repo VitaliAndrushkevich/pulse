@@ -28,24 +28,25 @@ func (q *Queries) CountMonitors(ctx context.Context) (int64, error) {
 const createMonitor = `-- name: CreateMonitor :one
 INSERT INTO monitors (
     name, type, target, interval_seconds, timeout_seconds,
-    status, state, settings, next_check_at
+    status, state, settings, next_check_at, history_retention_days
 ) VALUES (
     $1, $2, $3, $4, $5,
-    $6, $7, $8, $9
+    $6, $7, $8, $9, $10
 )
-RETURNING id, name, type, target, interval_seconds, timeout_seconds, status, state, last_checked_at, next_check_at, settings, created_at, updated_at
+RETURNING id, name, type, target, interval_seconds, timeout_seconds, status, state, last_checked_at, next_check_at, settings, created_at, updated_at, history_retention_days
 `
 
 type CreateMonitorParams struct {
-	Name            string             `db:"name" json:"name"`
-	Type            string             `db:"type" json:"type"`
-	Target          string             `db:"target" json:"target"`
-	IntervalSeconds int32              `db:"interval_seconds" json:"interval_seconds"`
-	TimeoutSeconds  int32              `db:"timeout_seconds" json:"timeout_seconds"`
-	Status          string             `db:"status" json:"status"`
-	State           string             `db:"state" json:"state"`
-	Settings        json.RawMessage    `db:"settings" json:"settings"`
-	NextCheckAt     pgtype.Timestamptz `db:"next_check_at" json:"next_check_at"`
+	Name                 string             `db:"name" json:"name"`
+	Type                 string             `db:"type" json:"type"`
+	Target               string             `db:"target" json:"target"`
+	IntervalSeconds      int32              `db:"interval_seconds" json:"interval_seconds"`
+	TimeoutSeconds       int32              `db:"timeout_seconds" json:"timeout_seconds"`
+	Status               string             `db:"status" json:"status"`
+	State                string             `db:"state" json:"state"`
+	Settings             json.RawMessage    `db:"settings" json:"settings"`
+	NextCheckAt          pgtype.Timestamptz `db:"next_check_at" json:"next_check_at"`
+	HistoryRetentionDays int32              `db:"history_retention_days" json:"history_retention_days"`
 }
 
 func (q *Queries) CreateMonitor(ctx context.Context, arg CreateMonitorParams) (Monitor, error) {
@@ -59,6 +60,7 @@ func (q *Queries) CreateMonitor(ctx context.Context, arg CreateMonitorParams) (M
 		arg.State,
 		arg.Settings,
 		arg.NextCheckAt,
+		arg.HistoryRetentionDays,
 	)
 	var i Monitor
 	err := row.Scan(
@@ -75,6 +77,7 @@ func (q *Queries) CreateMonitor(ctx context.Context, arg CreateMonitorParams) (M
 		&i.Settings,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.HistoryRetentionDays,
 	)
 	return i, err
 }
@@ -89,7 +92,7 @@ func (q *Queries) DeleteMonitor(ctx context.Context, id uuid.UUID) error {
 }
 
 const getMonitor = `-- name: GetMonitor :one
-SELECT id, name, type, target, interval_seconds, timeout_seconds, status, state, last_checked_at, next_check_at, settings, created_at, updated_at FROM monitors
+SELECT id, name, type, target, interval_seconds, timeout_seconds, status, state, last_checked_at, next_check_at, settings, created_at, updated_at, history_retention_days FROM monitors
 WHERE id = $1
 `
 
@@ -110,12 +113,13 @@ func (q *Queries) GetMonitor(ctx context.Context, id uuid.UUID) (Monitor, error)
 		&i.Settings,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.HistoryRetentionDays,
 	)
 	return i, err
 }
 
 const getMonitorForUpdate = `-- name: GetMonitorForUpdate :one
-SELECT id, name, type, target, interval_seconds, timeout_seconds, status, state, last_checked_at, next_check_at, settings, created_at, updated_at FROM monitors
+SELECT id, name, type, target, interval_seconds, timeout_seconds, status, state, last_checked_at, next_check_at, settings, created_at, updated_at, history_retention_days FROM monitors
 WHERE id = $1
 FOR UPDATE
 `
@@ -137,12 +141,13 @@ func (q *Queries) GetMonitorForUpdate(ctx context.Context, id uuid.UUID) (Monito
 		&i.Settings,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.HistoryRetentionDays,
 	)
 	return i, err
 }
 
 const listActiveMonitorsDue = `-- name: ListActiveMonitorsDue :many
-SELECT id, name, type, target, interval_seconds, timeout_seconds, status, state, last_checked_at, next_check_at, settings, created_at, updated_at FROM monitors
+SELECT id, name, type, target, interval_seconds, timeout_seconds, status, state, last_checked_at, next_check_at, settings, created_at, updated_at, history_retention_days FROM monitors
 WHERE status = 'active'
   AND (next_check_at IS NULL OR next_check_at <= now())
 ORDER BY next_check_at ASC NULLS FIRST
@@ -172,6 +177,7 @@ func (q *Queries) ListActiveMonitorsDue(ctx context.Context, limit int32) ([]Mon
 			&i.Settings,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.HistoryRetentionDays,
 		); err != nil {
 			return nil, err
 		}
@@ -186,7 +192,7 @@ func (q *Queries) ListActiveMonitorsDue(ctx context.Context, limit int32) ([]Mon
 const listActiveMonitorsDueWithTags = `-- name: ListActiveMonitorsDueWithTags :many
 SELECT m.id, m.name, m.type, m.target, m.interval_seconds, m.timeout_seconds,
        m.status, m.state, m.last_checked_at, m.next_check_at, m.settings,
-       m.created_at, m.updated_at,
+       m.created_at, m.updated_at, m.history_retention_days,
        COALESCE(
          json_agg(json_build_object('key', mt.key, 'value', mt.value))
          FILTER (WHERE mt.key IS NOT NULL),
@@ -202,20 +208,21 @@ LIMIT $1
 `
 
 type ListActiveMonitorsDueWithTagsRow struct {
-	ID              uuid.UUID          `db:"id" json:"id"`
-	Name            string             `db:"name" json:"name"`
-	Type            string             `db:"type" json:"type"`
-	Target          string             `db:"target" json:"target"`
-	IntervalSeconds int32              `db:"interval_seconds" json:"interval_seconds"`
-	TimeoutSeconds  int32              `db:"timeout_seconds" json:"timeout_seconds"`
-	Status          string             `db:"status" json:"status"`
-	State           string             `db:"state" json:"state"`
-	LastCheckedAt   pgtype.Timestamptz `db:"last_checked_at" json:"last_checked_at"`
-	NextCheckAt     pgtype.Timestamptz `db:"next_check_at" json:"next_check_at"`
-	Settings        json.RawMessage    `db:"settings" json:"settings"`
-	CreatedAt       time.Time          `db:"created_at" json:"created_at"`
-	UpdatedAt       time.Time          `db:"updated_at" json:"updated_at"`
-	TagsJson        interface{}        `db:"tags_json" json:"tags_json"`
+	ID                   uuid.UUID          `db:"id" json:"id"`
+	Name                 string             `db:"name" json:"name"`
+	Type                 string             `db:"type" json:"type"`
+	Target               string             `db:"target" json:"target"`
+	IntervalSeconds      int32              `db:"interval_seconds" json:"interval_seconds"`
+	TimeoutSeconds       int32              `db:"timeout_seconds" json:"timeout_seconds"`
+	Status               string             `db:"status" json:"status"`
+	State                string             `db:"state" json:"state"`
+	LastCheckedAt        pgtype.Timestamptz `db:"last_checked_at" json:"last_checked_at"`
+	NextCheckAt          pgtype.Timestamptz `db:"next_check_at" json:"next_check_at"`
+	Settings             json.RawMessage    `db:"settings" json:"settings"`
+	CreatedAt            time.Time          `db:"created_at" json:"created_at"`
+	UpdatedAt            time.Time          `db:"updated_at" json:"updated_at"`
+	HistoryRetentionDays int32              `db:"history_retention_days" json:"history_retention_days"`
+	TagsJson             interface{}        `db:"tags_json" json:"tags_json"`
 }
 
 func (q *Queries) ListActiveMonitorsDueWithTags(ctx context.Context, limit int32) ([]ListActiveMonitorsDueWithTagsRow, error) {
@@ -241,6 +248,7 @@ func (q *Queries) ListActiveMonitorsDueWithTags(ctx context.Context, limit int32
 			&i.Settings,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.HistoryRetentionDays,
 			&i.TagsJson,
 		); err != nil {
 			return nil, err
@@ -254,7 +262,7 @@ func (q *Queries) ListActiveMonitorsDueWithTags(ctx context.Context, limit int32
 }
 
 const listMonitors = `-- name: ListMonitors :many
-SELECT id, name, type, target, interval_seconds, timeout_seconds, status, state, last_checked_at, next_check_at, settings, created_at, updated_at FROM monitors
+SELECT id, name, type, target, interval_seconds, timeout_seconds, status, state, last_checked_at, next_check_at, settings, created_at, updated_at, history_retention_days FROM monitors
 ORDER BY created_at DESC
 LIMIT $1 OFFSET $2
 `
@@ -287,6 +295,7 @@ func (q *Queries) ListMonitors(ctx context.Context, arg ListMonitorsParams) ([]M
 			&i.Settings,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.HistoryRetentionDays,
 		); err != nil {
 			return nil, err
 		}
@@ -301,27 +310,29 @@ func (q *Queries) ListMonitors(ctx context.Context, arg ListMonitorsParams) ([]M
 const updateMonitor = `-- name: UpdateMonitor :one
 UPDATE monitors
 SET
-    name             = $2,
-    type             = $3,
-    target           = $4,
-    interval_seconds = $5,
-    timeout_seconds  = $6,
-    status           = $7,
-    settings         = $8,
-    updated_at       = now()
+    name                 = $2,
+    type                 = $3,
+    target               = $4,
+    interval_seconds     = $5,
+    timeout_seconds      = $6,
+    status               = $7,
+    settings             = $8,
+    history_retention_days = $9,
+    updated_at           = now()
 WHERE id = $1
-RETURNING id, name, type, target, interval_seconds, timeout_seconds, status, state, last_checked_at, next_check_at, settings, created_at, updated_at
+RETURNING id, name, type, target, interval_seconds, timeout_seconds, status, state, last_checked_at, next_check_at, settings, created_at, updated_at, history_retention_days
 `
 
 type UpdateMonitorParams struct {
-	ID              uuid.UUID       `db:"id" json:"id"`
-	Name            string          `db:"name" json:"name"`
-	Type            string          `db:"type" json:"type"`
-	Target          string          `db:"target" json:"target"`
-	IntervalSeconds int32           `db:"interval_seconds" json:"interval_seconds"`
-	TimeoutSeconds  int32           `db:"timeout_seconds" json:"timeout_seconds"`
-	Status          string          `db:"status" json:"status"`
-	Settings        json.RawMessage `db:"settings" json:"settings"`
+	ID                   uuid.UUID       `db:"id" json:"id"`
+	Name                 string          `db:"name" json:"name"`
+	Type                 string          `db:"type" json:"type"`
+	Target               string          `db:"target" json:"target"`
+	IntervalSeconds      int32           `db:"interval_seconds" json:"interval_seconds"`
+	TimeoutSeconds       int32           `db:"timeout_seconds" json:"timeout_seconds"`
+	Status               string          `db:"status" json:"status"`
+	Settings             json.RawMessage `db:"settings" json:"settings"`
+	HistoryRetentionDays int32           `db:"history_retention_days" json:"history_retention_days"`
 }
 
 func (q *Queries) UpdateMonitor(ctx context.Context, arg UpdateMonitorParams) (Monitor, error) {
@@ -334,6 +345,7 @@ func (q *Queries) UpdateMonitor(ctx context.Context, arg UpdateMonitorParams) (M
 		arg.TimeoutSeconds,
 		arg.Status,
 		arg.Settings,
+		arg.HistoryRetentionDays,
 	)
 	var i Monitor
 	err := row.Scan(
@@ -350,6 +362,7 @@ func (q *Queries) UpdateMonitor(ctx context.Context, arg UpdateMonitorParams) (M
 		&i.Settings,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.HistoryRetentionDays,
 	)
 	return i, err
 }
@@ -362,7 +375,7 @@ SET
     next_check_at   = $4,
     updated_at      = now()
 WHERE id = $1
-RETURNING id, name, type, target, interval_seconds, timeout_seconds, status, state, last_checked_at, next_check_at, settings, created_at, updated_at
+RETURNING id, name, type, target, interval_seconds, timeout_seconds, status, state, last_checked_at, next_check_at, settings, created_at, updated_at, history_retention_days
 `
 
 type UpdateMonitorStateParams struct {
@@ -394,6 +407,7 @@ func (q *Queries) UpdateMonitorState(ctx context.Context, arg UpdateMonitorState
 		&i.Settings,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.HistoryRetentionDays,
 	)
 	return i, err
 }
@@ -401,32 +415,34 @@ func (q *Queries) UpdateMonitorState(ctx context.Context, arg UpdateMonitorState
 const upsertMonitor = `-- name: UpsertMonitor :one
 INSERT INTO monitors (
     id, name, type, target, interval_seconds, timeout_seconds,
-    status, state, settings, next_check_at
+    status, state, settings, next_check_at, history_retention_days
 ) VALUES (
     $1, $2, $3, $4, $5, $6,
-    $7, 'unknown', $8, now()
+    $7, 'unknown', $8, now(), $9
 )
 ON CONFLICT (id) DO UPDATE SET
-    name             = EXCLUDED.name,
-    type             = EXCLUDED.type,
-    target           = EXCLUDED.target,
-    interval_seconds = EXCLUDED.interval_seconds,
-    timeout_seconds  = EXCLUDED.timeout_seconds,
-    status           = EXCLUDED.status,
-    settings         = EXCLUDED.settings,
-    updated_at       = now()
-RETURNING id, name, type, target, interval_seconds, timeout_seconds, status, state, last_checked_at, next_check_at, settings, created_at, updated_at
+    name                 = EXCLUDED.name,
+    type                 = EXCLUDED.type,
+    target               = EXCLUDED.target,
+    interval_seconds     = EXCLUDED.interval_seconds,
+    timeout_seconds      = EXCLUDED.timeout_seconds,
+    status               = EXCLUDED.status,
+    settings             = EXCLUDED.settings,
+    history_retention_days = EXCLUDED.history_retention_days,
+    updated_at           = now()
+RETURNING id, name, type, target, interval_seconds, timeout_seconds, status, state, last_checked_at, next_check_at, settings, created_at, updated_at, history_retention_days
 `
 
 type UpsertMonitorParams struct {
-	ID              uuid.UUID       `db:"id" json:"id"`
-	Name            string          `db:"name" json:"name"`
-	Type            string          `db:"type" json:"type"`
-	Target          string          `db:"target" json:"target"`
-	IntervalSeconds int32           `db:"interval_seconds" json:"interval_seconds"`
-	TimeoutSeconds  int32           `db:"timeout_seconds" json:"timeout_seconds"`
-	Status          string          `db:"status" json:"status"`
-	Settings        json.RawMessage `db:"settings" json:"settings"`
+	ID                   uuid.UUID       `db:"id" json:"id"`
+	Name                 string          `db:"name" json:"name"`
+	Type                 string          `db:"type" json:"type"`
+	Target               string          `db:"target" json:"target"`
+	IntervalSeconds      int32           `db:"interval_seconds" json:"interval_seconds"`
+	TimeoutSeconds       int32           `db:"timeout_seconds" json:"timeout_seconds"`
+	Status               string          `db:"status" json:"status"`
+	Settings             json.RawMessage `db:"settings" json:"settings"`
+	HistoryRetentionDays int32           `db:"history_retention_days" json:"history_retention_days"`
 }
 
 func (q *Queries) UpsertMonitor(ctx context.Context, arg UpsertMonitorParams) (Monitor, error) {
@@ -439,6 +455,7 @@ func (q *Queries) UpsertMonitor(ctx context.Context, arg UpsertMonitorParams) (M
 		arg.TimeoutSeconds,
 		arg.Status,
 		arg.Settings,
+		arg.HistoryRetentionDays,
 	)
 	var i Monitor
 	err := row.Scan(
@@ -455,6 +472,7 @@ func (q *Queries) UpsertMonitor(ctx context.Context, arg UpsertMonitorParams) (M
 		&i.Settings,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.HistoryRetentionDays,
 	)
 	return i, err
 }

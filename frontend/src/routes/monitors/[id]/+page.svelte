@@ -8,7 +8,11 @@
   import { formatDate } from '$lib/format';
   import HistoryChart from '../../../components/HistoryChart.svelte';
   import StatusTimeline from '../../../components/StatusTimeline.svelte';
+  import HistoryExplorer from '../../../components/HistoryExplorer.svelte';
   import type { Monitor, HistoryPoint, Incident, MonitorPatch, MonitorStats } from '$lib/types';
+
+  type Tab = 'overview' | 'history';
+  let activeTab = $state<Tab>('overview');
 
   let history = $state<HistoryPoint[]>([]);
   let incidents = $state<Incident[]>([]);
@@ -261,6 +265,35 @@
       </div>
     </div>
 
+    <!-- Tab bar -->
+    <div class="border-b border-[var(--color-border)]" data-testid="tab-bar">
+      <nav class="-mb-px flex gap-6" aria-label="Monitor tabs">
+        <button
+          type="button"
+          onclick={() => activeTab = 'overview'}
+          class="whitespace-nowrap border-b-2 px-1 py-3 text-sm font-medium transition-colors {activeTab === 'overview' ? 'border-[var(--color-brand-primary)] text-[var(--color-brand-primary)]' : 'border-transparent text-secondary hover:border-[var(--color-border)] hover:text-primary'}"
+          aria-selected={activeTab === 'overview'}
+          role="tab"
+          data-testid="tab-overview"
+        >
+          Overview
+        </button>
+        <button
+          type="button"
+          onclick={() => activeTab = 'history'}
+          class="whitespace-nowrap border-b-2 px-1 py-3 text-sm font-medium transition-colors {activeTab === 'history' ? 'border-[var(--color-brand-primary)] text-[var(--color-brand-primary)]' : 'border-transparent text-secondary hover:border-[var(--color-border)] hover:text-primary'}"
+          aria-selected={activeTab === 'history'}
+          role="tab"
+          data-testid="tab-history"
+        >
+          History
+        </button>
+      </nav>
+    </div>
+
+    <!-- Tab content: Overview -->
+    <div class="space-y-6" hidden={activeTab !== 'overview'} role="tabpanel" data-testid="tab-panel-overview">
+
     <!-- Status bar with current state + error highlight -->
     <div class="rounded-lg border border-[var(--color-border)] bg-surface" data-testid="status-bar">
       <div class="flex items-center gap-4 px-5 py-3">
@@ -456,5 +489,13 @@
         </div>
       {/if}
     </div>
+
+    </div><!-- /tab-panel-overview -->
+
+    <!-- Tab content: History -->
+    <div hidden={activeTab !== 'history'} role="tabpanel" data-testid="tab-panel-history">
+      <HistoryExplorer monitorId={monitor.id} retentionDays={monitor.history_retention_days ?? 30} />
+    </div>
+
   </section>
 {/if}

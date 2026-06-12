@@ -15,6 +15,7 @@ import (
 	"github.com/VitaliAndrushkevich/pulse/internal/crypto"
 	"github.com/VitaliAndrushkevich/pulse/internal/hub"
 	"github.com/VitaliAndrushkevich/pulse/internal/monitor"
+	"github.com/VitaliAndrushkevich/pulse/internal/retention"
 	db "github.com/VitaliAndrushkevich/pulse/internal/store/postgres"
 	"github.com/VitaliAndrushkevich/pulse/internal/store/timescale"
 	"github.com/VitaliAndrushkevich/pulse/internal/version"
@@ -89,6 +90,21 @@ func main() {
 
 	queries := db.New(pool)
 
+	// Initialize retention service (monitor-history-explorer).
+	retentionInterval, err := retention.ParseRetentionInterval(os.Getenv("PULSE_RETENTION_CHECK_INTERVAL"))
+	if err != nil {
+		log.Fatalf("startup: %v", err)
+	}
+	retentionSvc, err := retention.New(retention.Config{
+		Pool:     pool,
+		Queries:  queries,
+		Interval: retentionInterval,
+	})
+	if err != nil {
+		log.Fatalf("startup: retention service: %v", err)
+	}
+	log.Printf("startup: retention service configured (interval=%s)", retentionInterval)
+
 	// Initialize Prometheus metrics (TASK-026).
 	promRegistry := prometheus.NewRegistry()
 
@@ -116,6 +132,8 @@ func main() {
 	go scheduler.Run(appCtx)
 	go monitor.NewListener(pool, scheduler).Run(appCtx)
 	log.Printf("startup: monitor scheduler started (%d workers)", cfg.SchedulerWorkers)
+
+	go retentionSvc.Start(appCtx)
 
 	r := api.NewRouter(api.Deps{
 		Queries:        queries,

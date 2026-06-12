@@ -15,6 +15,7 @@
     timeout_seconds: number;
     status: 'active' | 'paused';
     settings: Record<string, unknown>;
+    history_retention_days?: number;
   }
 
   export interface MonitorFormSubmitData {
@@ -43,6 +44,11 @@
   let interval_seconds = $state(initialValues?.interval_seconds ?? 60);
   let timeout_seconds = $state(initialValues?.timeout_seconds ?? 10);
   let status: 'active' | 'paused' = $state(initialValues?.status ?? 'active');
+
+  // History retention days (1-365, default 30)
+  let history_retention_days = $state<number>(
+    initialValues?.history_retention_days ?? 30
+  );
 
   // Type-specific settings
   let expectedStatusCodes = $state(
@@ -101,6 +107,24 @@
   function markTouched(field: string) {
     touched[field] = true;
   }
+
+  // Dynamic placeholder based on monitor type
+  let targetPlaceholder = $derived(
+    type === 'tcp' ? 'example.com:443' :
+    type === 'udp' ? 'example.com:53' :
+    type === 'websocket' ? 'wss://example.com/ws' :
+    type === 'grpc' ? 'example.com:443' :
+    'https://example.com'
+  );
+
+  // Helper text for target field based on monitor type
+  let targetHelp = $derived(
+    type === 'tcp' ? 'Format: host:port' :
+    type === 'udp' ? 'Format: host:port' :
+    type === 'websocket' ? 'URL with ws:// or wss:// scheme, or just hostname (defaults to wss://)' :
+    type === 'grpc' ? 'Format: host:port' :
+    'URL or domain name (defaults to https://)'
+  );
 
   // Overall form validity
   let isFormValid = $derived(
@@ -162,7 +186,8 @@
       interval_seconds,
       timeout_seconds,
       status,
-      settings: buildSettings()
+      settings: buildSettings(),
+      history_retention_days
     };
 
     try {
@@ -238,13 +263,14 @@
       type="text"
       bind:value={target}
       onblur={() => markTouched('target')}
-      placeholder="https://example.com"
+      placeholder={targetPlaceholder}
       class="mt-1 block w-full rounded-md border border-[var(--color-border)] bg-surface px-3 py-2 text-sm text-primary shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
       data-testid="input-target"
     />
     {#if touched.target && !targetValidation.valid}
       <p class="mt-1 text-xs text-rose-600" data-testid="error-target">{targetValidation.error}</p>
     {/if}
+    <p class="mt-1 text-xs text-secondary">{targetHelp}</p>
   </div>
 
   <!-- Interval and Timeout -->
@@ -310,6 +336,21 @@
       </label>
     </div>
   </fieldset>
+
+  <!-- History Retention Days -->
+  <div>
+    <label for="monitor-retention" class="block text-sm font-medium text-primary">History Retention (days)</label>
+    <input
+      id="monitor-retention"
+      type="number"
+      bind:value={history_retention_days}
+      min="1"
+      max="365"
+      class="mt-1 block w-full rounded-md border border-[var(--color-border)] bg-surface px-3 py-2 text-sm text-primary shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+      data-testid="input-retention-days"
+    />
+    <p class="mt-1 text-xs text-secondary">Number of days to keep check history data (1–365, default 30)</p>
+  </div>
 
   <!-- Type-specific settings -->
   {#if type === 'http' || type === 'http3'}

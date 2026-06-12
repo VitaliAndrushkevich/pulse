@@ -46,19 +46,20 @@ type Incident struct {
 }
 
 type Monitor struct {
-	ID              uuid.UUID          `db:"id" json:"id"`
-	Name            string             `db:"name" json:"name"`
-	Type            string             `db:"type" json:"type"`
-	Target          string             `db:"target" json:"target"`
-	IntervalSeconds int32              `db:"interval_seconds" json:"interval_seconds"`
-	TimeoutSeconds  int32              `db:"timeout_seconds" json:"timeout_seconds"`
-	Status          string             `db:"status" json:"status"`
-	State           string             `db:"state" json:"state"`
-	LastCheckedAt   pgtype.Timestamptz `db:"last_checked_at" json:"last_checked_at"`
-	NextCheckAt     pgtype.Timestamptz `db:"next_check_at" json:"next_check_at"`
-	Settings        json.RawMessage    `db:"settings" json:"settings"`
-	CreatedAt       time.Time          `db:"created_at" json:"created_at"`
-	UpdatedAt       time.Time          `db:"updated_at" json:"updated_at"`
+	ID                   uuid.UUID          `db:"id" json:"id"`
+	Name                 string             `db:"name" json:"name"`
+	Type                 string             `db:"type" json:"type"`
+	Target               string             `db:"target" json:"target"`
+	IntervalSeconds      int32              `db:"interval_seconds" json:"interval_seconds"`
+	TimeoutSeconds       int32              `db:"timeout_seconds" json:"timeout_seconds"`
+	Status               string             `db:"status" json:"status"`
+	State                string             `db:"state" json:"state"`
+	LastCheckedAt        pgtype.Timestamptz `db:"last_checked_at" json:"last_checked_at"`
+	NextCheckAt          pgtype.Timestamptz `db:"next_check_at" json:"next_check_at"`
+	Settings             json.RawMessage    `db:"settings" json:"settings"`
+	CreatedAt            time.Time          `db:"created_at" json:"created_at"`
+	UpdatedAt            time.Time          `db:"updated_at" json:"updated_at"`
+	HistoryRetentionDays int32              `db:"history_retention_days" json:"history_retention_days"`
 }
 
 type MonitorCredential struct {

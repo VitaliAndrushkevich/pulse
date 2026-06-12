@@ -35,6 +35,7 @@ export interface Monitor {
   next_check_at: string | null;
   settings: Record<string, unknown>;
   tags: Tag[];
+  history_retention_days: number;
   created_at: string;
   updated_at: string;
 }

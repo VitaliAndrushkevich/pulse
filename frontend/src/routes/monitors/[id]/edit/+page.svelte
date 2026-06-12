@@ -98,7 +98,8 @@
         interval_seconds: monitor.interval_seconds,
         timeout_seconds: monitor.timeout_seconds,
         status: monitor.status,
-        settings: monitor.settings
+        settings: monitor.settings,
+        history_retention_days: monitor.history_retention_days
       }}
       onSubmit={handleSubmit}
       onCancel={handleCancel}

@@ -35,6 +35,7 @@ export interface CreateMonitorRequest {
   status?: 'active' | 'paused';
   settings?: Record<string, unknown>;
   tags?: Tag[];
+  history_retention_days?: number;
 }
 
 export interface UpdateMonitorRequest {
@@ -46,6 +47,7 @@ export interface UpdateMonitorRequest {
   status?: 'active' | 'paused';
   settings?: Record<string, unknown>;
   tags?: Tag[];
+  history_retention_days?: number;
 }
 
 export interface CreateSecretRequest {
@@ -331,6 +333,50 @@ export async function getMonitorHistory(
     `/monitors/${id}/history?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`
   );
   return envelope.points ?? [];
+}
+
+// ---------------------------------------------------------------------------
+// Extended History (aggregated/downsampled)
+// ---------------------------------------------------------------------------
+
+/** Aggregated history point — returned when step is used */
+export interface AggregatedHistoryPoint {
+  timestamp: string;
+  min_latency_ms: number | null;
+  max_latency_ms: number | null;
+  avg_latency_ms: number | null;
+  check_count: number;
+  uptime_ratio: number;
+}
+
+/** Extended history response — supports both raw and aggregated points */
+export interface HistoryResponseExtended {
+  monitor_id: string;
+  from: string;
+  to: string;
+  points?: HistoryPoint[];
+  aggregated_points?: AggregatedHistoryPoint[];
+  step?: number;
+  truncated?: boolean;
+}
+
+/** GET /api/v1/monitors/:id/history?from=&to=&step= (extended response with aggregation support) */
+export async function getMonitorHistoryExtended(
+  id: string,
+  from: string,
+  to: string,
+  step?: number
+): Promise<HistoryResponseExtended> {
+  const params = new URLSearchParams();
+  params.set('from', from);
+  params.set('to', to);
+  if (step !== undefined) {
+    params.set('step', String(step));
+  }
+  return apiRequest<HistoryResponseExtended>(
+    'GET',
+    `/monitors/${id}/history?${params.toString()}`
+  );
 }
 
 /** GET /api/v1/monitors/:id/stats — uptime percentages, SSL info, last error */
