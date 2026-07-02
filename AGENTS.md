@@ -191,6 +191,18 @@ Primary commands:
 - Future scope only (do not implement unless requested): QUIC, multi-tenant, status page, alert channels, Terraform provider.
 - Keep infra local-first with Docker Compose and reproducible startup.
 
+## MCP Server
+- The MCP server (`mcp/`) is a separate Go binary that proxies Pulse API endpoints to MCP-compatible AI clients.
+- **Co-change rule:** When any endpoint consumed by the MCP server is changed in `backend/api/openapi.yaml` or its handler implementation, the corresponding MCP tool handler(s) in `mcp/internal/tools/` and PulseClient method(s) in `mcp/internal/pulseapi/` MUST be updated in the same commit. Affected endpoints:
+  - `GET /monitors`
+  - `GET /monitors/{id}`
+  - `GET /monitors/{id}/stats`
+  - `GET /monitors/{id}/history`
+  - `GET /incidents`
+  - `GET /monitors/{id}/incidents`
+  - `POST /monitors`
+- **Breaking response-shape changes** (renamed/removed fields, type changes, restructured envelopes) additionally require updating the relevant tool's output projection logic and its property tests in `mcp/internal/tools/`.
+
 ## Development Skills
 When working on code, reference these skills for domain guidance:
 

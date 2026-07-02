@@ -45,3 +45,5 @@ tmp/
 # --- Docker-related (not needed inside context) ---
 docker-compose*.yml
 .dockerignore
+
+mcp

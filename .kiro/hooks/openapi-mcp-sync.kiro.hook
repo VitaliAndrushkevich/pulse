@@ -1,0 +1,18 @@
+{
+  "enabled": true,
+  "name": "OpenAPI MCP Sync Check",
+  "description": "When openapi.yaml is edited, asks the agent to check if MCP tools need updating to stay in sync with the API spec.",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "**/openapi.yaml"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "The OpenAPI spec (openapi.yaml) was just edited. Check if any MCP server tools, their descriptions, or input schemas need updating to stay in sync with the changed API surface. Report any mismatches found."
+  },
+  "workspaceFolderName": "pulse",
+  "shortName": "openapi-mcp-sync"
+}

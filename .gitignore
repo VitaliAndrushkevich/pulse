@@ -8,6 +8,9 @@
 backend/pulse
 backend/*.test
 
+# MCP artifacts
+mcp/*.test
+
 # Frontend artifacts
 frontend/node_modules/
 frontend/build/
@@ -32,3 +35,6 @@ coverage.out
 # Skill files
 .agents/skills
 .kiro/skills
+
+mcp/bin/
+pulse-mcp

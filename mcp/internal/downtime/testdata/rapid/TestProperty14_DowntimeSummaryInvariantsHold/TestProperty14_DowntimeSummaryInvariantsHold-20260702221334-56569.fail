@@ -1,0 +1,36 @@
+# 2026/07/02 22:13:34.666267 [TestProperty14_DowntimeSummaryInvariantsHold] [rapid] draw startUnix: 1577836800
+# 2026/07/02 22:13:34.666287 [TestProperty14_DowntimeSummaryInvariantsHold] [rapid] draw durationSec: 60
+# 2026/07/02 22:13:34.666288 [TestProperty14_DowntimeSummaryInvariantsHold] [rapid] draw numPoints: 3
+# 2026/07/02 22:13:34.666289 [TestProperty14_DowntimeSummaryInvariantsHold] [rapid] draw offsetSec: 0
+# 2026/07/02 22:13:34.666290 [TestProperty14_DowntimeSummaryInvariantsHold] [rapid] draw state: "up"
+# 2026/07/02 22:13:34.666291 [TestProperty14_DowntimeSummaryInvariantsHold] [rapid] draw offsetSec: 0
+# 2026/07/02 22:13:34.666292 [TestProperty14_DowntimeSummaryInvariantsHold] [rapid] draw state: "up"
+# 2026/07/02 22:13:34.666292 [TestProperty14_DowntimeSummaryInvariantsHold] [rapid] draw offsetSec: 60
+# 2026/07/02 22:13:34.666293 [TestProperty14_DowntimeSummaryInvariantsHold] [rapid] draw state: "down"
+# 2026/07/02 22:13:34.666294 [TestProperty14_DowntimeSummaryInvariantsHold] TotalDowntimeSeconds=0 but PeriodCount=1 (should be 0)
+# 
+v0.4.8#1058116246148396255
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x38e38e38e38e4
+0x3
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x1f2b5a0e61c3a6
+0x0
+0x0
+0x1

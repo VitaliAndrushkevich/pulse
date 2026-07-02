@@ -4,7 +4,10 @@
   "description": "After a frontend file is edited, reminds the agent to check if any new user-visible strings were added and ensures all locale files are updated with corresponding translation keys.",
   "version": "1",
   "when": {
-    "type": "postTaskExecution"
+    "type": "fileEdited",
+    "patterns": [
+      "frontend/**"
+    ]
   },
   "then": {
     "type": "askAgent",

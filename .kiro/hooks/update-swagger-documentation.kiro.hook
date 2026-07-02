@@ -4,10 +4,15 @@
   "name": "Update swagger documentation",
   "description": "Reflect changes for openapi",
   "when": {
-    "type": "postTaskExecution"
+    "type": "fileEdited",
+    "patterns": [
+      "backend/**"
+    ]
   },
   "then": {
     "type": "askAgent",
     "prompt": "Review if any kind of modifications were applied for backend endpoints. If so, reflect the changes in openapi spec and swagger documentation."
-  }
+  },
+  "workspaceFolderName": "pulse",
+  "shortName": "update-swagger-documentation"
 }

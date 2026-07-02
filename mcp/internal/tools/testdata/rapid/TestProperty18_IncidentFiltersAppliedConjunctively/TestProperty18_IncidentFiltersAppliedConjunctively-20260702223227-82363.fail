@@ -1,0 +1,36 @@
+# 2026/07/02 22:32:27.262044 [TestProperty18_IncidentFiltersAppliedConjunctively] [rapid] draw numIncidents: 1
+# 2026/07/02 22:32:27.262048 [TestProperty18_IncidentFiltersAppliedConjunctively] [rapid] draw monitorChoice: "660e8400-e29b-41d4-a716-446655440000"
+# 2026/07/02 22:32:27.262051 [TestProperty18_IncidentFiltersAppliedConjunctively] [rapid] draw incidentID: "inc-0000"
+# 2026/07/02 22:32:27.262052 [TestProperty18_IncidentFiltersAppliedConjunctively] [rapid] draw status: "open"
+# 2026/07/02 22:32:27.262053 [TestProperty18_IncidentFiltersAppliedConjunctively] [rapid] draw startedAt: 1000000000
+# 2026/07/02 22:32:27.262055 [TestProperty18_IncidentFiltersAppliedConjunctively] incident[0] "inc-0000" has monitor "660e8400-e29b-41d4-a716-446655440000", want "550e8400-e29b-41d4-a716-446655440000"
+# 
+v0.4.8#11935893768304527527
+0x0
+0x0
+0x0
+0x0
+0x1
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
