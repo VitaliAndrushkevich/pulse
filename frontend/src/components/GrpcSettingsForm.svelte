@@ -1,12 +1,17 @@
 <script lang="ts">
-  import type { GrpcSettings, TlsMode } from '$lib/types';
+  import type { GrpcSettings, TlsMode, ProtoSourceMeta, ProtoMessageSchema, ServiceMethodSelection } from '$lib/types';
+  import { getProtoSource } from '$lib/api';
   import { t } from '$lib/i18n';
+  import ProtoSourceUpload from './ProtoSourceUpload.svelte';
+  import PayloadEditor from './PayloadEditor.svelte';
 
   interface Props {
     settings: GrpcSettings;
+    monitorId?: string;
+    target?: string;
   }
 
-  let { settings = $bindable() }: Props = $props();
+  let { settings = $bindable(), monitorId, target }: Props = $props();
 
   const GRPC_STATUS_CODES = [
     { code: 0, name: 'OK' },
@@ -42,6 +47,30 @@
   let expectedStatuses = $state<number[]>(settings?.expected_statuses ?? [0]);
   let requestPayload = $state(settings?.request_payload ?? '');
 
+  // Proto source state
+  let protoSource = $state<ProtoSourceMeta | null>(null);
+  let selectedSchema = $state<ProtoMessageSchema | null>(null);
+
+  // Whether a proto source is available (uploaded or reflected)
+  let hasProtoSource = $derived(protoSource !== null);
+
+  // Load existing proto source on mount if monitorId is available
+  $effect(() => {
+    if (monitorId) {
+      loadProtoSource();
+    }
+  });
+
+  async function loadProtoSource() {
+    if (!monitorId) return;
+    try {
+      const source = await getProtoSource(monitorId);
+      protoSource = source;
+    } catch {
+      // silently fail — proto source may not exist yet
+    }
+  }
+
   // Reactive output — syncs internal state to bound settings prop
   $effect(() => {
     const result: GrpcSettings = {
@@ -61,6 +90,11 @@
 
     if (requestPayload.trim()) {
       result.request_payload = requestPayload;
+    }
+
+    // When proto source is loaded, always use proto_json format
+    if (hasProtoSource) {
+      result.payload_format = 'proto_json';
     }
 
     settings = result;
@@ -83,25 +117,23 @@
       expectedStatuses = [...expectedStatuses, code];
     }
   }
+
+  function handleSourceChanged(source: ProtoSourceMeta | null) {
+    protoSource = source;
+    if (!source) {
+      selectedSchema = null;
+      requestPayload = '';
+    }
+  }
+
+  function handleMethodSelected(selection: ServiceMethodSelection) {
+    serviceMethod = selection.full_method;
+    // TODO: fetch message schema from backend when that endpoint is available
+    selectedSchema = null;
+  }
 </script>
 
 <div class="space-y-6" data-testid="grpc-settings-form">
-  <!-- Service Method -->
-  <div>
-    <label for="grpc-service-method" class="block text-sm font-medium text-primary">{t('grpc.serviceMethod')}</label>
-    <input
-      id="grpc-service-method"
-      type="text"
-      bind:value={serviceMethod}
-      required
-      maxlength={512}
-      placeholder={t('grpc.serviceMethodPlaceholder')}
-      class="mt-1 block w-full rounded-md border border-[var(--color-border)] px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-      data-testid="grpc-service-method"
-    />
-    <p class="mt-1 text-xs text-secondary">{t('grpc.serviceMethodHelp')}</p>
-  </div>
-
   <!-- TLS Mode -->
   <div>
     <label for="grpc-tls-mode" class="block text-sm font-medium text-primary">{t('grpc.tlsMode')}</label>
@@ -209,18 +241,74 @@
     <p class="mt-1 text-xs text-secondary">{t('grpc.expectedStatusesHelp')}</p>
   </fieldset>
 
-  <!-- Request Payload -->
-  <div>
-    <label for="grpc-request-payload" class="block text-sm font-medium text-primary">{t('grpc.requestPayload')}</label>
-    <textarea
-      id="grpc-request-payload"
-      bind:value={requestPayload}
-      maxlength={65536}
-      rows={3}
-      placeholder={t('grpc.requestPayloadPlaceholder')}
-      class="mt-1 block w-full rounded-md border border-[var(--color-border)] px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-      data-testid="grpc-request-payload"
-    ></textarea>
-    <p class="mt-1 text-xs text-secondary">{t('grpc.requestPayloadHelp')}</p>
+  <!-- Proto Source Upload — always visible for gRPC monitors -->
+  <div class="space-y-3">
+    <div class="flex items-center justify-between">
+      <span class="block text-sm font-medium text-primary">{t('grpc.requestPayload')}</span>
+    </div>
+
+    {#if target}
+      <ProtoSourceUpload
+        {monitorId}
+        {target}
+        tlsMode={tlsMode}
+        currentSource={protoSource}
+        onSourceChanged={handleSourceChanged}
+        onMethodSelected={handleMethodSelected}
+      />
+    {:else}
+      <p class="text-xs text-secondary italic" data-testid="grpc-proto-target-hint">
+        {t('monitors.proto.reflectionHint')}
+      </p>
+    {/if}
+
+    <!-- Service Method (shown once proto source is loaded, auto-populated from selection) -->
+    {#if hasProtoSource}
+      <div>
+        <label for="grpc-service-method" class="block text-sm font-medium text-primary">{t('grpc.serviceMethod')}</label>
+        <input
+          id="grpc-service-method"
+          type="text"
+          bind:value={serviceMethod}
+          required
+          maxlength={512}
+          placeholder={t('grpc.serviceMethodPlaceholder')}
+          class="mt-1 block w-full rounded-md border border-[var(--color-border)] px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          data-testid="grpc-service-method"
+        />
+        <p class="mt-1 text-xs text-secondary">{t('grpc.serviceMethodHelp')}</p>
+      </div>
+    {:else}
+      <!-- Fallback: manual service method input when no proto source -->
+      <div>
+        <label for="grpc-service-method" class="block text-sm font-medium text-primary">{t('grpc.serviceMethod')}</label>
+        <input
+          id="grpc-service-method"
+          type="text"
+          bind:value={serviceMethod}
+          required
+          maxlength={512}
+          placeholder={t('grpc.serviceMethodPlaceholder')}
+          class="mt-1 block w-full rounded-md border border-[var(--color-border)] px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          data-testid="grpc-service-method"
+        />
+        <p class="mt-1 text-xs text-secondary">{t('grpc.serviceMethodHelp')}</p>
+      </div>
+    {/if}
+
+    <!-- JSON Payload Editor (shown when proto source is loaded) -->
+    {#if hasProtoSource}
+      <div>
+        <span class="block text-sm font-medium text-primary">{t('payloadEditor.label')}</span>
+        <p class="mt-0.5 text-xs text-secondary">{t('payloadEditor.jsonHint')}</p>
+        <div class="mt-2">
+          <PayloadEditor
+            bind:value={requestPayload}
+            schema={selectedSchema}
+            placeholder={t('payloadEditor.placeholder')}
+          />
+        </div>
+      </div>
+    {/if}
   </div>
 </div>

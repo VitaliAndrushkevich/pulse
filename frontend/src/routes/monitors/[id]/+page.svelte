@@ -48,9 +48,14 @@
 
   const typeBadgeColors: Record<string, string> = {
     http: 'bg-blue-100 text-blue-700',
+    http3: 'bg-cyan-100 text-cyan-700',
     tcp: 'bg-purple-100 text-purple-700',
     udp: 'bg-amber-100 text-amber-700',
-    websocket: 'bg-pink-100 text-pink-700'
+    websocket: 'bg-pink-100 text-pink-700',
+    grpc: 'bg-indigo-100 text-indigo-700',
+    dns: 'bg-teal-100 text-teal-700',
+    icmp: 'bg-orange-100 text-orange-700',
+    smtp: 'bg-rose-100 text-rose-700'
   };
 
   async function fetchData() {

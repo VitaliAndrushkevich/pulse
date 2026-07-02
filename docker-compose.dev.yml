@@ -3,6 +3,8 @@ services:
     image: golang:1.25
     container_name: pulse-backend-dev
     working_dir: /workspace/backend
+    cap_add:
+      - NET_RAW
     command: ["sh", "-c", "go mod download && go run ./cmd/pulse"]
     environment:
       PULSE_PORT: "8080"

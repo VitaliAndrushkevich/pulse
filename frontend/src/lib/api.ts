@@ -2,7 +2,7 @@
 
 import { getToken, clearToken } from '$lib/stores/auth.svelte';
 import { toastStore } from '$lib/stores/toast.svelte';
-import type { Monitor, PaginatedList, HistoryPoint, Incident, Secret, Tag, DashboardSummary } from '$lib/types';
+import type { Monitor, PaginatedList, HistoryPoint, Incident, Secret, Tag, DashboardSummary, ProtoSourceMeta } from '$lib/types';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -511,4 +511,156 @@ export async function createApiToken(data: CreateApiTokenRequest): Promise<Creat
 /** DELETE /api/v1/tokens/:id (revoke) */
 export async function revokeApiToken(id: string): Promise<ApiToken> {
   return apiRequest<ApiToken>('DELETE', `/tokens/${id}`);
+}
+
+// ---------------------------------------------------------------------------
+// Proto Source Management
+// ---------------------------------------------------------------------------
+
+/**
+ * Upload .proto or .desc files for a monitor's proto source.
+ * POST /api/v1/monitors/{id}/proto-source (multipart/form-data)
+ */
+export async function uploadProtoSource(
+  monitorId: string,
+  files: File[]
+): Promise<ProtoSourceMeta> {
+  const url = `${BASE_URL}/monitors/${monitorId}/proto-source`;
+
+  const formData = new FormData();
+  for (const file of files) {
+    formData.append('file', file);
+  }
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
+
+  const headers: Record<string, string> = {};
+  const token = getToken();
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  // NOTE: Do NOT set Content-Type — browser will set it with multipart boundary.
+
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      method: 'POST',
+      headers,
+      body: formData,
+      signal: controller.signal,
+    });
+  } catch (err: unknown) {
+    clearTimeout(timeoutId);
+    const isAbort = err instanceof DOMException && err.name === 'AbortError';
+    const message = isAbort
+      ? 'Upload timed out. Please check your connection and try again.'
+      : 'Unable to connect to the server. Please check your network connection.';
+    throw new NetworkError(message);
+  } finally {
+    clearTimeout(timeoutId);
+  }
+
+  const requestId = response.headers.get('X-Request-ID');
+
+  if (!response.ok) {
+    const envelope = (await response.json().catch(() => null)) as ErrorEnvelope | null;
+    throw new ApiRequestError(response.status, envelope?.error ?? null, requestId);
+  }
+
+  return (await response.json()) as ProtoSourceMeta;
+}
+
+/**
+ * Trigger Server Reflection discovery for a monitor's proto source.
+ * POST /api/v1/monitors/{id}/proto-source/reflect
+ */
+export async function triggerReflection(monitorId: string): Promise<ProtoSourceMeta> {
+  return apiRequest<ProtoSourceMeta>('POST', `/monitors/${monitorId}/proto-source/reflect`);
+}
+
+/**
+ * Ad-hoc Server Reflection — discover services without a saved monitor.
+ * POST /api/v1/grpc/reflect
+ * Used during monitor creation when no monitorId exists yet.
+ */
+export async function adHocReflect(target: string, tlsMode: string = 'tls'): Promise<ProtoSourceMeta> {
+  return apiRequest<ProtoSourceMeta>('POST', '/grpc/reflect', { target, tls_mode: tlsMode });
+}
+
+/**
+ * Ad-hoc proto file parsing — parse .proto/.desc files without a saved monitor.
+ * POST /api/v1/grpc/parse-proto (multipart/form-data)
+ * Used during monitor creation to discover services before the monitor exists.
+ */
+export async function adHocParseProto(files: File[]): Promise<ProtoSourceMeta> {
+  const url = `${BASE_URL}/grpc/parse-proto`;
+
+  const formData = new FormData();
+  for (const file of files) {
+    formData.append('file', file);
+  }
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
+
+  const headers: Record<string, string> = {};
+  const token = getToken();
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      method: 'POST',
+      headers,
+      body: formData,
+      signal: controller.signal,
+    });
+  } catch (err: unknown) {
+    clearTimeout(timeoutId);
+    const isAbort = err instanceof DOMException && err.name === 'AbortError';
+    const message = isAbort
+      ? 'Upload timed out. Please check your connection and try again.'
+      : 'Unable to connect to the server. Please check your network connection.';
+    throw new NetworkError(message);
+  } finally {
+    clearTimeout(timeoutId);
+  }
+
+  const requestId = response.headers.get('X-Request-ID');
+
+  if (!response.ok) {
+    const envelope = (await response.json().catch(() => null)) as ErrorEnvelope | null;
+    throw new ApiRequestError(response.status, envelope?.error ?? null, requestId);
+  }
+
+  return (await response.json()) as ProtoSourceMeta;
+}
+
+/**
+ * Get the current proto source metadata for a monitor.
+ * GET /api/v1/monitors/{id}/proto-source
+ * Returns null if no proto source is configured (404).
+ */
+export async function getProtoSource(monitorId: string): Promise<ProtoSourceMeta | null> {
+  try {
+    return await apiRequest<ProtoSourceMeta>('GET', `/monitors/${monitorId}/proto-source`, undefined, {
+      skipToast: true,
+    });
+  } catch (err) {
+    if (err instanceof ApiRequestError && err.statusCode === 404) {
+      return null;
+    }
+    throw err;
+  }
+}
+
+/**
+ * Delete the proto source for a monitor.
+ * DELETE /api/v1/monitors/{id}/proto-source
+ */
+export async function deleteProtoSource(monitorId: string): Promise<void> {
+  await apiRequest<{ ok: boolean }>('DELETE', `/monitors/${monitorId}/proto-source`);
 }

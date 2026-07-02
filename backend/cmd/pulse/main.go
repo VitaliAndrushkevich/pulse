@@ -114,7 +114,7 @@ func main() {
 	dynMetrics := monitor.NewDynamicMetrics(promRegistry)
 
 	// Initialize monitor engine (TASK-014 through TASK-020).
-	registry := monitor.DefaultRegistry()
+	registry := monitor.DefaultRegistry(queries)
 
 	// WebSocket hub (TASK-028).
 	wsHub := hub.New()

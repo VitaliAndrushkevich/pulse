@@ -256,6 +256,256 @@ paths:
         "401":
           $ref: "#/components/responses/Unauthorized"
 
+  /monitors/{id}/proto-source:
+    post:
+      operationId: uploadProtoSource
+      summary: Upload proto source files
+      description: >
+        Uploads .proto files or a compiled FileDescriptorSet (.desc) for the monitor.
+        Replaces any existing proto source. Maximum total upload size is 5MB.
+      tags: [Proto Source]
+      parameters:
+        - $ref: "#/components/parameters/MonitorID"
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                files:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                  description: ".proto files or a single .desc (FileDescriptorSet) file"
+      responses:
+        "200":
+          description: Proto source uploaded and parsed successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProtoSourceMeta"
+        "400":
+          description: >
+            Upload validation error. Possible error codes:
+            PROTO_PARSE_ERROR (invalid .proto syntax or FileDescriptorSet binary),
+            PROTO_UNRESOLVED_IMPORTS (.proto files reference imports not in the upload set),
+            PROTO_SIZE_EXCEEDED (upload exceeds 5MB limit).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    get:
+      operationId: getProtoSource
+      summary: Get proto source metadata
+      description: Returns metadata about the proto source configured for this monitor.
+      tags: [Proto Source]
+      parameters:
+        - $ref: "#/components/parameters/MonitorID"
+      responses:
+        "200":
+          description: Proto source metadata
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProtoSourceMeta"
+        "404":
+          description: >
+            Not found. Possible error codes:
+            PROTO_SOURCE_NOT_FOUND (no proto source configured for this monitor),
+            MONITOR_NOT_FOUND (monitor ID doesn't exist).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    delete:
+      operationId: deleteProtoSource
+      summary: Delete proto source
+      description: >
+        Removes the proto source from the monitor. If payload_format was proto_json,
+        it is reset to raw. This operation is idempotent.
+      tags: [Proto Source]
+      parameters:
+        - $ref: "#/components/parameters/MonitorID"
+      responses:
+        "200":
+          description: Proto source deleted (or did not exist)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: true
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /monitors/{id}/proto-source/reflect:
+    post:
+      operationId: reflectProtoSource
+      summary: Trigger Server Reflection
+      description: >
+        Connects to the monitor's gRPC target and discovers schemas via Server Reflection.
+        Replaces any existing proto source on success. The operation has a 10-second timeout.
+      tags: [Proto Source]
+      parameters:
+        - $ref: "#/components/parameters/MonitorID"
+      requestBody:
+        description: Empty body
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Reflection succeeded, proto source updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProtoSourceMeta"
+        "400":
+          description: >
+            Reflection error. Possible error codes:
+            REFLECTION_UNAVAILABLE (target server doesn't support Server Reflection),
+            REFLECTION_NO_SERVICES (reflection found only the reflection service itself).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "502":
+          description: >
+            Cannot reach target server. Error code: REFLECTION_CONNECTION_FAILED.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "504":
+          description: >
+            Reflection timed out. Error code: REFLECTION_TIMEOUT.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /grpc/reflect:
+    post:
+      operationId: adHocReflect
+      summary: Ad-hoc Server Reflection
+      description: >
+        Performs gRPC Server Reflection against an arbitrary target without requiring a saved monitor.
+        Used during monitor creation to discover services before the monitor exists in the database.
+        The operation has a 10-second timeout. Results are not persisted.
+      tags: [Proto Source]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - target
+              properties:
+                target:
+                  type: string
+                  description: "gRPC target address (host:port)"
+                  example: "api.example.com:443"
+                tls_mode:
+                  type: string
+                  enum: [plaintext, tls, tls_skip_verify]
+                  default: tls
+                  description: "TLS mode for the connection"
+      responses:
+        "200":
+          description: Reflection succeeded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProtoSourceMeta"
+        "400":
+          description: >
+            Reflection error. Possible error codes:
+            INVALID_REQUEST (missing or empty target),
+            REFLECTION_UNAVAILABLE (target doesn't support Server Reflection),
+            REFLECTION_NO_SERVICES (no discoverable services found).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "502":
+          description: >
+            Cannot reach target server. Error code: REFLECTION_CONNECTION_FAILED.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "504":
+          description: >
+            Reflection timed out. Error code: REFLECTION_TIMEOUT.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /grpc/parse-proto:
+    post:
+      operationId: adHocParseProto
+      summary: Ad-hoc proto file parsing
+      description: >
+        Parses uploaded .proto or .desc/.bin files without requiring a saved monitor.
+        Returns service metadata for method selection during monitor creation.
+        Results are not persisted. Maximum upload size is 5MB total.
+      tags: [Proto Source]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                files:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                  description: >
+                    One or more .proto, .desc, or .bin files to parse.
+                    Maximum 5MB total.
+      responses:
+        "200":
+          description: Proto files parsed successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProtoSourceMeta"
+        "400":
+          description: >
+            Parse error. Possible error codes:
+            PROTO_PARSE_ERROR (invalid proto content or unsupported file type),
+            PROTO_SIZE_EXCEEDED (upload exceeds 5MB limit),
+            PROTO_UNRESOLVED_IMPORTS (proto files have unresolved import dependencies).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
   /monitors/{id}/credentials:
     post:
       operationId: createMonitorCredential
@@ -610,7 +860,18 @@ components:
                 too many tags, duplicate key-value pairs, or reserved prefix usage);
                 INVALID_RETENTION_PERIOD - history_retention_days value is outside the
                 valid range of 1–365 or is not a valid integer;
-                INVALID_STEP - step query parameter is outside the valid range of 60–86400
+                INVALID_STEP - step query parameter is outside the valid range of 60–86400;
+                PROTO_PARSE_ERROR - invalid .proto syntax or FileDescriptorSet binary;
+                PROTO_UNRESOLVED_IMPORTS - .proto files reference imports not in the upload set;
+                PROTO_SIZE_EXCEEDED - upload exceeds 5MB limit;
+                PROTO_PAYLOAD_SIZE_EXCEEDED - Proto JSON payload exceeds 1MB;
+                PROTO_VALIDATION_ERROR - Proto JSON doesn't conform to message schema;
+                PROTO_SOURCE_REQUIRED - payload_format=proto_json but no proto source configured;
+                PROTO_SOURCE_NOT_FOUND - GET proto source when none exists;
+                REFLECTION_UNAVAILABLE - target server doesn't support Server Reflection;
+                REFLECTION_TIMEOUT - reflection operation exceeded 10s;
+                REFLECTION_CONNECTION_FAILED - cannot reach target gRPC server;
+                REFLECTION_NO_SERVICES - reflection found only the reflection service itself
             message:
               type: string
 
@@ -1210,6 +1471,14 @@ components:
           format: byte
           maxLength: 65536
           description: "Base64-encoded protobuf request message"
+        payload_format:
+          type: string
+          enum: [raw, proto_json]
+          default: raw
+          description: >
+            Payload interpretation mode. "raw" uses base64-encoded bytes (request_payload field),
+            "proto_json" uses Proto JSON format with schema validation against the configured
+            proto source.
 
     HTTPSettings:
       type: object
@@ -1320,6 +1589,10 @@ components:
           type: boolean
           default: true
           description: "Attempt STARTTLS upgrade after EHLO"
+        implicit_tls:
+          type: boolean
+          default: false
+          description: "Use implicit TLS (SMTPS) connection, typically on port 465. When true, starttls is ignored since TLS is established before the SMTP greeting."
         ehlo_domain:
           type: string
           default: "pulse.local"
@@ -1589,3 +1862,115 @@ components:
           type: string
           format: date-time
           description: When the state transition occurred (RFC 3339)
+
+    ProtoSourceMeta:
+      type: object
+      description: Metadata about a proto source configured for a monitor
+      required: [source_type, filenames, services, created_at, size_bytes]
+      properties:
+        source_type:
+          type: string
+          enum: [upload, reflection]
+          description: How the proto source was acquired
+        filenames:
+          type: array
+          items:
+            type: string
+          description: List of .proto filenames or descriptor source identifiers
+        services:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProtoService"
+          description: Discovered gRPC services and their methods
+        created_at:
+          type: string
+          format: date-time
+          description: When the proto source was created or last replaced
+        size_bytes:
+          type: integer
+          description: Size of the stored FileDescriptorSet in bytes
+
+    ProtoService:
+      type: object
+      description: A gRPC service discovered from proto source
+      required: [full_name, methods]
+      properties:
+        full_name:
+          type: string
+          description: Fully-qualified service name (e.g., mypackage.MyService)
+        methods:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProtoMethod"
+          description: Methods available in this service
+
+    ProtoMethod:
+      type: object
+      description: A method within a gRPC service
+      required: [name, full_name, input_type, output_type]
+      properties:
+        name:
+          type: string
+          description: Short method name (e.g., GetItem)
+        full_name:
+          type: string
+          description: Full method path (e.g., mypackage.MyService/GetItem)
+        input_type:
+          type: string
+          description: Fully-qualified input message type
+        output_type:
+          type: string
+          description: Fully-qualified output message type
+
+    ProtoMessageSchema:
+      type: object
+      description: Schema definition for a protobuf message type
+      required: [full_name, fields]
+      properties:
+        full_name:
+          type: string
+          description: Fully-qualified message type name
+        fields:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProtoField"
+          description: Fields defined in this message
+
+    ProtoField:
+      type: object
+      description: A field within a protobuf message
+      required: [name, json_name, type, repeated]
+      properties:
+        name:
+          type: string
+          description: Proto field name (snake_case)
+        json_name:
+          type: string
+          description: JSON field name (camelCase, as used in Proto JSON)
+        type:
+          type: string
+          description: >
+            Field type (e.g., int32, string, bool, bytes, enum, message,
+            or fully-qualified message/enum type name)
+        repeated:
+          type: boolean
+          description: Whether this field is a repeated (array) field
+        map_key_type:
+          type: string
+          description: Key type for map fields (e.g., string, int32)
+        map_value_type:
+          type: string
+          description: Value type for map fields
+        enum_values:
+          type: array
+          items:
+            type: string
+          description: Allowed enum value names (present only for enum-typed fields)
+        message_fields:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProtoField"
+          description: Nested fields for message-typed fields (recursive)
+        comment:
+          type: string
+          description: Proto source comment associated with this field (if any)

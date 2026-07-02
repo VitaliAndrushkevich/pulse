@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
@@ -17,6 +18,10 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/peer"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/descriptorpb"
+
+	"github.com/VitaliAndrushkevich/pulse/internal/proto"
+	db "github.com/VitaliAndrushkevich/pulse/internal/store/postgres"
 )
 
 // GRPCSettings holds configuration for the gRPC checker.
@@ -48,10 +53,25 @@ type GRPCSettings struct {
 	// RequestPayload is a base64-encoded protobuf message to send as the request body.
 	// Max decoded size: 1MB. Default: empty (zero-length payload).
 	RequestPayload string `json:"request_payload,omitempty"`
+
+	// PayloadFormat selects payload interpretation: "raw" (base64) or "proto_json".
+	// Default: "raw" (backward compatible).
+	PayloadFormat string `json:"payload_format,omitempty"`
+
+	// MonitorID is the monitor's UUID, populated by the scheduler before calling Check.
+	// Used internally for proto source lookups when payload_format is "proto_json".
+	MonitorID uuid.UUID `json:"monitor_id,omitempty"`
 }
 
 // GRPCChecker implements the Checker interface for gRPC monitors.
-type GRPCChecker struct{}
+type GRPCChecker struct {
+	queries *db.Queries
+}
+
+// NewGRPCChecker creates a GRPCChecker with access to the database for proto source lookups.
+func NewGRPCChecker(queries *db.Queries) *GRPCChecker {
+	return &GRPCChecker{queries: queries}
+}
 
 // Check executes a gRPC health check against the given target.
 func (g *GRPCChecker) Check(ctx context.Context, target string, settings json.RawMessage) Result {
@@ -87,7 +107,7 @@ func (g *GRPCChecker) Check(ctx context.Context, target string, settings json.Ra
 		result.LatencyMs = int32(time.Since(start).Milliseconds())
 		return result
 	}
-	reqBytes, err := validateRequestPayload(s.RequestPayload)
+	reqBytes, err := resolvePayload(ctx, g.queries, s)
 	if err != nil {
 		result.State = "down"
 		result.Error = err.Error()
@@ -338,4 +358,104 @@ func (rawCodec) Unmarshal(data []byte, v interface{}) error {
 
 func (rawCodec) Name() string {
 	return "raw"
+}
+
+// resolvePayload returns binary protobuf bytes from either base64 or Proto JSON format.
+// When format is "proto_json", it loads the proto source from DB, resolves the
+// message descriptor, and converts JSON to binary.
+func resolvePayload(ctx context.Context, queries *db.Queries, settings GRPCSettings) ([]byte, error) {
+	// Default or "raw" → existing base64 decode behavior.
+	if settings.PayloadFormat == "" || settings.PayloadFormat == "raw" {
+		return validateRequestPayload(settings.RequestPayload)
+	}
+
+	if settings.PayloadFormat != "proto_json" {
+		return nil, fmt.Errorf("unsupported payload_format: %q", settings.PayloadFormat)
+	}
+
+	// proto_json mode requires a database queries instance.
+	if queries == nil {
+		return nil, fmt.Errorf("proto source required for proto_json payload format")
+	}
+
+	// proto_json mode requires a valid monitor ID for proto source lookup.
+	if settings.MonitorID == uuid.Nil {
+		return nil, fmt.Errorf("proto source required for proto_json payload format")
+	}
+
+	// Load proto source from DB.
+	protoSource, err := queries.GetProtoSource(ctx, settings.MonitorID)
+	if err != nil {
+		return nil, fmt.Errorf("proto source required for proto_json payload format")
+	}
+
+	// Parse the stored descriptor bytes into FileDescriptorSet.
+	registry := proto.NewRegistry()
+	fds, err := registry.ParseFileDescriptorSet(protoSource.DescriptorBytes)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse stored proto source: %w", err)
+	}
+
+	// Resolve the service method's input message type.
+	serviceMethod := settings.ServiceMethod
+	if strings.TrimSpace(serviceMethod) == "" {
+		return nil, fmt.Errorf("service_method is required for proto_json payload format")
+	}
+
+	inputType, err := resolveInputType(fds, serviceMethod)
+	if err != nil {
+		return nil, err
+	}
+
+	// Resolve the message descriptor for the input type.
+	msgDesc, err := proto.ResolveMessageDescriptor(fds, inputType)
+	if err != nil {
+		return nil, fmt.Errorf("failed to resolve message type %q: %w", inputType, err)
+	}
+
+	// Validate payload size ≤ 1MB before conversion.
+	if len(settings.RequestPayload) > maxPayloadSize {
+		return nil, fmt.Errorf("request_payload size %d exceeds maximum of %d bytes (1MB)", len(settings.RequestPayload), maxPayloadSize)
+	}
+
+	// Convert Proto JSON to binary protobuf.
+	data, err := registry.ProtoJSONToBytes(msgDesc, []byte(settings.RequestPayload))
+	if err != nil {
+		return nil, fmt.Errorf("proto JSON conversion failed: %w", err)
+	}
+
+	// Validate converted payload size ≤ 1MB.
+	if len(data) > maxPayloadSize {
+		return nil, fmt.Errorf("request_payload decoded size %d exceeds maximum of %d bytes (1MB)", len(data), maxPayloadSize)
+	}
+
+	return data, nil
+}
+
+// resolveInputType extracts the input message type from the FileDescriptorSet
+// for the given service/method string (format: "package.Service/Method").
+func resolveInputType(fds *descriptorpb.FileDescriptorSet, serviceMethod string) (string, error) {
+	parts := strings.SplitN(serviceMethod, "/", 2)
+	if len(parts) != 2 {
+		return "", fmt.Errorf("invalid service_method format %q: expected \"Service/Method\"", serviceMethod)
+	}
+	serviceName, methodName := parts[0], parts[1]
+
+	// Extract metadata to find the input type for the method.
+	meta, err := proto.ExtractMetadata(fds)
+	if err != nil {
+		return "", fmt.Errorf("failed to extract proto metadata: %w", err)
+	}
+
+	for _, svc := range meta.Services {
+		if svc.FullName == serviceName {
+			for _, m := range svc.Methods {
+				if m.Name == methodName {
+					return m.InputType, nil
+				}
+			}
+		}
+	}
+
+	return "", fmt.Errorf("method %q not found in service %q", methodName, serviceName)
 }

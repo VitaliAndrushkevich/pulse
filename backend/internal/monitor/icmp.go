@@ -2,13 +2,11 @@ package monitor
 
 import (
 	"context"
+	"encoding/binary"
 	"encoding/json"
 	"fmt"
+	"math/rand"
 	"net"
-	"os/exec"
-	"runtime"
-	"strconv"
-	"strings"
 	"sync"
 	"time"
 )
@@ -108,7 +106,7 @@ func parseICMPSettings(settings json.RawMessage) ICMPSettings {
 	return s
 }
 
-// --- Production Pinger ---
+// --- Production Pinger (raw ICMP sockets, no exec) ---
 
 var (
 	prodPinger     Pinger
@@ -117,36 +115,110 @@ var (
 
 func defaultPingerInstance() Pinger {
 	prodPingerOnce.Do(func() {
-		prodPinger = &systemPinger{}
+		prodPinger = &rawPinger{}
 	})
 	return prodPinger
 }
 
-// systemPinger uses the system ping command as a fallback when raw ICMP
-// is not available (no CAP_NET_RAW).
-type systemPinger struct{}
+// rawPinger sends ICMP Echo Request packets using raw sockets.
+// Requires CAP_NET_RAW on Linux or running as root, or uses
+// unprivileged "udp" ICMP on supported kernels (Linux 3.0+, macOS).
+type rawPinger struct{}
 
-func (p *systemPinger) Ping(ctx context.Context, addr string, count int, useIPv6 bool) (int, int, time.Duration, error) {
-	// Resolve address first.
+func (p *rawPinger) Ping(ctx context.Context, addr string, count int, useIPv6 bool) (int, int, time.Duration, error) {
+	// Resolve address.
 	resolved, err := resolveAddr(addr, useIPv6)
 	if err != nil {
 		return 0, 0, 0, fmt.Errorf("resolve: %v", err)
 	}
 
-	// Use system ping command.
-	cmd := buildPingCommand(ctx, resolved, count, useIPv6)
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		// Parse output anyway — partial results may be available.
-		sent, received, avgRTT := parsePingOutput(string(output))
-		if sent > 0 {
-			return sent, received, avgRTT, nil
-		}
-		return count, 0, 0, fmt.Errorf("ping failed: %v", err)
+	// Determine network and ICMP type.
+	network := "ip4:icmp"
+	icmpType := uint8(8) // Echo Request for IPv4
+	if useIPv6 {
+		network = "ip6:ipv6-icmp"
+		icmpType = 128 // Echo Request for IPv6
 	}
 
-	sent, received, avgRTT := parsePingOutput(string(output))
-	return sent, received, avgRTT, nil
+	// Try privileged raw socket first, fall back to unprivileged UDP ICMP.
+	conn, err := net.ListenPacket(network, "")
+	if err != nil {
+		// Fallback: unprivileged ICMP via UDP (Linux 3.0+ with net.ipv4.ping_group_range).
+		udpNetwork := "udp4"
+		if useIPv6 {
+			udpNetwork = "udp6"
+		}
+		conn, err = net.ListenPacket(udpNetwork, "")
+		if err != nil {
+			return 0, 0, 0, fmt.Errorf("icmp listen: %v (try running with CAP_NET_RAW)", err)
+		}
+	}
+	defer conn.Close()
+
+	// Build destination address.
+	var dst net.Addr
+	if useIPv6 {
+		dst = &net.IPAddr{IP: net.ParseIP(resolved)}
+	} else {
+		dst = &net.IPAddr{IP: net.ParseIP(resolved)}
+	}
+	// If conn is UDP-based, use UDPAddr instead.
+	if _, ok := conn.(*net.UDPConn); ok {
+		port := 0 // kernel assigns ICMP id from source port
+		if useIPv6 {
+			dst = &net.UDPAddr{IP: net.ParseIP(resolved), Port: port}
+		} else {
+			dst = &net.UDPAddr{IP: net.ParseIP(resolved), Port: port}
+		}
+	}
+
+	id := uint16(rand.Intn(0xffff))
+	var totalRTT time.Duration
+	received := 0
+
+	for seq := 0; seq < count; seq++ {
+		// Check context before each packet.
+		select {
+		case <-ctx.Done():
+			return count, received, avgDuration(totalRTT, received), ctx.Err()
+		default:
+		}
+
+		msg := buildICMPEchoRequest(icmpType, id, uint16(seq), []byte("pulse-ping"))
+
+		// Set deadline from context or 5s per packet.
+		deadline := time.Now().Add(5 * time.Second)
+		if d, ok := ctx.Deadline(); ok && d.Before(deadline) {
+			deadline = d
+		}
+		_ = conn.SetWriteDeadline(deadline)
+		_ = conn.SetReadDeadline(deadline)
+
+		sendTime := time.Now()
+		_, err := conn.WriteTo(msg, dst)
+		if err != nil {
+			continue // count as lost
+		}
+
+		// Read reply.
+		buf := make([]byte, 1500)
+		for {
+			// Keep reading until we get our echo reply or timeout.
+			n, _, readErr := conn.ReadFrom(buf)
+			if readErr != nil {
+				break // timeout or error → packet lost
+			}
+
+			if matchesEchoReply(buf[:n], id, uint16(seq), useIPv6) {
+				received++
+				totalRTT += time.Since(sendTime)
+				break
+			}
+			// Not our packet, keep reading until deadline.
+		}
+	}
+
+	return count, received, avgDuration(totalRTT, received), nil
 }
 
 func resolveAddr(addr string, useIPv6 bool) (string, error) {
@@ -170,58 +242,89 @@ func resolveAddr(addr string, useIPv6 bool) (string, error) {
 	return ips[0].String(), nil
 }
 
-func buildPingCommand(ctx context.Context, addr string, count int, useIPv6 bool) *exec.Cmd {
-	countStr := strconv.Itoa(count)
+// buildICMPEchoRequest constructs an ICMP Echo Request packet with checksum.
+func buildICMPEchoRequest(icmpType uint8, id, seq uint16, payload []byte) []byte {
+	// ICMP header: Type(1) + Code(1) + Checksum(2) + ID(2) + Seq(2) + Payload
+	msgLen := 8 + len(payload)
+	msg := make([]byte, msgLen)
 
-	switch runtime.GOOS {
-	case "windows":
-		if useIPv6 {
-			return exec.CommandContext(ctx, "ping", "-6", "-n", countStr, addr)
-		}
-		return exec.CommandContext(ctx, "ping", "-n", countStr, addr)
-	default: // linux, darwin
-		pingCmd := "ping"
-		if useIPv6 {
-			pingCmd = "ping6"
-		}
-		return exec.CommandContext(ctx, pingCmd, "-c", countStr, "-W", "5", addr)
-	}
+	msg[0] = icmpType // Type
+	msg[1] = 0        // Code
+	// Checksum filled after construction.
+	binary.BigEndian.PutUint16(msg[4:6], id)
+	binary.BigEndian.PutUint16(msg[6:8], seq)
+	copy(msg[8:], payload)
+
+	// Compute checksum.
+	cs := icmpChecksum(msg)
+	binary.BigEndian.PutUint16(msg[2:4], cs)
+
+	return msg
 }
 
-func parsePingOutput(output string) (sent, received int, avgRTT time.Duration) {
-	lines := strings.Split(output, "\n")
-	for _, line := range lines {
-		line = strings.TrimSpace(line)
+// icmpChecksum computes the ICMP checksum per RFC 1071.
+func icmpChecksum(data []byte) uint16 {
+	var sum uint32
+	length := len(data)
 
-		// Parse packet stats line: "3 packets transmitted, 3 received, 0% packet loss"
-		if strings.Contains(line, "packets transmitted") {
-			parts := strings.Split(line, ",")
-			for _, part := range parts {
-				part = strings.TrimSpace(part)
-				if strings.Contains(part, "transmitted") {
-					fmt.Sscanf(part, "%d", &sent)
-				} else if strings.Contains(part, "received") {
-					fmt.Sscanf(part, "%d", &received)
-				}
-			}
-		}
-
-		// Parse RTT line: "rtt min/avg/max/mdev = 1.234/5.678/9.012/1.234 ms"
-		// or "round-trip min/avg/max/stddev = ..." (macOS)
-		if strings.Contains(line, "min/avg/max") {
-			eqIdx := strings.Index(line, "=")
-			if eqIdx > 0 {
-				stats := strings.TrimSpace(line[eqIdx+1:])
-				// Remove "ms" suffix.
-				stats = strings.TrimSuffix(stats, " ms")
-				parts := strings.Split(stats, "/")
-				if len(parts) >= 2 {
-					if avgMs, err := strconv.ParseFloat(parts[1], 64); err == nil {
-						avgRTT = time.Duration(avgMs * float64(time.Millisecond))
-					}
-				}
-			}
-		}
+	for i := 0; i+1 < length; i += 2 {
+		sum += uint32(binary.BigEndian.Uint16(data[i : i+2]))
 	}
-	return
+	if length%2 == 1 {
+		sum += uint32(data[length-1]) << 8
+	}
+
+	for sum>>16 != 0 {
+		sum = (sum & 0xffff) + (sum >> 16)
+	}
+
+	return ^uint16(sum)
+}
+
+// matchesEchoReply checks if the received packet is an ICMP Echo Reply matching our id/seq.
+func matchesEchoReply(data []byte, id, seq uint16, useIPv6 bool) bool {
+	// For raw IPv4 sockets, the kernel prepends the IP header (20 bytes typically).
+	// For IPv6 and UDP ICMP sockets, no IP header is present.
+	var icmpData []byte
+
+	if !useIPv6 && len(data) >= 28 {
+		// Check if this looks like it has an IPv4 header (version nibble = 4).
+		if data[0]>>4 == 4 {
+			hdrLen := int(data[0]&0x0f) * 4
+			if len(data) < hdrLen+8 {
+				return false
+			}
+			icmpData = data[hdrLen:]
+		} else {
+			icmpData = data
+		}
+	} else {
+		icmpData = data
+	}
+
+	if len(icmpData) < 8 {
+		return false
+	}
+
+	// Echo Reply type: 0 for IPv4, 129 for IPv6.
+	expectedType := uint8(0)
+	if useIPv6 {
+		expectedType = 129
+	}
+
+	if icmpData[0] != expectedType {
+		return false
+	}
+
+	replyID := binary.BigEndian.Uint16(icmpData[4:6])
+	replySeq := binary.BigEndian.Uint16(icmpData[6:8])
+
+	return replyID == id && replySeq == seq
+}
+
+func avgDuration(total time.Duration, count int) time.Duration {
+	if count == 0 {
+		return 0
+	}
+	return total / time.Duration(count)
 }

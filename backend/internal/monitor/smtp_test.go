@@ -295,6 +295,87 @@ func TestSMTPChecker_CustomEHLODomain(t *testing.T) {
 	}
 }
 
+func TestSMTPChecker_ImplicitTLS_Success(t *testing.T) {
+	cert := generateTestCert(t, time.Now().Add(90*24*time.Hour))
+
+	conn := newImplicitTLSMockConn(cert)
+	dialer := &mockSMTPDialer{conn: conn}
+	checker := &SMTPChecker{dialer: dialer}
+	settings, _ := json.Marshal(SMTPSettings{Port: 465, ImplicitTLS: true, EHLODomain: "pulse.local"})
+	result := checker.Check(context.Background(), "smtp.gmail.com", settings)
+
+	if result.State != "up" {
+		t.Fatalf("expected state 'up', got %q (error: %s)", result.State, result.Error)
+	}
+	if result.SSLDaysRemaining == nil {
+		t.Fatal("expected SSLDaysRemaining to be populated with implicit TLS")
+	}
+	if *result.SSLDaysRemaining <= 0 {
+		t.Fatalf("expected positive SSLDaysRemaining, got %d", *result.SSLDaysRemaining)
+	}
+}
+
+func TestSMTPChecker_ImplicitTLS_CertExpiry(t *testing.T) {
+	cert := generateTestCert(t, time.Now().Add(3*24*time.Hour))
+
+	conn := newImplicitTLSMockConn(cert)
+	dialer := &mockSMTPDialer{conn: conn}
+	checker := &SMTPChecker{dialer: dialer}
+	settings, _ := json.Marshal(SMTPSettings{Port: 465, ImplicitTLS: true, SSLExpiryThreshold: 7})
+	result := checker.Check(context.Background(), "smtp.gmail.com", settings)
+
+	if result.State != "down" {
+		t.Fatalf("expected state 'down' on cert expiry threshold, got %q", result.State)
+	}
+	if !strings.Contains(result.Error, "certificate expires") {
+		t.Fatalf("expected cert expiry error, got: %s", result.Error)
+	}
+}
+
+func TestSMTPChecker_ImplicitTLS_SkipsSTARTTLS(t *testing.T) {
+	cert := generateTestCert(t, time.Now().Add(90*24*time.Hour))
+
+	// Server does NOT advertise STARTTLS, but that's fine — implicit TLS skips it.
+	conn := newImplicitTLSMockConn(cert)
+	dialer := &mockSMTPDialer{conn: conn}
+	checker := &SMTPChecker{dialer: dialer}
+	// Both StartTLS and ImplicitTLS set — ImplicitTLS takes precedence.
+	settings, _ := json.Marshal(SMTPSettings{Port: 465, StartTLS: true, ImplicitTLS: true})
+	result := checker.Check(context.Background(), "smtp.gmail.com", settings)
+
+	if result.State != "up" {
+		t.Fatalf("expected state 'up', got %q (error: %s)", result.State, result.Error)
+	}
+	// Verify STARTTLS command was never sent.
+	for _, line := range conn.writtenLines {
+		if strings.Contains(line, "STARTTLS") {
+			t.Fatalf("STARTTLS should not be sent when implicit_tls is active, but found: %v", conn.writtenLines)
+		}
+	}
+}
+
+func TestSMTPChecker_ImplicitTLS_HandshakeFailure(t *testing.T) {
+	// Connection that fails TLS handshake — use a mock that returns no cert.
+	conn := &mockSMTPConn{
+		conversation: []string{}, // Empty — handshake should fail before reading.
+	}
+
+	dialer := &mockSMTPDialer{conn: conn}
+	checker := &SMTPChecker{dialer: dialer}
+	settings, _ := json.Marshal(SMTPSettings{Port: 465, ImplicitTLS: true})
+	result := checker.Check(context.Background(), "smtp.gmail.com", settings)
+
+	// Without GetPeerCert interface, it tries real TLS → fails on mock conn.
+	// The mock conn doesn't implement GetPeerCert, so it attempts real TLS handshake,
+	// which will fail. Let's verify the error path.
+	if result.State != "down" {
+		t.Fatalf("expected state 'down' on TLS handshake failure, got %q", result.State)
+	}
+	if !strings.Contains(result.Error, "implicit TLS handshake failed") {
+		t.Fatalf("expected implicit TLS handshake error, got: %s", result.Error)
+	}
+}
+
 func TestSMTPChecker_ContextCancellation(t *testing.T) {
 	dialer := &mockSMTPDialer{err: context.Canceled}
 	checker := &SMTPChecker{dialer: dialer}
@@ -544,4 +625,20 @@ func (c *tlsMockConn) GetPeerCert() *x509.Certificate {
 		return c.cert.Leaf
 	}
 	return nil
+}
+
+// newImplicitTLSMockConn simulates a connection where TLS is established before
+// the SMTP greeting (implicit TLS / SMTPS on port 465).
+// It implements GetPeerCert so the checker skips real TLS handshake in tests.
+func newImplicitTLSMockConn(cert *tls.Certificate) *tlsMockConn {
+	// After implicit TLS handshake, server sends greeting over encrypted channel.
+	conv := []string{
+		"220 smtp.gmail.com ESMTP ready\r\n",
+		"250-smtp.gmail.com\r\n250 OK\r\n",
+		"221 Bye\r\n",
+	}
+	return &tlsMockConn{
+		conversation: conv,
+		cert:         cert,
+	}
 }

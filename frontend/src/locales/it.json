@@ -451,5 +451,12 @@
     "sslExpiryThreshold": "SSL Expiry Threshold (days)",
     "sslExpiryThresholdPlaceholder": "14",
     "sslExpiryThresholdHelp": "Alert when certificate expires within this many days (0 = disabled)"
+  },
+  "payloadEditor": {
+    "placeholder": "Enter JSON payload (e.g. {\"name\": \"value\"})",
+    "label": "Request Payload (JSON)",
+    "jsonHint": "Write your gRPC request body as JSON. Use Format button for pretty-printing.",
+    "format": "Format",
+    "minify": "Minify"
   }
 }

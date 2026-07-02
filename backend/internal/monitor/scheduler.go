@@ -10,6 +10,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 
 	"github.com/VitaliAndrushkevich/pulse/internal/crypto"
@@ -257,6 +258,13 @@ func (s *Scheduler) executeCheck(ctx context.Context, m db.Monitor, tags map[str
 	checkCtx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 
+	// For gRPC monitors, inject the monitor_id into settings so the checker
+	// can look up proto sources when payload_format is "proto_json".
+	checkSettings := m.Settings
+	if m.Type == "grpc" {
+		checkSettings = injectMonitorID(m.Settings, m.ID)
+	}
+
 	// Load and decrypt credentials for HTTP and WebSocket monitors.
 	var creds []AuthCredential
 	if m.Type == "http" || m.Type == "http3" || m.Type == "websocket" {
@@ -287,12 +295,12 @@ func (s *Scheduler) executeCheck(ctx context.Context, m db.Monitor, tags map[str
 	var result Result
 	if len(creds) > 0 {
 		if ac, ok := checker.(AuthenticatedChecker); ok {
-			result = ac.CheckWithAuth(checkCtx, m.Target, m.Settings, creds)
+			result = ac.CheckWithAuth(checkCtx, m.Target, checkSettings, creds)
 		} else {
-			result = checker.Check(checkCtx, m.Target, m.Settings)
+			result = checker.Check(checkCtx, m.Target, checkSettings)
 		}
 	} else {
-		result = checker.Check(checkCtx, m.Target, m.Settings)
+		result = checker.Check(checkCtx, m.Target, checkSettings)
 	}
 	result.MonitorID = m.ID
 
@@ -406,6 +414,30 @@ func strPtr(s string) *string {
 		return nil
 	}
 	return &s
+}
+
+// injectMonitorID merges monitor_id into a settings JSON blob so the checker
+// can use it for DB lookups (e.g., proto source for proto_json payload format).
+func injectMonitorID(settings json.RawMessage, id uuid.UUID) json.RawMessage {
+	if len(settings) == 0 || string(settings) == "null" {
+		return json.RawMessage(fmt.Sprintf(`{"monitor_id":"%s"}`, id.String()))
+	}
+
+	// Parse existing settings, inject monitor_id, re-marshal.
+	var m map[string]json.RawMessage
+	if err := json.Unmarshal(settings, &m); err != nil {
+		// Fallback: return original settings unchanged.
+		return settings
+	}
+
+	idJSON, _ := json.Marshal(id.String())
+	m["monitor_id"] = idJSON
+
+	result, err := json.Marshal(m)
+	if err != nil {
+		return settings
+	}
+	return result
 }
 
 // metricMonitorURLLabel sanitizes a monitor target for safe exposure as a metric label.

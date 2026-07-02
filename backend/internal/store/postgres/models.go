@@ -79,6 +79,16 @@ type MonitorTag struct {
 	Value     string    `db:"value" json:"value"`
 }
 
+type ProtoSource struct {
+	ID              uuid.UUID       `db:"id" json:"id"`
+	MonitorID       uuid.UUID       `db:"monitor_id" json:"monitor_id"`
+	SourceType      string          `db:"source_type" json:"source_type"`
+	DescriptorBytes []byte          `db:"descriptor_bytes" json:"descriptor_bytes"`
+	Metadata        json.RawMessage `db:"metadata" json:"metadata"`
+	CreatedAt       time.Time       `db:"created_at" json:"created_at"`
+	UpdatedAt       time.Time       `db:"updated_at" json:"updated_at"`
+}
+
 type Secret struct {
 	ID             uuid.UUID `db:"id" json:"id"`
 	Name           string    `db:"name" json:"name"`

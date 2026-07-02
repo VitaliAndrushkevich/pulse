@@ -126,10 +126,11 @@
       ? {
           port: (initialValues.settings.port as number) ?? 25,
           starttls: (initialValues.settings.starttls as boolean) ?? true,
+          implicit_tls: (initialValues.settings.implicit_tls as boolean) ?? false,
           ehlo_domain: initialValues.settings.ehlo_domain as string | undefined,
           ssl_expiry_threshold: initialValues.settings.ssl_expiry_threshold as number | undefined,
         }
-      : { port: 25, starttls: true }
+      : { port: 25, starttls: true, implicit_tls: false }
   );
 
   // Pending credential for create mode (saved locally, sent after monitor creation)
@@ -546,7 +547,7 @@
   {/if}
 
   {#if type === 'grpc'}
-    <GrpcSettingsForm bind:settings={grpcSettings} />
+    <GrpcSettingsForm bind:settings={grpcSettings} {monitorId} {target} />
   {/if}
 
   {#if type === 'dns'}

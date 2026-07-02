@@ -11,21 +11,26 @@
   // Internal state
   let port = $state(settings?.port ?? 25);
   let starttls = $state(settings?.starttls ?? true);
+  let implicitTls = $state(settings?.implicit_tls ?? false);
   let ehloDomain = $state(settings?.ehlo_domain ?? '');
   let sslExpiryThreshold = $state<number | undefined>(settings?.ssl_expiry_threshold);
+
+  // Whether TLS is active (either STARTTLS or implicit)
+  let tlsActive = $derived(implicitTls || starttls);
 
   // Reactive output — syncs internal state to bound settings prop
   $effect(() => {
     const result: SmtpSettings = {
       port,
       starttls,
+      implicit_tls: implicitTls,
     };
 
     if (ehloDomain.trim()) {
       result.ehlo_domain = ehloDomain.trim();
     }
 
-    if (starttls && sslExpiryThreshold != null && sslExpiryThreshold > 0) {
+    if (tlsActive && sslExpiryThreshold != null && sslExpiryThreshold > 0) {
       result.ssl_expiry_threshold = sslExpiryThreshold;
     }
 
@@ -55,12 +60,27 @@
       <input
         type="checkbox"
         bind:checked={starttls}
-        class="rounded border-[var(--color-border)] text-blue-600 focus:ring-blue-500"
+        disabled={implicitTls}
+        class="rounded border-[var(--color-border)] text-blue-600 focus:ring-blue-500 disabled:opacity-50"
         data-testid="smtp-starttls"
       />
       <span>{t('smtp.starttls')}</span>
     </label>
     <p class="mt-1 text-xs text-secondary">{t('smtp.starttlsHelp')}</p>
+  </div>
+
+  <!-- Implicit TLS (SMTPS) -->
+  <div>
+    <label class="inline-flex items-center gap-2 text-sm text-secondary">
+      <input
+        type="checkbox"
+        bind:checked={implicitTls}
+        class="rounded border-[var(--color-border)] text-blue-600 focus:ring-blue-500"
+        data-testid="smtp-implicit-tls"
+      />
+      <span>{t('smtp.implicitTls')}</span>
+    </label>
+    <p class="mt-1 text-xs text-secondary">{t('smtp.implicitTlsHelp')}</p>
   </div>
 
   <!-- EHLO Domain -->
@@ -77,8 +97,8 @@
     <p class="mt-1 text-xs text-secondary">{t('smtp.ehloDomainHelp')}</p>
   </div>
 
-  <!-- SSL Expiry Threshold (visible only when starttls is enabled) -->
-  {#if starttls}
+  <!-- SSL Expiry Threshold (visible when any TLS is enabled) -->
+  {#if tlsActive}
     <div>
       <label for="smtp-ssl-expiry" class="block text-sm font-medium text-primary">{t('smtp.sslExpiryThreshold')}</label>
       <input

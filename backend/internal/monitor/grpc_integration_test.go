@@ -519,7 +519,7 @@ func TestIntegration_GRPCChecker_RegistryDispatch(t *testing.T) {
 	defer stop()
 
 	// Create a DefaultRegistry and resolve the "grpc" checker.
-	registry := DefaultRegistry()
+	registry := DefaultRegistry(nil)
 	checker, err := registry.Get("grpc")
 	if err != nil {
 		t.Fatalf("failed to get grpc checker from registry: %v", err)

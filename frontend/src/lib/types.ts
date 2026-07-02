@@ -13,6 +13,7 @@ export interface GrpcSettings {
   metadata?: Record<string, string>;
   expected_statuses: number[];
   request_payload?: string;
+  payload_format?: 'raw' | 'proto_json';
 }
 
 /** DNS record types supported by the DNS checker */
@@ -36,6 +37,7 @@ export interface IcmpSettings {
 export interface SmtpSettings {
   port?: number;
   starttls?: boolean;
+  implicit_tls?: boolean;
   ehlo_domain?: string;
   ssl_expiry_threshold?: number;
 }
@@ -235,3 +237,56 @@ export type WidgetId =
   | 'ssl-expiry'
   | 'heatmap'
   | 'events-feed';
+
+// ─── Proto Source Types ─────────────────────────────────────────────────────
+
+/** Proto source metadata returned by the proto-source API */
+export interface ProtoSourceMeta {
+  source_type: 'upload' | 'reflection';
+  filenames: string[];
+  services: ProtoService[];
+  created_at: string;
+  size_bytes: number;
+}
+
+/** A gRPC service discovered from a proto source */
+export interface ProtoService {
+  full_name: string;
+  methods: ProtoMethod[];
+}
+
+/** A single RPC method within a proto service */
+export interface ProtoMethod {
+  name: string;
+  full_name: string;
+  input_type: string;
+  output_type: string;
+}
+
+/** Selection result from the service/method selector */
+export interface ServiceMethodSelection {
+  service_name: string;   // e.g., "mypackage.MyService"
+  method_name: string;    // e.g., "GetItem"
+  full_method: string;    // e.g., "mypackage.MyService/GetItem"
+  input_type: string;     // e.g., "mypackage.GetItemRequest"
+  output_type: string;    // e.g., "mypackage.GetItemResponse"
+}
+
+/** Schema for a protobuf message type */
+export interface ProtoMessageSchema {
+  full_name: string;
+  fields: ProtoField[];
+}
+
+/** A single field in a protobuf message definition */
+export interface ProtoField {
+  name: string;
+  json_name: string;
+  type: string;
+  repeated: boolean;
+  map_key_type?: string;
+  map_value_type?: string;
+  enum_values?: string[];
+  message_fields?: ProtoField[];
+  comment?: string;
+}

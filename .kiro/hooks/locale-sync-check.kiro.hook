@@ -1,0 +1,15 @@
+{
+  "enabled": true,
+  "name": "Locale Sync Check",
+  "description": "After a frontend file is edited, reminds the agent to check if any new user-visible strings were added and ensures all locale files are updated with corresponding translation keys.",
+  "version": "1",
+  "when": {
+    "type": "postTaskExecution"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Check if the recently edited frontend file introduces any new user-visible strings. If it does: 1) Verify all strings use t('section.key') from $lib/i18n instead of hardcoded text. 2) Ensure corresponding keys exist in frontend/src/locales/en.json. 3) Add missing keys to ALL locale files in frontend/src/locales/*.json (use English value as placeholder for non-English locales). 4) Run the locale validation script if available: pnpm --filter frontend run validate-locales. Report what was found and what was updated."
+  },
+  "workspaceFolderName": "pulse",
+  "shortName": "locale-sync-check"
+}

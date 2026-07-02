@@ -21,6 +21,7 @@ type SMTPDialer interface {
 type SMTPSettings struct {
 	Port               int    `json:"port"`                 // default: 25
 	StartTLS           bool   `json:"starttls"`             // default: true
+	ImplicitTLS        bool   `json:"implicit_tls"`         // default: false; port 465 SMTPS
 	EHLODomain         string `json:"ehlo_domain"`          // default: "pulse.local"
 	SSLExpiryThreshold int    `json:"ssl_expiry_threshold"` // default: 0 (disabled)
 }
@@ -60,6 +61,31 @@ func (c *SMTPChecker) Check(ctx context.Context, target string, settings json.Ra
 		return result
 	}
 	defer conn.Close()
+
+	// For implicit TLS (SMTPS, port 465), wrap connection in TLS immediately.
+	var peerCert *x509.Certificate
+	if s.ImplicitTLS {
+		if certProvider, ok := conn.(interface{ GetPeerCert() *x509.Certificate }); ok {
+			// Test mock — extract cert without real TLS.
+			peerCert = certProvider.GetPeerCert()
+		} else {
+			tlsConn := tls.Client(conn, &tls.Config{
+				ServerName:         extractHost(address),
+				InsecureSkipVerify: true, //nolint:gosec // We inspect certs ourselves
+			})
+			if err := tlsConn.HandshakeContext(ctx); err != nil {
+				result.State = "down"
+				result.Error = fmt.Sprintf("smtp: implicit TLS handshake failed: %v", err)
+				result.LatencyMs = int32(time.Since(start).Milliseconds())
+				return result
+			}
+			state := tlsConn.ConnectionState()
+			if len(state.PeerCertificates) > 0 {
+				peerCert = state.PeerCertificates[0]
+			}
+			conn = tlsConn
+		}
+	}
 
 	// Create buffered reader for the connection.
 	reader := bufio.NewReader(conn)
@@ -104,8 +130,8 @@ func (c *SMTPChecker) Check(ctx context.Context, target string, settings json.Ra
 		return result
 	}
 
-	// Check STARTTLS.
-	if s.StartTLS {
+	// Check STARTTLS (skip if implicit TLS already active).
+	if s.StartTLS && !s.ImplicitTLS {
 		// Verify STARTTLS is advertised.
 		if !strings.Contains(strings.ToUpper(ehloResponse), "STARTTLS") {
 			result.State = "down"
@@ -139,7 +165,6 @@ func (c *SMTPChecker) Check(ctx context.Context, target string, settings json.Ra
 		}
 
 		// Upgrade to TLS.
-		var peerCert *x509.Certificate
 
 		// Check if conn supports GetPeerCert (mock testing).
 		if certProvider, ok := conn.(interface{ GetPeerCert() *x509.Certificate }); ok {
@@ -177,6 +202,19 @@ func (c *SMTPChecker) Check(ctx context.Context, target string, settings json.Ra
 				result.LatencyMs = int32(time.Since(start).Milliseconds())
 				return result
 			}
+		}
+	}
+
+	// Inspect certificate from implicit TLS (if not already inspected via STARTTLS).
+	if s.ImplicitTLS && peerCert != nil {
+		daysRemaining := int32(time.Until(peerCert.NotAfter).Hours() / 24)
+		result.SSLDaysRemaining = &daysRemaining
+
+		if s.SSLExpiryThreshold > 0 && int(daysRemaining) <= s.SSLExpiryThreshold {
+			result.State = "down"
+			result.Error = fmt.Sprintf("smtp: certificate expires in %d days (threshold: %d days)", daysRemaining, s.SSLExpiryThreshold)
+			result.LatencyMs = int32(time.Since(start).Milliseconds())
+			return result
 		}
 	}
 

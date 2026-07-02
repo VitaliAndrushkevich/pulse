@@ -118,7 +118,23 @@
     tcp: 'TCP',
     udp: 'UDP',
     websocket: 'WebSocket',
-    grpc: 'gRPC'
+    grpc: 'gRPC',
+    dns: 'DNS',
+    icmp: 'ICMP',
+    smtp: 'SMTP'
+  };
+
+  // Active pill colors per type
+  const typePillColors: Record<MonitorType, string> = {
+    http: 'bg-blue-600 text-white',
+    http3: 'bg-cyan-600 text-white',
+    tcp: 'bg-purple-600 text-white',
+    udp: 'bg-amber-600 text-white',
+    websocket: 'bg-pink-600 text-white',
+    grpc: 'bg-indigo-600 text-white',
+    dns: 'bg-teal-600 text-white',
+    icmp: 'bg-orange-600 text-white',
+    smtp: 'bg-rose-600 text-white'
   };
 </script>
 
@@ -151,7 +167,7 @@
           type="button"
           onclick={() => toggleType(type)}
           class="rounded-full px-3 py-1 text-xs font-medium transition {isActive
-            ? 'bg-blue-600 text-white'
+            ? typePillColors[type]
             : 'bg-[var(--color-bg-surface-hover)] text-secondary hover:bg-[var(--color-bg-surface-hover)]'}"
           aria-pressed={isActive}
           data-testid="type-pill-{type}"

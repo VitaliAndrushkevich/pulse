@@ -7,6 +7,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+
+	db "github.com/VitaliAndrushkevich/pulse/internal/store/postgres"
 )
 
 // Result is the protocol-neutral outcome of a single monitor check.
@@ -55,14 +57,16 @@ func (r *Registry) Get(monitorType string) (Checker, error) {
 }
 
 // DefaultRegistry returns a registry pre-populated with all built-in checkers.
-func DefaultRegistry() *Registry {
+// The queries parameter is passed to checkers that need database access (e.g., GRPCChecker
+// for proto source lookups). It may be nil if proto_json support is not needed.
+func DefaultRegistry(queries *db.Queries) *Registry {
 	reg := NewRegistry()
 	reg.Register("http", &HTTPChecker{})
 	reg.Register("http3", &HTTP3Checker{})
 	reg.Register("tcp", &TCPChecker{})
 	reg.Register("udp", &UDPChecker{})
 	reg.Register("websocket", &WebSocketChecker{})
-	reg.Register("grpc", &GRPCChecker{})
+	reg.Register("grpc", NewGRPCChecker(queries))
 	reg.Register("dns", &DNSChecker{})
 	reg.Register("icmp", &ICMPChecker{})
 	reg.Register("smtp", &SMTPChecker{})

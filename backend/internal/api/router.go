@@ -125,6 +125,14 @@ func NewRouter(deps Deps) *gin.Engine {
 	dashboardHandler := handlers.NewDashboardHandler(deps.Queries, deps.Pool)
 	dashboardHandler.Register(protected)
 
+	// Proto source management (grpc-proto-payload).
+	protoSourceHandler := handlers.NewProtoSourceHandler(deps.Queries, deps.Pool)
+	protoSourceHandler.Register(protected)
+
+	// Ad-hoc gRPC reflection (no monitor required — used during monitor creation).
+	protected.POST("/grpc/reflect", protoSourceHandler.AdHocReflect)
+	protected.POST("/grpc/parse-proto", protoSourceHandler.AdHocParseProto)
+
 	// SPA catch-all: serve embedded frontend assets when available (TASK-036).
 	if frontend.HasAssets() {
 		distFS, _ := fs.Sub(frontend.FS, "dist")

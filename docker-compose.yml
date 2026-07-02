@@ -27,6 +27,8 @@ services:
       DATABASE_URL: "postgres://pulse:pulse@postgres:5432/pulse?sslmode=disable"
     ports:
       - "8080:8080"
+    cap_add:
+      - NET_RAW  # Required for ICMP monitor (raw sockets)
     depends_on:
       postgres:
         condition: service_healthy

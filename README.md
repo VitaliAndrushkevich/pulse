@@ -203,6 +203,12 @@ Messages follow the envelope format:
 | `POST` | `/api/v1/secrets` | Create a secret |
 | `GET` | `/api/v1/secrets` | List secrets (values redacted) |
 | `POST` | `/api/v1/tokens` | Create API token |
+| `POST` | `/api/v1/monitors/{id}/proto-source` | Upload proto files for gRPC monitor |
+| `POST` | `/api/v1/monitors/{id}/proto-source/reflect` | Trigger Server Reflection for gRPC monitor |
+| `GET` | `/api/v1/monitors/{id}/proto-source` | Get proto source metadata |
+| `DELETE` | `/api/v1/monitors/{id}/proto-source` | Delete proto source |
+| `POST` | `/api/v1/grpc/reflect` | Ad-hoc Server Reflection (no monitor required) |
+| `POST` | `/api/v1/grpc/parse-proto` | Ad-hoc proto file parsing (no monitor required) |
 | `GET` | `/healthz` | Health check |
 | `GET` | `/metrics` | Prometheus metrics |
 
@@ -306,6 +312,16 @@ To regenerate favicon and PWA icons:
 cd frontend && node scripts/generate-icons.mjs
 ```
 
+## ICMP Monitoring
+
+The ICMP checker uses raw sockets (no `ping` binary required). This needs the `NET_RAW` capability:
+
+- **Docker**: The included `docker-compose.yml` already grants `cap_add: [NET_RAW]`.
+- **Bare metal**: Run with `CAP_NET_RAW` (`setcap cap_net_raw+ep ./pulse`) or as root, or on Linux 3.0+ with `sysctl net.ipv4.ping_group_range` covering the process GID (unprivileged UDP ICMP fallback).
+- **Kubernetes**: Add `NET_RAW` to the container's `securityContext.capabilities.add`.
+
+If neither privileged raw sockets nor unprivileged UDP ICMP are available, ICMP monitors will report an error on check execution.
+
 ## Docker Compose Override
 
 For local customization (different ports, extra services), create a `docker-compose.override.yml`:
@@ -328,7 +344,7 @@ Docker Compose automatically merges this with the base file.
 | Backend | Go 1.25, Gin, pgx/v5, sqlc, gorilla/websocket, golang-jwt/jwt/v5 |
 | Frontend | Svelte 5, SvelteKit, TypeScript strict, Tailwind CSS 3.4, uPlot |
 | Database | PostgreSQL 16 + TimescaleDB 2.17 |
-| Protocols | HTTP/HTTPS, HTTP/3 (QUIC), TCP, UDP, WebSocket, gRPC, DNS, ICMP, SMTP |
+| Protocols | HTTP/HTTPS, HTTP/3 (QUIC), TCP, UDP, WebSocket, gRPC, DNS, ICMP (raw sockets), SMTP |
 | Observability | Prometheus client_golang |
 | Container | Multi-stage Dockerfile (distroless runtime) |
 

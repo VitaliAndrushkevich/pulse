@@ -3,6 +3,7 @@ module github.com/VitaliAndrushkevich/pulse
 go 1.25.0
 
 require (
+	github.com/bufbuild/protocompile v0.14.1
 	github.com/gin-gonic/gin v1.12.0
 	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/golang-migrate/migrate/v4 v4.19.1
@@ -15,6 +16,7 @@ require (
 	golang.org/x/crypto v0.48.0
 	golang.org/x/sync v0.20.0
 	google.golang.org/grpc v1.81.1
+	google.golang.org/protobuf v1.36.11
 	pgregory.net/rapid v1.3.0
 )
 
@@ -59,5 +61,4 @@ require (
 	golang.org/x/text v0.34.0 // indirect
 	golang.org/x/tools v0.41.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260226221140-a57be14db171 // indirect
-	google.golang.org/protobuf v1.36.11 // indirect
 )
