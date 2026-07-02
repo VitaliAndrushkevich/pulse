@@ -6,6 +6,7 @@
   import { monitorStore } from '$lib/stores/monitors.svelte';
   import MonitorForm from '../../../../components/MonitorForm.svelte';
   import type { Monitor } from '$lib/types';
+  import { t } from '$lib/i18n';
 
   let monitor = $state<Monitor | null>(null);
   let loading = $state(true);
@@ -25,7 +26,7 @@
       if (err instanceof ApiRequestError && err.statusCode === 404) {
         notFound = true;
       } else {
-        error = err instanceof Error ? err.message : 'Failed to load monitor. Please try again.';
+        error = err instanceof Error ? err.message : t('monitors.errors.editLoadFailed');
       }
     } finally {
       loading = false;
@@ -50,7 +51,7 @@
 </script>
 
 <section class="space-y-6">
-  <h1 class="text-2xl font-bold tracking-tight text-primary">Edit Monitor</h1>
+  <h1 class="text-2xl font-bold tracking-tight text-primary">{t('monitors.edit')}</h1>
 
   {#if loading}
     <div class="flex items-center justify-center p-12" data-testid="loading-state">
@@ -59,19 +60,19 @@
           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
           <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
         </svg>
-        <span>Loading monitor...</span>
+        <span>{t('monitors.loadingMonitor')}</span>
       </div>
     </div>
 
   {:else if notFound}
     <div class="rounded-xl border border-[var(--color-border)] bg-surface p-12 text-center" data-testid="not-found-state">
-      <p class="text-lg font-medium text-primary">Monitor not found</p>
-      <p class="mt-2 text-sm text-secondary">The monitor you're looking for doesn't exist or has been deleted.</p>
+      <p class="text-lg font-medium text-primary">{t('monitors.notFound.title')}</p>
+      <p class="mt-2 text-sm text-secondary">{t('monitors.notFound.description')}</p>
       <a
         href="/monitors"
         class="mt-4 inline-block rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-700"
       >
-        Back to Monitors
+        {t('monitors.notFound.action')}
       </a>
     </div>
 
@@ -83,7 +84,7 @@
         onclick={() => fetchData()}
         class="mt-3 rounded-md bg-rose-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-rose-700 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2"
       >
-        Retry
+        {t('common.retry')}
       </button>
     </div>
 

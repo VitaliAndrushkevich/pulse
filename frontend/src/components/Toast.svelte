@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { toastStore } from '$lib/stores/toast.svelte';
+	import { t } from '$lib/i18n';
 
 	function getBgClass(type: 'error' | 'success' | 'info'): string {
 		switch (type) {
@@ -28,7 +29,7 @@
 	<div
 		class="fixed top-4 right-4 z-50 flex w-full max-w-sm flex-col gap-2"
 		aria-live="polite"
-		aria-label="Notifications"
+		aria-label={t('toast.notifications')}
 	>
 		{#each toastStore.toasts as toast (toast.id)}
 			<div
@@ -60,7 +61,7 @@
 					<div class="flex-1 min-w-0">
 						<p class="text-sm font-medium">{toast.message}</p>
 						{#if toast.type === 'error' && toast.requestId}
-							<p class="mt-1 text-xs opacity-75">Request ID: {toast.requestId}</p>
+							<p class="mt-1 text-xs opacity-75">{t('toast.requestId', { id: toast.requestId })}</p>
 						{/if}
 					</div>
 
@@ -68,7 +69,7 @@
 						<button
 							onclick={() => toastStore.dismissToast(toast.id)}
 							class="flex-shrink-0 rounded p-1 opacity-70 transition hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-current"
-							aria-label="Dismiss notification"
+							aria-label={t('toast.dismiss')}
 						>
 							<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
 								<line x1="18" y1="6" x2="6" y2="18" />

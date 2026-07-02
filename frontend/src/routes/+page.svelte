@@ -1,83 +1,168 @@
 <script lang="ts">
+  /**
+   * Dashboard Page — operational health overview.
+   *
+   * Composes all dashboard widgets in a responsive grid layout.
+   * Subscribes to patchBus for real-time updates and manages staleness.
+   *
+   * Requirements: 8.1, 8.2, 8.3, 8.4, 8.5, 8.6, 8.7, 9.1, 9.2
+   */
   import { onMount } from 'svelte';
-  import { monitorStore } from '$lib/stores/monitors.svelte';
-  import { getMonitors } from '$lib/api';
-  import VirtualList from '../components/VirtualList.svelte';
-  import MonitorRow from '../components/MonitorRow.svelte';
+  import { dashboardStore } from '$lib/stores/dashboard.svelte';
+  import { patchBus } from '$lib/stores/patchBus.svelte';
+  import { connectionStore } from '$lib/stores/connection.svelte';
+  import { t } from '$lib/i18n';
+  import type { MonitorPatch } from '$lib/types';
 
-  let loading = $state(true);
-  let error = $state<string | null>(null);
+  import HealthScore from '../components/dashboard/HealthScore.svelte';
+  import StatusRing from '../components/dashboard/StatusRing.svelte';
+  import IncidentsPanel from '../components/dashboard/IncidentsPanel.svelte';
+  import ResponseSparklines from '../components/dashboard/ResponseSparklines.svelte';
+  import SSLWarnings from '../components/dashboard/SSLWarnings.svelte';
+  import UptimeHeatmap from '../components/dashboard/UptimeHeatmap.svelte';
+  import EventsFeed from '../components/dashboard/EventsFeed.svelte';
+  import DataFreshness from '../components/dashboard/DataFreshness.svelte';
 
-  onMount(async () => {
-    try {
-      const result = await getMonitors(1, 500);
-      monitorStore.setMonitors(result.data);
-    } catch (e) {
-      error = e instanceof Error ? e.message : 'Failed to load monitors';
-    } finally {
-      loading = false;
+  // --- Staleness timer state ---
+  let stalenessTimer: ReturnType<typeof setTimeout> | null = null;
+  const STALENESS_TIMEOUT_MS = 60_000;
+
+  // --- Track previous connection status for reconnect detection ---
+  let previousConnectionStatus = $state(connectionStore.status);
+
+  function resetStalenessTimer(): void {
+    if (stalenessTimer !== null) {
+      clearTimeout(stalenessTimer);
     }
+    stalenessTimer = setTimeout(() => {
+      dashboardStore.markStale();
+    }, STALENESS_TIMEOUT_MS);
+  }
+
+  function handlePatch(patch: MonitorPatch): void {
+    // Apply patch to dashboard store (Req 9.1)
+    dashboardStore.applyPatch(patch);
+    // Clear stale indicator on new WS message (Req 9.5)
+    dashboardStore.clearStale();
+    // Reset staleness timer (Req 9.4)
+    resetStalenessTimer();
+  }
+
+  // --- Watch connection status for reconnection (Req 9.2) ---
+  $effect(() => {
+    const currentStatus = connectionStore.status;
+    if (previousConnectionStatus !== 'connected' && currentStatus === 'connected') {
+      // WS reconnected — re-fetch all data
+      dashboardStore.load();
+      dashboardStore.clearStale();
+      resetStalenessTimer();
+    }
+    previousConnectionStatus = currentStatus;
   });
+
+  onMount(() => {
+    // Load dashboard data on mount (Req 8.3)
+    dashboardStore.load();
+
+    // Subscribe to patchBus for monitor_status messages (Req 9.1)
+    const unsubscribe = patchBus.subscribe(handlePatch);
+
+    // Start staleness timer
+    resetStalenessTimer();
+
+    return () => {
+      unsubscribe();
+      if (stalenessTimer !== null) {
+        clearTimeout(stalenessTimer);
+      }
+    };
+  });
+
+  // --- Per-widget retry handlers ---
+  function retryWidget(widgetId: 'health-score' | 'status-ring' | 'incidents' | 'sparklines' | 'ssl-expiry' | 'heatmap' | 'events-feed'): () => void {
+    return () => {
+      dashboardStore.setWidgetError(widgetId, null);
+      dashboardStore.load();
+    };
+  }
 </script>
 
-<section class="space-y-6">
-  <h1 class="text-3xl font-bold tracking-tight text-primary">Uptime Dashboard</h1>
-
-  <!-- Stats Bar -->
-  <div class="grid gap-4 sm:grid-cols-3">
-    <article class="rounded-xl border border-[var(--color-border)] bg-surface p-4 shadow-sm">
-      <h2 class="text-sm font-medium text-secondary">Total Monitors</h2>
-      <p class="mt-2 text-2xl font-semibold text-primary" data-testid="stat-total">
-        {monitorStore.totalCount}
-      </p>
-    </article>
-    <article class="rounded-xl border border-[var(--color-border)] bg-surface p-4 shadow-sm">
-      <h2 class="text-sm font-medium text-secondary">Healthy</h2>
-      <p class="mt-2 text-2xl font-semibold text-emerald-600" data-testid="stat-healthy">
-        {monitorStore.healthyCount}
-      </p>
-    </article>
-    <article class="rounded-xl border border-[var(--color-border)] bg-surface p-4 shadow-sm">
-      <h2 class="text-sm font-medium text-secondary">Unhealthy</h2>
-      <p class="mt-2 text-2xl font-semibold text-rose-600" data-testid="stat-unhealthy">
-        {monitorStore.unhealthyCount}
-      </p>
-    </article>
+<section class="space-y-6 overflow-x-hidden">
+  <div class="flex items-center justify-between">
+    <h1 class="text-3xl font-bold tracking-tight text-primary">{t('dashboard.title')}</h1>
+    <DataFreshness lastUpdated={dashboardStore.lastUpdated} stale={dashboardStore.stale} />
   </div>
 
-  <!-- Monitor List -->
-  {#if loading}
-    <div class="flex items-center justify-center py-12" data-testid="loading-state">
-      <div class="flex items-center gap-3 text-secondary">
-        <svg class="h-5 w-5 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-        </svg>
-        <span>Loading monitors…</span>
-      </div>
+  <!-- Responsive grid: 3 columns at >= 768px, single-column below (Req 8.1, 8.7) -->
+  <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+    <!-- HealthScore — first in DOM order (Req 8.2) -->
+    <div class="rounded-xl border border-[var(--color-border)] bg-surface shadow-sm">
+      <HealthScore
+        data={dashboardStore.healthScore}
+        loading={dashboardStore.widgetLoading.get('health-score') ?? false}
+        error={dashboardStore.widgetErrors.get('health-score') ?? null}
+        onRetry={retryWidget('health-score')}
+      />
     </div>
-  {:else if error}
-    <div class="rounded-lg border border-red-200 bg-red-50 p-6 text-center" data-testid="error-state">
-      <p class="text-sm text-red-700">{error}</p>
-    </div>
-  {:else if monitorStore.list.length === 0}
-    <div class="rounded-lg border border-[var(--color-border)] bg-surface p-12 text-center" data-testid="empty-state">
-      <p class="text-lg font-medium text-primary">No monitors yet</p>
-      <p class="mt-2 text-sm text-secondary">Create your first monitor to start tracking uptime.</p>
-      <a
-        href="/monitors/create"
-        class="mt-4 inline-block rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-brand-700"
-      >
-        Create Monitor
-      </a>
-    </div>
-  {:else}
-    <div class="overflow-hidden rounded-lg border border-[var(--color-border)] bg-surface shadow-sm" data-testid="monitor-list">
-      {#snippet row(monitor: import('$lib/types').Monitor, _index: number)}
-        <MonitorRow {monitor} />
-      {/snippet}
 
-      <VirtualList items={monitorStore.list} itemHeight={64} {row} />
+    <!-- IncidentsPanel — second in DOM order (Req 8.2) -->
+    <div class="rounded-xl border border-[var(--color-border)] bg-surface shadow-sm md:col-span-2">
+      <IncidentsPanel
+        incidents={dashboardStore.activeIncidents}
+        loading={dashboardStore.widgetLoading.get('incidents') ?? false}
+        error={dashboardStore.widgetErrors.get('incidents') ?? null}
+        onRetry={retryWidget('incidents')}
+      />
     </div>
-  {/if}
+
+    <!-- StatusRing -->
+    <div class="rounded-xl border border-[var(--color-border)] bg-surface shadow-sm">
+      <StatusRing
+        data={dashboardStore.statusDistribution}
+        loading={dashboardStore.widgetLoading.get('status-ring') ?? false}
+        error={dashboardStore.widgetErrors.get('status-ring') ?? null}
+        onRetry={retryWidget('status-ring')}
+      />
+    </div>
+
+    <!-- ResponseSparklines -->
+    <div class="rounded-xl border border-[var(--color-border)] bg-surface shadow-sm md:col-span-2">
+      <ResponseSparklines
+        monitors={dashboardStore.topLatencyMonitors}
+        loading={dashboardStore.widgetLoading.get('sparklines') ?? false}
+        error={dashboardStore.widgetErrors.get('sparklines') ?? null}
+        onRetry={retryWidget('sparklines')}
+      />
+    </div>
+
+    <!-- UptimeHeatmap -->
+    <div class="rounded-xl border border-[var(--color-border)] bg-surface shadow-sm md:col-span-3">
+      <UptimeHeatmap
+        data={dashboardStore.heatmap}
+        loading={dashboardStore.widgetLoading.get('heatmap') ?? false}
+        error={dashboardStore.widgetErrors.get('heatmap') ?? null}
+        onRetry={retryWidget('heatmap')}
+      />
+    </div>
+
+    <!-- SSLWarnings -->
+    <div class="rounded-xl border border-[var(--color-border)] bg-surface shadow-sm md:col-span-2">
+      <SSLWarnings
+        entries={dashboardStore.sslExpiry}
+        loading={dashboardStore.widgetLoading.get('ssl-expiry') ?? false}
+        error={dashboardStore.widgetErrors.get('ssl-expiry') ?? null}
+        onRetry={retryWidget('ssl-expiry')}
+      />
+    </div>
+
+    <!-- EventsFeed -->
+    <div class="rounded-xl border border-[var(--color-border)] bg-surface shadow-sm">
+      <EventsFeed
+        events={dashboardStore.recentEvents}
+        loading={dashboardStore.widgetLoading.get('events-feed') ?? false}
+        error={dashboardStore.widgetErrors.get('events-feed') ?? null}
+        onRetry={retryWidget('events-feed')}
+      />
+    </div>
+  </div>
 </section>

@@ -138,3 +138,75 @@ export interface MonitorStats {
   ssl?: SSLInfo;
   last_error?: LastErrorInfo;
 }
+
+// ─── Dashboard Summary Types ────────────────────────────────────────────────
+
+/** Dashboard summary response from GET /api/v1/dashboard/summary */
+export interface DashboardSummary {
+  health_score: HealthScoreData;
+  status_distribution: StatusDistribution;
+  active_incidents: ActiveIncident[];
+  top_latency_monitors: TopLatencyMonitor[];
+  ssl_expiry: SSLExpiryEntry[];
+  heatmap: HeatmapHour[];
+  recent_events: RecentEvent[];
+  generated_at: string;
+}
+
+export interface HealthScoreData {
+  uptime_percent: number;
+  active_monitor_count: number;
+  partial_data: boolean;
+}
+
+export interface StatusDistribution {
+  up: number;
+  down: number;
+  unknown: number;
+  total: number;
+}
+
+export interface ActiveIncident {
+  monitor_id: string;
+  monitor_name: string;
+  started_at: string;
+  cause: string | null;
+  state: 'down';
+}
+
+export interface TopLatencyMonitor {
+  monitor_id: string;
+  monitor_name: string;
+  avg_latency_ms: number;
+}
+
+export interface SSLExpiryEntry {
+  monitor_id: string;
+  monitor_name: string;
+  days_remaining: number;
+  expires_at: string;
+}
+
+export interface HeatmapHour {
+  hour_start: string;
+  up_count: number;
+  down_count: number;
+  unknown_count: number;
+}
+
+export interface RecentEvent {
+  monitor_id: string;
+  monitor_name: string;
+  from_state: 'up' | 'down' | 'unknown';
+  to_state: 'up' | 'down' | 'unknown';
+  occurred_at: string;
+}
+
+export type WidgetId =
+  | 'health-score'
+  | 'status-ring'
+  | 'incidents'
+  | 'sparklines'
+  | 'ssl-expiry'
+  | 'heatmap'
+  | 'events-feed';

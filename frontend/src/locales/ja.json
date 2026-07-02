@@ -1,0 +1,421 @@
+{
+  "app": {
+    "name": "Pulse",
+    "title": "{page} — Pulse"
+  },
+  "nav": {
+    "dashboard": "ダッシュボード",
+    "monitors": "モニター",
+    "settings": "設定",
+    "logout": "ログアウト",
+    "home": "Pulse — ホーム"
+  },
+  "common": {
+    "save": "保存",
+    "cancel": "キャンセル",
+    "delete": "削除",
+    "confirm": "確認",
+    "retry": "再試行",
+    "apply": "適用",
+    "back": "戻る",
+    "loading": "読み込み中...",
+    "error": "エラーが発生しました",
+    "copy": "コピー",
+    "copied": "コピーしました！",
+    "remove": "除去",
+    "replace": "置換",
+    "add": "追加",
+    "none": "なし",
+    "never": "なし",
+    "na": "N/A",
+    "active": "アクティブ",
+    "paused": "一時停止",
+    "saving": "保存中…",
+    "creating": "作成中…",
+    "deleting": "削除中…",
+    "revoking": "取り消し中…",
+    "pageOf": "{totalPages}ページ中{page}ページ",
+    "previous": "前へ",
+    "next": "次へ"
+  },
+  "connection": {
+    "live": "ライブ",
+    "reconnecting": "再接続中…",
+    "paused": "ライブ更新停止中",
+    "statusLive": "接続状態：ライブ",
+    "statusPaused": "接続状態：ライブ更新停止中"
+  },
+  "login": {
+    "title": "Pulseにサインイン",
+    "subtitle": "認証情報を入力して続行してください",
+    "email": "メールアドレス",
+    "emailPlaceholder": "user@example.com",
+    "password": "パスワード",
+    "passwordPlaceholder": "••••••••",
+    "submit": "サインイン",
+    "submitting": "サインイン中…",
+    "errors": {
+      "invalidCredentials": "メールアドレスまたはパスワードが無効です",
+      "networkError": "サービスが利用できません。後でもう一度お試しください。",
+      "unexpected": "サービスが利用できません。後でもう一度お試しください。"
+    }
+  },
+  "setup": {
+    "title": "Pulseへようこそ",
+    "subtitle": "管理者アカウントを作成して開始してください",
+    "email": "メールアドレス",
+    "emailPlaceholder": "admin@example.com",
+    "password": "パスワード",
+    "confirmPassword": "パスワード確認",
+    "submit": "管理者アカウントを作成",
+    "submitting": "アカウント作成中…",
+    "checkingStatus": "セットアップ状態を確認中…",
+    "errors": {
+      "statusCheck": "セットアップ状態を確認できません。サーバーは起動していますか？",
+      "alreadyCompleted": "セットアップは既に完了しています。ログインページにリダイレクトします…",
+      "failed": "セットアップに失敗しました。もう一度お試しください。",
+      "networkError": "サービスが利用できません。後でもう一度お試しください。",
+      "unexpected": "予期しないエラーが発生しました。"
+    },
+    "validation": {
+      "passwordLength": "パスワードは8文字以上である必要があります",
+      "passwordsMismatch": "パスワードが一致しません"
+    }
+  },
+  "dashboard": {
+    "title": "稼働状況ダッシュボード",
+    "stats": {
+      "total": "モニター合計",
+      "healthy": "正常",
+      "unhealthy": "異常"
+    },
+    "empty": {
+      "title": "モニターがまだありません",
+      "description": "最初のモニターを作成して稼働状況の追跡を始めましょう。",
+      "action": "モニターを作成"
+    },
+    "loading": "モニターを読み込み中…",
+    "error": "モニターの読み込みに失敗しました",
+    "healthScore": {
+      "title": "ヘルススコア",
+      "noData": "データなし",
+      "value": "ヘルススコア：{value}",
+      "partialData": "部分的なデータ"
+    },
+    "statusRing": {
+      "title": "ステータス分布",
+      "ariaLabel": "{up}稼働中、{down}ダウン、{unknown}不明"
+    },
+    "incidents": {
+      "title": "アクティブなインシデント",
+      "allOperational": "全システム正常稼働中",
+      "overflow": "+ 他{count}件"
+    },
+    "heatmap": {
+      "title": "稼働ヒートマップ（24時間）",
+      "ariaLabel": "過去24時間のシステム状態を時間ごとに表示する稼働ヒートマップ",
+      "blockAria": "{time}：{up}稼働中、{down}ダウン、{unknown}不明",
+      "tooltipCounts": "↑{up} ↓{down} ?{unknown}"
+    },
+    "sparklines": {
+      "title": "レスポンスタイム",
+      "empty": "レイテンシデータなし"
+    },
+    "ssl": {
+      "title": "SSL有効期限警告",
+      "daysRemaining": "{count}日",
+      "expired": "期限切れ",
+      "expiresOn": "{date}に期限切れ"
+    },
+    "freshness": {
+      "label": "最終更新：",
+      "stale": "データが古い可能性があります"
+    },
+    "events": {
+      "title": "最近のイベント",
+      "empty": "最近のアクティビティなし",
+      "transition": "{from} → {to}",
+      "justNow": "たった今",
+      "secondsAgo": "{count}秒前",
+      "minutesAgo": "{count}分前",
+      "hoursAgo": "{count}時間前",
+      "daysAgo": "{count}日前"
+    }
+  },
+  "monitors": {
+    "title": "モニター",
+    "create": "モニターを作成",
+    "edit": "モニターを編集",
+    "loading": "モニターを読み込み中…",
+    "loadingDetails": "モニター詳細を読み込み中…",
+    "loadingMonitor": "モニターを読み込み中…",
+    "empty": {
+      "title": "モニターが見つかりません。",
+      "action": "最初のモニターを作成"
+    },
+    "notFound": {
+      "title": "モニターが見つかりません",
+      "description": "お探しのモニターは存在しないか、削除されました。",
+      "action": "モニター一覧に戻る"
+    },
+    "errors": {
+      "loadFailed": "モニターの読み込みに失敗しました。もう一度お試しください。",
+      "detailFailed": "モニター詳細の読み込みに失敗しました。もう一度お試しください。",
+      "deleteFailed": "モニターの削除に失敗しました。もう一度お試しください。",
+      "editLoadFailed": "モニターの読み込みに失敗しました。もう一度お試しください。"
+    },
+    "deleteConfirm": "「{name}」を削除してもよろしいですか？この操作は取り消せません。",
+    "status": {
+      "up": "稼働中",
+      "down": "ダウン",
+      "unknown": "不明",
+      "active": "アクティブ",
+      "paused": "一時停止"
+    },
+    "detail": {
+      "edit": "編集",
+      "delete": "削除",
+      "backToMonitors": "モニター一覧に戻る",
+      "tabs": {
+        "overview": "概要",
+        "history": "履歴"
+      },
+      "checkInterval": "{seconds}秒ごとに確認",
+      "stats": {
+        "response": "レスポンス",
+        "avgResponse": "平均レスポンス",
+        "uptime": "稼働率",
+        "certExpiry": "証明書有効期限",
+        "current": "（現在）",
+        "period24h": "（24時間）",
+        "period30d": "（30日間）",
+        "noData": "（データなし）",
+        "days": "{count}日"
+      },
+      "timeline": {
+        "title": "ステータスタイムライン（24時間）"
+      },
+      "responseTime": {
+        "title": "レスポンスタイム（24時間）"
+      },
+      "configuration": {
+        "title": "設定",
+        "target": "対象",
+        "interval": "間隔",
+        "timeout": "タイムアウト",
+        "lastChecked": "最終確認",
+        "nextCheck": "次回確認",
+        "created": "作成日",
+        "notScheduled": "未スケジュール"
+      },
+      "incidents": {
+        "title": "最近のインシデント",
+        "empty": "インシデントの記録なし。",
+        "ongoing": "進行中"
+      },
+      "pause": {
+        "title": "モニターを一時停止しますか？",
+        "description": "一時停止すると{name}の全てのヘルスチェックが停止します。一時停止中はデータが収集されません。",
+        "button": "一時停止",
+        "pausing": "一時停止中..."
+      },
+      "resume": {
+        "title": "モニターを再開しますか？",
+        "description": "再開すると{name}のヘルスチェックが再開されます。次回チェックはまもなく実行されます。",
+        "button": "再開",
+        "resuming": "再開中..."
+      }
+    },
+    "form": {
+      "name": "名前",
+      "namePlaceholder": "マイモニター",
+      "type": "タイプ",
+      "target": "対象",
+      "interval": "間隔（秒）",
+      "timeout": "タイムアウト（秒）",
+      "status": "ステータス",
+      "statusActive": "アクティブ",
+      "statusPaused": "一時停止",
+      "retention": "履歴保持期間（日）",
+      "retentionHelp": "チェック履歴データの保持日数（1～365、デフォルト30）",
+      "expectedStatusCodes": "期待するステータスコード",
+      "expectedStatusCodesPlaceholder": "200, 201, 204",
+      "expectedStatusCodesHelp": "成功とみなすカンマ区切りHTTPステータスコード",
+      "skipTlsVerify": "証明書検証を無効化（TLS検証をスキップ）",
+      "skipTlsVerifyHelp": "有効にすると、TLS証明書チェーンとホスト名の検証をスキップします。注意して使用してください。",
+      "customHeaders": "カスタムヘッダー",
+      "customHeadersHelp": "各チェックリクエストで送信される非秘密ヘッダー（最大5つ）。IPでサーバーを監視するには、ドメイン名のHostヘッダーを追加してください。",
+      "addHeader": "+ ヘッダーを追加",
+      "headerNamePlaceholder": "ヘッダー名",
+      "headerValuePlaceholder": "値",
+      "removeHeader": "ヘッダーを削除",
+      "payload": "ペイロード",
+      "payloadPlaceholder": "ping",
+      "payloadHelp": "UDPターゲットに送信するデータ",
+      "handshakeMessage": "ハンドシェイクメッセージ",
+      "handshakeMessagePlaceholder": "ping",
+      "handshakeMessageHelp": "WebSocket接続確立後に送信するメッセージ",
+      "secretReference": "シークレット参照",
+      "secretReferenceHelp": "このモニターに関連付けるオプションのシークレット",
+      "submitCreate": "モニターを作成",
+      "submitUpdate": "モニターを更新",
+      "error": "エラー",
+      "unexpectedError": "予期しないエラーが発生しました",
+      "targetHelp": {
+        "http": "URLまたはドメイン名（デフォルト：https://）",
+        "tcp": "形式：ホスト:ポート",
+        "udp": "形式：ホスト:ポート",
+        "websocket": "ws://またはwss://スキームのURL、またはホスト名（デフォルト：wss://）",
+        "grpc": "形式：ホスト:ポート"
+      }
+    },
+    "filter": {
+      "expand": "フィルター",
+      "collapse": "フィルターを閉じる",
+      "selectKey": "キーを選択",
+      "addTag": "タグ",
+      "back": "← 戻る",
+      "cancel": "キャンセル",
+      "removeTag": "タグ{key}:{value}を削除"
+    }
+  },
+  "settings": {
+    "title": "設定",
+    "description": "アカウントとAPIアクセスを管理します。",
+    "language": {
+      "title": "言語",
+      "label": "表示言語"
+    },
+    "tokens": {
+      "title": "APIトークン",
+      "description": "APIトークンはPulse APIへのプログラマティックアクセスを提供します。CI/CDパイプライン、自動化スクリプト、外部統合に使用してください。",
+      "createTitle": "新しいトークンを作成",
+      "createLabel": "トークン名",
+      "createPlaceholder": "例：ci-deploy, grafana-read",
+      "createButton": "トークンを作成",
+      "existingTitle": "既存のトークン",
+      "existingDescription": "トークンの値は作成後に表示されません。メタデータのみが表示されます。",
+      "loadingTokens": "トークンを読み込み中…",
+      "emptyState": "APIトークンはまだ作成されていません。",
+      "tableHeaders": {
+        "name": "名前",
+        "created": "作成日",
+        "lastUsed": "最終使用",
+        "expires": "有効期限",
+        "actions": "操作"
+      },
+      "revoke": "取り消し",
+      "revoked": "取り消し済み",
+      "expired": "期限切れ",
+      "errors": {
+        "networkList": "サーバーに接続できません。ネットワーク接続を確認してください。",
+        "unexpectedList": "トークンの読み込み中に予期しないエラーが発生しました。",
+        "networkCreate": "サーバーに接続できません。もう一度お試しください。",
+        "unexpectedCreate": "予期しないエラーが発生しました。もう一度お試しください。"
+      }
+    }
+  },
+  "auth": {
+    "title": "認証",
+    "description": "このモニターのヘルスチェックリクエスト用の認証情報を設定します。",
+    "createDescription": "このモニターのヘルスチェックリクエスト用のオプション認証情報。",
+    "authType": "認証タイプ",
+    "types": {
+      "none": "なし",
+      "bearer": "Bearerトークン",
+      "basic": "Basic認証",
+      "header": "カスタムヘッダー"
+    },
+    "fields": {
+      "token": "トークン",
+      "tokenPlaceholder": "Bearerトークンを入力",
+      "username": "ユーザー名",
+      "usernamePlaceholder": "ユーザー名を入力",
+      "password": "パスワード",
+      "passwordPlaceholder": "パスワードを入力",
+      "headerName": "ヘッダー名",
+      "headerNamePlaceholder": "例：X-API-Key",
+      "headerValue": "ヘッダー値",
+      "headerValuePlaceholder": "ヘッダー値を入力"
+    },
+    "validation": {
+      "tokenRequired": "トークンは必須です",
+      "usernameRequired": "ユーザー名は必須です",
+      "passwordRequired": "パスワードは必須です",
+      "headerNameRequired": "ヘッダー名は必須です",
+      "headerValueRequired": "ヘッダー値は必須です"
+    },
+    "addCredential": "認証情報を追加",
+    "pendingCredential": "{authType}認証情報はモニターと共に作成されます。",
+    "replacingNotice": "認証情報を置換中 — 以下に新しい値を入力してください。",
+    "cancelReplace": "キャンセル"
+  },
+  "credentials": {
+    "empty": "このモニターに認証情報は設定されていません。",
+    "created": "{date}に作成",
+    "confirmDelete": "確認しますか？",
+    "delete": "削除",
+    "replace": "置換",
+    "cancel": "キャンセル"
+  },
+  "modal": {
+    "secretTitle": "シークレット値",
+    "secretWarning": "このシークレットは再表示されません。閉じる前にコピーしてください。",
+    "secretLabel": "シークレット値",
+    "secretDismiss": "シークレットをコピーしました"
+  },
+  "toast": {
+    "dismiss": "通知を閉じる",
+    "notifications": "通知",
+    "requestId": "リクエストID：{id}"
+  },
+  "grpc": {
+    "serviceMethod": "サービスメソッド",
+    "serviceMethodPlaceholder": "grpc.health.v1.Health/Check",
+    "serviceMethodHelp": "完全修飾gRPCサービスとメソッド（Package.Service/Method）",
+    "tlsMode": "TLSモード",
+    "tlsModes": {
+      "plaintext": "プレーンテキスト",
+      "tls": "TLS",
+      "tlsSkipVerify": "TLS（検証なし）"
+    },
+    "sslExpiryThreshold": "SSL有効期限しきい値（日）",
+    "sslExpiryThresholdPlaceholder": "30",
+    "sslExpiryThresholdHelp": "証明書がこの日数内に期限切れになる場合にアラート",
+    "metadata": "メタデータ",
+    "addMetadata": "メタデータを追加",
+    "metadataKeyPlaceholder": "キー",
+    "metadataValuePlaceholder": "値",
+    "metadataHelp": "各リクエストで送信されるカスタムgRPCメタデータヘッダー",
+    "removeMetadataRow": "メタデータ行{index}を削除",
+    "expectedStatuses": "期待するステータスコード",
+    "expectedStatusesHelp": "正常な応答とみなすgRPCステータスコード",
+    "requestPayload": "リクエストペイロード（Base64）",
+    "requestPayloadPlaceholder": "Base64エンコードされたprotobufメッセージ",
+    "requestPayloadHelp": "オプションのBase64エンコードprotobufリクエストボディ"
+  },
+  "timeRange": {
+    "custom": "カスタム",
+    "start": "開始",
+    "end": "終了",
+    "validation": {
+      "bothRequired": "開始時刻と終了時刻の両方を選択してください",
+      "invalidDates": "無効な日付値",
+      "startBeforeEnd": "開始時刻は終了時刻より前である必要があります"
+    },
+    "retentionNotice": "選択した範囲が{days}日の保持期間を超えています。データが不完全な場合があります。",
+    "truncatedNotice": "データはモニターの保持期間（{days}日）に切り詰められました。"
+  },
+  "history": {
+    "loading": "履歴を読み込み中…",
+    "error": "履歴データの読み込みに失敗しました。",
+    "empty": "選択した期間にデータがありません。",
+    "retry": "再試行"
+  },
+  "errors": {
+    "generic": "エラーが発生しました",
+    "network": "サービスが利用できません。後でもう一度お試しください。",
+    "unexpected": "予期しないエラーが発生しました。",
+    "notFound": "見つかりません"
+  }
+}

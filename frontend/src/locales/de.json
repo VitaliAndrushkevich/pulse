@@ -1,0 +1,421 @@
+{
+  "app": {
+    "name": "Pulse",
+    "title": "{page} — Pulse"
+  },
+  "nav": {
+    "dashboard": "Übersicht",
+    "monitors": "Monitore",
+    "settings": "Einstellungen",
+    "logout": "Abmelden",
+    "home": "Pulse — Startseite"
+  },
+  "common": {
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "delete": "Löschen",
+    "confirm": "Bestätigen",
+    "retry": "Erneut versuchen",
+    "apply": "Anwenden",
+    "back": "Zurück",
+    "loading": "Laden...",
+    "error": "Etwas ist schiefgelaufen",
+    "copy": "Kopieren",
+    "copied": "Kopiert!",
+    "remove": "Entfernen",
+    "replace": "Ersetzen",
+    "add": "Hinzufügen",
+    "none": "Keine",
+    "never": "Nie",
+    "na": "K/A",
+    "active": "Aktiv",
+    "paused": "Pausiert",
+    "saving": "Speichern…",
+    "creating": "Erstellen…",
+    "deleting": "Löschen…",
+    "revoking": "Widerrufen…",
+    "pageOf": "Seite {page} von {totalPages}",
+    "previous": "Zurück",
+    "next": "Weiter"
+  },
+  "connection": {
+    "live": "Live",
+    "reconnecting": "Verbindung wird wiederhergestellt…",
+    "paused": "Live-Updates pausiert",
+    "statusLive": "Verbindungsstatus: live",
+    "statusPaused": "Verbindungsstatus: Live-Updates pausiert"
+  },
+  "login": {
+    "title": "Bei Pulse anmelden",
+    "subtitle": "Geben Sie Ihre Anmeldedaten ein, um fortzufahren",
+    "email": "E-Mail",
+    "emailPlaceholder": "user@example.com",
+    "password": "Passwort",
+    "passwordPlaceholder": "••••••••",
+    "submit": "Anmelden",
+    "submitting": "Anmeldung…",
+    "errors": {
+      "invalidCredentials": "Ungültige E-Mail oder Passwort",
+      "networkError": "Dienst nicht verfügbar. Bitte später erneut versuchen.",
+      "unexpected": "Dienst nicht verfügbar. Bitte später erneut versuchen."
+    }
+  },
+  "setup": {
+    "title": "Willkommen bei Pulse",
+    "subtitle": "Erstellen Sie Ihr Admin-Konto, um zu beginnen",
+    "email": "E-Mail",
+    "emailPlaceholder": "admin@example.com",
+    "password": "Passwort",
+    "confirmPassword": "Passwort bestätigen",
+    "submit": "Admin-Konto erstellen",
+    "submitting": "Konto wird erstellt…",
+    "checkingStatus": "Setup-Status wird geprüft…",
+    "errors": {
+      "statusCheck": "Setup-Status konnte nicht geprüft werden. Läuft der Server?",
+      "alreadyCompleted": "Setup wurde bereits abgeschlossen. Weiterleitung zur Anmeldung…",
+      "failed": "Setup fehlgeschlagen. Bitte erneut versuchen.",
+      "networkError": "Dienst nicht verfügbar. Bitte später erneut versuchen.",
+      "unexpected": "Ein unerwarteter Fehler ist aufgetreten."
+    },
+    "validation": {
+      "passwordLength": "Passwort muss mindestens 8 Zeichen lang sein",
+      "passwordsMismatch": "Passwörter stimmen nicht überein"
+    }
+  },
+  "dashboard": {
+    "title": "Verfügbarkeits-Dashboard",
+    "stats": {
+      "total": "Monitore gesamt",
+      "healthy": "Gesund",
+      "unhealthy": "Fehlerhaft"
+    },
+    "empty": {
+      "title": "Noch keine Monitore",
+      "description": "Erstellen Sie Ihren ersten Monitor, um die Verfügbarkeit zu überwachen.",
+      "action": "Monitor erstellen"
+    },
+    "loading": "Monitore werden geladen…",
+    "error": "Monitore konnten nicht geladen werden",
+    "healthScore": {
+      "title": "Gesundheits-Score",
+      "noData": "Keine Daten verfügbar",
+      "value": "Gesundheits-Score: {value}",
+      "partialData": "Unvollständige Daten"
+    },
+    "statusRing": {
+      "title": "Statusverteilung",
+      "ariaLabel": "{up} erreichbar, {down} ausgefallen, {unknown} unbekannt"
+    },
+    "incidents": {
+      "title": "Aktive Vorfälle",
+      "allOperational": "Alle Systeme betriebsbereit",
+      "overflow": "+ {count} weitere"
+    },
+    "heatmap": {
+      "title": "Verfügbarkeits-Heatmap (24h)",
+      "ariaLabel": "Verfügbarkeits-Heatmap mit stündlichem Systemstatus der letzten 24 Stunden",
+      "blockAria": "{time}: {up} erreichbar, {down} ausgefallen, {unknown} unbekannt",
+      "tooltipCounts": "↑{up} ↓{down} ?{unknown}"
+    },
+    "sparklines": {
+      "title": "Antwortzeit",
+      "empty": "Keine Latenzdaten verfügbar"
+    },
+    "ssl": {
+      "title": "SSL-Ablaufwarnungen",
+      "daysRemaining": "{count} Tage",
+      "expired": "Abgelaufen",
+      "expiresOn": "Läuft ab am {date}"
+    },
+    "freshness": {
+      "label": "Zuletzt aktualisiert:",
+      "stale": "Daten können veraltet sein"
+    },
+    "events": {
+      "title": "Letzte Ereignisse",
+      "empty": "Keine aktuelle Aktivität",
+      "transition": "{from} → {to}",
+      "justNow": "gerade eben",
+      "secondsAgo": "vor {count}s",
+      "minutesAgo": "vor {count}min",
+      "hoursAgo": "vor {count}h",
+      "daysAgo": "vor {count}T"
+    }
+  },
+  "monitors": {
+    "title": "Monitore",
+    "create": "Monitor erstellen",
+    "edit": "Monitor bearbeiten",
+    "loading": "Monitore werden geladen…",
+    "loadingDetails": "Monitor-Details werden geladen…",
+    "loadingMonitor": "Monitor wird geladen…",
+    "empty": {
+      "title": "Keine Monitore gefunden.",
+      "action": "Erstellen Sie Ihren ersten Monitor"
+    },
+    "notFound": {
+      "title": "Monitor nicht gefunden",
+      "description": "Der gesuchte Monitor existiert nicht oder wurde gelöscht.",
+      "action": "Zurück zu Monitoren"
+    },
+    "errors": {
+      "loadFailed": "Monitore konnten nicht geladen werden. Bitte erneut versuchen.",
+      "detailFailed": "Monitor-Details konnten nicht geladen werden. Bitte erneut versuchen.",
+      "deleteFailed": "Monitor konnte nicht gelöscht werden. Bitte erneut versuchen.",
+      "editLoadFailed": "Monitor konnte nicht geladen werden. Bitte erneut versuchen."
+    },
+    "deleteConfirm": "Möchten Sie \"{name}\" wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.",
+    "status": {
+      "up": "Erreichbar",
+      "down": "Ausgefallen",
+      "unknown": "Unbekannt",
+      "active": "Aktiv",
+      "paused": "Pausiert"
+    },
+    "detail": {
+      "edit": "Bearbeiten",
+      "delete": "Löschen",
+      "backToMonitors": "Zurück zu Monitoren",
+      "tabs": {
+        "overview": "Übersicht",
+        "history": "Verlauf"
+      },
+      "checkInterval": "Prüfung alle {seconds}s",
+      "stats": {
+        "response": "Antwortzeit",
+        "avgResponse": "Ø Antwortzeit",
+        "uptime": "Verfügbarkeit",
+        "certExpiry": "Zertifikat",
+        "current": "(Aktuell)",
+        "period24h": "(24 Stunden)",
+        "period30d": "(30 Tage)",
+        "noData": "(noch keine Daten)",
+        "days": "{count} Tage"
+      },
+      "timeline": {
+        "title": "Status-Zeitlinie (24h)"
+      },
+      "responseTime": {
+        "title": "Antwortzeit (24h)"
+      },
+      "configuration": {
+        "title": "Konfiguration",
+        "target": "Ziel",
+        "interval": "Intervall",
+        "timeout": "Timeout",
+        "lastChecked": "Letzte Prüfung",
+        "nextCheck": "Nächste Prüfung",
+        "created": "Erstellt",
+        "notScheduled": "Nicht geplant"
+      },
+      "incidents": {
+        "title": "Letzte Vorfälle",
+        "empty": "Keine Vorfälle verzeichnet.",
+        "ongoing": "Andauernd"
+      },
+      "pause": {
+        "title": "Monitor pausieren?",
+        "description": "Beim Pausieren werden alle Prüfungen für {name} gestoppt. Während der Pause werden keine Daten erfasst.",
+        "button": "Pausieren",
+        "pausing": "Pausieren..."
+      },
+      "resume": {
+        "title": "Monitor fortsetzen?",
+        "description": "Beim Fortsetzen werden die Prüfungen für {name} neu gestartet. Die nächste Prüfung erfolgt in Kürze.",
+        "button": "Fortsetzen",
+        "resuming": "Fortsetzen..."
+      }
+    },
+    "form": {
+      "name": "Name",
+      "namePlaceholder": "Mein Monitor",
+      "type": "Typ",
+      "target": "Ziel",
+      "interval": "Intervall (Sekunden)",
+      "timeout": "Timeout (Sekunden)",
+      "status": "Status",
+      "statusActive": "Aktiv",
+      "statusPaused": "Pausiert",
+      "retention": "Aufbewahrungsdauer (Tage)",
+      "retentionHelp": "Anzahl der Tage zur Aufbewahrung von Prüfungsdaten (1–365, Standard 30)",
+      "expectedStatusCodes": "Erwartete Statuscodes",
+      "expectedStatusCodesPlaceholder": "200, 201, 204",
+      "expectedStatusCodesHelp": "Kommagetrennte HTTP-Statuscodes, die als erfolgreich gelten",
+      "skipTlsVerify": "Zertifikatsprüfung deaktivieren (TLS-Verifizierung überspringen)",
+      "skipTlsVerifyHelp": "Bei Aktivierung überspringt der Monitor die TLS-Zertifikatsketten- und Hostnamen-Verifizierung. Mit Vorsicht verwenden.",
+      "customHeaders": "Benutzerdefinierte Header",
+      "customHeadersHelp": "Nicht-geheime Header, die bei jeder Prüfung gesendet werden (bis zu 5). Um einen Server per IP zu überwachen, fügen Sie einen Host-Header mit dem Domainnamen hinzu.",
+      "addHeader": "+ Header hinzufügen",
+      "headerNamePlaceholder": "Header-Name",
+      "headerValuePlaceholder": "Wert",
+      "removeHeader": "Header entfernen",
+      "payload": "Payload",
+      "payloadPlaceholder": "ping",
+      "payloadHelp": "Daten, die an das UDP-Ziel gesendet werden",
+      "handshakeMessage": "Handshake-Nachricht",
+      "handshakeMessagePlaceholder": "ping",
+      "handshakeMessageHelp": "Nachricht, die nach dem WebSocket-Verbindungsaufbau gesendet wird",
+      "secretReference": "Secret-Referenz",
+      "secretReferenceHelp": "Optionales Secret für diesen Monitor",
+      "submitCreate": "Monitor erstellen",
+      "submitUpdate": "Monitor aktualisieren",
+      "error": "Fehler",
+      "unexpectedError": "Ein unerwarteter Fehler ist aufgetreten",
+      "targetHelp": {
+        "http": "URL oder Domainname (Standard: https://)",
+        "tcp": "Format: Host:Port",
+        "udp": "Format: Host:Port",
+        "websocket": "URL mit ws:// oder wss://, oder Hostname (Standard: wss://)",
+        "grpc": "Format: Host:Port"
+      }
+    },
+    "filter": {
+      "expand": "Filter",
+      "collapse": "Filterleiste einklappen",
+      "selectKey": "Schlüssel wählen",
+      "addTag": "Tag",
+      "back": "← Zurück",
+      "cancel": "Abbrechen",
+      "removeTag": "Tag {key}:{value} entfernen"
+    }
+  },
+  "settings": {
+    "title": "Einstellungen",
+    "description": "Verwalten Sie Ihr Konto und den API-Zugang.",
+    "language": {
+      "title": "Sprache",
+      "label": "Anzeigesprache"
+    },
+    "tokens": {
+      "title": "API-Token",
+      "description": "API-Token ermöglichen programmatischen Zugriff auf die Pulse-API. Verwenden Sie sie für CI/CD-Pipelines, Automatisierungsskripte und externe Integrationen.",
+      "createTitle": "Neues Token erstellen",
+      "createLabel": "Token-Name",
+      "createPlaceholder": "z.B. ci-deploy, grafana-read",
+      "createButton": "Token erstellen",
+      "existingTitle": "Vorhandene Token",
+      "existingDescription": "Token-Werte werden nach der Erstellung nicht mehr angezeigt. Nur Metadaten werden angezeigt.",
+      "loadingTokens": "Token werden geladen…",
+      "emptyState": "Noch keine API-Token erstellt.",
+      "tableHeaders": {
+        "name": "Name",
+        "created": "Erstellt",
+        "lastUsed": "Zuletzt verwendet",
+        "expires": "Läuft ab",
+        "actions": "Aktionen"
+      },
+      "revoke": "Widerrufen",
+      "revoked": "Widerrufen",
+      "expired": "Abgelaufen",
+      "errors": {
+        "networkList": "Verbindung zum Server nicht möglich. Bitte Netzwerkverbindung prüfen.",
+        "unexpectedList": "Ein unerwarteter Fehler beim Laden der Token ist aufgetreten.",
+        "networkCreate": "Verbindung zum Server nicht möglich. Bitte erneut versuchen.",
+        "unexpectedCreate": "Ein unerwarteter Fehler ist aufgetreten. Bitte erneut versuchen."
+      }
+    }
+  },
+  "auth": {
+    "title": "Authentifizierung",
+    "description": "Anmeldedaten für die Prüfungsanfragen dieses Monitors konfigurieren.",
+    "createDescription": "Optionale Anmeldedaten für die Prüfungsanfragen dieses Monitors.",
+    "authType": "Authentifizierungstyp",
+    "types": {
+      "none": "Keine",
+      "bearer": "Bearer Token",
+      "basic": "Basic Auth",
+      "header": "Benutzerdefinierter Header"
+    },
+    "fields": {
+      "token": "Token",
+      "tokenPlaceholder": "Bearer Token eingeben",
+      "username": "Benutzername",
+      "usernamePlaceholder": "Benutzername eingeben",
+      "password": "Passwort",
+      "passwordPlaceholder": "Passwort eingeben",
+      "headerName": "Header-Name",
+      "headerNamePlaceholder": "z.B. X-API-Key",
+      "headerValue": "Header-Wert",
+      "headerValuePlaceholder": "Header-Wert eingeben"
+    },
+    "validation": {
+      "tokenRequired": "Token ist erforderlich",
+      "usernameRequired": "Benutzername ist erforderlich",
+      "passwordRequired": "Passwort ist erforderlich",
+      "headerNameRequired": "Header-Name ist erforderlich",
+      "headerValueRequired": "Header-Wert ist erforderlich"
+    },
+    "addCredential": "Anmeldedaten hinzufügen",
+    "pendingCredential": "{authType}-Anmeldedaten werden mit dem Monitor erstellt.",
+    "replacingNotice": "Anmeldedaten werden ersetzt — geben Sie die neuen Werte unten ein.",
+    "cancelReplace": "Abbrechen"
+  },
+  "credentials": {
+    "empty": "Keine Anmeldedaten für diesen Monitor konfiguriert.",
+    "created": "Erstellt {date}",
+    "confirmDelete": "Bestätigen?",
+    "delete": "Löschen",
+    "replace": "Ersetzen",
+    "cancel": "Abbrechen"
+  },
+  "modal": {
+    "secretTitle": "Ihr geheimer Wert",
+    "secretWarning": "Dieses Secret wird nicht erneut angezeigt. Kopieren Sie es, bevor Sie schließen.",
+    "secretLabel": "Geheimer Wert",
+    "secretDismiss": "Ich habe das Secret kopiert"
+  },
+  "toast": {
+    "dismiss": "Benachrichtigung schließen",
+    "notifications": "Benachrichtigungen",
+    "requestId": "Request-ID: {id}"
+  },
+  "grpc": {
+    "serviceMethod": "Service-Methode",
+    "serviceMethodPlaceholder": "grpc.health.v1.Health/Check",
+    "serviceMethodHelp": "Vollqualifizierter gRPC-Service und Methode (Package.Service/Method)",
+    "tlsMode": "TLS-Modus",
+    "tlsModes": {
+      "plaintext": "Klartext",
+      "tls": "TLS",
+      "tlsSkipVerify": "TLS (ohne Verifizierung)"
+    },
+    "sslExpiryThreshold": "SSL-Ablaufschwelle (Tage)",
+    "sslExpiryThresholdPlaceholder": "30",
+    "sslExpiryThresholdHelp": "Warnung, wenn das Zertifikat innerhalb dieser Tage abläuft",
+    "metadata": "Metadaten",
+    "addMetadata": "Metadaten hinzufügen",
+    "metadataKeyPlaceholder": "Schlüssel",
+    "metadataValuePlaceholder": "Wert",
+    "metadataHelp": "Benutzerdefinierte gRPC-Metadaten-Header für jede Anfrage",
+    "removeMetadataRow": "Metadatenzeile {index} entfernen",
+    "expectedStatuses": "Erwartete Statuscodes",
+    "expectedStatusesHelp": "gRPC-Statuscodes, die als gesunde Antwort gelten",
+    "requestPayload": "Request-Payload (Base64)",
+    "requestPayloadPlaceholder": "Base64-kodierte Protobuf-Nachricht",
+    "requestPayloadHelp": "Optionaler Base64-kodierter Protobuf-Request-Body"
+  },
+  "timeRange": {
+    "custom": "Benutzerdefiniert",
+    "start": "Start",
+    "end": "Ende",
+    "validation": {
+      "bothRequired": "Bitte Start- und Endzeit auswählen",
+      "invalidDates": "Ungültige Datumswerte",
+      "startBeforeEnd": "Startzeit muss vor der Endzeit liegen"
+    },
+    "retentionNotice": "Der gewählte Zeitraum überschreitet die {days}-Tage-Aufbewahrungsfrist. Daten können unvollständig sein.",
+    "truncatedNotice": "Daten wurden auf die Aufbewahrungsdauer des Monitors ({days} Tage) gekürzt."
+  },
+  "history": {
+    "loading": "Verlauf wird geladen…",
+    "error": "Verlaufsdaten konnten nicht geladen werden.",
+    "empty": "Keine Daten für den gewählten Zeitraum verfügbar.",
+    "retry": "Erneut versuchen"
+  },
+  "errors": {
+    "generic": "Etwas ist schiefgelaufen",
+    "network": "Dienst nicht verfügbar. Bitte später erneut versuchen.",
+    "unexpected": "Ein unerwarteter Fehler ist aufgetreten.",
+    "notFound": "Nicht gefunden"
+  }
+}

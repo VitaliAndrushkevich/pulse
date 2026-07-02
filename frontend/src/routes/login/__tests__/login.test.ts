@@ -9,6 +9,32 @@ import { goto } from '$app/navigation';
 import { setToken } from '$lib/stores/auth.svelte';
 import { ApiRequestError, NetworkError } from '$lib/api';
 
+// Mock i18n to avoid $effect outside component context
+vi.mock('$lib/i18n', () => ({
+  t: (key: string, params?: Record<string, string | number>) => {
+    const translations: Record<string, string> = {
+      'login.title': 'Sign in to Pulse',
+      'login.subtitle': 'Enter your credentials to continue',
+      'login.email': 'Email',
+      'login.emailPlaceholder': 'you@example.com',
+      'login.password': 'Password',
+      'login.passwordPlaceholder': '••••••••',
+      'login.submit': 'Sign in',
+      'login.submitting': 'Signing in…',
+      'login.errors.invalidCredentials': 'Invalid email or password',
+      'login.errors.networkError': 'Service unavailable. Please try again later.',
+      'login.errors.unexpected': 'Service unavailable. Please try again later.',
+    };
+    let result = translations[key] ?? key;
+    if (params) {
+      for (const [k, v] of Object.entries(params)) {
+        result = result.replace(`{${k}}`, String(v));
+      }
+    }
+    return result;
+  },
+}));
+
 // Mock auth store
 vi.mock('$lib/stores/auth.svelte', () => ({
   setToken: vi.fn(),

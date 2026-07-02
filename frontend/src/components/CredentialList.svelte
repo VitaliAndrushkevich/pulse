@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { Credential } from '$lib/api';
+  import { t } from '$lib/i18n';
 
   interface Props {
     credentials: Credential[];
@@ -15,11 +16,11 @@
   function formatAuthType(authType: string): string {
     switch (authType) {
       case 'bearer':
-        return 'Bearer Token';
+        return t('auth.types.bearer');
       case 'basic':
-        return 'Basic Auth';
+        return t('auth.types.basic');
       case 'header':
-        return 'Custom Header';
+        return t('auth.types.header');
       default:
         return authType;
     }
@@ -51,7 +52,7 @@
 <div class="space-y-3" data-testid="credential-list">
   {#if credentials.length === 0}
     <p class="text-sm text-secondary" data-testid="credential-list-empty">
-      No credentials configured for this monitor.
+      {t('credentials.empty')}
     </p>
   {:else}
     <ul class="divide-y divide-slate-200 rounded-md border border-[var(--color-border)]">
@@ -67,13 +68,13 @@
               </span>
             </div>
             <p class="mt-0.5 text-xs text-secondary" data-testid="credential-created-at">
-              Created {formatDate(credential.created_at)}
+              {t('credentials.created', { date: formatDate(credential.created_at) })}
             </p>
           </div>
 
           <div class="flex items-center gap-2 ml-4">
             {#if confirmDeleteId === credential.id}
-              <span class="text-xs text-rose-600 mr-1">Confirm?</span>
+              <span class="text-xs text-rose-600 mr-1">{t('credentials.confirmDelete')}</span>
               <button
                 type="button"
                 onclick={() => handleDeleteClick(credential.id)}
@@ -82,7 +83,7 @@
                 data-testid="btn-confirm-delete"
                 aria-label="Confirm delete credential {credential.name}"
               >
-                Delete
+                {t('credentials.delete')}
               </button>
               <button
                 type="button"
@@ -91,7 +92,7 @@
                 data-testid="btn-cancel-delete"
                 aria-label="Cancel delete"
               >
-                Cancel
+                {t('credentials.cancel')}
               </button>
             {:else}
               <button
@@ -102,7 +103,7 @@
                 data-testid="btn-replace-credential"
                 aria-label="Replace credential {credential.name}"
               >
-                Replace
+                {t('credentials.replace')}
               </button>
               <button
                 type="button"
@@ -112,7 +113,7 @@
                 data-testid="btn-delete-credential"
                 aria-label="Delete credential {credential.name}"
               >
-                Delete
+                {t('credentials.delete')}
               </button>
             {/if}
           </div>

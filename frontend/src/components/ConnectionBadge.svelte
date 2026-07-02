@@ -9,6 +9,7 @@
    * - Visible without scrolling (placed in app header)
    */
   import { connectionStore } from '$lib/stores/connection.svelte';
+  import { t } from '$lib/i18n';
 
   let status = $derived(connectionStore.status);
   let visible = $derived(status === 'disconnected' || status === 'connecting');
@@ -19,7 +20,7 @@
     class="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-2.5 py-1 text-xs font-medium text-amber-800 border border-amber-300"
     role="status"
     aria-live="polite"
-    aria-label="Connection status: live updates paused"
+    aria-label={t('connection.statusPaused')}
   >
     <span class="relative flex h-2 w-2">
       <span
@@ -35,9 +36,9 @@
     </span>
     <span>
       {#if status === 'connecting'}
-        Reconnecting…
+        {t('connection.reconnecting')}
       {:else}
-        Live updates paused
+        {t('connection.paused')}
       {/if}
     </span>
   </div>
@@ -46,11 +47,11 @@
     class="inline-flex items-center gap-1.5 rounded-full px-2 py-1 text-xs font-medium text-green-700"
     role="status"
     aria-live="polite"
-    aria-label="Connection status: live"
+    aria-label={t('connection.statusLive')}
   >
     <span class="relative flex h-2 w-2">
       <span class="relative inline-flex h-2 w-2 rounded-full bg-green-500"></span>
     </span>
-    <span>Live</span>
+    <span>{t('connection.live')}</span>
   </div>
 {/if}

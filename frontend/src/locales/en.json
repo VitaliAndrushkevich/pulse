@@ -1,0 +1,421 @@
+{
+  "app": {
+    "name": "Pulse",
+    "title": "{page} — Pulse"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "monitors": "Monitors",
+    "settings": "Settings",
+    "logout": "Logout",
+    "home": "Pulse — Home"
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "confirm": "Confirm",
+    "retry": "Retry",
+    "apply": "Apply",
+    "back": "Back",
+    "loading": "Loading...",
+    "error": "Something went wrong",
+    "copy": "Copy",
+    "copied": "Copied!",
+    "remove": "Remove",
+    "replace": "Replace",
+    "add": "Add",
+    "none": "None",
+    "never": "Never",
+    "na": "N/A",
+    "active": "Active",
+    "paused": "Paused",
+    "saving": "Saving…",
+    "creating": "Creating…",
+    "deleting": "Deleting…",
+    "revoking": "Revoking…",
+    "pageOf": "Page {page} of {totalPages}",
+    "previous": "Previous",
+    "next": "Next"
+  },
+  "connection": {
+    "live": "Live",
+    "reconnecting": "Reconnecting…",
+    "paused": "Live updates paused",
+    "statusLive": "Connection status: live",
+    "statusPaused": "Connection status: live updates paused"
+  },
+  "login": {
+    "title": "Sign in to Pulse",
+    "subtitle": "Enter your credentials to continue",
+    "email": "Email",
+    "emailPlaceholder": "you@example.com",
+    "password": "Password",
+    "passwordPlaceholder": "••••••••",
+    "submit": "Sign in",
+    "submitting": "Signing in…",
+    "errors": {
+      "invalidCredentials": "Invalid email or password",
+      "networkError": "Service unavailable. Please try again later.",
+      "unexpected": "Service unavailable. Please try again later."
+    }
+  },
+  "setup": {
+    "title": "Welcome to Pulse",
+    "subtitle": "Create your admin account to get started",
+    "email": "Email",
+    "emailPlaceholder": "admin@example.com",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "submit": "Create Admin Account",
+    "submitting": "Creating account…",
+    "checkingStatus": "Checking setup status…",
+    "errors": {
+      "statusCheck": "Unable to check setup status. Is the server running?",
+      "alreadyCompleted": "Setup has already been completed. Redirecting to login...",
+      "failed": "Setup failed. Please try again.",
+      "networkError": "Service unavailable. Please try again later.",
+      "unexpected": "An unexpected error occurred."
+    },
+    "validation": {
+      "passwordLength": "Password must be at least 8 characters",
+      "passwordsMismatch": "Passwords do not match"
+    }
+  },
+  "dashboard": {
+    "title": "Uptime Dashboard",
+    "stats": {
+      "total": "Total Monitors",
+      "healthy": "Healthy",
+      "unhealthy": "Unhealthy"
+    },
+    "empty": {
+      "title": "No monitors yet",
+      "description": "Create your first monitor to start tracking uptime.",
+      "action": "Create Monitor"
+    },
+    "loading": "Loading monitors…",
+    "error": "Failed to load monitors",
+    "healthScore": {
+      "title": "Health Score",
+      "noData": "No data available",
+      "value": "Health score: {value}",
+      "partialData": "Partial data"
+    },
+    "statusRing": {
+      "title": "Status Distribution",
+      "ariaLabel": "{up} up, {down} down, {unknown} unknown"
+    },
+    "incidents": {
+      "title": "Active Incidents",
+      "allOperational": "All systems operational",
+      "overflow": "+ {count} more"
+    },
+    "heatmap": {
+      "title": "Uptime Heatmap (24h)",
+      "ariaLabel": "Uptime heatmap showing hourly system state over the last 24 hours",
+      "blockAria": "{time}: {up} up, {down} down, {unknown} unknown",
+      "tooltipCounts": "↑{up} ↓{down} ?{unknown}"
+    },
+    "sparklines": {
+      "title": "Response Time",
+      "empty": "No latency data available"
+    },
+    "ssl": {
+      "title": "SSL Expiry Warnings",
+      "daysRemaining": "{count} days",
+      "expired": "Expired",
+      "expiresOn": "Expires {date}"
+    },
+    "freshness": {
+      "label": "Last updated:",
+      "stale": "Data may be stale"
+    },
+    "events": {
+      "title": "Recent Events",
+      "empty": "No recent activity",
+      "transition": "{from} → {to}",
+      "justNow": "just now",
+      "secondsAgo": "{count}s ago",
+      "minutesAgo": "{count}m ago",
+      "hoursAgo": "{count}h ago",
+      "daysAgo": "{count}d ago"
+    }
+  },
+  "monitors": {
+    "title": "Monitors",
+    "create": "Create Monitor",
+    "edit": "Edit Monitor",
+    "loading": "Loading monitors...",
+    "loadingDetails": "Loading monitor details...",
+    "loadingMonitor": "Loading monitor...",
+    "empty": {
+      "title": "No monitors found.",
+      "action": "Create your first monitor"
+    },
+    "notFound": {
+      "title": "Monitor not found",
+      "description": "The monitor you're looking for doesn't exist or has been deleted.",
+      "action": "Back to Monitors"
+    },
+    "errors": {
+      "loadFailed": "Failed to load monitors. Please try again.",
+      "detailFailed": "Failed to load monitor details. Please try again.",
+      "deleteFailed": "Failed to delete monitor. Please try again.",
+      "editLoadFailed": "Failed to load monitor. Please try again."
+    },
+    "deleteConfirm": "Are you sure you want to delete \"{name}\"? This action cannot be undone.",
+    "status": {
+      "up": "Up",
+      "down": "Down",
+      "unknown": "Unknown",
+      "active": "Active",
+      "paused": "Paused"
+    },
+    "detail": {
+      "edit": "Edit",
+      "delete": "Delete",
+      "backToMonitors": "Back to monitors",
+      "tabs": {
+        "overview": "Overview",
+        "history": "History"
+      },
+      "checkInterval": "Checking every {seconds}s",
+      "stats": {
+        "response": "Response",
+        "avgResponse": "Avg. Response",
+        "uptime": "Uptime",
+        "certExpiry": "Cert. Expiry",
+        "current": "(Current)",
+        "period24h": "(24 hours)",
+        "period30d": "(30 days)",
+        "noData": "(no data yet)",
+        "days": "{count} days"
+      },
+      "timeline": {
+        "title": "Status Timeline (24h)"
+      },
+      "responseTime": {
+        "title": "Response Time (24h)"
+      },
+      "configuration": {
+        "title": "Configuration",
+        "target": "Target",
+        "interval": "Interval",
+        "timeout": "Timeout",
+        "lastChecked": "Last Checked",
+        "nextCheck": "Next Check",
+        "created": "Created",
+        "notScheduled": "Not scheduled"
+      },
+      "incidents": {
+        "title": "Recent Incidents",
+        "empty": "No incidents recorded.",
+        "ongoing": "Ongoing"
+      },
+      "pause": {
+        "title": "Pause monitor?",
+        "description": "Pausing will stop all health checks for {name}. No data will be collected while paused.",
+        "button": "Pause",
+        "pausing": "Pausing..."
+      },
+      "resume": {
+        "title": "Resume monitor?",
+        "description": "Resuming will restart health checks for {name}. The next check will run shortly.",
+        "button": "Resume",
+        "resuming": "Resuming..."
+      }
+    },
+    "form": {
+      "name": "Name",
+      "namePlaceholder": "My Monitor",
+      "type": "Type",
+      "target": "Target",
+      "interval": "Interval (seconds)",
+      "timeout": "Timeout (seconds)",
+      "status": "Status",
+      "statusActive": "Active",
+      "statusPaused": "Paused",
+      "retention": "History Retention (days)",
+      "retentionHelp": "Number of days to keep check history data (1–365, default 30)",
+      "expectedStatusCodes": "Expected Status Codes",
+      "expectedStatusCodesPlaceholder": "200, 201, 204",
+      "expectedStatusCodesHelp": "Comma-separated HTTP status codes considered successful",
+      "skipTlsVerify": "Disable certificate verification (skip TLS verification)",
+      "skipTlsVerifyHelp": "When enabled, the monitor will skip TLS certificate chain and hostname verification. Use with caution.",
+      "customHeaders": "Custom Headers",
+      "customHeadersHelp": "Non-secret headers sent with each check request (up to 5). To monitor a server by IP, add a Host header with the domain name.",
+      "addHeader": "+ Add header",
+      "headerNamePlaceholder": "Header name",
+      "headerValuePlaceholder": "Value",
+      "removeHeader": "Remove header",
+      "payload": "Payload",
+      "payloadPlaceholder": "ping",
+      "payloadHelp": "Data to send to the UDP target",
+      "handshakeMessage": "Handshake Message",
+      "handshakeMessagePlaceholder": "ping",
+      "handshakeMessageHelp": "Message to send after WebSocket connection is established",
+      "secretReference": "Secret Reference",
+      "secretReferenceHelp": "Optional secret to attach to this monitor",
+      "submitCreate": "Create Monitor",
+      "submitUpdate": "Update Monitor",
+      "error": "Error",
+      "unexpectedError": "An unexpected error occurred",
+      "targetHelp": {
+        "http": "URL or domain name (defaults to https://)",
+        "tcp": "Format: host:port",
+        "udp": "Format: host:port",
+        "websocket": "URL with ws:// or wss:// scheme, or just hostname (defaults to wss://)",
+        "grpc": "Format: host:port"
+      }
+    },
+    "filter": {
+      "expand": "Filter",
+      "collapse": "Collapse filter bar",
+      "selectKey": "Select key",
+      "addTag": "Tag",
+      "back": "← Back",
+      "cancel": "Cancel",
+      "removeTag": "Remove tag {key}:{value}"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "description": "Manage your account and API access.",
+    "language": {
+      "title": "Language",
+      "label": "Display language"
+    },
+    "tokens": {
+      "title": "API Tokens",
+      "description": "API tokens provide programmatic access to the Pulse API. Use them for CI/CD pipelines, automation scripts, and external integrations.",
+      "createTitle": "Create New Token",
+      "createLabel": "Token name",
+      "createPlaceholder": "e.g. ci-deploy, grafana-read",
+      "createButton": "Create Token",
+      "existingTitle": "Existing Tokens",
+      "existingDescription": "Token values are never displayed after creation. Only metadata is shown.",
+      "loadingTokens": "Loading tokens…",
+      "emptyState": "No API tokens created yet.",
+      "tableHeaders": {
+        "name": "Name",
+        "created": "Created",
+        "lastUsed": "Last Used",
+        "expires": "Expires",
+        "actions": "Actions"
+      },
+      "revoke": "Revoke",
+      "revoked": "Revoked",
+      "expired": "Expired",
+      "errors": {
+        "networkList": "Unable to connect to the server. Please check your network connection.",
+        "unexpectedList": "An unexpected error occurred while loading tokens.",
+        "networkCreate": "Unable to connect to the server. Please try again.",
+        "unexpectedCreate": "An unexpected error occurred. Please try again."
+      }
+    }
+  },
+  "auth": {
+    "title": "Authentication",
+    "description": "Configure credentials for this monitor's health-check requests.",
+    "createDescription": "Optional credentials for this monitor's health-check requests.",
+    "authType": "Authentication Type",
+    "types": {
+      "none": "None",
+      "bearer": "Bearer Token",
+      "basic": "Basic Auth",
+      "header": "Custom Header"
+    },
+    "fields": {
+      "token": "Token",
+      "tokenPlaceholder": "Enter bearer token",
+      "username": "Username",
+      "usernamePlaceholder": "Enter username",
+      "password": "Password",
+      "passwordPlaceholder": "Enter password",
+      "headerName": "Header Name",
+      "headerNamePlaceholder": "e.g. X-API-Key",
+      "headerValue": "Header Value",
+      "headerValuePlaceholder": "Enter header value"
+    },
+    "validation": {
+      "tokenRequired": "Token is required",
+      "usernameRequired": "Username is required",
+      "passwordRequired": "Password is required",
+      "headerNameRequired": "Header name is required",
+      "headerValueRequired": "Header value is required"
+    },
+    "addCredential": "Add Credential",
+    "pendingCredential": "{authType} credential will be created with the monitor.",
+    "replacingNotice": "Replacing credential — fill in the new values below.",
+    "cancelReplace": "Cancel"
+  },
+  "credentials": {
+    "empty": "No credentials configured for this monitor.",
+    "created": "Created {date}",
+    "confirmDelete": "Confirm?",
+    "delete": "Delete",
+    "replace": "Replace",
+    "cancel": "Cancel"
+  },
+  "modal": {
+    "secretTitle": "Your Secret Value",
+    "secretWarning": "This secret will not be shown again. Make sure to copy it before closing.",
+    "secretLabel": "Secret value",
+    "secretDismiss": "I've copied the secret"
+  },
+  "toast": {
+    "dismiss": "Dismiss notification",
+    "notifications": "Notifications",
+    "requestId": "Request ID: {id}"
+  },
+  "grpc": {
+    "serviceMethod": "Service Method",
+    "serviceMethodPlaceholder": "grpc.health.v1.Health/Check",
+    "serviceMethodHelp": "Fully-qualified gRPC service and method (package.Service/Method)",
+    "tlsMode": "TLS Mode",
+    "tlsModes": {
+      "plaintext": "Plaintext",
+      "tls": "TLS",
+      "tlsSkipVerify": "TLS (Skip Verify)"
+    },
+    "sslExpiryThreshold": "SSL Expiry Threshold (days)",
+    "sslExpiryThresholdPlaceholder": "30",
+    "sslExpiryThresholdHelp": "Alert when certificate expires within this many days",
+    "metadata": "Metadata",
+    "addMetadata": "Add Metadata",
+    "metadataKeyPlaceholder": "Key",
+    "metadataValuePlaceholder": "Value",
+    "metadataHelp": "Custom gRPC metadata headers sent with each request",
+    "removeMetadataRow": "Remove metadata row {index}",
+    "expectedStatuses": "Expected Status Codes",
+    "expectedStatusesHelp": "gRPC status codes considered a healthy response",
+    "requestPayload": "Request Payload (Base64)",
+    "requestPayloadPlaceholder": "Base64-encoded protobuf message",
+    "requestPayloadHelp": "Optional base64-encoded protobuf request body"
+  },
+  "timeRange": {
+    "custom": "Custom",
+    "start": "Start",
+    "end": "End",
+    "validation": {
+      "bothRequired": "Please select both start and end times",
+      "invalidDates": "Invalid date values",
+      "startBeforeEnd": "Start time must be before end time"
+    },
+    "retentionNotice": "Selected range exceeds the {days}-day retention period. Data may be incomplete.",
+    "truncatedNotice": "Data has been truncated to the monitor's retention period ({days} days)."
+  },
+  "history": {
+    "loading": "Loading history...",
+    "error": "Failed to load history data.",
+    "empty": "No data available for the selected period.",
+    "retry": "Retry"
+  },
+  "errors": {
+    "generic": "Something went wrong",
+    "network": "Service unavailable. Please try again later.",
+    "unexpected": "An unexpected error occurred.",
+    "notFound": "Not found"
+  }
+}

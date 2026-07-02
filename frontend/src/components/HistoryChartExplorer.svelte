@@ -4,6 +4,7 @@
   import 'uplot/dist/uPlot.min.css';
   import type { HistoryPoint } from '$lib/types';
   import type { AggregatedHistoryPoint } from '$lib/api';
+  import { formatLatency } from '$lib/format';
 
   // ---------------------------------------------------------------------------
   // Props (Svelte 5 runes)
@@ -179,13 +180,13 @@
               const max = u.data[2]?.[idx];
               const avg = u.data[3]?.[idx];
               const stateVal = u.data[4]?.[idx];
-              content += `<div class="text-xs">Avg: ${avg != null ? avg + ' ms' : 'N/A'}</div>`;
-              content += `<div class="text-xs">Min: ${min != null ? min + ' ms' : 'N/A'} / Max: ${max != null ? max + ' ms' : 'N/A'}</div>`;
+              content += `<div class="text-xs">Avg: ${avg != null ? formatLatency(avg) : 'N/A'}</div>`;
+              content += `<div class="text-xs">Min: ${min != null ? formatLatency(min) : 'N/A'} / Max: ${max != null ? formatLatency(max) : 'N/A'}</div>`;
               content += `<div class="text-xs">State: ${stateLabel(stateVal)}</div>`;
             } else {
               const latency = u.data[1]?.[idx];
               const stateVal = u.data[2]?.[idx];
-              content += `<div class="text-xs">Latency: ${latency != null ? latency + ' ms' : 'N/A'}</div>`;
+              content += `<div class="text-xs">Latency: ${latency != null ? formatLatency(latency) : 'N/A'}</div>`;
               content += `<div class="text-xs">State: ${stateLabel(stateVal)}</div>`;
             }
 
@@ -228,18 +229,21 @@
           label: 'Min',
           stroke: 'rgba(59, 130, 246, 0.3)',
           width: 1,
-          fill: 'rgba(59, 130, 246, 0.05)'
+          fill: 'rgba(59, 130, 246, 0.05)',
+          value: (_u: uPlot, val: number | null) => val == null ? '--' : formatLatency(val)
         },
         {
           label: 'Max',
           stroke: 'rgba(59, 130, 246, 0.3)',
           width: 1,
-          fill: 'rgba(59, 130, 246, 0.05)'
+          fill: 'rgba(59, 130, 246, 0.05)',
+          value: (_u: uPlot, val: number | null) => val == null ? '--' : formatLatency(val)
         },
         {
           label: 'Avg',
           stroke: '#3b82f6',
-          width: 2
+          width: 2,
+          value: (_u: uPlot, val: number | null) => val == null ? '--' : formatLatency(val)
         },
         {
           label: 'State',
@@ -255,7 +259,8 @@
           label: 'Latency',
           stroke: '#3b82f6',
           width: 2,
-          fill: 'rgba(59, 130, 246, 0.1)'
+          fill: 'rgba(59, 130, 246, 0.1)',
+          value: (_u: uPlot, val: number | null) => val == null ? '--' : formatLatency(val)
         },
         {
           label: 'State',
@@ -288,7 +293,8 @@
         {
           stroke: axisStroke,
           grid: { stroke: gridStroke + '40' },
-          label: 'Latency (ms)'
+          label: 'Latency',
+          values: (_u: uPlot, splits: number[]) => splits.map((v) => v == null ? '' : formatLatency(v))
         }
       ],
       scales: {

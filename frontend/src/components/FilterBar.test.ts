@@ -3,6 +3,28 @@ import { render, screen, waitFor } from '@testing-library/svelte';
 import FilterBar from './FilterBar.svelte';
 import type { MonitorType, Tag } from '$lib/types';
 
+// Mock i18n to avoid $effect outside component context
+vi.mock('$lib/i18n', () => ({
+  t: (key: string, params?: Record<string, string | number>) => {
+    const translations: Record<string, string> = {
+      'monitors.filter.expand': 'Filter',
+      'monitors.filter.collapse': 'Collapse filter bar',
+      'monitors.filter.selectKey': 'Select key',
+      'monitors.filter.addTag': 'Tag',
+      'monitors.filter.back': '← Back',
+      'monitors.filter.cancel': 'Cancel',
+      'monitors.filter.removeTag': 'Remove tag {key}:{value}',
+    };
+    let result = translations[key] ?? key;
+    if (params) {
+      for (const [k, v] of Object.entries(params)) {
+        result = result.replace(`{${k}}`, String(v));
+      }
+    }
+    return result;
+  },
+}));
+
 // Mock the API calls used internally by FilterBar
 vi.mock('$lib/api', () => ({
   getTags: vi.fn().mockResolvedValue(['env', 'team', 'region']),

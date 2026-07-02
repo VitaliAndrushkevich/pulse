@@ -2,6 +2,24 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/svelte';
 import Pagination from '../Pagination.svelte';
 
+// Mock i18n to avoid $effect outside component context
+vi.mock('$lib/i18n', () => ({
+  t: (key: string, params?: Record<string, string | number>) => {
+    const translations: Record<string, string> = {
+      'common.previous': 'Previous',
+      'common.next': 'Next',
+      'common.pageOf': 'Page {page} of {totalPages}',
+    };
+    let result = translations[key] ?? key;
+    if (params) {
+      for (const [k, v] of Object.entries(params)) {
+        result = result.replace(`{${k}}`, String(v));
+      }
+    }
+    return result;
+  },
+}));
+
 describe('Pagination', () => {
   it('renders current page and total pages info', () => {
     render(Pagination, { props: { page: 2, totalPages: 5, onPageChange: vi.fn() } });

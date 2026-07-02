@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { t } from '$lib/i18n';
 
   interface Props {
     secret: string;
@@ -78,19 +79,19 @@
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
           </svg>
         </span>
-        <h2 class="text-lg font-semibold text-primary">Your Secret Value</h2>
+        <h2 class="text-lg font-semibold text-primary">{t('modal.secretTitle')}</h2>
       </div>
 
       <!-- Warning -->
       <div class="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
         <p class="text-sm font-medium text-amber-800">
-          This secret will not be shown again. Make sure to copy it before closing.
+          {t('modal.secretWarning')}
         </p>
       </div>
 
       <!-- Secret display -->
       <div class="flex flex-col gap-2">
-        <label for="secret-value" class="text-sm font-medium text-primary">Secret value</label>
+        <label for="secret-value" class="text-sm font-medium text-primary">{t('modal.secretLabel')}</label>
         <div class="flex gap-2">
           <input
             id="secret-value"
@@ -110,13 +111,13 @@
               <svg class="h-4 w-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
               </svg>
-              <span class="text-green-600">Copied!</span>
+              <span class="text-green-600">{t('common.copied')}</span>
             {:else}
               <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
                 <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
               </svg>
-              <span>Copy</span>
+              <span>{t('common.copy')}</span>
             {/if}
           </button>
         </div>
@@ -128,7 +129,7 @@
         onclick={handleDismiss}
         class="w-full rounded-md bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
       >
-        I've copied the secret
+        {t('modal.secretDismiss')}
       </button>
     </div>
   </dialog>

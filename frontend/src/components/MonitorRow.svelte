@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { Monitor } from '$lib/types';
   import { formatDate } from '$lib/format';
+  import { t } from '$lib/i18n';
 
   interface Props {
     monitor: Monitor;
@@ -8,16 +9,18 @@
 
   let { monitor }: Props = $props();
 
+  const isPaused = $derived(monitor.status === 'paused');
+
   const stateColors: Record<string, string> = {
     up: 'bg-emerald-500',
     down: 'bg-rose-500',
     unknown: 'bg-slate-400'
   };
 
-  const stateLabels: Record<string, string> = {
-    up: 'Up',
-    down: 'Down',
-    unknown: 'Unknown'
+  const stateTranslationKeys: Record<string, string> = {
+    up: 'monitors.status.up',
+    down: 'monitors.status.down',
+    unknown: 'monitors.status.unknown'
   };
 
   const typeBadgeColors: Record<string, string> = {
@@ -32,21 +35,31 @@
 
 <a
   href="/monitors/{monitor.id}"
-  class="flex h-16 items-center gap-4 border-b border-[var(--color-border)] bg-surface px-4 transition hover:bg-[var(--color-bg-surface-hover)]"
+  class="flex h-16 items-center gap-4 border-b border-[var(--color-border)] bg-surface px-4 transition hover:bg-[var(--color-bg-surface-hover)] {isPaused ? 'opacity-60' : ''}"
   data-testid="monitor-row"
 >
   <!-- State indicator dot -->
   <span
-    class="h-3 w-3 flex-shrink-0 rounded-full {stateColors[monitor.state] ?? 'bg-slate-400'}"
-    title={stateLabels[monitor.state] ?? 'Unknown'}
+    class="h-3 w-3 flex-shrink-0 rounded-full {isPaused ? 'bg-slate-400' : (stateColors[monitor.state] ?? 'bg-slate-400')}"
+    title={isPaused ? t('monitors.status.paused') : t(stateTranslationKeys[monitor.state] ?? 'monitors.status.unknown')}
     data-testid="state-indicator"
-    data-state={monitor.state}
+    data-state={isPaused ? 'paused' : monitor.state}
   ></span>
 
   <!-- Name -->
   <span class="min-w-0 flex-1 truncate text-sm font-medium text-primary" data-testid="monitor-name">
     {monitor.name}
   </span>
+
+  <!-- Paused badge -->
+  {#if isPaused}
+    <span
+      class="flex-shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600"
+      data-testid="paused-badge"
+    >
+      {t('monitors.status.paused')}
+    </span>
+  {/if}
 
   <!-- Type badge -->
   <span
@@ -63,6 +76,6 @@
 
   <!-- Last checked -->
   <span class="flex-shrink-0 text-xs text-[var(--color-text-muted)]" data-testid="monitor-last-checked">
-    {formatDate(monitor.last_checked_at)}
+    {isPaused ? t('monitors.status.paused') : formatDate(monitor.last_checked_at)}
   </span>
 </a>

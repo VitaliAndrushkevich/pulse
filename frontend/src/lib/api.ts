@@ -2,7 +2,7 @@
 
 import { getToken, clearToken } from '$lib/stores/auth.svelte';
 import { toastStore } from '$lib/stores/toast.svelte';
-import type { Monitor, PaginatedList, HistoryPoint, Incident, Secret, Tag } from '$lib/types';
+import type { Monitor, PaginatedList, HistoryPoint, Incident, Secret, Tag, DashboardSummary } from '$lib/types';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -407,6 +407,15 @@ export async function getSecrets(
 /** POST /api/v1/secrets */
 export async function createSecret(data: CreateSecretRequest): Promise<Secret> {
   return apiRequest<Secret>('POST', '/secrets', data, { skipToast: true });
+}
+
+// ---------------------------------------------------------------------------
+// Dashboard
+// ---------------------------------------------------------------------------
+
+/** GET /api/v1/dashboard/summary — aggregated health overview for all widgets */
+export async function getDashboardSummary(): Promise<DashboardSummary> {
+  return apiRequest<DashboardSummary>('GET', '/dashboard/summary');
 }
 
 // ---------------------------------------------------------------------------

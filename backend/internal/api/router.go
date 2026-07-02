@@ -121,6 +121,10 @@ func NewRouter(deps Deps) *gin.Engine {
 	tagHandler := handlers.NewTagHandler(deps.Queries)
 	tagHandler.Register(protected)
 
+	// Dashboard aggregate summary (dashboard-refactor).
+	dashboardHandler := handlers.NewDashboardHandler(deps.Queries, deps.Pool)
+	dashboardHandler.Register(protected)
+
 	// SPA catch-all: serve embedded frontend assets when available (TASK-036).
 	if frontend.HasAssets() {
 		distFS, _ := fs.Sub(frontend.FS, "dist")

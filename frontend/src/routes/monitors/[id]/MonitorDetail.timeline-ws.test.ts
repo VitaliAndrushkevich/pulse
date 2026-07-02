@@ -108,6 +108,11 @@ global.Path2D = class {
 // Mocks
 // ---------------------------------------------------------------------------
 
+// Mock i18n to avoid $effect outside component context
+vi.mock('$lib/i18n', () => ({
+  t: (key: string) => key,
+}));
+
 vi.mock('$app/stores', () => {
   const { readable } = require('svelte/store');
   return {

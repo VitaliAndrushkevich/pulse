@@ -5,6 +5,7 @@
   import { setToken } from '$lib/stores/auth.svelte';
   import { validateEmail, validatePassword } from '$lib/validation';
   import BrandLockup from '../../components/BrandLockup.svelte';
+  import { t } from '$lib/i18n';
 
   let email = $state('');
   let password = $state('');
@@ -39,11 +40,11 @@
       await goto('/');
     } catch (err: unknown) {
       if (err instanceof ApiRequestError && err.statusCode === 401) {
-        error = 'Invalid email or password';
+        error = t('login.errors.invalidCredentials');
       } else if (err instanceof NetworkError) {
-        error = 'Service unavailable. Please try again later.';
+        error = t('login.errors.networkError');
       } else {
-        error = 'Service unavailable. Please try again later.';
+        error = t('login.errors.unexpected');
       }
     } finally {
       submitting = false;
@@ -52,7 +53,7 @@
 </script>
 
 <svelte:head>
-  <title>Login — Pulse</title>
+  <title>{t('app.title', { page: 'Login' })}</title>
 </svelte:head>
 
 <div class="flex min-h-[calc(100vh-80px)] items-center justify-center px-4">
@@ -64,8 +65,8 @@
     </div>
     <div class="rounded-xl border border-[var(--color-border)] bg-surface p-8 shadow-sm">
     <div class="mb-6 text-center">
-      <h1 class="text-2xl font-semibold tracking-tight text-primary">Sign in to Pulse</h1>
-      <p class="mt-1 text-sm text-secondary">Enter your credentials to continue</p>
+      <h1 class="text-2xl font-semibold tracking-tight text-primary">{t('login.title')}</h1>
+      <p class="mt-1 text-sm text-secondary">{t('login.subtitle')}</p>
     </div>
 
     {#if error}
@@ -79,26 +80,26 @@
 
     <form onsubmit={handleSubmit} class="space-y-4">
       <div>
-        <label for="email" class="block text-sm font-medium text-primary">Email</label>
+        <label for="email" class="block text-sm font-medium text-primary">{t('login.email')}</label>
         <input
           id="email"
           type="email"
           autocomplete="email"
           bind:value={email}
           class="mt-1 block w-full rounded-md border border-[var(--color-border)] bg-surface px-3 py-2 text-sm text-primary shadow-sm placeholder:text-[var(--color-text-muted)] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
-          placeholder="you@example.com"
+          placeholder={t('login.emailPlaceholder')}
         />
       </div>
 
       <div>
-        <label for="password" class="block text-sm font-medium text-primary">Password</label>
+        <label for="password" class="block text-sm font-medium text-primary">{t('login.password')}</label>
         <input
           id="password"
           type="password"
           autocomplete="current-password"
           bind:value={password}
           class="mt-1 block w-full rounded-md border border-[var(--color-border)] bg-surface px-3 py-2 text-sm text-primary shadow-sm placeholder:text-[var(--color-text-muted)] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
-          placeholder="••••••••"
+          placeholder={t('login.passwordPlaceholder')}
         />
       </div>
 
@@ -108,9 +109,9 @@
         class="w-full rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
       >
         {#if submitting}
-          Signing in…
+          {t('login.submitting')}
         {:else}
-          Sign in
+          {t('login.submit')}
         {/if}
       </button>
     </form>

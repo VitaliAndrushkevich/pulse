@@ -5,6 +5,7 @@
   import MonitorRow from '../../components/MonitorRow.svelte';
   import Pagination from '../../components/Pagination.svelte';
   import FilterBar from '../../components/FilterBar.svelte';
+  import { t } from '$lib/i18n';
 
   let page = $state(1);
   let monitors = $state<Monitor[]>([]);
@@ -39,7 +40,7 @@
       total = result.total;
       totalPages = result.total_pages;
     } catch (err: unknown) {
-      error = err instanceof Error ? err.message : 'Failed to load monitors. Please try again.';
+      error = err instanceof Error ? err.message : t('monitors.errors.loadFailed');
     } finally {
       loading = false;
     }
@@ -65,12 +66,12 @@
 <section class="space-y-6">
   <!-- Header -->
   <div class="flex items-center justify-between">
-    <h1 class="text-2xl font-bold tracking-tight text-primary">Monitors</h1>
+    <h1 class="text-2xl font-bold tracking-tight text-primary">{t('monitors.title')}</h1>
     <a
       href="/monitors/create"
       class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
     >
-      Create Monitor
+      {t('monitors.create')}
     </a>
   </div>
 
@@ -89,7 +90,7 @@
           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
           <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
         </svg>
-        <span>Loading monitors...</span>
+        <span>{t('monitors.loading')}</span>
       </div>
     </div>
 
@@ -102,19 +103,19 @@
         onclick={() => fetchMonitors()}
         class="mt-3 rounded-md bg-rose-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-rose-700 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2"
       >
-        Retry
+        {t('common.retry')}
       </button>
     </div>
 
   <!-- Empty state -->
   {:else if total === 0}
     <div class="rounded-xl border border-dashed border-[var(--color-border)] bg-surface p-12 text-center" data-testid="empty-state">
-      <p class="text-secondary">No monitors found.</p>
+      <p class="text-secondary">{t('monitors.empty.title')}</p>
       <a
         href="/monitors/create"
         class="mt-3 inline-block text-sm font-medium text-indigo-600 hover:text-indigo-700"
       >
-        Create your first monitor
+        {t('monitors.empty.action')}
       </a>
     </div>
 

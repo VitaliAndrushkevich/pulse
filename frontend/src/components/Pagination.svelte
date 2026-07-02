@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { t } from '$lib/i18n';
+
   interface Props {
     page: number;
     totalPages: number;
@@ -30,11 +32,11 @@
     disabled={isPrevDisabled}
     class="rounded-md border border-[var(--color-border)] bg-surface px-3 py-2 text-sm font-medium text-primary transition hover:bg-[var(--color-bg-surface-hover)] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-surface"
   >
-    Previous
+    {t('common.previous')}
   </button>
 
   <span class="text-sm text-secondary">
-    Page {page} of {totalPages}
+    {t('common.pageOf', { page, totalPages })}
   </span>
 
   <button
@@ -43,6 +45,6 @@
     disabled={isNextDisabled}
     class="rounded-md border border-[var(--color-border)] bg-surface px-3 py-2 text-sm font-medium text-primary transition hover:bg-[var(--color-bg-surface-hover)] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-surface"
   >
-    Next
+    {t('common.next')}
   </button>
 </nav>

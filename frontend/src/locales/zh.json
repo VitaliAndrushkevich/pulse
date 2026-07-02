@@ -1,0 +1,421 @@
+{
+  "app": {
+    "name": "Pulse",
+    "title": "{page} — Pulse"
+  },
+  "nav": {
+    "dashboard": "仪表板",
+    "monitors": "监控器",
+    "settings": "设置",
+    "logout": "退出",
+    "home": "Pulse — 首页"
+  },
+  "common": {
+    "save": "保存",
+    "cancel": "取消",
+    "delete": "删除",
+    "confirm": "确认",
+    "retry": "重试",
+    "apply": "应用",
+    "back": "返回",
+    "loading": "加载中...",
+    "error": "出了点问题",
+    "copy": "复制",
+    "copied": "已复制！",
+    "remove": "移除",
+    "replace": "替换",
+    "add": "添加",
+    "none": "无",
+    "never": "从不",
+    "na": "不适用",
+    "active": "活跃",
+    "paused": "已暂停",
+    "saving": "保存中…",
+    "creating": "创建中…",
+    "deleting": "删除中…",
+    "revoking": "撤销中…",
+    "pageOf": "第 {page} 页，共 {totalPages} 页",
+    "previous": "上一页",
+    "next": "下一页"
+  },
+  "connection": {
+    "live": "实时",
+    "reconnecting": "重新连接中…",
+    "paused": "实时更新已暂停",
+    "statusLive": "连接状态：实时",
+    "statusPaused": "连接状态：实时更新已暂停"
+  },
+  "login": {
+    "title": "登录 Pulse",
+    "subtitle": "输入您的凭据以继续",
+    "email": "邮箱",
+    "emailPlaceholder": "user@example.com",
+    "password": "密码",
+    "passwordPlaceholder": "••••••••",
+    "submit": "登录",
+    "submitting": "登录中…",
+    "errors": {
+      "invalidCredentials": "邮箱或密码无效",
+      "networkError": "服务不可用。请稍后重试。",
+      "unexpected": "服务不可用。请稍后重试。"
+    }
+  },
+  "setup": {
+    "title": "欢迎使用 Pulse",
+    "subtitle": "创建您的管理员账户以开始使用",
+    "email": "邮箱",
+    "emailPlaceholder": "admin@example.com",
+    "password": "密码",
+    "confirmPassword": "确认密码",
+    "submit": "创建管理员账户",
+    "submitting": "创建账户中…",
+    "checkingStatus": "检查设置状态…",
+    "errors": {
+      "statusCheck": "无法检查设置状态。服务器是否在运行？",
+      "alreadyCompleted": "设置已完成。正在重定向到登录页面…",
+      "failed": "设置失败。请重试。",
+      "networkError": "服务不可用。请稍后重试。",
+      "unexpected": "发生了意外错误。"
+    },
+    "validation": {
+      "passwordLength": "密码至少需要8个字符",
+      "passwordsMismatch": "密码不匹配"
+    }
+  },
+  "dashboard": {
+    "title": "运行状态仪表板",
+    "stats": {
+      "total": "监控器总数",
+      "healthy": "健康",
+      "unhealthy": "异常"
+    },
+    "empty": {
+      "title": "还没有监控器",
+      "description": "创建您的第一个监控器以开始跟踪运行状态。",
+      "action": "创建监控器"
+    },
+    "loading": "加载监控器…",
+    "error": "监控器加载失败",
+    "healthScore": {
+      "title": "健康分数",
+      "noData": "暂无数据",
+      "value": "健康分数：{value}",
+      "partialData": "部分数据"
+    },
+    "statusRing": {
+      "title": "状态分布",
+      "ariaLabel": "{up} 正常，{down} 宕机，{unknown} 未知"
+    },
+    "incidents": {
+      "title": "活跃事件",
+      "allOperational": "所有系统正常运行",
+      "overflow": "+ 另外 {count} 个"
+    },
+    "heatmap": {
+      "title": "运行热力图（24小时）",
+      "ariaLabel": "显示过去24小时每小时系统状态的运行热力图",
+      "blockAria": "{time}：{up} 正常，{down} 宕机，{unknown} 未知",
+      "tooltipCounts": "↑{up} ↓{down} ?{unknown}"
+    },
+    "sparklines": {
+      "title": "响应时间",
+      "empty": "暂无延迟数据"
+    },
+    "ssl": {
+      "title": "SSL到期警告",
+      "daysRemaining": "{count} 天",
+      "expired": "已过期",
+      "expiresOn": "{date} 到期"
+    },
+    "freshness": {
+      "label": "最后更新：",
+      "stale": "数据可能已过期"
+    },
+    "events": {
+      "title": "最近事件",
+      "empty": "暂无活动",
+      "transition": "{from} → {to}",
+      "justNow": "刚刚",
+      "secondsAgo": "{count}秒前",
+      "minutesAgo": "{count}分钟前",
+      "hoursAgo": "{count}小时前",
+      "daysAgo": "{count}天前"
+    }
+  },
+  "monitors": {
+    "title": "监控器",
+    "create": "创建监控器",
+    "edit": "编辑监控器",
+    "loading": "加载监控器…",
+    "loadingDetails": "加载监控器详情…",
+    "loadingMonitor": "加载监控器…",
+    "empty": {
+      "title": "未找到监控器。",
+      "action": "创建您的第一个监控器"
+    },
+    "notFound": {
+      "title": "监控器未找到",
+      "description": "您要查找的监控器不存在或已被删除。",
+      "action": "返回监控器列表"
+    },
+    "errors": {
+      "loadFailed": "监控器加载失败。请重试。",
+      "detailFailed": "监控器详情加载失败。请重试。",
+      "deleteFailed": "监控器删除失败。请重试。",
+      "editLoadFailed": "监控器加载失败。请重试。"
+    },
+    "deleteConfirm": "确定要删除「{name}」吗？此操作无法撤销。",
+    "status": {
+      "up": "正常",
+      "down": "宕机",
+      "unknown": "未知",
+      "active": "活跃",
+      "paused": "已暂停"
+    },
+    "detail": {
+      "edit": "编辑",
+      "delete": "删除",
+      "backToMonitors": "返回监控器列表",
+      "tabs": {
+        "overview": "概览",
+        "history": "历史"
+      },
+      "checkInterval": "每 {seconds} 秒检查一次",
+      "stats": {
+        "response": "响应",
+        "avgResponse": "平均响应",
+        "uptime": "运行时间",
+        "certExpiry": "证书到期",
+        "current": "（当前）",
+        "period24h": "（24小时）",
+        "period30d": "（30天）",
+        "noData": "（暂无数据）",
+        "days": "{count} 天"
+      },
+      "timeline": {
+        "title": "状态时间线（24小时）"
+      },
+      "responseTime": {
+        "title": "响应时间（24小时）"
+      },
+      "configuration": {
+        "title": "配置",
+        "target": "目标",
+        "interval": "间隔",
+        "timeout": "超时",
+        "lastChecked": "上次检查",
+        "nextCheck": "下次检查",
+        "created": "创建时间",
+        "notScheduled": "未计划"
+      },
+      "incidents": {
+        "title": "最近事件",
+        "empty": "暂无事件记录。",
+        "ongoing": "进行中"
+      },
+      "pause": {
+        "title": "暂停监控器？",
+        "description": "暂停将停止 {name} 的所有健康检查。暂停期间不会收集数据。",
+        "button": "暂停",
+        "pausing": "暂停中..."
+      },
+      "resume": {
+        "title": "恢复监控器？",
+        "description": "恢复将重新启动 {name} 的健康检查。下次检查将很快执行。",
+        "button": "恢复",
+        "resuming": "恢复中..."
+      }
+    },
+    "form": {
+      "name": "名称",
+      "namePlaceholder": "我的监控器",
+      "type": "类型",
+      "target": "目标",
+      "interval": "间隔（秒）",
+      "timeout": "超时（秒）",
+      "status": "状态",
+      "statusActive": "活跃",
+      "statusPaused": "已暂停",
+      "retention": "历史保留（天）",
+      "retentionHelp": "检查历史数据保留天数（1-365，默认30）",
+      "expectedStatusCodes": "预期状态码",
+      "expectedStatusCodesPlaceholder": "200, 201, 204",
+      "expectedStatusCodesHelp": "被视为成功的逗号分隔HTTP状态码",
+      "skipTlsVerify": "禁用证书验证（跳过TLS验证）",
+      "skipTlsVerifyHelp": "启用后，监控器将跳过TLS证书链和主机名验证。请谨慎使用。",
+      "customHeaders": "自定义头部",
+      "customHeadersHelp": "每次检查请求发送的非机密头部（最多5个）。要通过IP监控服务器，请添加带域名的Host头部。",
+      "addHeader": "+ 添加头部",
+      "headerNamePlaceholder": "头部名称",
+      "headerValuePlaceholder": "值",
+      "removeHeader": "移除头部",
+      "payload": "有效载荷",
+      "payloadPlaceholder": "ping",
+      "payloadHelp": "发送到UDP目标的数据",
+      "handshakeMessage": "握手消息",
+      "handshakeMessagePlaceholder": "ping",
+      "handshakeMessageHelp": "WebSocket连接建立后发送的消息",
+      "secretReference": "密钥引用",
+      "secretReferenceHelp": "关联到此监控器的可选密钥",
+      "submitCreate": "创建监控器",
+      "submitUpdate": "更新监控器",
+      "error": "错误",
+      "unexpectedError": "发生了意外错误",
+      "targetHelp": {
+        "http": "URL或域名（默认：https://）",
+        "tcp": "格式：主机:端口",
+        "udp": "格式：主机:端口",
+        "websocket": "带ws://或wss://的URL，或主机名（默认：wss://）",
+        "grpc": "格式：主机:端口"
+      }
+    },
+    "filter": {
+      "expand": "筛选",
+      "collapse": "收起筛选栏",
+      "selectKey": "选择键",
+      "addTag": "标签",
+      "back": "← 返回",
+      "cancel": "取消",
+      "removeTag": "移除标签 {key}:{value}"
+    }
+  },
+  "settings": {
+    "title": "设置",
+    "description": "管理您的账户和API访问。",
+    "language": {
+      "title": "语言",
+      "label": "显示语言"
+    },
+    "tokens": {
+      "title": "API令牌",
+      "description": "API令牌提供对Pulse API的编程访问。用于CI/CD流水线、自动化脚本和外部集成。",
+      "createTitle": "创建新令牌",
+      "createLabel": "令牌名称",
+      "createPlaceholder": "例如 ci-deploy, grafana-read",
+      "createButton": "创建令牌",
+      "existingTitle": "现有令牌",
+      "existingDescription": "令牌值在创建后不再显示。仅显示元数据。",
+      "loadingTokens": "加载令牌…",
+      "emptyState": "尚未创建API令牌。",
+      "tableHeaders": {
+        "name": "名称",
+        "created": "创建时间",
+        "lastUsed": "最后使用",
+        "expires": "过期时间",
+        "actions": "操作"
+      },
+      "revoke": "撤销",
+      "revoked": "已撤销",
+      "expired": "已过期",
+      "errors": {
+        "networkList": "无法连接到服务器。请检查网络连接。",
+        "unexpectedList": "加载令牌时发生意外错误。",
+        "networkCreate": "无法连接到服务器。请重试。",
+        "unexpectedCreate": "发生了意外错误。请重试。"
+      }
+    }
+  },
+  "auth": {
+    "title": "认证",
+    "description": "配置此监控器健康检查请求的凭据。",
+    "createDescription": "此监控器健康检查请求的可选凭据。",
+    "authType": "认证类型",
+    "types": {
+      "none": "无",
+      "bearer": "Bearer令牌",
+      "basic": "Basic认证",
+      "header": "自定义头部"
+    },
+    "fields": {
+      "token": "令牌",
+      "tokenPlaceholder": "输入Bearer令牌",
+      "username": "用户名",
+      "usernamePlaceholder": "输入用户名",
+      "password": "密码",
+      "passwordPlaceholder": "输入密码",
+      "headerName": "头部名称",
+      "headerNamePlaceholder": "例如 X-API-Key",
+      "headerValue": "头部值",
+      "headerValuePlaceholder": "输入头部值"
+    },
+    "validation": {
+      "tokenRequired": "令牌为必填项",
+      "usernameRequired": "用户名为必填项",
+      "passwordRequired": "密码为必填项",
+      "headerNameRequired": "头部名称为必填项",
+      "headerValueRequired": "头部值为必填项"
+    },
+    "addCredential": "添加凭据",
+    "pendingCredential": "{authType} 凭据将与监控器一起创建。",
+    "replacingNotice": "正在替换凭据 — 请在下方填写新值。",
+    "cancelReplace": "取消"
+  },
+  "credentials": {
+    "empty": "此监控器未配置凭据。",
+    "created": "创建于 {date}",
+    "confirmDelete": "确认？",
+    "delete": "删除",
+    "replace": "替换",
+    "cancel": "取消"
+  },
+  "modal": {
+    "secretTitle": "您的密钥值",
+    "secretWarning": "此密钥不会再次显示。请确保在关闭前复制。",
+    "secretLabel": "密钥值",
+    "secretDismiss": "我已复制密钥"
+  },
+  "toast": {
+    "dismiss": "关闭通知",
+    "notifications": "通知",
+    "requestId": "请求ID：{id}"
+  },
+  "grpc": {
+    "serviceMethod": "服务方法",
+    "serviceMethodPlaceholder": "grpc.health.v1.Health/Check",
+    "serviceMethodHelp": "完全限定的gRPC服务和方法（Package.Service/Method）",
+    "tlsMode": "TLS模式",
+    "tlsModes": {
+      "plaintext": "明文",
+      "tls": "TLS",
+      "tlsSkipVerify": "TLS（跳过验证）"
+    },
+    "sslExpiryThreshold": "SSL到期阈值（天）",
+    "sslExpiryThresholdPlaceholder": "30",
+    "sslExpiryThresholdHelp": "证书在此天数内到期时发出警报",
+    "metadata": "元数据",
+    "addMetadata": "添加元数据",
+    "metadataKeyPlaceholder": "键",
+    "metadataValuePlaceholder": "值",
+    "metadataHelp": "每个请求发送的自定义gRPC元数据头部",
+    "removeMetadataRow": "移除元数据行 {index}",
+    "expectedStatuses": "预期状态码",
+    "expectedStatusesHelp": "被视为健康响应的gRPC状态码",
+    "requestPayload": "请求有效载荷（Base64）",
+    "requestPayloadPlaceholder": "Base64编码的protobuf消息",
+    "requestPayloadHelp": "可选的Base64编码protobuf请求体"
+  },
+  "timeRange": {
+    "custom": "自定义",
+    "start": "开始",
+    "end": "结束",
+    "validation": {
+      "bothRequired": "请选择开始和结束时间",
+      "invalidDates": "日期值无效",
+      "startBeforeEnd": "开始时间必须早于结束时间"
+    },
+    "retentionNotice": "选择的范围超出了 {days} 天的保留期。数据可能不完整。",
+    "truncatedNotice": "数据已截断到监控器的保留期（{days} 天）。"
+  },
+  "history": {
+    "loading": "加载历史…",
+    "error": "历史数据加载失败。",
+    "empty": "所选时间段暂无数据。",
+    "retry": "重试"
+  },
+  "errors": {
+    "generic": "出了点问题",
+    "network": "服务不可用。请稍后重试。",
+    "unexpected": "发生了意外错误。",
+    "notFound": "未找到"
+  }
+}

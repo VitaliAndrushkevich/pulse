@@ -69,6 +69,7 @@ Core outcomes:
 - Avoid blocking renders; large monitor views must remain virtualized.
 - **Theming:** Use CSS custom properties from `app.css` (e.g., `var(--color-brand-primary)`) instead of hardcoded Tailwind color classes. Tailwind brand utilities (`bg-brand-500`, `text-brand-600`) resolve to CSS variables automatically.
 - **Dark mode:** Controlled via `data-theme` attribute on `<html>`. Never use Tailwind's `dark:` prefix — use `[data-theme="dark"]` selector strategy already configured.
+- **i18n / Localization:** All user-visible strings MUST use the `t()` function from `$lib/i18n`. Never hardcode display strings in Svelte templates or component scripts. When adding new UI text (labels, buttons, errors, toasts, empty states), add the corresponding key to `frontend/src/locales/en.json` first, then reference it via `t('section.key')`. Other locale files (`ru.json`, `es.json`, etc.) should also receive the new key — use the English value as a placeholder if no translation is available yet.
 
 ## Current Progress
 
@@ -159,6 +160,9 @@ The project is at MVP completion. Full milestone breakdown: [docs/MILESTONES.md]
 | Static brand assets | `frontend/static/brand/` |
 | Brand PNG generator | `frontend/scripts/generate-brand-pngs.mjs` |
 | Icon PNG generator | `frontend/scripts/generate-icons.mjs` |
+| Locale validation script | `frontend/scripts/validate-locales.ts` |
+| i18n module | `frontend/src/lib/i18n/` |
+| Translation files | `frontend/src/locales/*.json` |
 
 ## Build and Test
 Primary commands:
@@ -195,3 +199,60 @@ When working on code, reference these skills for domain guidance:
 
 ### Backend (Golang)
 - Multiple Golang skills available for database, concurrency, error handling, testing, performance, security, observability, and troubleshooting. Load as needed per task domain.
+
+## Localization (i18n)
+
+### Architecture
+- i18n module: `frontend/src/lib/i18n/` — config, locale store, resolution, types.
+- Translation files: `frontend/src/locales/{code}.json` (one per language).
+- Fallback chain: active locale → English (`en.json`) → key string.
+- Non-English locales are lazy-loaded via dynamic imports.
+- RTL support: locales with `dir: 'rtl'` in `config.ts` automatically set `document.documentElement.dir`.
+
+### Supported Locales (13)
+| Code | Language | Direction |
+|------|----------|-----------|
+| en | English | LTR |
+| ar | العربية (Arabic) | **RTL** |
+| be | Беларуская (Belarusian) | LTR |
+| de | Deutsch (German) | LTR |
+| es | Español (Spanish) | LTR |
+| fr | Français (French) | LTR |
+| it | Italiano (Italian) | LTR |
+| ja | 日本語 (Japanese) | LTR |
+| ko | 한국어 (Korean) | LTR |
+| pt | Português (Portuguese) | LTR |
+| ru | Русский (Russian) | LTR |
+| tr | Türkçe (Turkish) | LTR |
+| zh | 中文 (Chinese) | LTR |
+
+### Adding Strings to New Features (MANDATORY CHECKLIST)
+When adding any new UI feature with user-visible text:
+
+1. **Add keys to `en.json` first** — English is the source of truth.
+2. **Use `t('section.key')` in components** — never hardcode display strings.
+3. **Update ALL locale files** — add the new key to every `*.json` file in `frontend/src/locales/`. Use the English value as a placeholder if no translation is available yet.
+4. **Run locale validation**: `pnpm --filter frontend run validate-locales` (if available) to detect missing keys.
+5. **Verify RTL** — for layout-affecting strings (long labels, directional icons like `←`), ensure Arabic locale renders correctly. Use `dir`-aware CSS (`margin-inline-start` instead of `margin-left`).
+
+### Adding a New Language
+1. Create `frontend/src/locales/{code}.json` with all keys translated.
+2. Register in `frontend/src/lib/i18n/config.ts` → `SUPPORTED_LOCALES` array.
+   - Add `dir: 'rtl'` if the language is right-to-left.
+3. Validate JSON: `python3 -c "import json; json.load(open('frontend/src/locales/{code}.json'))"`.
+4. The language will appear automatically in the Settings → Language selector.
+
+### Key Conventions
+- Nest keys by page/section: `dashboard.title`, `monitors.form.name`, `settings.tokens.createButton`.
+- Use `common.*` for shared strings (Save, Cancel, Delete, etc.).
+- Interpolation: `{variable}` syntax — e.g. `"Page {page} of {totalPages}"`.
+- Never use locale-specific quotes that break JSON (e.g. `""` — use `「」` or escaped `\"`).
+
+### Files Reference
+| Purpose | Path |
+|---------|------|
+| i18n config (locale list) | `frontend/src/lib/i18n/config.ts` |
+| Locale store (t function) | `frontend/src/lib/i18n/locale.svelte.ts` |
+| English (source of truth) | `frontend/src/locales/en.json` |
+| All locales | `frontend/src/locales/*.json` |
+| Language selector UI | `frontend/src/components/LanguageSelector.svelte` |

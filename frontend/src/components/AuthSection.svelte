@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { t } from '$lib/i18n';
   import CredentialForm from './CredentialForm.svelte';
   import CredentialList from './CredentialList.svelte';
   import ShowOnceModal from './ShowOnceModal.svelte';
@@ -103,9 +104,9 @@
 
 <section class="space-y-4" data-testid="auth-section">
   <div>
-    <h3 class="text-sm font-medium text-primary">Authentication</h3>
+    <h3 class="text-sm font-medium text-primary">{t('auth.title')}</h3>
     <p class="mt-1 text-xs text-secondary">
-      Configure credentials for this monitor's health-check requests.
+      {t('auth.description')}
     </p>
   </div>
 
@@ -122,7 +123,7 @@
     {#if replacingCredentialId}
       <div class="mb-2 flex items-center justify-between rounded-md border border-amber-200 bg-amber-50 px-3 py-2">
         <p class="text-sm text-amber-800">
-          Replacing credential — fill in the new values below.
+          {t('auth.replacingNotice')}
         </p>
         <button
           type="button"
@@ -130,7 +131,7 @@
           class="text-xs font-medium text-amber-700 hover:text-amber-900"
           data-testid="btn-cancel-replace"
         >
-          Cancel
+          {t('auth.cancelReplace')}
         </button>
       </div>
     {/if}

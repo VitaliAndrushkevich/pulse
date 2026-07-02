@@ -496,6 +496,33 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
 
+  /dashboard/summary:
+    get:
+      operationId: getDashboardSummary
+      summary: Get aggregated dashboard health overview
+      description: >
+        Returns a pre-aggregated operational health summary for the dashboard.
+        Includes global health score, status distribution, active incidents,
+        top latency monitors, SSL expiry warnings, uptime heatmap, and recent
+        state transition events. All sub-queries run in parallel; partial
+        failures are reflected via the `partial_data` flag in the health score.
+      tags: [Dashboard]
+      responses:
+        "200":
+          description: Aggregated dashboard summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardSummaryResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
 components:
   securitySchemes:
     bearerAuth:
@@ -653,7 +680,7 @@ components:
           nullable: true
         settings:
           type: object
-          description: "Type-specific settings. For type=grpc, see GRPCSettings schema."
+          description: "Type-specific settings. For type=http/http3, see HTTPSettings. For type=grpc, see GRPCSettings."
         history_retention_days:
           type: integer
           minimum: 1
@@ -703,7 +730,7 @@ components:
           default: active
         settings:
           type: object
-          description: "Type-specific settings. For type=grpc, see GRPCSettings schema."
+          description: "Type-specific settings. For type=http/http3, see HTTPSettings. For type=grpc, see GRPCSettings."
         history_retention_days:
           type: integer
           minimum: 1
@@ -748,7 +775,7 @@ components:
           default: active
         settings:
           type: object
-          description: "Type-specific settings. For type=grpc, see GRPCSettings schema."
+          description: "Type-specific settings. For type=http/http3, see HTTPSettings. For type=grpc, see GRPCSettings."
         history_retention_days:
           type: integer
           minimum: 1
@@ -1178,6 +1205,64 @@ components:
           maxLength: 65536
           description: "Base64-encoded protobuf request message"
 
+    HTTPSettings:
+      type: object
+      description: >
+        Settings for HTTP/HTTPS monitors (type=http, type=http3).
+        All fields are optional with sensible defaults.
+      properties:
+        method:
+          type: string
+          default: GET
+          description: "HTTP method to use for the check request"
+        expected_statuses:
+          type: array
+          items:
+            type: integer
+          description: "Explicit list of acceptable HTTP status codes (takes priority over range)"
+          example: [200, 201, 204]
+        expected_status_min:
+          type: integer
+          default: 200
+          description: "Lower bound of acceptable status codes (used when expected_statuses is empty)"
+        expected_status_max:
+          type: integer
+          default: 399
+          description: "Upper bound of acceptable status codes (used when expected_statuses is empty)"
+        headers:
+          type: object
+          additionalProperties:
+            type: string
+            maxLength: 4096
+          maxProperties: 5
+          description: >
+            Custom headers sent with each check request (up to 5 key-value pairs).
+            Use for Host header override (IP monitoring), content negotiation, or probe identification.
+            Do NOT store secrets here — use the credentials API for authentication headers.
+          example:
+            Host: "api.example.com"
+            X-Probe: "pulse"
+        follow_redirects:
+          type: boolean
+          default: false
+          description: "Whether to follow HTTP redirects"
+        max_redirects:
+          type: integer
+          default: 10
+          description: "Maximum number of redirects to follow (only when follow_redirects is true)"
+        skip_tls_verify:
+          type: boolean
+          default: false
+          description: "Disable TLS certificate chain and hostname verification"
+        ssl_expiry_threshold:
+          type: integer
+          minimum: 0
+          description: "Minimum acceptable days until certificate expiry (0 = disabled)"
+        validate_cert_chain:
+          type: boolean
+          default: true
+          description: "Explicitly validate the full certificate chain against system root CAs"
+
     Tag:
       type: object
       description: A key-value tag pair associated with a monitor
@@ -1241,3 +1326,204 @@ components:
           type: string
           format: date-time
           description: When the tag change occurred
+
+    DashboardSummaryResponse:
+      type: object
+      description: >
+        Aggregated operational health overview for the dashboard. All sections
+        are pre-computed server-side to avoid N+1 client requests.
+      required:
+        - health_score
+        - status_distribution
+        - active_incidents
+        - top_latency_monitors
+        - ssl_expiry
+        - heatmap
+        - recent_events
+        - generated_at
+      properties:
+        health_score:
+          $ref: "#/components/schemas/DashboardHealthScore"
+        status_distribution:
+          $ref: "#/components/schemas/DashboardStatusDistribution"
+        active_incidents:
+          type: array
+          items:
+            $ref: "#/components/schemas/DashboardActiveIncident"
+          description: Monitors currently in the down state with incident context (max 10)
+        top_latency_monitors:
+          type: array
+          items:
+            $ref: "#/components/schemas/DashboardTopLatencyMonitor"
+          description: Up to 5 monitors with the highest 24h average latency
+        ssl_expiry:
+          type: array
+          items:
+            $ref: "#/components/schemas/DashboardSSLExpiryEntry"
+          description: Monitors with SSL certificates expiring within 30 days
+        heatmap:
+          type: array
+          items:
+            $ref: "#/components/schemas/DashboardHeatmapHour"
+          description: Hourly aggregated state blocks for the last 24 hours
+        recent_events:
+          type: array
+          items:
+            $ref: "#/components/schemas/DashboardRecentEvent"
+          description: Most recent state transitions across all monitors (max 10)
+        generated_at:
+          type: string
+          format: date-time
+          description: Server timestamp when this summary was generated
+
+    DashboardHealthScore:
+      type: object
+      description: Global uptime percentage computed across all active monitors for the last 24 hours
+      required: [uptime_percent, active_monitor_count, partial_data]
+      properties:
+        uptime_percent:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 100
+          description: Average uptime percentage across all active monitors (0–100, two decimal places)
+        active_monitor_count:
+          type: integer
+          minimum: 0
+          description: Number of monitors with status active included in the computation
+        partial_data:
+          type: boolean
+          description: >
+            True when stats could not be retrieved for one or more active monitors,
+            meaning the health score is computed from a subset of monitors
+
+    DashboardStatusDistribution:
+      type: object
+      description: Count of monitors in each state
+      required: [up, down, unknown, total]
+      properties:
+        up:
+          type: integer
+          minimum: 0
+          description: Number of monitors currently in the up state
+        down:
+          type: integer
+          minimum: 0
+          description: Number of monitors currently in the down state
+        unknown:
+          type: integer
+          minimum: 0
+          description: Number of monitors currently in the unknown state
+        total:
+          type: integer
+          minimum: 0
+          description: Total number of active monitors (up + down + unknown)
+
+    DashboardActiveIncident:
+      type: object
+      description: A monitor currently in the down state with incident context
+      required: [monitor_id, monitor_name, started_at, state]
+      properties:
+        monitor_id:
+          type: string
+          format: uuid
+          description: UUID of the affected monitor
+        monitor_name:
+          type: string
+          description: Human-readable name of the monitor
+        started_at:
+          type: string
+          format: date-time
+          description: When the incident began (RFC 3339)
+        cause:
+          type: string
+          nullable: true
+          description: Last error message that caused the down state
+        state:
+          type: string
+          enum: [down]
+          description: Always "down" for active incidents
+
+    DashboardTopLatencyMonitor:
+      type: object
+      description: A monitor selected for the top-latency sparklines section
+      required: [monitor_id, monitor_name, avg_latency_ms]
+      properties:
+        monitor_id:
+          type: string
+          format: uuid
+          description: UUID of the monitor
+        monitor_name:
+          type: string
+          description: Human-readable name of the monitor
+        avg_latency_ms:
+          type: integer
+          minimum: 0
+          description: 24-hour average response latency in milliseconds
+
+    DashboardSSLExpiryEntry:
+      type: object
+      description: A monitor with an SSL certificate expiring within 30 days
+      required: [monitor_id, monitor_name, days_remaining, expires_at]
+      properties:
+        monitor_id:
+          type: string
+          format: uuid
+          description: UUID of the monitor
+        monitor_name:
+          type: string
+          description: Human-readable name of the monitor
+        days_remaining:
+          type: integer
+          description: Days until the SSL certificate expires (can be negative if already expired)
+        expires_at:
+          type: string
+          format: date-time
+          description: Certificate expiration timestamp (RFC 3339)
+
+    DashboardHeatmapHour:
+      type: object
+      description: Aggregated monitor state for a single hour in the 24-hour heatmap
+      required: [hour_start, up_count, down_count, unknown_count]
+      properties:
+        hour_start:
+          type: string
+          format: date-time
+          description: Start of the hour bucket (RFC 3339, always on the hour boundary)
+        up_count:
+          type: integer
+          minimum: 0
+          description: Number of monitors that were up during this hour
+        down_count:
+          type: integer
+          minimum: 0
+          description: Number of monitors that were down during this hour
+        unknown_count:
+          type: integer
+          minimum: 0
+          description: Number of monitors in unknown state during this hour
+
+    DashboardRecentEvent:
+      type: object
+      description: A state transition event for a monitor
+      required: [monitor_id, monitor_name, from_state, to_state, occurred_at]
+      properties:
+        monitor_id:
+          type: string
+          format: uuid
+          description: UUID of the monitor that transitioned
+        monitor_name:
+          type: string
+          description: Human-readable name of the monitor
+        from_state:
+          type: string
+          enum: [up, down, unknown]
+          description: Previous monitor state before the transition
+        to_state:
+          type: string
+          enum: [up, down, unknown]
+          description: New monitor state after the transition
+        occurred_at:
+          type: string
+          format: date-time
+          description: When the state transition occurred (RFC 3339)

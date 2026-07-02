@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { HistoryPoint } from '$lib/types';
+  import { formatLatency } from '$lib/format';
 
   interface Props {
     data: HistoryPoint[];
@@ -175,7 +176,7 @@
       const pt = beat.points[0];
       const time = formatDateTime(new Date(pt.checked_at).getTime());
       if (pt.state === 'up') {
-        return `${time} — OK${pt.latency_ms != null ? ` (${pt.latency_ms}ms)` : ''}`;
+        return `${time} — OK${pt.latency_ms != null ? ` (${formatLatency(pt.latency_ms)})` : ''}`;
       }
       const parts: string[] = [];
       if (pt.status_code != null) {
@@ -295,7 +296,7 @@
                   <p class="text-xs text-secondary">HTTP {pt.status_code}</p>
                 {/if}
                 {#if pt.latency_ms != null}
-                  <p class="text-xs text-secondary">Response: {pt.latency_ms}ms</p>
+                  <p class="text-xs text-secondary">Response: {formatLatency(pt.latency_ms)}</p>
                 {/if}
               </div>
             {:else}

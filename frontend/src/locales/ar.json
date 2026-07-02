@@ -1,0 +1,421 @@
+{
+  "app": {
+    "name": "Pulse",
+    "title": "{page} — Pulse"
+  },
+  "nav": {
+    "dashboard": "لوحة التحكم",
+    "monitors": "المراقبات",
+    "settings": "الإعدادات",
+    "logout": "تسجيل الخروج",
+    "home": "Pulse — الرئيسية"
+  },
+  "common": {
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "delete": "حذف",
+    "confirm": "تأكيد",
+    "retry": "إعادة المحاولة",
+    "apply": "تطبيق",
+    "back": "رجوع",
+    "loading": "جارٍ التحميل...",
+    "error": "حدث خطأ ما",
+    "copy": "نسخ",
+    "copied": "تم النسخ!",
+    "remove": "إزالة",
+    "replace": "استبدال",
+    "add": "إضافة",
+    "none": "لا يوجد",
+    "never": "أبداً",
+    "na": "غ/م",
+    "active": "نشط",
+    "paused": "متوقف مؤقتاً",
+    "saving": "جارٍ الحفظ…",
+    "creating": "جارٍ الإنشاء…",
+    "deleting": "جارٍ الحذف…",
+    "revoking": "جارٍ الإلغاء…",
+    "pageOf": "صفحة {page} من {totalPages}",
+    "previous": "السابق",
+    "next": "التالي"
+  },
+  "connection": {
+    "live": "مباشر",
+    "reconnecting": "جارٍ إعادة الاتصال…",
+    "paused": "التحديثات المباشرة متوقفة",
+    "statusLive": "حالة الاتصال: مباشر",
+    "statusPaused": "حالة الاتصال: التحديثات المباشرة متوقفة"
+  },
+  "login": {
+    "title": "تسجيل الدخول إلى Pulse",
+    "subtitle": "أدخل بيانات الاعتماد للمتابعة",
+    "email": "البريد الإلكتروني",
+    "emailPlaceholder": "user@example.com",
+    "password": "كلمة المرور",
+    "passwordPlaceholder": "••••••••",
+    "submit": "تسجيل الدخول",
+    "submitting": "جارٍ تسجيل الدخول…",
+    "errors": {
+      "invalidCredentials": "البريد الإلكتروني أو كلمة المرور غير صحيحة",
+      "networkError": "الخدمة غير متوفرة. يرجى المحاولة لاحقاً.",
+      "unexpected": "الخدمة غير متوفرة. يرجى المحاولة لاحقاً."
+    }
+  },
+  "setup": {
+    "title": "مرحباً بك في Pulse",
+    "subtitle": "أنشئ حساب المسؤول للبدء",
+    "email": "البريد الإلكتروني",
+    "emailPlaceholder": "admin@example.com",
+    "password": "كلمة المرور",
+    "confirmPassword": "تأكيد كلمة المرور",
+    "submit": "إنشاء حساب المسؤول",
+    "submitting": "جارٍ إنشاء الحساب…",
+    "checkingStatus": "جارٍ التحقق من حالة الإعداد…",
+    "errors": {
+      "statusCheck": "تعذر التحقق من حالة الإعداد. هل الخادم يعمل؟",
+      "alreadyCompleted": "تم إكمال الإعداد مسبقاً. جارٍ التوجيه إلى تسجيل الدخول…",
+      "failed": "فشل الإعداد. يرجى المحاولة مرة أخرى.",
+      "networkError": "الخدمة غير متوفرة. يرجى المحاولة لاحقاً.",
+      "unexpected": "حدث خطأ غير متوقع."
+    },
+    "validation": {
+      "passwordLength": "يجب أن تتكون كلمة المرور من 8 أحرف على الأقل",
+      "passwordsMismatch": "كلمتا المرور غير متطابقتين"
+    }
+  },
+  "dashboard": {
+    "title": "لوحة مراقبة التشغيل",
+    "stats": {
+      "total": "إجمالي المراقبات",
+      "healthy": "سليمة",
+      "unhealthy": "بها مشاكل"
+    },
+    "empty": {
+      "title": "لا توجد مراقبات بعد",
+      "description": "أنشئ أول مراقبة لبدء تتبع وقت التشغيل.",
+      "action": "إنشاء مراقبة"
+    },
+    "loading": "جارٍ تحميل المراقبات…",
+    "error": "فشل تحميل المراقبات",
+    "healthScore": {
+      "title": "مؤشر السلامة",
+      "noData": "لا تتوفر بيانات",
+      "value": "مؤشر السلامة: {value}",
+      "partialData": "بيانات جزئية"
+    },
+    "statusRing": {
+      "title": "توزيع الحالات",
+      "ariaLabel": "{up} تعمل، {down} متوقفة، {unknown} غير معروفة"
+    },
+    "incidents": {
+      "title": "الحوادث النشطة",
+      "allOperational": "جميع الأنظمة تعمل بشكل طبيعي",
+      "overflow": "+ {count} أخرى"
+    },
+    "heatmap": {
+      "title": "خريطة التشغيل (24 ساعة)",
+      "ariaLabel": "خريطة حرارية تعرض حالة النظام كل ساعة خلال الـ 24 ساعة الماضية",
+      "blockAria": "{time}: {up} تعمل، {down} متوقفة، {unknown} غير معروفة",
+      "tooltipCounts": "↑{up} ↓{down} ?{unknown}"
+    },
+    "sparklines": {
+      "title": "وقت الاستجابة",
+      "empty": "لا تتوفر بيانات زمن الاستجابة"
+    },
+    "ssl": {
+      "title": "تحذيرات انتهاء شهادة SSL",
+      "daysRemaining": "{count} يوم",
+      "expired": "منتهية الصلاحية",
+      "expiresOn": "تنتهي في {date}"
+    },
+    "freshness": {
+      "label": "آخر تحديث:",
+      "stale": "قد تكون البيانات قديمة"
+    },
+    "events": {
+      "title": "الأحداث الأخيرة",
+      "empty": "لا يوجد نشاط حديث",
+      "transition": "{from} ← {to}",
+      "justNow": "الآن",
+      "secondsAgo": "منذ {count} ث",
+      "minutesAgo": "منذ {count} د",
+      "hoursAgo": "منذ {count} س",
+      "daysAgo": "منذ {count} ي"
+    }
+  },
+  "monitors": {
+    "title": "المراقبات",
+    "create": "إنشاء مراقبة",
+    "edit": "تعديل المراقبة",
+    "loading": "جارٍ تحميل المراقبات…",
+    "loadingDetails": "جارٍ تحميل التفاصيل…",
+    "loadingMonitor": "جارٍ تحميل المراقبة…",
+    "empty": {
+      "title": "لم يتم العثور على مراقبات.",
+      "action": "أنشئ أول مراقبة"
+    },
+    "notFound": {
+      "title": "المراقبة غير موجودة",
+      "description": "المراقبة التي تبحث عنها غير موجودة أو تم حذفها.",
+      "action": "العودة إلى المراقبات"
+    },
+    "errors": {
+      "loadFailed": "فشل تحميل المراقبات. يرجى المحاولة مرة أخرى.",
+      "detailFailed": "فشل تحميل تفاصيل المراقبة. يرجى المحاولة مرة أخرى.",
+      "deleteFailed": "فشل حذف المراقبة. يرجى المحاولة مرة أخرى.",
+      "editLoadFailed": "فشل تحميل المراقبة. يرجى المحاولة مرة أخرى."
+    },
+    "deleteConfirm": "هل أنت متأكد من حذف \"{name}\"؟ لا يمكن التراجع عن هذا الإجراء.",
+    "status": {
+      "up": "يعمل",
+      "down": "متوقف",
+      "unknown": "غير معروف",
+      "active": "نشط",
+      "paused": "متوقف مؤقتاً"
+    },
+    "detail": {
+      "edit": "تعديل",
+      "delete": "حذف",
+      "backToMonitors": "العودة إلى المراقبات",
+      "tabs": {
+        "overview": "نظرة عامة",
+        "history": "السجل"
+      },
+      "checkInterval": "فحص كل {seconds} ثانية",
+      "stats": {
+        "response": "الاستجابة",
+        "avgResponse": "متوسط الاستجابة",
+        "uptime": "وقت التشغيل",
+        "certExpiry": "الشهادة",
+        "current": "(الحالي)",
+        "period24h": "(24 ساعة)",
+        "period30d": "(30 يوم)",
+        "noData": "(لا توجد بيانات بعد)",
+        "days": "{count} يوم"
+      },
+      "timeline": {
+        "title": "الجدول الزمني للحالة (24 ساعة)"
+      },
+      "responseTime": {
+        "title": "وقت الاستجابة (24 ساعة)"
+      },
+      "configuration": {
+        "title": "التكوين",
+        "target": "الهدف",
+        "interval": "الفاصل الزمني",
+        "timeout": "مهلة الانتظار",
+        "lastChecked": "آخر فحص",
+        "nextCheck": "الفحص التالي",
+        "created": "تاريخ الإنشاء",
+        "notScheduled": "غير مجدول"
+      },
+      "incidents": {
+        "title": "الحوادث الأخيرة",
+        "empty": "لا توجد حوادث مسجلة.",
+        "ongoing": "مستمر"
+      },
+      "pause": {
+        "title": "إيقاف المراقبة مؤقتاً؟",
+        "description": "سيؤدي الإيقاف المؤقت إلى توقف جميع فحوصات {name}. لن يتم جمع بيانات أثناء التوقف.",
+        "button": "إيقاف مؤقت",
+        "pausing": "جارٍ الإيقاف..."
+      },
+      "resume": {
+        "title": "استئناف المراقبة؟",
+        "description": "سيؤدي الاستئناف إلى إعادة تشغيل فحوصات {name}. سيتم تنفيذ الفحص التالي قريباً.",
+        "button": "استئناف",
+        "resuming": "جارٍ الاستئناف..."
+      }
+    },
+    "form": {
+      "name": "الاسم",
+      "namePlaceholder": "مراقبتي",
+      "type": "النوع",
+      "target": "الهدف",
+      "interval": "الفاصل الزمني (ثوانٍ)",
+      "timeout": "مهلة الانتظار (ثوانٍ)",
+      "status": "الحالة",
+      "statusActive": "نشط",
+      "statusPaused": "متوقف مؤقتاً",
+      "retention": "مدة الاحتفاظ بالسجل (أيام)",
+      "retentionHelp": "عدد أيام الاحتفاظ ببيانات الفحص (1–365، الافتراضي 30)",
+      "expectedStatusCodes": "رموز الحالة المتوقعة",
+      "expectedStatusCodesPlaceholder": "200, 201, 204",
+      "expectedStatusCodesHelp": "رموز HTTP مفصولة بفواصل تُعتبر ناجحة",
+      "skipTlsVerify": "تعطيل التحقق من الشهادة (تخطي التحقق من TLS)",
+      "skipTlsVerifyHelp": "عند التمكين، ستتخطى المراقبة التحقق من سلسلة شهادات TLS واسم المضيف. استخدم بحذر.",
+      "customHeaders": "ترويسات مخصصة",
+      "customHeadersHelp": "ترويسات غير سرية تُرسل مع كل طلب فحص (حتى 5). لمراقبة خادم عبر IP، أضف ترويسة Host باسم النطاق.",
+      "addHeader": "+ إضافة ترويسة",
+      "headerNamePlaceholder": "اسم الترويسة",
+      "headerValuePlaceholder": "القيمة",
+      "removeHeader": "إزالة الترويسة",
+      "payload": "حمولة البيانات",
+      "payloadPlaceholder": "ping",
+      "payloadHelp": "البيانات المرسلة إلى هدف UDP",
+      "handshakeMessage": "رسالة المصافحة",
+      "handshakeMessagePlaceholder": "ping",
+      "handshakeMessageHelp": "الرسالة المرسلة بعد إنشاء اتصال WebSocket",
+      "secretReference": "مرجع السر",
+      "secretReferenceHelp": "سر اختياري لربطه بهذه المراقبة",
+      "submitCreate": "إنشاء مراقبة",
+      "submitUpdate": "تحديث المراقبة",
+      "error": "خطأ",
+      "unexpectedError": "حدث خطأ غير متوقع",
+      "targetHelp": {
+        "http": "عنوان URL أو اسم النطاق (افتراضي: https://)",
+        "tcp": "الصيغة: المضيف:المنفذ",
+        "udp": "الصيغة: المضيف:المنفذ",
+        "websocket": "عنوان URL بنظام ws:// أو wss://، أو اسم المضيف (افتراضي: wss://)",
+        "grpc": "الصيغة: المضيف:المنفذ"
+      }
+    },
+    "filter": {
+      "expand": "تصفية",
+      "collapse": "إخفاء التصفية",
+      "selectKey": "اختيار المفتاح",
+      "addTag": "وسم",
+      "back": "رجوع ←",
+      "cancel": "إلغاء",
+      "removeTag": "إزالة الوسم {key}:{value}"
+    }
+  },
+  "settings": {
+    "title": "الإعدادات",
+    "description": "إدارة حسابك والوصول إلى API.",
+    "language": {
+      "title": "اللغة",
+      "label": "لغة العرض"
+    },
+    "tokens": {
+      "title": "رموز API",
+      "description": "توفر رموز API وصولاً برمجياً إلى واجهة Pulse API. استخدمها لخطوط أنابيب CI/CD والنصوص البرمجية للأتمتة والتكاملات الخارجية.",
+      "createTitle": "إنشاء رمز جديد",
+      "createLabel": "اسم الرمز",
+      "createPlaceholder": "مثال: ci-deploy, grafana-read",
+      "createButton": "إنشاء رمز",
+      "existingTitle": "الرموز الموجودة",
+      "existingDescription": "لا تُعرض قيم الرموز بعد الإنشاء. تُعرض البيانات الوصفية فقط.",
+      "loadingTokens": "جارٍ تحميل الرموز…",
+      "emptyState": "لم يتم إنشاء رموز API بعد.",
+      "tableHeaders": {
+        "name": "الاسم",
+        "created": "تاريخ الإنشاء",
+        "lastUsed": "آخر استخدام",
+        "expires": "ينتهي",
+        "actions": "الإجراءات"
+      },
+      "revoke": "إلغاء",
+      "revoked": "ملغى",
+      "expired": "منتهي الصلاحية",
+      "errors": {
+        "networkList": "تعذر الاتصال بالخادم. يرجى التحقق من اتصال الشبكة.",
+        "unexpectedList": "حدث خطأ غير متوقع أثناء تحميل الرموز.",
+        "networkCreate": "تعذر الاتصال بالخادم. يرجى المحاولة مرة أخرى.",
+        "unexpectedCreate": "حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى."
+      }
+    }
+  },
+  "auth": {
+    "title": "المصادقة",
+    "description": "تكوين بيانات الاعتماد لطلبات فحص صحة هذه المراقبة.",
+    "createDescription": "بيانات اعتماد اختيارية لطلبات فحص صحة هذه المراقبة.",
+    "authType": "نوع المصادقة",
+    "types": {
+      "none": "بدون",
+      "bearer": "رمز Bearer",
+      "basic": "مصادقة أساسية",
+      "header": "ترويسة مخصصة"
+    },
+    "fields": {
+      "token": "الرمز",
+      "tokenPlaceholder": "أدخل رمز Bearer",
+      "username": "اسم المستخدم",
+      "usernamePlaceholder": "أدخل اسم المستخدم",
+      "password": "كلمة المرور",
+      "passwordPlaceholder": "أدخل كلمة المرور",
+      "headerName": "اسم الترويسة",
+      "headerNamePlaceholder": "مثال: X-API-Key",
+      "headerValue": "قيمة الترويسة",
+      "headerValuePlaceholder": "أدخل قيمة الترويسة"
+    },
+    "validation": {
+      "tokenRequired": "الرمز مطلوب",
+      "usernameRequired": "اسم المستخدم مطلوب",
+      "passwordRequired": "كلمة المرور مطلوبة",
+      "headerNameRequired": "اسم الترويسة مطلوب",
+      "headerValueRequired": "قيمة الترويسة مطلوبة"
+    },
+    "addCredential": "إضافة بيانات اعتماد",
+    "pendingCredential": "سيتم إنشاء بيانات اعتماد {authType} مع المراقبة.",
+    "replacingNotice": "جارٍ استبدال بيانات الاعتماد — أدخل القيم الجديدة أدناه.",
+    "cancelReplace": "إلغاء"
+  },
+  "credentials": {
+    "empty": "لا توجد بيانات اعتماد مكونة لهذه المراقبة.",
+    "created": "أُنشئ في {date}",
+    "confirmDelete": "تأكيد؟",
+    "delete": "حذف",
+    "replace": "استبدال",
+    "cancel": "إلغاء"
+  },
+  "modal": {
+    "secretTitle": "قيمتك السرية",
+    "secretWarning": "لن يتم عرض هذا السر مرة أخرى. تأكد من نسخه قبل الإغلاق.",
+    "secretLabel": "القيمة السرية",
+    "secretDismiss": "لقد نسخت السر"
+  },
+  "toast": {
+    "dismiss": "إغلاق الإشعار",
+    "notifications": "الإشعارات",
+    "requestId": "معرّف الطلب: {id}"
+  },
+  "grpc": {
+    "serviceMethod": "طريقة الخدمة",
+    "serviceMethodPlaceholder": "grpc.health.v1.Health/Check",
+    "serviceMethodHelp": "اسم خدمة gRPC والطريقة بالكامل (Package.Service/Method)",
+    "tlsMode": "وضع TLS",
+    "tlsModes": {
+      "plaintext": "نص عادي",
+      "tls": "TLS",
+      "tlsSkipVerify": "TLS (بدون تحقق)"
+    },
+    "sslExpiryThreshold": "عتبة انتهاء SSL (أيام)",
+    "sslExpiryThresholdPlaceholder": "30",
+    "sslExpiryThresholdHelp": "تنبيه عندما تنتهي صلاحية الشهادة خلال هذا العدد من الأيام",
+    "metadata": "البيانات الوصفية",
+    "addMetadata": "إضافة بيانات وصفية",
+    "metadataKeyPlaceholder": "المفتاح",
+    "metadataValuePlaceholder": "القيمة",
+    "metadataHelp": "ترويسات بيانات gRPC الوصفية المخصصة المرسلة مع كل طلب",
+    "removeMetadataRow": "إزالة صف البيانات الوصفية {index}",
+    "expectedStatuses": "رموز الحالة المتوقعة",
+    "expectedStatusesHelp": "رموز حالة gRPC التي تُعتبر استجابة سليمة",
+    "requestPayload": "حمولة الطلب (Base64)",
+    "requestPayloadPlaceholder": "رسالة protobuf مشفرة بـ Base64",
+    "requestPayloadHelp": "جسم طلب protobuf مشفر بـ Base64 اختياري"
+  },
+  "timeRange": {
+    "custom": "مخصص",
+    "start": "البداية",
+    "end": "النهاية",
+    "validation": {
+      "bothRequired": "يرجى تحديد وقت البداية والنهاية",
+      "invalidDates": "قيم تاريخ غير صالحة",
+      "startBeforeEnd": "يجب أن يكون وقت البداية قبل وقت النهاية"
+    },
+    "retentionNotice": "النطاق المحدد يتجاوز فترة الاحتفاظ البالغة {days} يوم. قد تكون البيانات غير مكتملة.",
+    "truncatedNotice": "تم اقتطاع البيانات إلى فترة احتفاظ المراقبة ({days} يوم)."
+  },
+  "history": {
+    "loading": "جارٍ تحميل السجل…",
+    "error": "فشل تحميل بيانات السجل.",
+    "empty": "لا تتوفر بيانات للفترة المحددة.",
+    "retry": "إعادة المحاولة"
+  },
+  "errors": {
+    "generic": "حدث خطأ ما",
+    "network": "الخدمة غير متوفرة. يرجى المحاولة لاحقاً.",
+    "unexpected": "حدث خطأ غير متوقع.",
+    "notFound": "غير موجود"
+  }
+}

@@ -1,0 +1,421 @@
+{
+  "app": {
+    "name": "Pulse",
+    "title": "{page} — Pulse"
+  },
+  "nav": {
+    "dashboard": "Tableau de bord",
+    "monitors": "Moniteurs",
+    "settings": "Paramètres",
+    "logout": "Déconnexion",
+    "home": "Pulse — Accueil"
+  },
+  "common": {
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "delete": "Supprimer",
+    "confirm": "Confirmer",
+    "retry": "Réessayer",
+    "apply": "Appliquer",
+    "back": "Retour",
+    "loading": "Chargement...",
+    "error": "Une erreur s'est produite",
+    "copy": "Copier",
+    "copied": "Copié !",
+    "remove": "Retirer",
+    "replace": "Remplacer",
+    "add": "Ajouter",
+    "none": "Aucun",
+    "never": "Jamais",
+    "na": "N/A",
+    "active": "Actif",
+    "paused": "En pause",
+    "saving": "Enregistrement…",
+    "creating": "Création…",
+    "deleting": "Suppression…",
+    "revoking": "Révocation…",
+    "pageOf": "Page {page} sur {totalPages}",
+    "previous": "Précédent",
+    "next": "Suivant"
+  },
+  "connection": {
+    "live": "En direct",
+    "reconnecting": "Reconnexion…",
+    "paused": "Mises à jour en direct suspendues",
+    "statusLive": "État de connexion : en direct",
+    "statusPaused": "État de connexion : mises à jour suspendues"
+  },
+  "login": {
+    "title": "Se connecter à Pulse",
+    "subtitle": "Entrez vos identifiants pour continuer",
+    "email": "E-mail",
+    "emailPlaceholder": "utilisateur@exemple.com",
+    "password": "Mot de passe",
+    "passwordPlaceholder": "••••••••",
+    "submit": "Se connecter",
+    "submitting": "Connexion…",
+    "errors": {
+      "invalidCredentials": "E-mail ou mot de passe invalide",
+      "networkError": "Service indisponible. Veuillez réessayer plus tard.",
+      "unexpected": "Service indisponible. Veuillez réessayer plus tard."
+    }
+  },
+  "setup": {
+    "title": "Bienvenue sur Pulse",
+    "subtitle": "Créez votre compte administrateur pour commencer",
+    "email": "E-mail",
+    "emailPlaceholder": "admin@exemple.com",
+    "password": "Mot de passe",
+    "confirmPassword": "Confirmer le mot de passe",
+    "submit": "Créer le compte administrateur",
+    "submitting": "Création du compte…",
+    "checkingStatus": "Vérification du statut…",
+    "errors": {
+      "statusCheck": "Impossible de vérifier le statut. Le serveur est-il en cours d'exécution ?",
+      "alreadyCompleted": "La configuration est déjà terminée. Redirection vers la connexion…",
+      "failed": "La configuration a échoué. Veuillez réessayer.",
+      "networkError": "Service indisponible. Veuillez réessayer plus tard.",
+      "unexpected": "Une erreur inattendue s'est produite."
+    },
+    "validation": {
+      "passwordLength": "Le mot de passe doit contenir au moins 8 caractères",
+      "passwordsMismatch": "Les mots de passe ne correspondent pas"
+    }
+  },
+  "dashboard": {
+    "title": "Tableau de disponibilité",
+    "stats": {
+      "total": "Moniteurs totaux",
+      "healthy": "Sains",
+      "unhealthy": "En erreur"
+    },
+    "empty": {
+      "title": "Pas encore de moniteurs",
+      "description": "Créez votre premier moniteur pour commencer à suivre la disponibilité.",
+      "action": "Créer un moniteur"
+    },
+    "loading": "Chargement des moniteurs…",
+    "error": "Échec du chargement des moniteurs",
+    "healthScore": {
+      "title": "Score de santé",
+      "noData": "Aucune donnée disponible",
+      "value": "Score de santé : {value}",
+      "partialData": "Données partielles"
+    },
+    "statusRing": {
+      "title": "Distribution des statuts",
+      "ariaLabel": "{up} actifs, {down} en panne, {unknown} inconnus"
+    },
+    "incidents": {
+      "title": "Incidents actifs",
+      "allOperational": "Tous les systèmes opérationnels",
+      "overflow": "+ {count} de plus"
+    },
+    "heatmap": {
+      "title": "Carte de disponibilité (24h)",
+      "ariaLabel": "Carte de disponibilité montrant l'état du système heure par heure sur les dernières 24 heures",
+      "blockAria": "{time} : {up} actifs, {down} en panne, {unknown} inconnus",
+      "tooltipCounts": "↑{up} ↓{down} ?{unknown}"
+    },
+    "sparklines": {
+      "title": "Temps de réponse",
+      "empty": "Aucune donnée de latence disponible"
+    },
+    "ssl": {
+      "title": "Alertes d'expiration SSL",
+      "daysRemaining": "{count} jours",
+      "expired": "Expiré",
+      "expiresOn": "Expire le {date}"
+    },
+    "freshness": {
+      "label": "Dernière mise à jour :",
+      "stale": "Les données peuvent être obsolètes"
+    },
+    "events": {
+      "title": "Événements récents",
+      "empty": "Aucune activité récente",
+      "transition": "{from} → {to}",
+      "justNow": "à l'instant",
+      "secondsAgo": "il y a {count}s",
+      "minutesAgo": "il y a {count}min",
+      "hoursAgo": "il y a {count}h",
+      "daysAgo": "il y a {count}j"
+    }
+  },
+  "monitors": {
+    "title": "Moniteurs",
+    "create": "Créer un moniteur",
+    "edit": "Modifier le moniteur",
+    "loading": "Chargement des moniteurs…",
+    "loadingDetails": "Chargement des détails…",
+    "loadingMonitor": "Chargement du moniteur…",
+    "empty": {
+      "title": "Aucun moniteur trouvé.",
+      "action": "Créez votre premier moniteur"
+    },
+    "notFound": {
+      "title": "Moniteur introuvable",
+      "description": "Le moniteur recherché n'existe pas ou a été supprimé.",
+      "action": "Retour aux moniteurs"
+    },
+    "errors": {
+      "loadFailed": "Échec du chargement des moniteurs. Veuillez réessayer.",
+      "detailFailed": "Échec du chargement des détails. Veuillez réessayer.",
+      "deleteFailed": "Échec de la suppression du moniteur. Veuillez réessayer.",
+      "editLoadFailed": "Échec du chargement du moniteur. Veuillez réessayer."
+    },
+    "deleteConfirm": "Voulez-vous vraiment supprimer « {name} » ? Cette action est irréversible.",
+    "status": {
+      "up": "Actif",
+      "down": "En panne",
+      "unknown": "Inconnu",
+      "active": "Actif",
+      "paused": "En pause"
+    },
+    "detail": {
+      "edit": "Modifier",
+      "delete": "Supprimer",
+      "backToMonitors": "Retour aux moniteurs",
+      "tabs": {
+        "overview": "Aperçu",
+        "history": "Historique"
+      },
+      "checkInterval": "Vérification toutes les {seconds}s",
+      "stats": {
+        "response": "Réponse",
+        "avgResponse": "Réponse moy.",
+        "uptime": "Disponibilité",
+        "certExpiry": "Certificat",
+        "current": "(Actuel)",
+        "period24h": "(24 heures)",
+        "period30d": "(30 jours)",
+        "noData": "(pas encore de données)",
+        "days": "{count} jours"
+      },
+      "timeline": {
+        "title": "Chronologie des statuts (24h)"
+      },
+      "responseTime": {
+        "title": "Temps de réponse (24h)"
+      },
+      "configuration": {
+        "title": "Configuration",
+        "target": "Cible",
+        "interval": "Intervalle",
+        "timeout": "Timeout",
+        "lastChecked": "Dernière vérification",
+        "nextCheck": "Prochaine vérification",
+        "created": "Créé",
+        "notScheduled": "Non planifié"
+      },
+      "incidents": {
+        "title": "Incidents récents",
+        "empty": "Aucun incident enregistré.",
+        "ongoing": "En cours"
+      },
+      "pause": {
+        "title": "Mettre en pause le moniteur ?",
+        "description": "La pause arrêtera toutes les vérifications pour {name}. Aucune donnée ne sera collectée.",
+        "button": "Mettre en pause",
+        "pausing": "Mise en pause..."
+      },
+      "resume": {
+        "title": "Reprendre le moniteur ?",
+        "description": "La reprise redémarrera les vérifications pour {name}. La prochaine vérification aura lieu sous peu.",
+        "button": "Reprendre",
+        "resuming": "Reprise..."
+      }
+    },
+    "form": {
+      "name": "Nom",
+      "namePlaceholder": "Mon moniteur",
+      "type": "Type",
+      "target": "Cible",
+      "interval": "Intervalle (secondes)",
+      "timeout": "Timeout (secondes)",
+      "status": "Statut",
+      "statusActive": "Actif",
+      "statusPaused": "En pause",
+      "retention": "Rétention de l'historique (jours)",
+      "retentionHelp": "Nombre de jours de conservation des données (1–365, défaut 30)",
+      "expectedStatusCodes": "Codes de statut attendus",
+      "expectedStatusCodesPlaceholder": "200, 201, 204",
+      "expectedStatusCodesHelp": "Codes HTTP séparés par des virgules considérés comme réussis",
+      "skipTlsVerify": "Désactiver la vérification du certificat (ignorer la vérification TLS)",
+      "skipTlsVerifyHelp": "Lorsqu'activé, le moniteur ignorera la vérification de la chaîne de certificats TLS et du nom d'hôte. À utiliser avec précaution.",
+      "customHeaders": "En-têtes personnalisés",
+      "customHeadersHelp": "En-têtes non secrets envoyés avec chaque vérification (jusqu'à 5). Pour surveiller un serveur par IP, ajoutez un en-tête Host avec le nom de domaine.",
+      "addHeader": "+ Ajouter un en-tête",
+      "headerNamePlaceholder": "Nom de l'en-tête",
+      "headerValuePlaceholder": "Valeur",
+      "removeHeader": "Retirer l'en-tête",
+      "payload": "Payload",
+      "payloadPlaceholder": "ping",
+      "payloadHelp": "Données à envoyer à la cible UDP",
+      "handshakeMessage": "Message de handshake",
+      "handshakeMessagePlaceholder": "ping",
+      "handshakeMessageHelp": "Message envoyé après l'établissement de la connexion WebSocket",
+      "secretReference": "Référence de secret",
+      "secretReferenceHelp": "Secret optionnel à associer à ce moniteur",
+      "submitCreate": "Créer le moniteur",
+      "submitUpdate": "Mettre à jour le moniteur",
+      "error": "Erreur",
+      "unexpectedError": "Une erreur inattendue s'est produite",
+      "targetHelp": {
+        "http": "URL ou nom de domaine (par défaut : https://)",
+        "tcp": "Format : hôte:port",
+        "udp": "Format : hôte:port",
+        "websocket": "URL avec schéma ws:// ou wss://, ou nom d'hôte (par défaut : wss://)",
+        "grpc": "Format : hôte:port"
+      }
+    },
+    "filter": {
+      "expand": "Filtrer",
+      "collapse": "Masquer les filtres",
+      "selectKey": "Sélectionner la clé",
+      "addTag": "Tag",
+      "back": "← Retour",
+      "cancel": "Annuler",
+      "removeTag": "Retirer le tag {key}:{value}"
+    }
+  },
+  "settings": {
+    "title": "Paramètres",
+    "description": "Gérez votre compte et l'accès API.",
+    "language": {
+      "title": "Langue",
+      "label": "Langue d'affichage"
+    },
+    "tokens": {
+      "title": "Tokens API",
+      "description": "Les tokens API fournissent un accès programmatique à l'API Pulse. Utilisez-les pour les pipelines CI/CD, les scripts d'automatisation et les intégrations externes.",
+      "createTitle": "Créer un nouveau token",
+      "createLabel": "Nom du token",
+      "createPlaceholder": "ex. ci-deploy, grafana-read",
+      "createButton": "Créer le token",
+      "existingTitle": "Tokens existants",
+      "existingDescription": "Les valeurs des tokens ne sont plus affichées après la création. Seules les métadonnées sont visibles.",
+      "loadingTokens": "Chargement des tokens…",
+      "emptyState": "Aucun token API créé pour le moment.",
+      "tableHeaders": {
+        "name": "Nom",
+        "created": "Créé",
+        "lastUsed": "Dernière utilisation",
+        "expires": "Expire",
+        "actions": "Actions"
+      },
+      "revoke": "Révoquer",
+      "revoked": "Révoqué",
+      "expired": "Expiré",
+      "errors": {
+        "networkList": "Impossible de se connecter au serveur. Vérifiez votre connexion réseau.",
+        "unexpectedList": "Une erreur inattendue s'est produite lors du chargement des tokens.",
+        "networkCreate": "Impossible de se connecter au serveur. Veuillez réessayer.",
+        "unexpectedCreate": "Une erreur inattendue s'est produite. Veuillez réessayer."
+      }
+    }
+  },
+  "auth": {
+    "title": "Authentification",
+    "description": "Configurez les identifiants pour les requêtes de vérification de ce moniteur.",
+    "createDescription": "Identifiants optionnels pour les requêtes de vérification de ce moniteur.",
+    "authType": "Type d'authentification",
+    "types": {
+      "none": "Aucun",
+      "bearer": "Bearer Token",
+      "basic": "Basic Auth",
+      "header": "En-tête personnalisé"
+    },
+    "fields": {
+      "token": "Token",
+      "tokenPlaceholder": "Entrez le bearer token",
+      "username": "Nom d'utilisateur",
+      "usernamePlaceholder": "Entrez le nom d'utilisateur",
+      "password": "Mot de passe",
+      "passwordPlaceholder": "Entrez le mot de passe",
+      "headerName": "Nom de l'en-tête",
+      "headerNamePlaceholder": "ex. X-API-Key",
+      "headerValue": "Valeur de l'en-tête",
+      "headerValuePlaceholder": "Entrez la valeur de l'en-tête"
+    },
+    "validation": {
+      "tokenRequired": "Le token est requis",
+      "usernameRequired": "Le nom d'utilisateur est requis",
+      "passwordRequired": "Le mot de passe est requis",
+      "headerNameRequired": "Le nom de l'en-tête est requis",
+      "headerValueRequired": "La valeur de l'en-tête est requise"
+    },
+    "addCredential": "Ajouter un identifiant",
+    "pendingCredential": "Les identifiants {authType} seront créés avec le moniteur.",
+    "replacingNotice": "Remplacement de l'identifiant — saisissez les nouvelles valeurs ci-dessous.",
+    "cancelReplace": "Annuler"
+  },
+  "credentials": {
+    "empty": "Aucun identifiant configuré pour ce moniteur.",
+    "created": "Créé {date}",
+    "confirmDelete": "Confirmer ?",
+    "delete": "Supprimer",
+    "replace": "Remplacer",
+    "cancel": "Annuler"
+  },
+  "modal": {
+    "secretTitle": "Votre valeur secrète",
+    "secretWarning": "Ce secret ne sera plus affiché. Assurez-vous de le copier avant de fermer.",
+    "secretLabel": "Valeur secrète",
+    "secretDismiss": "J'ai copié le secret"
+  },
+  "toast": {
+    "dismiss": "Fermer la notification",
+    "notifications": "Notifications",
+    "requestId": "ID de requête : {id}"
+  },
+  "grpc": {
+    "serviceMethod": "Méthode de service",
+    "serviceMethodPlaceholder": "grpc.health.v1.Health/Check",
+    "serviceMethodHelp": "Service et méthode gRPC complets (Package.Service/Method)",
+    "tlsMode": "Mode TLS",
+    "tlsModes": {
+      "plaintext": "Texte clair",
+      "tls": "TLS",
+      "tlsSkipVerify": "TLS (sans vérification)"
+    },
+    "sslExpiryThreshold": "Seuil d'expiration SSL (jours)",
+    "sslExpiryThresholdPlaceholder": "30",
+    "sslExpiryThresholdHelp": "Alerter quand le certificat expire dans ce nombre de jours",
+    "metadata": "Métadonnées",
+    "addMetadata": "Ajouter des métadonnées",
+    "metadataKeyPlaceholder": "Clé",
+    "metadataValuePlaceholder": "Valeur",
+    "metadataHelp": "En-têtes de métadonnées gRPC personnalisés envoyés avec chaque requête",
+    "removeMetadataRow": "Supprimer la ligne de métadonnées {index}",
+    "expectedStatuses": "Codes de statut attendus",
+    "expectedStatusesHelp": "Codes de statut gRPC considérés comme réponse saine",
+    "requestPayload": "Payload de requête (Base64)",
+    "requestPayloadPlaceholder": "Message protobuf encodé en Base64",
+    "requestPayloadHelp": "Body de requête protobuf encodé en Base64 optionnel"
+  },
+  "timeRange": {
+    "custom": "Personnalisé",
+    "start": "Début",
+    "end": "Fin",
+    "validation": {
+      "bothRequired": "Veuillez sélectionner les heures de début et de fin",
+      "invalidDates": "Valeurs de date invalides",
+      "startBeforeEnd": "L'heure de début doit être antérieure à l'heure de fin"
+    },
+    "retentionNotice": "La plage sélectionnée dépasse la période de rétention de {days} jours. Les données peuvent être incomplètes.",
+    "truncatedNotice": "Les données ont été tronquées à la période de rétention du moniteur ({days} jours)."
+  },
+  "history": {
+    "loading": "Chargement de l'historique…",
+    "error": "Échec du chargement des données d'historique.",
+    "empty": "Aucune donnée disponible pour la période sélectionnée.",
+    "retry": "Réessayer"
+  },
+  "errors": {
+    "generic": "Une erreur s'est produite",
+    "network": "Service indisponible. Veuillez réessayer plus tard.",
+    "unexpected": "Une erreur inattendue s'est produite.",
+    "notFound": "Non trouvé"
+  }
+}

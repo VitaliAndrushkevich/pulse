@@ -3,6 +3,7 @@
   import uPlot from 'uplot';
   import 'uplot/dist/uPlot.min.css';
   import type { HistoryPoint } from '$lib/types';
+  import { formatLatency } from '$lib/format';
 
   export let data: HistoryPoint[] = [];
 
@@ -45,7 +46,8 @@
           label: 'Latency',
           stroke: '#3b82f6',
           width: 2,
-          fill: 'rgba(59, 130, 246, 0.1)'
+          fill: 'rgba(59, 130, 246, 0.1)',
+          value: (_u: uPlot, val: number | null) => val == null ? '--' : formatLatency(val)
         }
       ],
       axes: [
@@ -56,7 +58,8 @@
         {
           stroke: axisStroke,
           grid: { stroke: gridStroke + '40' },
-          label: 'Latency (ms)'
+          label: 'Latency',
+          values: (_u: uPlot, splits: number[]) => splits.map((v) => v == null ? '' : formatLatency(v))
         }
       ],
       scales: {

@@ -1,0 +1,421 @@
+{
+  "app": {
+    "name": "Pulse",
+    "title": "{page} — Pulse"
+  },
+  "nav": {
+    "dashboard": "Gösterge Paneli",
+    "monitors": "Monitörler",
+    "settings": "Ayarlar",
+    "logout": "Çıkış",
+    "home": "Pulse — Ana Sayfa"
+  },
+  "common": {
+    "save": "Kaydet",
+    "cancel": "İptal",
+    "delete": "Sil",
+    "confirm": "Onayla",
+    "retry": "Tekrar dene",
+    "apply": "Uygula",
+    "back": "Geri",
+    "loading": "Yükleniyor...",
+    "error": "Bir hata oluştu",
+    "copy": "Kopyala",
+    "copied": "Kopyalandı!",
+    "remove": "Kaldır",
+    "replace": "Değiştir",
+    "add": "Ekle",
+    "none": "Yok",
+    "never": "Asla",
+    "na": "Yok",
+    "active": "Aktif",
+    "paused": "Duraklatılmış",
+    "saving": "Kaydediliyor…",
+    "creating": "Oluşturuluyor…",
+    "deleting": "Siliniyor…",
+    "revoking": "İptal ediliyor…",
+    "pageOf": "Sayfa {page} / {totalPages}",
+    "previous": "Önceki",
+    "next": "Sonraki"
+  },
+  "connection": {
+    "live": "Canlı",
+    "reconnecting": "Yeniden bağlanıyor…",
+    "paused": "Canlı güncellemeler duraklatıldı",
+    "statusLive": "Bağlantı durumu: canlı",
+    "statusPaused": "Bağlantı durumu: canlı güncellemeler duraklatıldı"
+  },
+  "login": {
+    "title": "Pulse'a Giriş Yap",
+    "subtitle": "Devam etmek için kimlik bilgilerinizi girin",
+    "email": "E-posta",
+    "emailPlaceholder": "kullanici@ornek.com",
+    "password": "Şifre",
+    "passwordPlaceholder": "••••••••",
+    "submit": "Giriş Yap",
+    "submitting": "Giriş yapılıyor…",
+    "errors": {
+      "invalidCredentials": "Geçersiz e-posta veya şifre",
+      "networkError": "Hizmet kullanılamıyor. Lütfen daha sonra tekrar deneyin.",
+      "unexpected": "Hizmet kullanılamıyor. Lütfen daha sonra tekrar deneyin."
+    }
+  },
+  "setup": {
+    "title": "Pulse'a Hoş Geldiniz",
+    "subtitle": "Başlamak için yönetici hesabınızı oluşturun",
+    "email": "E-posta",
+    "emailPlaceholder": "admin@ornek.com",
+    "password": "Şifre",
+    "confirmPassword": "Şifre Onayı",
+    "submit": "Yönetici Hesabı Oluştur",
+    "submitting": "Hesap oluşturuluyor…",
+    "checkingStatus": "Kurulum durumu kontrol ediliyor…",
+    "errors": {
+      "statusCheck": "Kurulum durumu kontrol edilemiyor. Sunucu çalışıyor mu?",
+      "alreadyCompleted": "Kurulum zaten tamamlandı. Giriş sayfasına yönlendiriliyor…",
+      "failed": "Kurulum başarısız. Lütfen tekrar deneyin.",
+      "networkError": "Hizmet kullanılamıyor. Lütfen daha sonra tekrar deneyin.",
+      "unexpected": "Beklenmeyen bir hata oluştu."
+    },
+    "validation": {
+      "passwordLength": "Şifre en az 8 karakter olmalıdır",
+      "passwordsMismatch": "Şifreler eşleşmiyor"
+    }
+  },
+  "dashboard": {
+    "title": "Çalışma Süresi Paneli",
+    "stats": {
+      "total": "Toplam Monitör",
+      "healthy": "Sağlıklı",
+      "unhealthy": "Sorunlu"
+    },
+    "empty": {
+      "title": "Henüz monitör yok",
+      "description": "Çalışma süresini izlemeye başlamak için ilk monitörünüzü oluşturun.",
+      "action": "Monitör Oluştur"
+    },
+    "loading": "Monitörler yükleniyor…",
+    "error": "Monitörler yüklenemedi",
+    "healthScore": {
+      "title": "Sağlık Puanı",
+      "noData": "Veri yok",
+      "value": "Sağlık puanı: {value}",
+      "partialData": "Kısmi veri"
+    },
+    "statusRing": {
+      "title": "Durum Dağılımı",
+      "ariaLabel": "{up} aktif, {down} çalışmıyor, {unknown} bilinmiyor"
+    },
+    "incidents": {
+      "title": "Aktif Olaylar",
+      "allOperational": "Tüm sistemler çalışıyor",
+      "overflow": "+ {count} daha"
+    },
+    "heatmap": {
+      "title": "Çalışma Süresi Haritası (24s)",
+      "ariaLabel": "Son 24 saatin saatlik sistem durumunu gösteren çalışma süresi haritası",
+      "blockAria": "{time}: {up} aktif, {down} çalışmıyor, {unknown} bilinmiyor",
+      "tooltipCounts": "↑{up} ↓{down} ?{unknown}"
+    },
+    "sparklines": {
+      "title": "Yanıt Süresi",
+      "empty": "Gecikme verisi yok"
+    },
+    "ssl": {
+      "title": "SSL Sona Erme Uyarıları",
+      "daysRemaining": "{count} gün",
+      "expired": "Süresi dolmuş",
+      "expiresOn": "{date} tarihinde sona eriyor"
+    },
+    "freshness": {
+      "label": "Son güncelleme:",
+      "stale": "Veriler güncel olmayabilir"
+    },
+    "events": {
+      "title": "Son Olaylar",
+      "empty": "Son etkinlik yok",
+      "transition": "{from} → {to}",
+      "justNow": "az önce",
+      "secondsAgo": "{count}sn önce",
+      "minutesAgo": "{count}dk önce",
+      "hoursAgo": "{count}sa önce",
+      "daysAgo": "{count}g önce"
+    }
+  },
+  "monitors": {
+    "title": "Monitörler",
+    "create": "Monitör Oluştur",
+    "edit": "Monitör Düzenle",
+    "loading": "Monitörler yükleniyor…",
+    "loadingDetails": "Monitör detayları yükleniyor…",
+    "loadingMonitor": "Monitör yükleniyor…",
+    "empty": {
+      "title": "Monitör bulunamadı.",
+      "action": "İlk monitörünüzü oluşturun"
+    },
+    "notFound": {
+      "title": "Monitör bulunamadı",
+      "description": "Aradığınız monitör mevcut değil veya silinmiş.",
+      "action": "Monitörlere Dön"
+    },
+    "errors": {
+      "loadFailed": "Monitörler yüklenemedi. Lütfen tekrar deneyin.",
+      "detailFailed": "Monitör detayları yüklenemedi. Lütfen tekrar deneyin.",
+      "deleteFailed": "Monitör silinemedi. Lütfen tekrar deneyin.",
+      "editLoadFailed": "Monitör yüklenemedi. Lütfen tekrar deneyin."
+    },
+    "deleteConfirm": "\"{name}\" monitörünü silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
+    "status": {
+      "up": "Aktif",
+      "down": "Çalışmıyor",
+      "unknown": "Bilinmiyor",
+      "active": "Aktif",
+      "paused": "Duraklatılmış"
+    },
+    "detail": {
+      "edit": "Düzenle",
+      "delete": "Sil",
+      "backToMonitors": "Monitörlere dön",
+      "tabs": {
+        "overview": "Genel Bakış",
+        "history": "Geçmiş"
+      },
+      "checkInterval": "Her {seconds}sn kontrol ediliyor",
+      "stats": {
+        "response": "Yanıt",
+        "avgResponse": "Ort. Yanıt",
+        "uptime": "Çalışma Süresi",
+        "certExpiry": "Sertifika",
+        "current": "(Güncel)",
+        "period24h": "(24 saat)",
+        "period30d": "(30 gün)",
+        "noData": "(henüz veri yok)",
+        "days": "{count} gün"
+      },
+      "timeline": {
+        "title": "Durum Zaman Çizelgesi (24s)"
+      },
+      "responseTime": {
+        "title": "Yanıt Süresi (24s)"
+      },
+      "configuration": {
+        "title": "Yapılandırma",
+        "target": "Hedef",
+        "interval": "Aralık",
+        "timeout": "Zaman Aşımı",
+        "lastChecked": "Son Kontrol",
+        "nextCheck": "Sonraki Kontrol",
+        "created": "Oluşturulma",
+        "notScheduled": "Planlanmamış"
+      },
+      "incidents": {
+        "title": "Son Olaylar",
+        "empty": "Kayıtlı olay yok.",
+        "ongoing": "Devam ediyor"
+      },
+      "pause": {
+        "title": "Monitör duraklatılsın mı?",
+        "description": "Duraklatmak {name} için tüm kontrolleri durduracak. Duraklatılmış durumdayken veri toplanmaz.",
+        "button": "Duraklat",
+        "pausing": "Duraklatılıyor..."
+      },
+      "resume": {
+        "title": "Monitör devam ettirilsin mi?",
+        "description": "Devam ettirmek {name} için kontrolleri yeniden başlatacak. Sonraki kontrol kısa süre içinde çalışacak.",
+        "button": "Devam Et",
+        "resuming": "Devam ettiriliyor..."
+      }
+    },
+    "form": {
+      "name": "Ad",
+      "namePlaceholder": "Monitörüm",
+      "type": "Tür",
+      "target": "Hedef",
+      "interval": "Aralık (saniye)",
+      "timeout": "Zaman aşımı (saniye)",
+      "status": "Durum",
+      "statusActive": "Aktif",
+      "statusPaused": "Duraklatılmış",
+      "retention": "Geçmiş saklama (gün)",
+      "retentionHelp": "Kontrol geçmişi verilerinin saklanacağı gün sayısı (1–365, varsayılan 30)",
+      "expectedStatusCodes": "Beklenen durum kodları",
+      "expectedStatusCodesPlaceholder": "200, 201, 204",
+      "expectedStatusCodesHelp": "Başarılı sayılan virgülle ayrılmış HTTP durum kodları",
+      "skipTlsVerify": "Sertifika doğrulamayı devre dışı bırak (TLS doğrulamasını atla)",
+      "skipTlsVerifyHelp": "Etkinleştirildiğinde monitör TLS sertifika zinciri ve ana bilgisayar adı doğrulamasını atlayacaktır. Dikkatli kullanın.",
+      "customHeaders": "Özel başlıklar",
+      "customHeadersHelp": "Her kontrolle gönderilen gizli olmayan başlıklar (en fazla 5). IP ile sunucu izlemek için alan adı ile bir Host başlığı ekleyin.",
+      "addHeader": "+ Başlık ekle",
+      "headerNamePlaceholder": "Başlık adı",
+      "headerValuePlaceholder": "Değer",
+      "removeHeader": "Başlığı kaldır",
+      "payload": "Veri Yükü",
+      "payloadPlaceholder": "ping",
+      "payloadHelp": "UDP hedefine gönderilecek veriler",
+      "handshakeMessage": "El sıkışma mesajı",
+      "handshakeMessagePlaceholder": "ping",
+      "handshakeMessageHelp": "WebSocket bağlantısı kurulduktan sonra gönderilen mesaj",
+      "secretReference": "Gizli referansı",
+      "secretReferenceHelp": "Bu monitöre eklenecek isteğe bağlı gizli",
+      "submitCreate": "Monitör Oluştur",
+      "submitUpdate": "Monitör Güncelle",
+      "error": "Hata",
+      "unexpectedError": "Beklenmeyen bir hata oluştu",
+      "targetHelp": {
+        "http": "URL veya alan adı (varsayılan: https://)",
+        "tcp": "Format: host:port",
+        "udp": "Format: host:port",
+        "websocket": "ws:// veya wss:// şemalı URL veya ana bilgisayar adı (varsayılan: wss://)",
+        "grpc": "Format: host:port"
+      }
+    },
+    "filter": {
+      "expand": "Filtrele",
+      "collapse": "Filtreleri gizle",
+      "selectKey": "Anahtar seç",
+      "addTag": "Etiket",
+      "back": "← Geri",
+      "cancel": "İptal",
+      "removeTag": "{key}:{value} etiketini kaldır"
+    }
+  },
+  "settings": {
+    "title": "Ayarlar",
+    "description": "Hesabınızı ve API erişiminizi yönetin.",
+    "language": {
+      "title": "Dil",
+      "label": "Görüntüleme dili"
+    },
+    "tokens": {
+      "title": "API Token'ları",
+      "description": "API token'ları Pulse API'ye programatik erişim sağlar. CI/CD pipeline'ları, otomasyon betikleri ve harici entegrasyonlar için kullanın.",
+      "createTitle": "Yeni Token Oluştur",
+      "createLabel": "Token adı",
+      "createPlaceholder": "ör. ci-deploy, grafana-read",
+      "createButton": "Token Oluştur",
+      "existingTitle": "Mevcut Token'lar",
+      "existingDescription": "Token değerleri oluşturulduktan sonra gösterilmez. Yalnızca meta veriler görüntülenir.",
+      "loadingTokens": "Token'lar yükleniyor…",
+      "emptyState": "Henüz API token'ı oluşturulmamış.",
+      "tableHeaders": {
+        "name": "Ad",
+        "created": "Oluşturulma",
+        "lastUsed": "Son Kullanım",
+        "expires": "Sona Erme",
+        "actions": "İşlemler"
+      },
+      "revoke": "İptal Et",
+      "revoked": "İptal Edildi",
+      "expired": "Süresi Doldu",
+      "errors": {
+        "networkList": "Sunucuya bağlanılamıyor. Ağ bağlantınızı kontrol edin.",
+        "unexpectedList": "Token'lar yüklenirken beklenmeyen bir hata oluştu.",
+        "networkCreate": "Sunucuya bağlanılamıyor. Lütfen tekrar deneyin.",
+        "unexpectedCreate": "Beklenmeyen bir hata oluştu. Lütfen tekrar deneyin."
+      }
+    }
+  },
+  "auth": {
+    "title": "Kimlik Doğrulama",
+    "description": "Bu monitörün sağlık kontrolü istekleri için kimlik bilgilerini yapılandırın.",
+    "createDescription": "Bu monitörün sağlık kontrolü istekleri için isteğe bağlı kimlik bilgileri.",
+    "authType": "Kimlik doğrulama türü",
+    "types": {
+      "none": "Yok",
+      "bearer": "Bearer Token",
+      "basic": "Basic Auth",
+      "header": "Özel Başlık"
+    },
+    "fields": {
+      "token": "Token",
+      "tokenPlaceholder": "Bearer token girin",
+      "username": "Kullanıcı adı",
+      "usernamePlaceholder": "Kullanıcı adı girin",
+      "password": "Şifre",
+      "passwordPlaceholder": "Şifre girin",
+      "headerName": "Başlık adı",
+      "headerNamePlaceholder": "ör. X-API-Key",
+      "headerValue": "Başlık değeri",
+      "headerValuePlaceholder": "Başlık değeri girin"
+    },
+    "validation": {
+      "tokenRequired": "Token gereklidir",
+      "usernameRequired": "Kullanıcı adı gereklidir",
+      "passwordRequired": "Şifre gereklidir",
+      "headerNameRequired": "Başlık adı gereklidir",
+      "headerValueRequired": "Başlık değeri gereklidir"
+    },
+    "addCredential": "Kimlik bilgisi ekle",
+    "pendingCredential": "{authType} kimlik bilgisi monitörle birlikte oluşturulacak.",
+    "replacingNotice": "Kimlik bilgisi değiştiriliyor — yeni değerleri aşağıya girin.",
+    "cancelReplace": "İptal"
+  },
+  "credentials": {
+    "empty": "Bu monitör için kimlik bilgisi yapılandırılmamış.",
+    "created": "{date} tarihinde oluşturuldu",
+    "confirmDelete": "Onayla?",
+    "delete": "Sil",
+    "replace": "Değiştir",
+    "cancel": "İptal"
+  },
+  "modal": {
+    "secretTitle": "Gizli Değeriniz",
+    "secretWarning": "Bu gizli değer tekrar gösterilmeyecek. Kapatmadan önce kopyaladığınızdan emin olun.",
+    "secretLabel": "Gizli değer",
+    "secretDismiss": "Gizli değeri kopyaladım"
+  },
+  "toast": {
+    "dismiss": "Bildirimi kapat",
+    "notifications": "Bildirimler",
+    "requestId": "İstek ID: {id}"
+  },
+  "grpc": {
+    "serviceMethod": "Servis Metodu",
+    "serviceMethodPlaceholder": "grpc.health.v1.Health/Check",
+    "serviceMethodHelp": "Tam nitelikli gRPC servis ve metod (Package.Service/Method)",
+    "tlsMode": "TLS Modu",
+    "tlsModes": {
+      "plaintext": "Düz metin",
+      "tls": "TLS",
+      "tlsSkipVerify": "TLS (doğrulamasız)"
+    },
+    "sslExpiryThreshold": "SSL sona erme eşiği (gün)",
+    "sslExpiryThresholdPlaceholder": "30",
+    "sslExpiryThresholdHelp": "Sertifika bu gün sayısı içinde sona erdiğinde uyar",
+    "metadata": "Meta Veriler",
+    "addMetadata": "Meta veri ekle",
+    "metadataKeyPlaceholder": "Anahtar",
+    "metadataValuePlaceholder": "Değer",
+    "metadataHelp": "Her istekle gönderilen özel gRPC meta veri başlıkları",
+    "removeMetadataRow": "Meta veri satırı {index} kaldır",
+    "expectedStatuses": "Beklenen durum kodları",
+    "expectedStatusesHelp": "Sağlıklı yanıt olarak kabul edilen gRPC durum kodları",
+    "requestPayload": "İstek Veri Yükü (Base64)",
+    "requestPayloadPlaceholder": "Base64 kodlanmış protobuf mesajı",
+    "requestPayloadHelp": "İsteğe bağlı Base64 kodlanmış protobuf istek gövdesi"
+  },
+  "timeRange": {
+    "custom": "Özel",
+    "start": "Başlangıç",
+    "end": "Bitiş",
+    "validation": {
+      "bothRequired": "Lütfen başlangıç ve bitiş saatlerini seçin",
+      "invalidDates": "Geçersiz tarih değerleri",
+      "startBeforeEnd": "Başlangıç saati bitiş saatinden önce olmalıdır"
+    },
+    "retentionNotice": "Seçilen aralık {days} günlük saklama süresini aşıyor. Veriler eksik olabilir.",
+    "truncatedNotice": "Veriler monitörün saklama süresine ({days} gün) kısaltılmıştır."
+  },
+  "history": {
+    "loading": "Geçmiş yükleniyor…",
+    "error": "Geçmiş verileri yüklenemedi.",
+    "empty": "Seçilen dönem için veri yok.",
+    "retry": "Tekrar dene"
+  },
+  "errors": {
+    "generic": "Bir hata oluştu",
+    "network": "Hizmet kullanılamıyor. Lütfen daha sonra tekrar deneyin.",
+    "unexpected": "Beklenmeyen bir hata oluştu.",
+    "notFound": "Bulunamadı"
+  }
+}

@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { CreateCredentialRequest } from '$lib/api';
+  import { t } from '$lib/i18n';
 
   type AuthType = 'none' | 'bearer' | 'basic' | 'header';
 
@@ -86,10 +87,10 @@
   }
 
   const authTypeOptions: { value: AuthType; label: string }[] = [
-    { value: 'none', label: 'None' },
-    { value: 'bearer', label: 'Bearer Token' },
-    { value: 'basic', label: 'Basic Auth' },
-    { value: 'header', label: 'Custom Header' },
+    { value: 'none', label: t('auth.types.none') },
+    { value: 'bearer', label: t('auth.types.bearer') },
+    { value: 'basic', label: t('auth.types.basic') },
+    { value: 'header', label: t('auth.types.header') },
   ];
 </script>
 
@@ -98,7 +99,7 @@
   <!-- Auth Type -->
   <div>
     <label for="credential-auth-type" class="block text-sm font-medium text-primary">
-      Authentication Type
+      {t('auth.authType')}
     </label>
     <select
       id="credential-auth-type"
@@ -116,18 +117,18 @@
     <!-- Bearer Token fields -->
     {#if authType === 'bearer'}
       <div>
-        <label for="credential-token" class="block text-sm font-medium text-primary">Token</label>
+        <label for="credential-token" class="block text-sm font-medium text-primary">{t('auth.fields.token')}</label>
         <input
           id="credential-token"
           type="password"
           bind:value={token}
           onblur={() => markTouched('token')}
-          placeholder="Enter bearer token"
+          placeholder={t('auth.fields.tokenPlaceholder')}
           class="mt-1 block w-full rounded-md border border-[var(--color-border)] px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
           data-testid="input-credential-token"
         />
         {#if touched.token && !token.trim()}
-          <p class="mt-1 text-xs text-rose-600" data-testid="error-token">Token is required</p>
+          <p class="mt-1 text-xs text-rose-600" data-testid="error-token">{t('auth.validation.tokenRequired')}</p>
         {/if}
       </div>
     {/if}
@@ -135,34 +136,34 @@
     <!-- Basic Auth fields -->
     {#if authType === 'basic'}
       <div>
-        <label for="credential-username" class="block text-sm font-medium text-primary">Username</label>
+        <label for="credential-username" class="block text-sm font-medium text-primary">{t('auth.fields.username')}</label>
         <input
           id="credential-username"
           type="text"
           bind:value={username}
           onblur={() => markTouched('username')}
-          placeholder="Enter username"
+          placeholder={t('auth.fields.usernamePlaceholder')}
           class="mt-1 block w-full rounded-md border border-[var(--color-border)] px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
           data-testid="input-credential-username"
         />
         {#if touched.username && !username.trim()}
-          <p class="mt-1 text-xs text-rose-600" data-testid="error-username">Username is required</p>
+          <p class="mt-1 text-xs text-rose-600" data-testid="error-username">{t('auth.validation.usernameRequired')}</p>
         {/if}
       </div>
 
       <div>
-        <label for="credential-password" class="block text-sm font-medium text-primary">Password</label>
+        <label for="credential-password" class="block text-sm font-medium text-primary">{t('auth.fields.password')}</label>
         <input
           id="credential-password"
           type="password"
           bind:value={password}
           onblur={() => markTouched('password')}
-          placeholder="Enter password"
+          placeholder={t('auth.fields.passwordPlaceholder')}
           class="mt-1 block w-full rounded-md border border-[var(--color-border)] px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
           data-testid="input-credential-password"
         />
         {#if touched.password && !password.trim()}
-          <p class="mt-1 text-xs text-rose-600" data-testid="error-password">Password is required</p>
+          <p class="mt-1 text-xs text-rose-600" data-testid="error-password">{t('auth.validation.passwordRequired')}</p>
         {/if}
       </div>
     {/if}
@@ -170,34 +171,34 @@
     <!-- Custom Header fields -->
     {#if authType === 'header'}
       <div>
-        <label for="credential-header-name" class="block text-sm font-medium text-primary">Header Name</label>
+        <label for="credential-header-name" class="block text-sm font-medium text-primary">{t('auth.fields.headerName')}</label>
         <input
           id="credential-header-name"
           type="text"
           bind:value={headerName}
           onblur={() => markTouched('headerName')}
-          placeholder="e.g. X-API-Key"
+          placeholder={t('auth.fields.headerNamePlaceholder')}
           class="mt-1 block w-full rounded-md border border-[var(--color-border)] px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
           data-testid="input-credential-header-name"
         />
         {#if touched.headerName && !headerName.trim()}
-          <p class="mt-1 text-xs text-rose-600" data-testid="error-header-name">Header name is required</p>
+          <p class="mt-1 text-xs text-rose-600" data-testid="error-header-name">{t('auth.validation.headerNameRequired')}</p>
         {/if}
       </div>
 
       <div>
-        <label for="credential-header-value" class="block text-sm font-medium text-primary">Header Value</label>
+        <label for="credential-header-value" class="block text-sm font-medium text-primary">{t('auth.fields.headerValue')}</label>
         <input
           id="credential-header-value"
           type="password"
           bind:value={headerValue}
           onblur={() => markTouched('headerValue')}
-          placeholder="Enter header value"
+          placeholder={t('auth.fields.headerValuePlaceholder')}
           class="mt-1 block w-full rounded-md border border-[var(--color-border)] px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
           data-testid="input-credential-header-value"
         />
         {#if touched.headerValue && !headerValue.trim()}
-          <p class="mt-1 text-xs text-rose-600" data-testid="error-header-value">Header value is required</p>
+          <p class="mt-1 text-xs text-rose-600" data-testid="error-header-value">{t('auth.validation.headerValueRequired')}</p>
         {/if}
       </div>
     {/if}
@@ -212,9 +213,9 @@
         data-testid="btn-add-credential"
       >
         {#if loading}
-          Saving…
+          {t('common.saving')}
         {:else}
-          Add Credential
+          {t('auth.addCredential')}
         {/if}
       </button>
     </div>
@@ -225,7 +226,7 @@
   <!-- Auth Type -->
   <div>
     <label for="credential-auth-type" class="block text-sm font-medium text-primary">
-      Authentication Type
+      {t('auth.authType')}
     </label>
     <select
       id="credential-auth-type"
@@ -243,18 +244,18 @@
     <!-- Bearer Token fields -->
     {#if authType === 'bearer'}
       <div>
-        <label for="credential-token" class="block text-sm font-medium text-primary">Token</label>
+        <label for="credential-token" class="block text-sm font-medium text-primary">{t('auth.fields.token')}</label>
         <input
           id="credential-token"
           type="password"
           bind:value={token}
           onblur={() => markTouched('token')}
-          placeholder="Enter bearer token"
+          placeholder={t('auth.fields.tokenPlaceholder')}
           class="mt-1 block w-full rounded-md border border-[var(--color-border)] px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
           data-testid="input-credential-token"
         />
         {#if touched.token && !token.trim()}
-          <p class="mt-1 text-xs text-rose-600" data-testid="error-token">Token is required</p>
+          <p class="mt-1 text-xs text-rose-600" data-testid="error-token">{t('auth.validation.tokenRequired')}</p>
         {/if}
       </div>
     {/if}
@@ -262,34 +263,34 @@
     <!-- Basic Auth fields -->
     {#if authType === 'basic'}
       <div>
-        <label for="credential-username" class="block text-sm font-medium text-primary">Username</label>
+        <label for="credential-username" class="block text-sm font-medium text-primary">{t('auth.fields.username')}</label>
         <input
           id="credential-username"
           type="text"
           bind:value={username}
           onblur={() => markTouched('username')}
-          placeholder="Enter username"
+          placeholder={t('auth.fields.usernamePlaceholder')}
           class="mt-1 block w-full rounded-md border border-[var(--color-border)] px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
           data-testid="input-credential-username"
         />
         {#if touched.username && !username.trim()}
-          <p class="mt-1 text-xs text-rose-600" data-testid="error-username">Username is required</p>
+          <p class="mt-1 text-xs text-rose-600" data-testid="error-username">{t('auth.validation.usernameRequired')}</p>
         {/if}
       </div>
 
       <div>
-        <label for="credential-password" class="block text-sm font-medium text-primary">Password</label>
+        <label for="credential-password" class="block text-sm font-medium text-primary">{t('auth.fields.password')}</label>
         <input
           id="credential-password"
           type="password"
           bind:value={password}
           onblur={() => markTouched('password')}
-          placeholder="Enter password"
+          placeholder={t('auth.fields.passwordPlaceholder')}
           class="mt-1 block w-full rounded-md border border-[var(--color-border)] px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
           data-testid="input-credential-password"
         />
         {#if touched.password && !password.trim()}
-          <p class="mt-1 text-xs text-rose-600" data-testid="error-password">Password is required</p>
+          <p class="mt-1 text-xs text-rose-600" data-testid="error-password">{t('auth.validation.passwordRequired')}</p>
         {/if}
       </div>
     {/if}
@@ -297,34 +298,34 @@
     <!-- Custom Header fields -->
     {#if authType === 'header'}
       <div>
-        <label for="credential-header-name" class="block text-sm font-medium text-primary">Header Name</label>
+        <label for="credential-header-name" class="block text-sm font-medium text-primary">{t('auth.fields.headerName')}</label>
         <input
           id="credential-header-name"
           type="text"
           bind:value={headerName}
           onblur={() => markTouched('headerName')}
-          placeholder="e.g. X-API-Key"
+          placeholder={t('auth.fields.headerNamePlaceholder')}
           class="mt-1 block w-full rounded-md border border-[var(--color-border)] px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
           data-testid="input-credential-header-name"
         />
         {#if touched.headerName && !headerName.trim()}
-          <p class="mt-1 text-xs text-rose-600" data-testid="error-header-name">Header name is required</p>
+          <p class="mt-1 text-xs text-rose-600" data-testid="error-header-name">{t('auth.validation.headerNameRequired')}</p>
         {/if}
       </div>
 
       <div>
-        <label for="credential-header-value" class="block text-sm font-medium text-primary">Header Value</label>
+        <label for="credential-header-value" class="block text-sm font-medium text-primary">{t('auth.fields.headerValue')}</label>
         <input
           id="credential-header-value"
           type="password"
           bind:value={headerValue}
           onblur={() => markTouched('headerValue')}
-          placeholder="Enter header value"
+          placeholder={t('auth.fields.headerValuePlaceholder')}
           class="mt-1 block w-full rounded-md border border-[var(--color-border)] px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
           data-testid="input-credential-header-value"
         />
         {#if touched.headerValue && !headerValue.trim()}
-          <p class="mt-1 text-xs text-rose-600" data-testid="error-header-value">Header value is required</p>
+          <p class="mt-1 text-xs text-rose-600" data-testid="error-header-value">{t('auth.validation.headerValueRequired')}</p>
         {/if}
       </div>
     {/if}
@@ -338,9 +339,9 @@
         data-testid="btn-add-credential"
       >
         {#if loading}
-          Saving…
+          {t('common.saving')}
         {:else}
-          Add Credential
+          {t('auth.addCredential')}
         {/if}
       </button>
     </div>

@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { GrpcSettings, TlsMode } from '$lib/types';
+  import { t } from '$lib/i18n';
 
   interface Props {
     settings: GrpcSettings;
@@ -87,57 +88,57 @@
 <div class="space-y-6" data-testid="grpc-settings-form">
   <!-- Service Method -->
   <div>
-    <label for="grpc-service-method" class="block text-sm font-medium text-primary">Service Method</label>
+    <label for="grpc-service-method" class="block text-sm font-medium text-primary">{t('grpc.serviceMethod')}</label>
     <input
       id="grpc-service-method"
       type="text"
       bind:value={serviceMethod}
       required
       maxlength={512}
-      placeholder="grpc.health.v1.Health/Check"
+      placeholder={t('grpc.serviceMethodPlaceholder')}
       class="mt-1 block w-full rounded-md border border-[var(--color-border)] px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
       data-testid="grpc-service-method"
     />
-    <p class="mt-1 text-xs text-secondary">Fully-qualified gRPC service and method (package.Service/Method)</p>
+    <p class="mt-1 text-xs text-secondary">{t('grpc.serviceMethodHelp')}</p>
   </div>
 
   <!-- TLS Mode -->
   <div>
-    <label for="grpc-tls-mode" class="block text-sm font-medium text-primary">TLS Mode</label>
+    <label for="grpc-tls-mode" class="block text-sm font-medium text-primary">{t('grpc.tlsMode')}</label>
     <select
       id="grpc-tls-mode"
       bind:value={tlsMode}
       class="mt-1 block w-full rounded-md border border-[var(--color-border)] px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
       data-testid="grpc-tls-mode"
     >
-      <option value="plaintext">Plaintext</option>
-      <option value="tls">TLS</option>
-      <option value="tls_skip_verify">TLS (Skip Verify)</option>
+      <option value="plaintext">{t('grpc.tlsModes.plaintext')}</option>
+      <option value="tls">{t('grpc.tlsModes.tls')}</option>
+      <option value="tls_skip_verify">{t('grpc.tlsModes.tlsSkipVerify')}</option>
     </select>
   </div>
 
   <!-- SSL Expiry Threshold (hidden when plaintext) -->
   {#if tlsMode !== 'plaintext'}
     <div>
-      <label for="grpc-ssl-expiry" class="block text-sm font-medium text-primary">SSL Expiry Threshold (days)</label>
+      <label for="grpc-ssl-expiry" class="block text-sm font-medium text-primary">{t('grpc.sslExpiryThreshold')}</label>
       <input
         id="grpc-ssl-expiry"
         type="number"
         bind:value={sslExpiryThreshold}
         min={1}
         max={3650}
-        placeholder="30"
+        placeholder={t('grpc.sslExpiryThresholdPlaceholder')}
         class="mt-1 block w-full rounded-md border border-[var(--color-border)] px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
         data-testid="grpc-ssl-expiry"
       />
-      <p class="mt-1 text-xs text-secondary">Alert when certificate expires within this many days</p>
+      <p class="mt-1 text-xs text-secondary">{t('grpc.sslExpiryThresholdHelp')}</p>
     </div>
   {/if}
 
   <!-- Metadata Key-Value Rows -->
   <div>
     <div class="flex items-center justify-between">
-      <span class="block text-sm font-medium text-primary">Metadata</span>
+      <span class="block text-sm font-medium text-primary">{t('grpc.metadata')}</span>
       <button
         type="button"
         onclick={addMetadataRow}
@@ -145,7 +146,7 @@
         class="rounded-md border border-[var(--color-border)] bg-surface px-3 py-1 text-xs font-medium text-primary transition hover:bg-[var(--color-bg-surface-hover)] disabled:cursor-not-allowed disabled:opacity-50"
         data-testid="grpc-add-metadata"
       >
-        Add Metadata
+        {t('grpc.addMetadata')}
       </button>
     </div>
 
@@ -157,7 +158,7 @@
               type="text"
               bind:value={row.key}
               maxlength={128}
-              placeholder="Key"
+              placeholder={t('grpc.metadataKeyPlaceholder')}
               aria-label="Metadata key {index + 1}"
               class="block w-1/3 rounded-md border border-[var(--color-border)] px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
               data-testid="grpc-metadata-key-{index}"
@@ -166,7 +167,7 @@
               type="text"
               bind:value={row.value}
               maxlength={4096}
-              placeholder="Value"
+              placeholder={t('grpc.metadataValuePlaceholder')}
               aria-label="Metadata value {index + 1}"
               class="block flex-1 rounded-md border border-[var(--color-border)] px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
               data-testid="grpc-metadata-value-{index}"
@@ -174,7 +175,7 @@
             <button
               type="button"
               onclick={() => removeMetadataRow(index)}
-              aria-label="Remove metadata row {index + 1}"
+              aria-label={t('grpc.removeMetadataRow', { index: index + 1 })}
               class="rounded-md border border-[var(--color-border)] bg-surface px-2 py-2 text-xs text-rose-600 transition hover:bg-rose-50"
               data-testid="grpc-metadata-remove-{index}"
             >
@@ -185,12 +186,12 @@
       </div>
     {/if}
 
-    <p class="mt-1 text-xs text-secondary">Custom gRPC metadata headers sent with each request</p>
+    <p class="mt-1 text-xs text-secondary">{t('grpc.metadataHelp')}</p>
   </div>
 
   <!-- Expected Status Codes -->
   <fieldset>
-    <legend class="block text-sm font-medium text-primary">Expected Status Codes</legend>
+    <legend class="block text-sm font-medium text-primary">{t('grpc.expectedStatuses')}</legend>
     <div class="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 sm:grid-cols-3" data-testid="grpc-expected-statuses">
       {#each GRPC_STATUS_CODES as { code, name }}
         <label class="flex items-center gap-2 text-sm text-secondary">
@@ -205,21 +206,21 @@
         </label>
       {/each}
     </div>
-    <p class="mt-1 text-xs text-secondary">gRPC status codes considered a healthy response</p>
+    <p class="mt-1 text-xs text-secondary">{t('grpc.expectedStatusesHelp')}</p>
   </fieldset>
 
   <!-- Request Payload -->
   <div>
-    <label for="grpc-request-payload" class="block text-sm font-medium text-primary">Request Payload (Base64)</label>
+    <label for="grpc-request-payload" class="block text-sm font-medium text-primary">{t('grpc.requestPayload')}</label>
     <textarea
       id="grpc-request-payload"
       bind:value={requestPayload}
       maxlength={65536}
       rows={3}
-      placeholder="Base64-encoded protobuf message"
+      placeholder={t('grpc.requestPayloadPlaceholder')}
       class="mt-1 block w-full rounded-md border border-[var(--color-border)] px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
       data-testid="grpc-request-payload"
     ></textarea>
-    <p class="mt-1 text-xs text-secondary">Optional base64-encoded protobuf request body</p>
+    <p class="mt-1 text-xs text-secondary">{t('grpc.requestPayloadHelp')}</p>
   </div>
 </div>

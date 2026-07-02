@@ -1,0 +1,421 @@
+{
+  "app": {
+    "name": "Pulse",
+    "title": "{page} — Pulse"
+  },
+  "nav": {
+    "dashboard": "Панэль",
+    "monitors": "Маніторы",
+    "settings": "Налады",
+    "logout": "Выйсці",
+    "home": "Pulse — Галоўная"
+  },
+  "common": {
+    "save": "Захаваць",
+    "cancel": "Скасаваць",
+    "delete": "Выдаліць",
+    "confirm": "Пацвердзіць",
+    "retry": "Паўтарыць",
+    "apply": "Ужыць",
+    "back": "Назад",
+    "loading": "Загрузка...",
+    "error": "Нешта пайшло не так",
+    "copy": "Капіраваць",
+    "copied": "Скапіравана!",
+    "remove": "Прыбраць",
+    "replace": "Замяніць",
+    "add": "Дадаць",
+    "none": "Няма",
+    "never": "Ніколі",
+    "na": "Н/Д",
+    "active": "Актыўны",
+    "paused": "Прыпынены",
+    "saving": "Захаванне…",
+    "creating": "Стварэнне…",
+    "deleting": "Выдаленне…",
+    "revoking": "Адклік…",
+    "pageOf": "Старонка {page} з {totalPages}",
+    "previous": "Назад",
+    "next": "Далей"
+  },
+  "connection": {
+    "live": "Ужывую",
+    "reconnecting": "Перападключэнне…",
+    "paused": "Абнаўленні ў рэальным часе прыпынены",
+    "statusLive": "Стан злучэння: ужывую",
+    "statusPaused": "Стан злучэння: абнаўленні прыпынены"
+  },
+  "login": {
+    "title": "Увайсці ў Pulse",
+    "subtitle": "Увядзіце свае дадзеныя для ўваходу",
+    "email": "Электронная пошта",
+    "emailPlaceholder": "user@example.com",
+    "password": "Пароль",
+    "passwordPlaceholder": "••••••••",
+    "submit": "Увайсці",
+    "submitting": "Уваход…",
+    "errors": {
+      "invalidCredentials": "Няправільная пошта або пароль",
+      "networkError": "Сэрвіс недаступны. Паспрабуйце пазней.",
+      "unexpected": "Сэрвіс недаступны. Паспрабуйце пазней."
+    }
+  },
+  "setup": {
+    "title": "Вітаем у Pulse",
+    "subtitle": "Стварыце ўліковы запіс адміністратара, каб пачаць",
+    "email": "Электронная пошта",
+    "emailPlaceholder": "admin@example.com",
+    "password": "Пароль",
+    "confirmPassword": "Пацвердзіце пароль",
+    "submit": "Стварыць уліковы запіс адміна",
+    "submitting": "Стварэнне ўліковага запісу…",
+    "checkingStatus": "Праверка стану наладкі…",
+    "errors": {
+      "statusCheck": "Не ўдалося праверыць стан наладкі. Сервер запушчаны?",
+      "alreadyCompleted": "Наладка ўжо завершана. Перанакіраванне на старонку ўваходу…",
+      "failed": "Наладка не ўдалася. Паспрабуйце яшчэ раз.",
+      "networkError": "Сэрвіс недаступны. Паспрабуйце пазней.",
+      "unexpected": "Адбылася нечаканая памылка."
+    },
+    "validation": {
+      "passwordLength": "Пароль павінен змяшчаць не менш за 8 сімвалаў",
+      "passwordsMismatch": "Паролі не супадаюць"
+    }
+  },
+  "dashboard": {
+    "title": "Панэль маніторынгу",
+    "stats": {
+      "total": "Усяго маніторaў",
+      "healthy": "Спраўныя",
+      "unhealthy": "З праблемамі"
+    },
+    "empty": {
+      "title": "Маніторaў пакуль няма",
+      "description": "Стварыце першы манітор, каб пачаць адсочваць даступнасць.",
+      "action": "Стварыць манітор"
+    },
+    "loading": "Загрузка маніторaў…",
+    "error": "Не ўдалося загрузіць маніторы",
+    "healthScore": {
+      "title": "Паказчык здароўя",
+      "noData": "Няма дадзеных",
+      "value": "Паказчык здароўя: {value}",
+      "partialData": "Няпоўныя дадзеныя"
+    },
+    "statusRing": {
+      "title": "Размеркаванне статусаў",
+      "ariaLabel": "{up} працуе, {down} недаступна, {unknown} невядома"
+    },
+    "incidents": {
+      "title": "Актыўныя інцыдэнты",
+      "allOperational": "Усе сістэмы працуюць",
+      "overflow": "+ яшчэ {count}"
+    },
+    "heatmap": {
+      "title": "Карта даступнасці (24г)",
+      "ariaLabel": "Карта даступнасці за апошнія 24 гадзіны з пагадзінным разбіўкай",
+      "blockAria": "{time}: {up} працуе, {down} недаступна, {unknown} невядома",
+      "tooltipCounts": "↑{up} ↓{down} ?{unknown}"
+    },
+    "sparklines": {
+      "title": "Час адказу",
+      "empty": "Няма дадзеных пра затрымкі"
+    },
+    "ssl": {
+      "title": "Папярэджанні пра заканчэнне SSL",
+      "daysRemaining": "{count} дзён",
+      "expired": "Скончыўся",
+      "expiresOn": "Сканчаецца {date}"
+    },
+    "freshness": {
+      "label": "Апошняе абнаўленне:",
+      "stale": "Дадзеныя могуць быць састарэлымі"
+    },
+    "events": {
+      "title": "Апошнія падзеі",
+      "empty": "Няма нядаўняй актыўнасці",
+      "transition": "{from} → {to}",
+      "justNow": "толькі што",
+      "secondsAgo": "{count} с таму",
+      "minutesAgo": "{count} хв таму",
+      "hoursAgo": "{count} г таму",
+      "daysAgo": "{count} дз таму"
+    }
+  },
+  "monitors": {
+    "title": "Маніторы",
+    "create": "Стварыць манітор",
+    "edit": "Рэдагаваць манітор",
+    "loading": "Загрузка маніторaў…",
+    "loadingDetails": "Загрузка дэталяў…",
+    "loadingMonitor": "Загрузка манітора…",
+    "empty": {
+      "title": "Маніторы не знойдзены.",
+      "action": "Стварыце першы манітор"
+    },
+    "notFound": {
+      "title": "Манітор не знойдзены",
+      "description": "Манітор, які вы шукаеце, не існуе або быў выдалены.",
+      "action": "Да спісу маніторaў"
+    },
+    "errors": {
+      "loadFailed": "Не ўдалося загрузіць маніторы. Паспрабуйце яшчэ раз.",
+      "detailFailed": "Не ўдалося загрузіць дэталі манітора. Паспрабуйце яшчэ раз.",
+      "deleteFailed": "Не ўдалося выдаліць манітор. Паспрабуйце яшчэ раз.",
+      "editLoadFailed": "Не ўдалося загрузіць манітор. Паспрабуйце яшчэ раз."
+    },
+    "deleteConfirm": "Вы ўпэўнены, што хочаце выдаліць \"{name}\"? Гэта дзеянне нельга адмяніць.",
+    "status": {
+      "up": "Працуе",
+      "down": "Недаступны",
+      "unknown": "Невядома",
+      "active": "Актыўны",
+      "paused": "Прыпынены"
+    },
+    "detail": {
+      "edit": "Рэдагаваць",
+      "delete": "Выдаліць",
+      "backToMonitors": "Да маніторaў",
+      "tabs": {
+        "overview": "Агляд",
+        "history": "Гісторыя"
+      },
+      "checkInterval": "Праверка кожныя {seconds} с",
+      "stats": {
+        "response": "Адказ",
+        "avgResponse": "Сяр. адказ",
+        "uptime": "Час працы",
+        "certExpiry": "Сертыфікат",
+        "current": "(бягучы)",
+        "period24h": "(24 гадзіны)",
+        "period30d": "(30 дзён)",
+        "noData": "(няма дадзеных)",
+        "days": "{count} дзён"
+      },
+      "timeline": {
+        "title": "Таймлайн статусу (24г)"
+      },
+      "responseTime": {
+        "title": "Час адказу (24г)"
+      },
+      "configuration": {
+        "title": "Канфігурацыя",
+        "target": "Мэта",
+        "interval": "Інтэрвал",
+        "timeout": "Таймаўт",
+        "lastChecked": "Апошняя праверка",
+        "nextCheck": "Наступная праверка",
+        "created": "Створаны",
+        "notScheduled": "Не запланавана"
+      },
+      "incidents": {
+        "title": "Апошнія інцыдэнты",
+        "empty": "Інцыдэнтаў не зарэгістравана.",
+        "ongoing": "Працягваецца"
+      },
+      "pause": {
+        "title": "Прыпыніць манітор?",
+        "description": "Прыпынак спыніць усе праверкі для {name}. Падчас прыпынку дадзеныя не збіраюцца.",
+        "button": "Прыпыніць",
+        "pausing": "Прыпыненне..."
+      },
+      "resume": {
+        "title": "Аднавіць манітор?",
+        "description": "Аднаўленне перазапусціць праверкі для {name}. Наступная праверка будзе неўзабаве.",
+        "button": "Аднавіць",
+        "resuming": "Аднаўленне..."
+      }
+    },
+    "form": {
+      "name": "Назва",
+      "namePlaceholder": "Мой манітор",
+      "type": "Тып",
+      "target": "Мэта",
+      "interval": "Інтэрвал (секунды)",
+      "timeout": "Таймаўт (секунды)",
+      "status": "Статус",
+      "statusActive": "Актыўны",
+      "statusPaused": "Прыпынены",
+      "retention": "Захаванне гісторыі (дзён)",
+      "retentionHelp": "Колькасць дзён захавання дадзеных праверак (1–365, па змаўчанні 30)",
+      "expectedStatusCodes": "Чаканыя коды статусу",
+      "expectedStatusCodesPlaceholder": "200, 201, 204",
+      "expectedStatusCodesHelp": "HTTP-коды праз коску, якія лічацца паспяховымі",
+      "skipTlsVerify": "Адключыць праверку сертыфіката (прапусціць верыфікацыю TLS)",
+      "skipTlsVerifyHelp": "Пры ўключэнні манітор прапусціць праверку ланцужка TLS-сертыфікатаў і імя хаста. Выкарыстоўвайце з асцярожнасцю.",
+      "customHeaders": "Карыстальніцкія загалоўкі",
+      "customHeadersHelp": "Несакрэтныя загалоўкі, якія адпраўляюцца з кожным запытам праверкі (да 5). Каб маніторыць сервер па IP, дадайце загаловак Host з даменным імем.",
+      "addHeader": "+ Дадаць загаловак",
+      "headerNamePlaceholder": "Імя загалоўка",
+      "headerValuePlaceholder": "Значэнне",
+      "removeHeader": "Прыбраць загаловак",
+      "payload": "Карысная нагрузка",
+      "payloadPlaceholder": "ping",
+      "payloadHelp": "Дадзеныя для адпраўкі на UDP-мэту",
+      "handshakeMessage": "Паведамленне рукапаціскання",
+      "handshakeMessagePlaceholder": "ping",
+      "handshakeMessageHelp": "Паведамленне, якое адпраўляецца пасля ўстанаўлення WebSocket-злучэння",
+      "secretReference": "Спасылка на сакрэт",
+      "secretReferenceHelp": "Неабавязковы сакрэт для прывязкі да манітора",
+      "submitCreate": "Стварыць манітор",
+      "submitUpdate": "Абнавіць манітор",
+      "error": "Памылка",
+      "unexpectedError": "Адбылася нечаканая памылка",
+      "targetHelp": {
+        "http": "URL або даменнае імя (па змаўчанні https://)",
+        "tcp": "Фармат: хост:порт",
+        "udp": "Фармат: хост:порт",
+        "websocket": "URL са схемай ws:// або wss://, або імя хаста (па змаўчанні wss://)",
+        "grpc": "Фармат: хост:порт"
+      }
+    },
+    "filter": {
+      "expand": "Фільтр",
+      "collapse": "Схаваць фільтры",
+      "selectKey": "Абраць ключ",
+      "addTag": "Тэг",
+      "back": "← Назад",
+      "cancel": "Скасаваць",
+      "removeTag": "Прыбраць тэг {key}:{value}"
+    }
+  },
+  "settings": {
+    "title": "Налады",
+    "description": "Кіраванне ўліковым запісам і API-доступам.",
+    "language": {
+      "title": "Мова",
+      "label": "Мова адлюстравання"
+    },
+    "tokens": {
+      "title": "API-токены",
+      "description": "API-токены забяспечваюць праграмны доступ да Pulse API. Выкарыстоўвайце іх для CI/CD, скрыптоў аўтаматызацыі і знешніх інтэграцый.",
+      "createTitle": "Стварыць новы токен",
+      "createLabel": "Імя токена",
+      "createPlaceholder": "напр. ci-deploy, grafana-read",
+      "createButton": "Стварыць токен",
+      "existingTitle": "Існуючыя токены",
+      "existingDescription": "Значэнні токенаў не адлюстроўваюцца пасля стварэння. Паказаны толькі метададзеныя.",
+      "loadingTokens": "Загрузка токенаў…",
+      "emptyState": "API-токены яшчэ не створаны.",
+      "tableHeaders": {
+        "name": "Імя",
+        "created": "Створаны",
+        "lastUsed": "Апошняе выкарыстанне",
+        "expires": "Сканчаецца",
+        "actions": "Дзеянні"
+      },
+      "revoke": "Адклікаць",
+      "revoked": "Адкліканы",
+      "expired": "Скончыўся",
+      "errors": {
+        "networkList": "Не ўдалося падключыцца да сервера. Праверце сеткавае злучэнне.",
+        "unexpectedList": "Адбылася нечаканая памылка пры загрузцы токенаў.",
+        "networkCreate": "Не ўдалося падключыцца да сервера. Паспрабуйце яшчэ раз.",
+        "unexpectedCreate": "Адбылася нечаканая памылка. Паспрабуйце яшчэ раз."
+      }
+    }
+  },
+  "auth": {
+    "title": "Аўтэнтыфікацыя",
+    "description": "Наладзьце ўліковыя дадзеныя для запытаў праверкі гэтага манітора.",
+    "createDescription": "Неабавязковыя ўліковыя дадзеныя для запытаў праверкі гэтага манітора.",
+    "authType": "Тып аўтэнтыфікацыі",
+    "types": {
+      "none": "Няма",
+      "bearer": "Bearer Token",
+      "basic": "Basic Auth",
+      "header": "Карыстальніцкі загаловак"
+    },
+    "fields": {
+      "token": "Токен",
+      "tokenPlaceholder": "Увядзіце Bearer токен",
+      "username": "Імя карыстальніка",
+      "usernamePlaceholder": "Увядзіце імя карыстальніка",
+      "password": "Пароль",
+      "passwordPlaceholder": "Увядзіце пароль",
+      "headerName": "Імя загалоўка",
+      "headerNamePlaceholder": "напр. X-API-Key",
+      "headerValue": "Значэнне загалоўка",
+      "headerValuePlaceholder": "Увядзіце значэнне загалоўка"
+    },
+    "validation": {
+      "tokenRequired": "Токен абавязковы",
+      "usernameRequired": "Імя карыстальніка абавязковае",
+      "passwordRequired": "Пароль абавязковы",
+      "headerNameRequired": "Імя загалоўка абавязковае",
+      "headerValueRequired": "Значэнне загалоўка абавязковае"
+    },
+    "addCredential": "Дадаць уліковыя дадзеныя",
+    "pendingCredential": "Уліковыя дадзеныя {authType} будуць створаны з маніторам.",
+    "replacingNotice": "Замена ўліковых дадзеных — увядзіце новыя значэнні ніжэй.",
+    "cancelReplace": "Скасаваць"
+  },
+  "credentials": {
+    "empty": "Для гэтага манітора не наладжаны ўліковыя дадзеныя.",
+    "created": "Створана {date}",
+    "confirmDelete": "Пацвердзіць?",
+    "delete": "Выдаліць",
+    "replace": "Замяніць",
+    "cancel": "Скасаваць"
+  },
+  "modal": {
+    "secretTitle": "Ваша сакрэтнае значэнне",
+    "secretWarning": "Гэты сакрэт больш не будзе паказаны. Абавязкова скапіруйце яго перад закрыццём.",
+    "secretLabel": "Сакрэтнае значэнне",
+    "secretDismiss": "Я скапіраваў сакрэт"
+  },
+  "toast": {
+    "dismiss": "Закрыць апавяшчэнне",
+    "notifications": "Апавяшчэнні",
+    "requestId": "ID запыту: {id}"
+  },
+  "grpc": {
+    "serviceMethod": "Метад сэрвісу",
+    "serviceMethodPlaceholder": "grpc.health.v1.Health/Check",
+    "serviceMethodHelp": "Поўнае імя gRPC-сэрвісу і метаду (Package.Service/Method)",
+    "tlsMode": "Рэжым TLS",
+    "tlsModes": {
+      "plaintext": "Адкрыты тэкст",
+      "tls": "TLS",
+      "tlsSkipVerify": "TLS (без верыфікацыі)"
+    },
+    "sslExpiryThreshold": "Парог заканчэння SSL (дзён)",
+    "sslExpiryThresholdPlaceholder": "30",
+    "sslExpiryThresholdHelp": "Папярэджваць, калі сертыфікат сканчаецца на працягу гэтых дзён",
+    "metadata": "Метададзеныя",
+    "addMetadata": "Дадаць метададзеныя",
+    "metadataKeyPlaceholder": "Ключ",
+    "metadataValuePlaceholder": "Значэнне",
+    "metadataHelp": "Карыстальніцкія gRPC-метададзеныя, якія адпраўляюцца з кожным запытам",
+    "removeMetadataRow": "Прыбраць радок метададзеных {index}",
+    "expectedStatuses": "Чаканыя коды статусу",
+    "expectedStatusesHelp": "Коды статусу gRPC, якія лічацца здаровым адказам",
+    "requestPayload": "Карысная нагрузка запыту (Base64)",
+    "requestPayloadPlaceholder": "Base64-кадаванае protobuf-паведамленне",
+    "requestPayloadHelp": "Неабавязковае Base64-кадаванае цела запыту protobuf"
+  },
+  "timeRange": {
+    "custom": "Карыстальніцкі",
+    "start": "Пачатак",
+    "end": "Канец",
+    "validation": {
+      "bothRequired": "Калі ласка, абярыце час пачатку і канца",
+      "invalidDates": "Няправільныя значэнні дат",
+      "startBeforeEnd": "Час пачатку павінен быць раней за час канца"
+    },
+    "retentionNotice": "Абраны дыяпазон перавышае перыяд захавання ў {days} дзён. Дадзеныя могуць быць няпоўнымі.",
+    "truncatedNotice": "Дадзеныя абрэзаны да перыяду захавання манітора ({days} дзён)."
+  },
+  "history": {
+    "loading": "Загрузка гісторыі…",
+    "error": "Не ўдалося загрузіць дадзеныя гісторыі.",
+    "empty": "Няма дадзеных за абраны перыяд.",
+    "retry": "Паўтарыць"
+  },
+  "errors": {
+    "generic": "Нешта пайшло не так",
+    "network": "Сэрвіс недаступны. Паспрабуйце пазней.",
+    "unexpected": "Адбылася нечаканая памылка.",
+    "notFound": "Не знойдзена"
+  }
+}

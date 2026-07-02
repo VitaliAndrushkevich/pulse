@@ -1,0 +1,409 @@
+{
+  "app": {
+    "name": "Pulse",
+    "title": "{page} — Pulse"
+  },
+  "nav": {
+    "dashboard": "Панель",
+    "monitors": "Мониторы",
+    "settings": "Настройки",
+    "logout": "Выйти",
+    "home": "Pulse — Главная"
+  },
+  "common": {
+    "save": "Сохранить",
+    "cancel": "Отмена",
+    "delete": "Удалить",
+    "confirm": "Подтвердить",
+    "retry": "Повторить",
+    "apply": "Применить",
+    "back": "Назад",
+    "loading": "Загрузка...",
+    "error": "Что-то пошло не так",
+    "copy": "Копировать",
+    "copied": "Скопировано!",
+    "remove": "Убрать",
+    "replace": "Заменить",
+    "add": "Добавить",
+    "none": "Нет",
+    "never": "Никогда",
+    "na": "Н/Д",
+    "active": "Активен",
+    "paused": "Приостановлен",
+    "saving": "Сохранение…",
+    "creating": "Создание…",
+    "deleting": "Удаление…",
+    "revoking": "Отзыв…",
+    "pageOf": "Страница {page} из {totalPages}",
+    "previous": "Назад",
+    "next": "Далее"
+  },
+  "connection": {
+    "live": "Live",
+    "reconnecting": "Reconnecting…",
+    "paused": "Live updates paused",
+    "statusLive": "Connection status: live",
+    "statusPaused": "Connection status: live updates paused"
+  },
+  "login": {
+    "title": "Sign in to Pulse",
+    "subtitle": "Enter your credentials to continue",
+    "email": "Email",
+    "emailPlaceholder": "you@example.com",
+    "password": "Password",
+    "passwordPlaceholder": "••••••••",
+    "submit": "Sign in",
+    "submitting": "Signing in…",
+    "errors": {
+      "invalidCredentials": "Invalid email or password",
+      "networkError": "Service unavailable. Please try again later.",
+      "unexpected": "Service unavailable. Please try again later."
+    }
+  },
+  "setup": {
+    "title": "Welcome to Pulse",
+    "subtitle": "Create your admin account to get started",
+    "email": "Email",
+    "emailPlaceholder": "admin@example.com",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "submit": "Create Admin Account",
+    "submitting": "Creating account…",
+    "checkingStatus": "Checking setup status…",
+    "errors": {
+      "statusCheck": "Unable to check setup status. Is the server running?",
+      "alreadyCompleted": "Setup has already been completed. Redirecting to login...",
+      "failed": "Setup failed. Please try again.",
+      "networkError": "Service unavailable. Please try again later.",
+      "unexpected": "An unexpected error occurred."
+    },
+    "validation": {
+      "passwordLength": "Password must be at least 8 characters",
+      "passwordsMismatch": "Passwords do not match"
+    }
+  },
+  "dashboard": {
+    "title": "Панель мониторинга",
+    "stats": {
+      "total": "Всего мониторов",
+      "healthy": "Исправны",
+      "unhealthy": "Недоступны"
+    },
+    "empty": {
+      "title": "Мониторов пока нет",
+      "description": "Создайте первый монитор, чтобы начать отслеживать доступность.",
+      "action": "Создать монитор"
+    },
+    "loading": "Загрузка мониторов…",
+    "error": "Не удалось загрузить мониторы",
+    "healthScore": {
+      "title": "Здоровье",
+      "noData": "Нет данных",
+      "value": "Показатель здоровья: {value}",
+      "partialData": "Неполные данные"
+    },
+    "statusRing": {
+      "title": "Распределение статусов",
+      "ariaLabel": "{up} работает, {down} недоступно, {unknown} неизвестно"
+    },
+    "incidents": {
+      "title": "Активные инциденты",
+      "allOperational": "Все системы работают",
+      "overflow": "+ ещё {count}"
+    },
+    "heatmap": {
+      "title": "Карта доступности (24ч)",
+      "ariaLabel": "Карта доступности за последние 24 часа с почасовым разбиением",
+      "blockAria": "{time}: {up} работает, {down} недоступно, {unknown} неизвестно",
+      "tooltipCounts": "↑{up} ↓{down} ?{unknown}"
+    },
+    "sparklines": {
+      "title": "Время отклика",
+      "empty": "Нет данных о задержках"
+    },
+    "ssl": {
+      "title": "SSL: предупреждения об истечении",
+      "daysRemaining": "{count} дн.",
+      "expired": "Истёк",
+      "expiresOn": "Истекает {date}"
+    },
+    "freshness": {
+      "label": "Обновлено:",
+      "stale": "Данные могут быть устаревшими"
+    },
+    "events": {
+      "title": "Последние события",
+      "empty": "Нет недавней активности",
+      "transition": "{from} → {to}",
+      "justNow": "только что",
+      "secondsAgo": "{count} с назад",
+      "minutesAgo": "{count} мин назад",
+      "hoursAgo": "{count} ч назад",
+      "daysAgo": "{count} дн назад"
+    }
+  },
+  "monitors": {
+    "title": "Мониторы",
+    "create": "Создать монитор",
+    "edit": "Редактировать монитор",
+    "loading": "Загрузка мониторов…",
+    "loadingDetails": "Загрузка деталей монитора…",
+    "loadingMonitor": "Загрузка монитора…",
+    "empty": {
+      "title": "Мониторы не найдены.",
+      "action": "Создайте первый монитор"
+    },
+    "notFound": {
+      "title": "Монитор не найден",
+      "description": "Монитор, который вы ищете, не существует или был удалён.",
+      "action": "К списку мониторов"
+    },
+    "errors": {
+      "loadFailed": "Не удалось загрузить мониторы. Попробуйте ещё раз.",
+      "detailFailed": "Не удалось загрузить данные монитора. Попробуйте ещё раз.",
+      "deleteFailed": "Не удалось удалить монитор. Попробуйте ещё раз.",
+      "editLoadFailed": "Не удалось загрузить монитор. Попробуйте ещё раз."
+    },
+    "deleteConfirm": "Вы уверены, что хотите удалить «{name}»? Это действие необратимо.",
+    "status": {
+      "up": "Работает",
+      "down": "Недоступен",
+      "unknown": "Неизвестно",
+      "active": "Активен",
+      "paused": "Приостановлен"
+    },
+    "detail": {
+      "edit": "Редактировать",
+      "delete": "Удалить",
+      "backToMonitors": "К мониторам",
+      "tabs": {
+        "overview": "Обзор",
+        "history": "История"
+      },
+      "checkInterval": "Проверка каждые {seconds} с",
+      "stats": {
+        "response": "Отклик",
+        "avgResponse": "Ср. отклик",
+        "uptime": "Аптайм",
+        "certExpiry": "Сертификат",
+        "current": "(текущий)",
+        "period24h": "(24 часа)",
+        "period30d": "(30 дней)",
+        "noData": "(нет данных)",
+        "days": "{count} дн."
+      },
+      "timeline": {
+        "title": "Таймлайн статуса (24ч)"
+      },
+      "responseTime": {
+        "title": "Время отклика (24ч)"
+      },
+      "configuration": {
+        "title": "Конфигурация",
+        "target": "Цель",
+        "interval": "Интервал",
+        "timeout": "Таймаут",
+        "lastChecked": "Последняя проверка",
+        "nextCheck": "Следующая проверка",
+        "created": "Создан",
+        "notScheduled": "Не запланировано"
+      },
+      "incidents": {
+        "title": "Последние инциденты",
+        "empty": "Инцидентов не зарегистрировано.",
+        "ongoing": "Продолжается"
+      }
+    },
+    "form": {
+      "name": "Название",
+      "namePlaceholder": "Мой монитор",
+      "type": "Тип",
+      "target": "Цель",
+      "interval": "Интервал (секунды)",
+      "timeout": "Таймаут (секунды)",
+      "status": "Статус",
+      "statusActive": "Активен",
+      "statusPaused": "Приостановлен",
+      "retention": "Хранение истории (дни)",
+      "retentionHelp": "Количество дней хранения данных проверок (1–365, по умолчанию 30)",
+      "expectedStatusCodes": "Ожидаемые коды статуса",
+      "expectedStatusCodesPlaceholder": "200, 201, 204",
+      "expectedStatusCodesHelp": "HTTP-коды через запятую, считающиеся успешными",
+      "skipTlsVerify": "Отключить проверку сертификата (пропустить верификацию TLS)",
+      "skipTlsVerifyHelp": "При включении монитор будет пропускать проверку цепочки TLS-сертификатов и имени хоста. Используйте с осторожностью.",
+      "customHeaders": "Пользовательские заголовки",
+      "customHeadersHelp": "Несекретные заголовки, отправляемые с каждым запросом проверки (до 5). Чтобы проверять сервер по IP, добавьте заголовок Host с доменным именем.",
+      "addHeader": "+ Добавить заголовок",
+      "headerNamePlaceholder": "Имя заголовка",
+      "headerValuePlaceholder": "Значение",
+      "removeHeader": "Убрать заголовок",
+      "payload": "Payload",
+      "payloadPlaceholder": "ping",
+      "payloadHelp": "Данные для отправки на UDP-цель",
+      "handshakeMessage": "Сообщение рукопожатия",
+      "handshakeMessagePlaceholder": "ping",
+      "handshakeMessageHelp": "Сообщение, отправляемое после установки WebSocket-соединения",
+      "secretReference": "Ссылка на секрет",
+      "secretReferenceHelp": "Необязательный секрет для привязки к монитору",
+      "submitCreate": "Создать монитор",
+      "submitUpdate": "Обновить монитор",
+      "error": "Ошибка",
+      "unexpectedError": "Произошла непредвиденная ошибка",
+      "targetHelp": {
+        "http": "URL или доменное имя (по умолчанию https://)",
+        "tcp": "Формат: хост:порт",
+        "udp": "Формат: хост:порт",
+        "websocket": "URL со схемой ws:// или wss://, либо имя хоста (по умолчанию wss://)",
+        "grpc": "Формат: хост:порт"
+      }
+    },
+    "filter": {
+      "expand": "Фильтр",
+      "collapse": "Скрыть фильтры",
+      "selectKey": "Выбрать ключ",
+      "addTag": "Тег",
+      "back": "← Назад",
+      "cancel": "Отмена",
+      "removeTag": "Убрать тег {key}:{value}"
+    }
+  },
+  "settings": {
+    "title": "Настройки",
+    "description": "Управление аккаунтом и API-доступом.",
+    "language": {
+      "title": "Язык",
+      "label": "Язык отображения"
+    },
+    "tokens": {
+      "title": "API-токены",
+      "description": "API-токены обеспечивают программный доступ к Pulse API. Используйте их для CI/CD, скриптов автоматизации и внешних интеграций.",
+      "createTitle": "Создать новый токен",
+      "createLabel": "Имя токена",
+      "createPlaceholder": "например ci-deploy, grafana-read",
+      "createButton": "Создать токен",
+      "existingTitle": "Существующие токены",
+      "existingDescription": "Значения токенов не отображаются после создания. Показаны только метаданные.",
+      "loadingTokens": "Загрузка токенов…",
+      "emptyState": "API-токены ещё не созданы.",
+      "tableHeaders": {
+        "name": "Имя",
+        "created": "Создан",
+        "lastUsed": "Последнее использование",
+        "expires": "Истекает",
+        "actions": "Действия"
+      },
+      "revoke": "Отозвать",
+      "revoked": "Отозван",
+      "expired": "Истёк",
+      "errors": {
+        "networkList": "Не удалось подключиться к серверу. Проверьте сетевое соединение.",
+        "unexpectedList": "Произошла непредвиденная ошибка при загрузке токенов.",
+        "networkCreate": "Не удалось подключиться к серверу. Попробуйте ещё раз.",
+        "unexpectedCreate": "Произошла непредвиденная ошибка. Попробуйте ещё раз."
+      }
+    }
+  },
+  "auth": {
+    "title": "Authentication",
+    "description": "Configure credentials for this monitor's health-check requests.",
+    "createDescription": "Optional credentials for this monitor's health-check requests.",
+    "authType": "Authentication Type",
+    "types": {
+      "none": "None",
+      "bearer": "Bearer Token",
+      "basic": "Basic Auth",
+      "header": "Custom Header"
+    },
+    "fields": {
+      "token": "Token",
+      "tokenPlaceholder": "Enter bearer token",
+      "username": "Username",
+      "usernamePlaceholder": "Enter username",
+      "password": "Password",
+      "passwordPlaceholder": "Enter password",
+      "headerName": "Header Name",
+      "headerNamePlaceholder": "e.g. X-API-Key",
+      "headerValue": "Header Value",
+      "headerValuePlaceholder": "Enter header value"
+    },
+    "validation": {
+      "tokenRequired": "Token is required",
+      "usernameRequired": "Username is required",
+      "passwordRequired": "Password is required",
+      "headerNameRequired": "Header name is required",
+      "headerValueRequired": "Header value is required"
+    },
+    "addCredential": "Add Credential",
+    "pendingCredential": "{authType} credential will be created with the monitor.",
+    "replacingNotice": "Replacing credential — fill in the new values below.",
+    "cancelReplace": "Cancel"
+  },
+  "credentials": {
+    "empty": "No credentials configured for this monitor.",
+    "created": "Created {date}",
+    "confirmDelete": "Confirm?",
+    "delete": "Delete",
+    "replace": "Replace",
+    "cancel": "Cancel"
+  },
+  "modal": {
+    "secretTitle": "Your Secret Value",
+    "secretWarning": "This secret will not be shown again. Make sure to copy it before closing.",
+    "secretLabel": "Secret value",
+    "secretDismiss": "I've copied the secret"
+  },
+  "toast": {
+    "dismiss": "Dismiss notification",
+    "notifications": "Notifications",
+    "requestId": "Request ID: {id}"
+  },
+  "grpc": {
+    "serviceMethod": "Service Method",
+    "serviceMethodPlaceholder": "grpc.health.v1.Health/Check",
+    "serviceMethodHelp": "Fully-qualified gRPC service and method (package.Service/Method)",
+    "tlsMode": "TLS Mode",
+    "tlsModes": {
+      "plaintext": "Plaintext",
+      "tls": "TLS",
+      "tlsSkipVerify": "TLS (Skip Verify)"
+    },
+    "sslExpiryThreshold": "SSL Expiry Threshold (days)",
+    "sslExpiryThresholdPlaceholder": "30",
+    "sslExpiryThresholdHelp": "Alert when certificate expires within this many days",
+    "metadata": "Metadata",
+    "addMetadata": "Add Metadata",
+    "metadataKeyPlaceholder": "Key",
+    "metadataValuePlaceholder": "Value",
+    "metadataHelp": "Custom gRPC metadata headers sent with each request",
+    "removeMetadataRow": "Remove metadata row {index}",
+    "expectedStatuses": "Expected Status Codes",
+    "expectedStatusesHelp": "gRPC status codes considered a healthy response",
+    "requestPayload": "Request Payload (Base64)",
+    "requestPayloadPlaceholder": "Base64-encoded protobuf message",
+    "requestPayloadHelp": "Optional base64-encoded protobuf request body"
+  },
+  "timeRange": {
+    "custom": "Custom",
+    "start": "Start",
+    "end": "End",
+    "validation": {
+      "bothRequired": "Please select both start and end times",
+      "invalidDates": "Invalid date values",
+      "startBeforeEnd": "Start time must be before end time"
+    },
+    "retentionNotice": "Selected range exceeds the {days}-day retention period. Data may be incomplete.",
+    "truncatedNotice": "Data has been truncated to the monitor's retention period ({days} days)."
+  },
+  "history": {
+    "loading": "Loading history...",
+    "error": "Failed to load history data.",
+    "empty": "No data available for the selected period.",
+    "retry": "Retry"
+  },
+  "errors": {
+    "generic": "Something went wrong",
+    "network": "Service unavailable. Please try again later.",
+    "unexpected": "An unexpected error occurred.",
+    "notFound": "Not found"
+  }
+}

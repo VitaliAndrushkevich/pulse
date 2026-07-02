@@ -2,6 +2,7 @@
   import { goto } from '$app/navigation';
   import { createMonitor, createCredential, type CreateCredentialRequest } from '$lib/api';
   import MonitorForm from '../../../components/MonitorForm.svelte';
+  import { t } from '$lib/i18n';
 
   async function handleSubmit(
     values: Parameters<typeof createMonitor>[0],
@@ -23,7 +24,7 @@
 </script>
 
 <section class="space-y-6">
-  <h1 class="text-2xl font-bold tracking-tight text-primary">Create Monitor</h1>
+  <h1 class="text-2xl font-bold tracking-tight text-primary">{t('monitors.create')}</h1>
 
   <MonitorForm
     mode="create"

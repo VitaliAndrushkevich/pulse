@@ -11,15 +11,19 @@
   import { getMonitors } from '$lib/api';
   import { monitorStore } from '$lib/stores/monitors.svelte';
   import { onDestroy } from 'svelte';
+  import { initLocale, t } from '$lib/i18n';
+
+  // Initialize locale from localStorage before first render
+  initLocale();
 
   let currentPath = $derived($page.url.pathname);
   let isPublicRoute = $derived(currentPath === '/login' || currentPath === '/setup');
   let authed = $derived(isAuthenticated());
 
   const navLinks = [
-    { href: '/', label: 'Dashboard' },
-    { href: '/monitors', label: 'Monitors' },
-    { href: '/settings', label: 'Settings' }
+    { href: '/', key: 'nav.dashboard' },
+    { href: '/monitors', key: 'nav.monitors' },
+    { href: '/settings', key: 'nav.settings' }
   ];
 
   // Create the WS client at module level (once per layout lifecycle)
@@ -91,7 +95,7 @@
               class:bg-brand-50={currentPath === link.href}
               class:text-brand-700={currentPath === link.href}
             >
-              {link.label}
+              {t(link.key)}
             </a>
           {/each}
           <ConnectionBadge />
@@ -100,7 +104,7 @@
             onclick={logout}
             class="ml-2 rounded-md px-3 py-2 text-sm font-medium text-[var(--color-text-secondary)] transition hover:bg-red-50 hover:text-red-700"
           >
-            Logout
+            {t('nav.logout')}
           </button>
         </nav>
       </div>

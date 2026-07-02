@@ -2,14 +2,15 @@
   import { page } from '$app/stores';
   import { goto } from '$app/navigation';
   import { untrack } from 'svelte';
-  import { getMonitor, getMonitorHistory, getMonitorIncidents, getMonitorStats, deleteMonitor, ApiRequestError } from '$lib/api';
+  import { getMonitor, getMonitorHistory, getMonitorIncidents, getMonitorStats, deleteMonitor, updateMonitor, ApiRequestError } from '$lib/api';
   import { monitorStore } from '$lib/stores/monitors.svelte';
   import { patchBus } from '$lib/stores/patchBus.svelte';
-  import { formatDate } from '$lib/format';
+  import { formatDate, formatLatency } from '$lib/format';
   import HistoryChart from '../../../components/HistoryChart.svelte';
   import StatusTimeline from '../../../components/StatusTimeline.svelte';
   import HistoryExplorer from '../../../components/HistoryExplorer.svelte';
   import type { Monitor, HistoryPoint, Incident, MonitorPatch, MonitorStats } from '$lib/types';
+  import { t } from '$lib/i18n';
 
   type Tab = 'overview' | 'history';
   let activeTab = $state<Tab>('overview');
@@ -21,6 +22,8 @@
   let error = $state<string | null>(null);
   let notFound = $state(false);
   let deleting = $state(false);
+  let toggling = $state(false);
+  let showPauseConfirm = $state(false);
 
   let monitorId = $derived($page.params.id);
 
@@ -33,14 +36,14 @@
   };
 
   const stateLabels: Record<string, string> = {
-    up: 'Up',
-    down: 'Down',
-    unknown: 'Unknown'
+    up: t('monitors.status.up'),
+    down: t('monitors.status.down'),
+    unknown: t('monitors.status.unknown')
   };
 
   const statusLabels: Record<string, string> = {
-    active: 'Active',
-    paused: 'Paused'
+    active: t('monitors.status.active'),
+    paused: t('monitors.status.paused')
   };
 
   const typeBadgeColors: Record<string, string> = {
@@ -76,7 +79,7 @@
       if (err instanceof ApiRequestError && err.statusCode === 404) {
         notFound = true;
       } else {
-        error = err instanceof Error ? err.message : 'Failed to load monitor details. Please try again.';
+        error = err instanceof Error ? err.message : t('monitors.errors.detailFailed');
       }
     } finally {
       loading = false;
@@ -85,7 +88,7 @@
 
   async function handleDelete() {
     if (!monitor) return;
-    const confirmed = confirm(`Are you sure you want to delete "${monitor.name}"? This action cannot be undone.`);
+    const confirmed = confirm(t('monitors.deleteConfirm', { name: monitor.name }));
     if (!confirmed) return;
 
     deleting = true;
@@ -93,8 +96,34 @@
       await deleteMonitor(monitor.id);
       goto('/monitors');
     } catch (err: unknown) {
-      error = err instanceof Error ? err.message : 'Failed to delete monitor. Please try again.';
+      error = err instanceof Error ? err.message : t('monitors.errors.deleteFailed');
       deleting = false;
+    }
+  }
+
+  async function handleTogglePause() {
+    if (!monitor) return;
+    const newStatus = monitor.status === 'active' ? 'paused' : 'active';
+
+    toggling = true;
+    try {
+      const updated = await updateMonitor(monitor.id, {
+        name: monitor.name,
+        type: monitor.type,
+        target: monitor.target,
+        interval_seconds: monitor.interval_seconds,
+        timeout_seconds: monitor.timeout_seconds,
+        status: newStatus,
+        settings: monitor.settings,
+        tags: monitor.tags,
+        history_retention_days: monitor.history_retention_days,
+      });
+      monitorStore.updateMonitor(updated);
+      showPauseConfirm = false;
+    } catch (err: unknown) {
+      error = err instanceof Error ? err.message : `Failed to ${newStatus === 'paused' ? 'pause' : 'resume'} monitor.`;
+    } finally {
+      toggling = false;
     }
   }
 
@@ -196,20 +225,20 @@
         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
       </svg>
-      <span>Loading monitor details...</span>
+      <span>{t('monitors.loadingDetails')}</span>
     </div>
   </div>
 
 <!-- 404 Not Found -->
 {:else if notFound}
   <div class="rounded-xl border border-[var(--color-border)] bg-surface p-12 text-center" data-testid="not-found">
-    <h2 class="text-lg font-semibold text-primary">Monitor not found</h2>
-    <p class="mt-2 text-sm text-secondary">The monitor you're looking for doesn't exist or has been deleted.</p>
+    <h2 class="text-lg font-semibold text-primary">{t('monitors.notFound.title')}</h2>
+    <p class="mt-2 text-sm text-secondary">{t('monitors.notFound.description')}</p>
     <a
       href="/monitors"
       class="mt-4 inline-block rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
     >
-      Back to Monitors
+      {t('monitors.notFound.action')}
     </a>
   </div>
 
@@ -222,7 +251,7 @@
       onclick={() => fetchData()}
       class="mt-3 rounded-md bg-rose-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-rose-700 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2"
     >
-      Retry
+      {t('common.retry')}
     </button>
   </div>
 
@@ -232,7 +261,7 @@
     <!-- Header with actions -->
     <div class="flex items-center justify-between">
       <div class="flex items-center gap-3">
-        <a href="/monitors" class="text-[var(--color-text-muted)] hover:text-secondary transition" aria-label="Back to monitors">
+        <a href="/monitors" class="text-[var(--color-text-muted)] hover:text-secondary transition" aria-label={t('monitors.detail.backToMonitors')}>
           <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
           </svg>
@@ -246,12 +275,31 @@
         </span>
       </div>
       <div class="flex items-center gap-2">
+        <button
+          type="button"
+          onclick={() => { showPauseConfirm = true; }}
+          class="inline-flex items-center gap-1.5 rounded-md border border-[var(--color-border)] bg-surface px-4 py-2 text-sm font-medium text-primary transition hover:bg-[var(--color-bg-surface-hover)] focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+          data-testid="pause-button"
+        >
+          {#if monitor.status === 'active'}
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            {t('monitors.detail.pause.button')}
+          {:else}
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            {t('monitors.detail.resume.button')}
+          {/if}
+        </button>
         <a
           href="/monitors/{monitor.id}/edit"
           class="rounded-md border border-[var(--color-border)] bg-surface px-4 py-2 text-sm font-medium text-primary transition hover:bg-[var(--color-bg-surface-hover)] focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
           data-testid="edit-button"
         >
-          Edit
+          {t('monitors.detail.edit')}
         </a>
         <button
           type="button"
@@ -260,7 +308,7 @@
           class="rounded-md bg-rose-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-rose-700 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
           data-testid="delete-button"
         >
-          {deleting ? 'Deleting...' : 'Delete'}
+          {deleting ? t('common.deleting') : t('monitors.detail.delete')}
         </button>
       </div>
     </div>
@@ -276,7 +324,7 @@
           role="tab"
           data-testid="tab-overview"
         >
-          Overview
+          {t('monitors.detail.tabs.overview')}
         </button>
         <button
           type="button"
@@ -286,7 +334,7 @@
           role="tab"
           data-testid="tab-history"
         >
-          History
+          {t('monitors.detail.tabs.history')}
         </button>
       </nav>
     </div>
@@ -302,7 +350,7 @@
           data-testid="state-indicator"
         ></span>
         <span class="text-sm font-semibold {monitor.state === 'up' ? 'text-emerald-700' : monitor.state === 'down' ? 'text-rose-700' : 'text-primary'}" data-testid="monitor-state">
-          {stateLabels[monitor.state] ?? 'Unknown'}
+          {stateLabels[monitor.state] ?? t('monitors.status.unknown')}
         </span>
         <span class="text-sm text-[var(--color-text-muted)]">·</span>
         <span class="text-sm text-secondary" data-testid="monitor-status">
@@ -310,7 +358,7 @@
         </span>
         <span class="text-sm text-[var(--color-text-muted)]">·</span>
         <span class="text-xs text-[var(--color-text-muted)]">
-          Checking every {monitor.interval_seconds}s
+          {t('monitors.detail.checkInterval', { seconds: monitor.interval_seconds })}
         </span>
       </div>
 
@@ -324,7 +372,7 @@
               </svg>
             </div>
             <div class="min-w-0 flex-1">
-              <p class="text-sm font-medium text-rose-800">Down</p>
+              <p class="text-sm font-medium text-rose-800">{t('monitors.status.down')}</p>
               <p class="mt-0.5 text-sm text-rose-700" data-testid="error-message">{stats.last_error.error}</p>
               <p class="mt-1 text-xs text-rose-500">{formatDate(stats.last_error.checked_at)}</p>
             </div>
@@ -337,71 +385,71 @@
     <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 {monitor.type === 'http' ? 'lg:grid-cols-5' : 'lg:grid-cols-4'}" data-testid="stats-cards">
       <!-- Response time (current) -->
       <div class="rounded-lg border border-[var(--color-border)] bg-surface p-4 text-center">
-        <dt class="text-xs font-medium uppercase tracking-wider text-[var(--color-text-muted)]">Response</dt>
+        <dt class="text-xs font-medium uppercase tracking-wider text-[var(--color-text-muted)]">{t('monitors.detail.stats.response')}</dt>
         <dd class="mt-1 text-lg font-semibold text-primary" data-testid="stat-response">
           {#if history.length > 0 && history[history.length - 1].latency_ms != null}
-            {history[history.length - 1].latency_ms}ms
+            {formatLatency(history[history.length - 1].latency_ms!)}
           {:else}
-            N/A
+            {t('common.na')}
           {/if}
         </dd>
-        <span class="text-[10px] text-[var(--color-text-muted)]">(Current)</span>
+        <span class="text-[10px] text-[var(--color-text-muted)]">{t('monitors.detail.stats.current')}</span>
       </div>
 
       <!-- Avg response time 24h -->
       <div class="rounded-lg border border-[var(--color-border)] bg-surface p-4 text-center">
-        <dt class="text-xs font-medium uppercase tracking-wider text-[var(--color-text-muted)]">Avg. Response</dt>
+        <dt class="text-xs font-medium uppercase tracking-wider text-[var(--color-text-muted)]">{t('monitors.detail.stats.avgResponse')}</dt>
         <dd class="mt-1 text-lg font-semibold text-primary" data-testid="stat-avg-response">
           {#if stats && stats.uptime_24h.avg_latency_ms > 0}
-            {stats.uptime_24h.avg_latency_ms}ms
+            {formatLatency(stats.uptime_24h.avg_latency_ms)}
           {:else}
-            N/A
+            {t('common.na')}
           {/if}
         </dd>
-        <span class="text-[10px] text-[var(--color-text-muted)]">(24 hours)</span>
+        <span class="text-[10px] text-[var(--color-text-muted)]">{t('monitors.detail.stats.period24h')}</span>
       </div>
 
       <!-- Uptime 24h -->
       <div class="rounded-lg border border-[var(--color-border)] bg-surface p-4 text-center">
-        <dt class="text-xs font-medium uppercase tracking-wider text-[var(--color-text-muted)]">Uptime</dt>
+        <dt class="text-xs font-medium uppercase tracking-wider text-[var(--color-text-muted)]">{t('monitors.detail.stats.uptime')}</dt>
         <dd class="mt-1 text-lg font-semibold {stats ? uptimeColor(stats.uptime_24h.uptime_percent) : 'text-primary'}" data-testid="stat-uptime-24h">
           {#if stats && stats.uptime_24h.total_checks > 0}
             {formatUptime(stats.uptime_24h.uptime_percent)}
           {:else}
-            N/A
+            {t('common.na')}
           {/if}
         </dd>
-        <span class="text-[10px] text-[var(--color-text-muted)]">(24 hours)</span>
+        <span class="text-[10px] text-[var(--color-text-muted)]">{t('monitors.detail.stats.period24h')}</span>
       </div>
 
       <!-- Uptime 30d -->
       <div class="rounded-lg border border-[var(--color-border)] bg-surface p-4 text-center">
-        <dt class="text-xs font-medium uppercase tracking-wider text-[var(--color-text-muted)]">Uptime</dt>
+        <dt class="text-xs font-medium uppercase tracking-wider text-[var(--color-text-muted)]">{t('monitors.detail.stats.uptime')}</dt>
         <dd class="mt-1 text-lg font-semibold {stats ? uptimeColor(stats.uptime_30d.uptime_percent) : 'text-primary'}" data-testid="stat-uptime-30d">
           {#if stats && stats.uptime_30d.total_checks > 0}
             {formatUptime(stats.uptime_30d.uptime_percent)}
           {:else}
-            N/A
+            {t('common.na')}
           {/if}
         </dd>
-        <span class="text-[10px] text-[var(--color-text-muted)]">(30 days)</span>
+        <span class="text-[10px] text-[var(--color-text-muted)]">{t('monitors.detail.stats.period30d')}</span>
       </div>
 
       <!-- SSL Certificate (only for HTTP monitors) -->
       {#if monitor.type === 'http'}
         {#if stats?.ssl}
           <div class="rounded-lg border {sslBorderColor(stats.ssl.days_remaining)} {sslBgColor(stats.ssl.days_remaining)} p-4 text-center" data-testid="stat-ssl">
-            <dt class="text-xs font-medium uppercase tracking-wider text-[var(--color-text-muted)]">Cert. Expiry</dt>
+            <dt class="text-xs font-medium uppercase tracking-wider text-[var(--color-text-muted)]">{t('monitors.detail.stats.certExpiry')}</dt>
             <dd class="mt-1 text-lg font-semibold {sslColor(stats.ssl.days_remaining)}">
-              {stats.ssl.days_remaining} days
+              {t('monitors.detail.stats.days', { count: stats.ssl.days_remaining })}
             </dd>
             <span class="text-[10px] text-secondary">({stats.ssl.expires_at})</span>
           </div>
         {:else}
           <div class="rounded-lg border border-[var(--color-border)] bg-surface p-4 text-center" data-testid="stat-ssl">
-            <dt class="text-xs font-medium uppercase tracking-wider text-[var(--color-text-muted)]">Cert. Expiry</dt>
-            <dd class="mt-1 text-lg font-semibold text-[var(--color-text-muted)]">N/A</dd>
-            <span class="text-[10px] text-[var(--color-text-muted)]">(no data yet)</span>
+            <dt class="text-xs font-medium uppercase tracking-wider text-[var(--color-text-muted)]">{t('monitors.detail.stats.certExpiry')}</dt>
+            <dd class="mt-1 text-lg font-semibold text-[var(--color-text-muted)]">{t('common.na')}</dd>
+            <span class="text-[10px] text-[var(--color-text-muted)]">{t('monitors.detail.stats.noData')}</span>
           </div>
         {/if}
       {/if}
@@ -409,47 +457,47 @@
 
     <!-- Status timeline -->
     <div class="rounded-xl border border-[var(--color-border)] bg-surface p-5" data-testid="status-timeline-section">
-      <h2 class="mb-4 text-sm font-semibold text-primary">Status Timeline (24h)</h2>
+      <h2 class="mb-4 text-sm font-semibold text-primary">{t('monitors.detail.timeline.title')}</h2>
       <StatusTimeline data={history} />
     </div>
 
     <!-- History chart -->
     <div class="rounded-xl border border-[var(--color-border)] bg-surface p-5" data-testid="history-section">
-      <h2 class="mb-4 text-sm font-semibold text-primary">Response Time (24h)</h2>
+      <h2 class="mb-4 text-sm font-semibold text-primary">{t('monitors.detail.responseTime.title')}</h2>
       <HistoryChart data={history} />
     </div>
 
     <!-- Monitor details grid -->
     <div class="rounded-xl border border-[var(--color-border)] bg-surface" data-testid="monitor-details">
       <div class="border-b border-[var(--color-border)] px-5 py-3">
-        <h2 class="text-sm font-semibold text-primary">Configuration</h2>
+        <h2 class="text-sm font-semibold text-primary">{t('monitors.detail.configuration.title')}</h2>
       </div>
       <div class="grid grid-cols-1 divide-y divide-slate-100 sm:grid-cols-2 sm:divide-y-0 sm:divide-x">
         <div class="space-y-4 p-5">
           <div>
-            <dt class="text-xs font-medium uppercase tracking-wider text-[var(--color-text-muted)]">Target</dt>
+            <dt class="text-xs font-medium uppercase tracking-wider text-[var(--color-text-muted)]">{t('monitors.detail.configuration.target')}</dt>
             <dd class="mt-1 break-all text-sm text-primary" data-testid="monitor-target">{monitor.target}</dd>
           </div>
           <div>
-            <dt class="text-xs font-medium uppercase tracking-wider text-[var(--color-text-muted)]">Interval</dt>
+            <dt class="text-xs font-medium uppercase tracking-wider text-[var(--color-text-muted)]">{t('monitors.detail.configuration.interval')}</dt>
             <dd class="mt-1 text-sm text-primary" data-testid="monitor-interval">{monitor.interval_seconds}s</dd>
           </div>
           <div>
-            <dt class="text-xs font-medium uppercase tracking-wider text-[var(--color-text-muted)]">Timeout</dt>
+            <dt class="text-xs font-medium uppercase tracking-wider text-[var(--color-text-muted)]">{t('monitors.detail.configuration.timeout')}</dt>
             <dd class="mt-1 text-sm text-primary" data-testid="monitor-timeout">{monitor.timeout_seconds}s</dd>
           </div>
         </div>
         <div class="space-y-4 p-5">
           <div>
-            <dt class="text-xs font-medium uppercase tracking-wider text-[var(--color-text-muted)]">Last Checked</dt>
+            <dt class="text-xs font-medium uppercase tracking-wider text-[var(--color-text-muted)]">{t('monitors.detail.configuration.lastChecked')}</dt>
             <dd class="mt-1 text-sm text-primary" data-testid="monitor-last-checked">{formatDate(monitor.last_checked_at)}</dd>
           </div>
           <div>
-            <dt class="text-xs font-medium uppercase tracking-wider text-[var(--color-text-muted)]">Next Check</dt>
-            <dd class="mt-1 text-sm text-primary" data-testid="monitor-next-check">{formatDate(monitor.next_check_at, 'Not scheduled')}</dd>
+            <dt class="text-xs font-medium uppercase tracking-wider text-[var(--color-text-muted)]">{t('monitors.detail.configuration.nextCheck')}</dt>
+            <dd class="mt-1 text-sm text-primary" data-testid="monitor-next-check">{formatDate(monitor.next_check_at, t('monitors.detail.configuration.notScheduled'))}</dd>
           </div>
           <div>
-            <dt class="text-xs font-medium uppercase tracking-wider text-[var(--color-text-muted)]">Created</dt>
+            <dt class="text-xs font-medium uppercase tracking-wider text-[var(--color-text-muted)]">{t('monitors.detail.configuration.created')}</dt>
             <dd class="mt-1 text-sm text-primary" data-testid="monitor-created">{formatDate(monitor.created_at)}</dd>
           </div>
         </div>
@@ -458,9 +506,9 @@
 
     <!-- Incident timeline -->
     <div class="rounded-xl border border-[var(--color-border)] bg-surface p-5" data-testid="incidents-section">
-      <h2 class="mb-4 text-sm font-semibold text-primary">Recent Incidents</h2>
+      <h2 class="mb-4 text-sm font-semibold text-primary">{t('monitors.detail.incidents.title')}</h2>
       {#if incidents.length === 0}
-        <p class="text-sm text-[var(--color-text-muted)]">No incidents recorded.</p>
+        <p class="text-sm text-[var(--color-text-muted)]">{t('monitors.detail.incidents.empty')}</p>
       {:else}
         <div class="space-y-3">
           {#each incidents as incident (incident.id)}
@@ -476,7 +524,7 @@
                     {#if incident.resolved_at}
                       {formatDate(incident.resolved_at)}
                     {:else}
-                      <span class="rounded bg-rose-100 px-1.5 py-0.5 text-xs font-medium text-rose-700">Ongoing</span>
+                      <span class="rounded bg-rose-100 px-1.5 py-0.5 text-xs font-medium text-rose-700">{t('monitors.detail.incidents.ongoing')}</span>
                     {/if}
                   </span>
                 </div>
@@ -498,4 +546,52 @@
     </div>
 
   </section>
+
+  <!-- Pause/Resume confirmation modal -->
+  {#if showPauseConfirm}
+    <div
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="pause-confirm-title"
+      data-testid="pause-confirm-modal"
+    >
+      <div class="mx-4 w-full max-w-sm rounded-xl border border-[var(--color-border)] bg-surface p-6 shadow-xl">
+        <h3 id="pause-confirm-title" class="text-lg font-semibold text-primary">
+          {monitor.status === 'active' ? t('monitors.detail.pause.title') : t('monitors.detail.resume.title')}
+        </h3>
+        <p class="mt-2 text-sm text-secondary">
+          {#if monitor.status === 'active'}
+            {t('monitors.detail.pause.description', { name: monitor.name })}
+          {:else}
+            {t('monitors.detail.resume.description', { name: monitor.name })}
+          {/if}
+        </p>
+        <div class="mt-5 flex items-center justify-end gap-3">
+          <button
+            type="button"
+            onclick={() => { showPauseConfirm = false; }}
+            disabled={toggling}
+            class="rounded-md border border-[var(--color-border)] bg-surface px-4 py-2 text-sm font-medium text-primary transition hover:bg-[var(--color-bg-surface-hover)] focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50"
+            data-testid="pause-cancel-button"
+          >
+            {t('common.cancel')}
+          </button>
+          <button
+            type="button"
+            onclick={handleTogglePause}
+            disabled={toggling}
+            class="rounded-md {monitor.status === 'active' ? 'bg-amber-600 hover:bg-amber-700 focus:ring-amber-500' : 'bg-emerald-600 hover:bg-emerald-700 focus:ring-emerald-500'} px-4 py-2 text-sm font-medium text-white transition focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            data-testid="pause-confirm-button"
+          >
+            {#if toggling}
+              {monitor.status === 'active' ? t('monitors.detail.pause.pausing') : t('monitors.detail.resume.resuming')}
+            {:else}
+              {monitor.status === 'active' ? t('monitors.detail.pause.button') : t('monitors.detail.resume.button')}
+            {/if}
+          </button>
+        </div>
+      </div>
+    </div>
+  {/if}
 {/if}

@@ -3,6 +3,7 @@
   import type { CreateCredentialRequest } from '$lib/api';
   import { validateName, validateTarget, validateInterval, validateTimeout, validateType } from '$lib/validation';
   import { formatSecretReference } from '$lib/format';
+  import { t } from '$lib/i18n';
   import AuthSection from './AuthSection.svelte';
   import CredentialForm from './CredentialForm.svelte';
   import GrpcSettingsForm from './GrpcSettingsForm.svelte';
@@ -52,11 +53,26 @@
 
   // Type-specific settings
   let expectedStatusCodes = $state(
-    Array.isArray(initialValues?.settings?.expected_status_codes)
-      ? (initialValues.settings.expected_status_codes as number[]).join(', ')
+    Array.isArray(initialValues?.settings?.expected_statuses)
+      ? (initialValues.settings.expected_statuses as number[]).join(', ')
       : ''
   );
   let skipTLSVerify = $state((initialValues?.settings?.skip_tls_verify as boolean) ?? false);
+
+  // Custom headers (up to 5 non-secret key-value pairs for HTTP-family monitors)
+  type HeaderEntry = { key: string; value: string };
+  let customHeaders = $state<HeaderEntry[]>(
+    (() => {
+      const h = initialValues?.settings?.headers;
+      if (h && typeof h === 'object' && !Array.isArray(h)) {
+        return Object.entries(h as Record<string, string>)
+          .slice(0, 5)
+          .map(([key, value]) => ({ key, value }));
+      }
+      return [];
+    })()
+  );
+
   let payload = $state((initialValues?.settings?.payload as string) ?? '');
   let handshakeMessage = $state((initialValues?.settings?.handshake_message as string) ?? '');
   let selectedSecretId = $state((initialValues?.settings?.secret_id as string) ?? '');
@@ -119,11 +135,11 @@
 
   // Helper text for target field based on monitor type
   let targetHelp = $derived(
-    type === 'tcp' ? 'Format: host:port' :
-    type === 'udp' ? 'Format: host:port' :
-    type === 'websocket' ? 'URL with ws:// or wss:// scheme, or just hostname (defaults to wss://)' :
-    type === 'grpc' ? 'Format: host:port' :
-    'URL or domain name (defaults to https://)'
+    type === 'tcp' ? t('monitors.form.targetHelp.tcp') :
+    type === 'udp' ? t('monitors.form.targetHelp.udp') :
+    type === 'websocket' ? t('monitors.form.targetHelp.websocket') :
+    type === 'grpc' ? t('monitors.form.targetHelp.grpc') :
+    t('monitors.form.targetHelp.http')
   );
 
   // Overall form validity
@@ -149,11 +165,24 @@
         .map(s => parseInt(s.trim(), 10))
         .filter(n => !isNaN(n));
       if (codes.length > 0) {
-        settings.expected_status_codes = codes;
+        settings.expected_statuses = codes;
       }
-      // include skip_tls_verify for HTTP-family monitors (disable certificate verification)
-      if (skipTLSVerify) {
-        settings.skip_tls_verify = true;
+    }
+
+    // include skip_tls_verify for HTTP-family monitors (disable certificate verification)
+    if ((type === 'http' || type === 'http3') && skipTLSVerify) {
+      settings.skip_tls_verify = true;
+    }
+
+    // include custom headers for HTTP-family monitors (non-secret key-value pairs)
+    if (type === 'http' || type === 'http3') {
+      const validHeaders = customHeaders.filter(h => h.key.trim() && h.value.trim());
+      if (validHeaders.length > 0) {
+        const headersMap: Record<string, string> = {};
+        for (const h of validHeaders) {
+          headersMap[h.key.trim()] = h.value.trim();
+        }
+        settings.headers = headersMap;
       }
     }
 
@@ -196,7 +225,7 @@
       if (err instanceof Error) {
         apiError = err.message;
       } else {
-        apiError = 'An unexpected error occurred';
+        apiError = t('monitors.form.unexpectedError');
       }
     } finally {
       submitting = false;
@@ -214,20 +243,20 @@
       role="alert"
       data-testid="api-error"
     >
-      <p class="font-medium">Error</p>
+      <p class="font-medium">{t('monitors.form.error')}</p>
       <p>{apiError}</p>
     </div>
   {/if}
 
   <!-- Name -->
   <div>
-    <label for="monitor-name" class="block text-sm font-medium text-primary">Name</label>
+    <label for="monitor-name" class="block text-sm font-medium text-primary">{t('monitors.form.name')}</label>
     <input
       id="monitor-name"
       type="text"
       bind:value={name}
       onblur={() => markTouched('name')}
-      placeholder="My Monitor"
+      placeholder={t('monitors.form.namePlaceholder')}
       class="mt-1 block w-full rounded-md border border-[var(--color-border)] bg-surface px-3 py-2 text-sm text-primary shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
       data-testid="input-name"
     />
@@ -238,7 +267,7 @@
 
   <!-- Type -->
   <div>
-    <label for="monitor-type" class="block text-sm font-medium text-primary">Type</label>
+    <label for="monitor-type" class="block text-sm font-medium text-primary">{t('monitors.form.type')}</label>
     <select
       id="monitor-type"
       bind:value={type}
@@ -257,7 +286,7 @@
 
   <!-- Target -->
   <div>
-    <label for="monitor-target" class="block text-sm font-medium text-primary">Target</label>
+    <label for="monitor-target" class="block text-sm font-medium text-primary">{t('monitors.form.target')}</label>
     <input
       id="monitor-target"
       type="text"
@@ -276,7 +305,7 @@
   <!-- Interval and Timeout -->
   <div class="grid grid-cols-2 gap-4">
     <div>
-      <label for="monitor-interval" class="block text-sm font-medium text-primary">Interval (seconds)</label>
+      <label for="monitor-interval" class="block text-sm font-medium text-primary">{t('monitors.form.interval')}</label>
       <input
         id="monitor-interval"
         type="number"
@@ -293,7 +322,7 @@
     </div>
 
     <div>
-      <label for="monitor-timeout" class="block text-sm font-medium text-primary">Timeout (seconds)</label>
+      <label for="monitor-timeout" class="block text-sm font-medium text-primary">{t('monitors.form.timeout')}</label>
       <input
         id="monitor-timeout"
         type="number"
@@ -312,7 +341,7 @@
 
   <!-- Status Toggle -->
   <fieldset>
-    <legend class="block text-sm font-medium text-primary">Status</legend>
+    <legend class="block text-sm font-medium text-primary">{t('monitors.form.status')}</legend>
     <div class="mt-1 flex items-center gap-4">
       <label class="flex items-center gap-2 text-sm text-secondary">
         <input
@@ -322,7 +351,7 @@
           class="text-blue-600 focus:ring-blue-500"
           data-testid="input-status-active"
         />
-        Active
+        {t('monitors.form.statusActive')}
       </label>
       <label class="flex items-center gap-2 text-sm text-secondary">
         <input
@@ -332,14 +361,14 @@
           class="text-blue-600 focus:ring-blue-500"
           data-testid="input-status-paused"
         />
-        Paused
+        {t('monitors.form.statusPaused')}
       </label>
     </div>
   </fieldset>
 
   <!-- History Retention Days -->
   <div>
-    <label for="monitor-retention" class="block text-sm font-medium text-primary">History Retention (days)</label>
+    <label for="monitor-retention" class="block text-sm font-medium text-primary">{t('monitors.form.retention')}</label>
     <input
       id="monitor-retention"
       type="number"
@@ -349,62 +378,115 @@
       class="mt-1 block w-full rounded-md border border-[var(--color-border)] bg-surface px-3 py-2 text-sm text-primary shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
       data-testid="input-retention-days"
     />
-    <p class="mt-1 text-xs text-secondary">Number of days to keep check history data (1–365, default 30)</p>
+    <p class="mt-1 text-xs text-secondary">{t('monitors.form.retentionHelp')}</p>
   </div>
 
   <!-- Type-specific settings -->
   {#if type === 'http' || type === 'http3'}
     <div>
       <label for="monitor-status-codes" class="block text-sm font-medium text-primary">
-        Expected Status Codes
+        {t('monitors.form.expectedStatusCodes')}
       </label>
       <input
         id="monitor-status-codes"
         type="text"
         bind:value={expectedStatusCodes}
-        placeholder="200, 201, 204"
+        placeholder={t('monitors.form.expectedStatusCodesPlaceholder')}
         class="mt-1 block w-full rounded-md border border-[var(--color-border)] bg-surface px-3 py-2 text-sm text-primary shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
         data-testid="input-expected-status-codes"
       />
-      <p class="mt-1 text-xs text-secondary">Comma-separated HTTP status codes considered successful</p>
+      <p class="mt-1 text-xs text-secondary">{t('monitors.form.expectedStatusCodesHelp')}</p>
     </div>
     <div class="mt-2">
       <label class="inline-flex items-center gap-2 text-sm text-slate-700">
         <input id="skip-tls-verify" type="checkbox" bind:checked={skipTLSVerify} class="h-4 w-4" data-testid="input-skip-tls-verify" />
-        <span>Disable certificate verification (skip TLS verification)</span>
+        <span>{t('monitors.form.skipTlsVerify')}</span>
       </label>
-      <p class="mt-1 text-xs text-slate-500">When enabled, the monitor will skip TLS certificate chain and hostname verification. Use with caution.</p>
+      <p class="mt-1 text-xs text-slate-500">{t('monitors.form.skipTlsVerifyHelp')}</p>
+    </div>
+
+    <!-- Custom Headers (up to 5, non-secret) -->
+    <div class="mt-4">
+      <div class="flex items-center justify-between">
+        <span class="block text-sm font-medium text-primary">{t('monitors.form.customHeaders')}</span>
+        {#if customHeaders.length < 5}
+          <button
+            type="button"
+            onclick={() => { customHeaders.push({ key: '', value: '' }); }}
+            class="text-xs font-medium text-blue-600 hover:text-blue-800"
+            data-testid="btn-add-header"
+          >
+            {t('monitors.form.addHeader')}
+          </button>
+        {/if}
+      </div>
+      <p class="mt-1 text-xs text-secondary">
+        {t('monitors.form.customHeadersHelp')}
+      </p>
+      {#if customHeaders.length > 0}
+        <div class="mt-2 space-y-2">
+          {#each customHeaders as header, i (i)}
+            <div class="flex items-center gap-2">
+              <input
+                type="text"
+                bind:value={header.key}
+                placeholder={t('monitors.form.headerNamePlaceholder')}
+                class="block w-1/3 rounded-md border border-[var(--color-border)] bg-surface px-3 py-1.5 text-sm text-primary shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                data-testid="input-header-key-{i}"
+              />
+              <input
+                type="text"
+                bind:value={header.value}
+                placeholder={t('monitors.form.headerValuePlaceholder')}
+                class="block flex-1 rounded-md border border-[var(--color-border)] bg-surface px-3 py-1.5 text-sm text-primary shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                data-testid="input-header-value-{i}"
+              />
+              <button
+                type="button"
+                onclick={() => { customHeaders.splice(i, 1); }}
+                class="rounded p-1 text-slate-400 hover:text-rose-600"
+                aria-label={t('monitors.form.removeHeader')}
+                data-testid="btn-remove-header-{i}"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                </svg>
+              </button>
+            </div>
+          {/each}
+        </div>
+      {/if}
     </div>
 
   {/if}
 
   {#if type === 'udp'}
     <div>
-      <label for="monitor-payload" class="block text-sm font-medium text-primary">Payload</label>
+      <label for="monitor-payload" class="block text-sm font-medium text-primary">{t('monitors.form.payload')}</label>
       <input
         id="monitor-payload"
         type="text"
         bind:value={payload}
-        placeholder="ping"
+        placeholder={t('monitors.form.payloadPlaceholder')}
         class="mt-1 block w-full rounded-md border border-[var(--color-border)] bg-surface px-3 py-2 text-sm text-primary shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
         data-testid="input-payload"
       />
-      <p class="mt-1 text-xs text-secondary">Data to send to the UDP target</p>
+      <p class="mt-1 text-xs text-secondary">{t('monitors.form.payloadHelp')}</p>
     </div>
   {/if}
 
   {#if type === 'websocket'}
     <div>
-      <label for="monitor-handshake" class="block text-sm font-medium text-primary">Handshake Message</label>
+      <label for="monitor-handshake" class="block text-sm font-medium text-primary">{t('monitors.form.handshakeMessage')}</label>
       <input
         id="monitor-handshake"
         type="text"
         bind:value={handshakeMessage}
-        placeholder="ping"
+        placeholder={t('monitors.form.handshakeMessagePlaceholder')}
         class="mt-1 block w-full rounded-md border border-[var(--color-border)] bg-surface px-3 py-2 text-sm text-primary shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
         data-testid="input-handshake-message"
       />
-      <p class="mt-1 text-xs text-secondary">Message to send after WebSocket connection is established</p>
+      <p class="mt-1 text-xs text-secondary">{t('monitors.form.handshakeMessageHelp')}</p>
     </div>
   {/if}
 
@@ -419,16 +501,16 @@
     {:else}
       <section class="space-y-4" data-testid="auth-section-create">
         <div>
-          <h3 class="text-sm font-medium text-primary">Authentication</h3>
+          <h3 class="text-sm font-medium text-primary">{t('auth.title')}</h3>
           <p class="mt-1 text-xs text-secondary">
-            Optional credentials for this monitor's health-check requests.
+            {t('auth.createDescription')}
           </p>
         </div>
 
         {#if pendingCredential}
           <div class="flex items-center justify-between rounded-md border border-green-200 bg-green-50 px-3 py-2">
             <p class="text-sm text-green-800">
-              <span class="font-medium">{pendingCredential.auth_type}</span> credential will be created with the monitor.
+              {t('auth.pendingCredential', { authType: pendingCredential.auth_type })}
             </p>
             <button
               type="button"
@@ -436,7 +518,7 @@
               class="text-xs font-medium text-green-700 hover:text-green-900"
               data-testid="btn-remove-pending-credential"
             >
-              Remove
+              {t('common.remove')}
             </button>
           </div>
         {:else}
@@ -449,19 +531,19 @@
   <!-- Secret Reference Dropdown -->
   {#if secrets && secrets.length > 0}
     <div>
-      <label for="monitor-secret" class="block text-sm font-medium text-primary">Secret Reference</label>
+      <label for="monitor-secret" class="block text-sm font-medium text-primary">{t('monitors.form.secretReference')}</label>
       <select
         id="monitor-secret"
         bind:value={selectedSecretId}
         class="mt-1 block w-full rounded-md border border-[var(--color-border)] bg-surface px-3 py-2 text-sm text-primary shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
         data-testid="input-secret"
       >
-        <option value="">None</option>
+        <option value="">{t('common.none')}</option>
         {#each secrets as secret}
           <option value={secret.id}>{formatSecretReference(secret.name, secret.id)}</option>
         {/each}
       </select>
-      <p class="mt-1 text-xs text-secondary">Optional secret to attach to this monitor</p>
+      <p class="mt-1 text-xs text-secondary">{t('monitors.form.secretReferenceHelp')}</p>
     </div>
   {/if}
 
@@ -473,7 +555,7 @@
       class="rounded-md border border-[var(--color-border)] bg-surface px-4 py-2 text-sm font-medium text-primary transition hover:bg-[var(--color-bg-surface-hover)]"
       data-testid="btn-cancel"
     >
-      Cancel
+      {t('common.cancel')}
     </button>
     <button
       type="submit"
@@ -482,11 +564,11 @@
       data-testid="btn-submit"
     >
       {#if submitting}
-        Saving…
+        {t('common.saving')}
       {:else if mode === 'create'}
-        Create Monitor
+        {t('monitors.form.submitCreate')}
       {:else}
-        Update Monitor
+        {t('monitors.form.submitUpdate')}
       {/if}
     </button>
   </div>
