@@ -2,17 +2,21 @@
 
 Pulse is a self-hosted uptime monitoring platform. It ships as a single binary with an embedded web UI, backed by PostgreSQL and TimescaleDB for time-series storage. Designed for reliability at 500+ monitors with bounded worker pools, real-time WebSocket updates, and an API-first architecture.
 
+> **Vibecoded with [Kiro](https://kiro.dev)** — an AI-powered IDE that turns ideas into working software through structured specs, steering files, and iterative development.
+
 ## Key Features
 
-- **Multi-protocol monitoring** — HTTP/HTTPS, TCP, UDP, WebSocket
+- **Multi-protocol monitoring** — HTTP/HTTPS, HTTP/3, TCP, UDP, WebSocket, gRPC, DNS, ICMP, SMTP
 - **Single deployable container** — Go binary with embedded SvelteKit frontend
 - **Real-time updates** — WebSocket diff/patch messages for instant UI sync
 - **API-first** — full REST API with OpenAPI 3.0.3 spec
+- **Dashboard widgets** — StatusRing, HealthScore, UptimeHeatmap, ResponseSparklines, SSLWarnings, IncidentsPanel, EventsFeed
+- **Internationalization** — 13 languages with RTL support (Arabic), lazy-loaded locale bundles
 - **Prometheus metrics** — built-in `/metrics` endpoint
-- **Security** — AES-256-GCM secret encryption, JWT + API token auth
+- **Security** — AES-256-GCM secret encryption, JWT + API token auth, per-monitor credentials
 - **Scalable** — bounded worker pools, designed for 500+ concurrent monitors
-- **Light/Dark/System theming** — CSS custom properties theme system with tri-state cycling (light → dark → system), OS preference tracking, and WCAG AA contrast compliance
-- **Brand identity** — ECG-inspired logo mark with responsive lockup, self-hosted Inter typography, and static asset exports
+- **Light/Dark/System theming** — CSS custom properties with tri-state cycling, OS preference tracking, WCAG AA contrast
+- **Brand identity** — ECG-inspired logo mark with responsive lockup, self-hosted Inter typography
 
 ## Architecture
 
@@ -27,13 +31,13 @@ Pulse runs as a single Go process serving both the API and the frontend:
 │  │  Router  │  │  + Workers│  │  (fan-out)   │  │
 │  └────┬─────┘  └─────┬─────┘  └──────┬───────┘  │
 │       │              │               │          │
-│  ┌────┴──────────────┴───────────────┴───────┐  │
-│  │           PostgreSQL + TimescaleDB        │  │
-│  └───────────────────────────────────────────┘  │
+│  ┌────┴──────────────┴───────────────┴────────┐ │
+│  │           PostgreSQL + TimescaleDB         │ │
+│  └────────────────────────────────────────────┘ │
 │                                                 │
-│  ┌───────────────────────────────────────────┐  │
-│  │        Embedded SvelteKit Frontend        │  │
-│  └───────────────────────────────────────────┘  │
+│  ┌────────────────────────────────────────────┐ │
+│  │        Embedded SvelteKit Frontend         │ │
+│  └────────────────────────────────────────────┘ │
 └─────────────────────────────────────────────────┘
 ```
 
@@ -55,7 +59,7 @@ Pulse runs as a single Go process serving both the API and the frontend:
 ### Data Flow
 
 1. **Scheduler** dispatches checks to a bounded worker pool
-2. **Workers** execute protocol-specific checks (HTTP, TCP, UDP, WebSocket)
+2. **Workers** execute protocol-specific checks (HTTP, HTTP/3, TCP, UDP, WebSocket, gRPC, DNS, ICMP, SMTP)
 3. **Results** are persisted to TimescaleDB and broadcast to the **WebSocket Hub**
 4. **Hub** sends diff/patch messages to connected clients
 5. **Frontend** merges patches into local state for real-time UI updates
@@ -71,7 +75,7 @@ That's it. The container image includes everything needed to run Pulse.
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/your-org/pulse.git
+git clone https://github.com/VitaliAndrushkevich/pulse.git
 cd pulse
 
 # 2. Configure environment
@@ -84,7 +88,7 @@ docker compose up -d
 
 Pulse is now running at [http://localhost:8080](http://localhost:8080).
 
-> **Note:** No default user is pre-seeded. Create your first user via the API (see [API Usage](#api-usage) below) or a seed script.
+On first launch you'll be guided through initial setup to create your admin account.
 
 ## Environment Variables
 
@@ -140,6 +144,26 @@ curl -X POST http://localhost:8080/api/v1/monitors \
   }'
 ```
 
+### Create a gRPC Monitor
+
+```bash
+curl -X POST http://localhost:8080/api/v1/monitors \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "gRPC Health Check",
+    "type": "grpc",
+    "target": "grpc.example.com:443",
+    "interval_seconds": 30,
+    "timeout_seconds": 10,
+    "settings": {
+      "service_method": "grpc.health.v1.Health/Check",
+      "tls_mode": "tls",
+      "ssl_expiry_threshold": 30
+    }
+  }'
+```
+
 ### List Monitors
 
 ```bash
@@ -160,14 +184,20 @@ Messages follow the envelope format:
 { "type": "monitor_status", "payload": { "id": "uuid", "status": "up", "latency_ms": 42 } }
 ```
 
-### Other Endpoints
+### Endpoints
 
 | Method | Path | Description |
 |--------|------|-------------|
+| `GET` | `/api/v1/monitors` | List monitors (paginated) |
+| `POST` | `/api/v1/monitors` | Create monitor |
 | `GET` | `/api/v1/monitors/{id}` | Get monitor details |
 | `PUT` | `/api/v1/monitors/{id}` | Create or update monitor (idempotent) |
 | `DELETE` | `/api/v1/monitors/{id}` | Delete monitor |
 | `GET` | `/api/v1/monitors/{id}/history` | Check history (TimescaleDB, 7-day window) |
+| `POST` | `/api/v1/monitors/{id}/credentials` | Create monitor credential |
+| `GET` | `/api/v1/monitors/{id}/credentials` | List monitor credentials (values redacted) |
+| `PUT` | `/api/v1/monitors/{id}/credentials/{credentialId}` | Update credential |
+| `DELETE` | `/api/v1/monitors/{id}/credentials/{credentialId}` | Delete credential |
 | `GET` | `/api/v1/incidents` | List incidents (paginated) |
 | `GET` | `/api/v1/monitors/{id}/incidents` | Per-monitor incidents |
 | `POST` | `/api/v1/secrets` | Create a secret |
@@ -177,6 +207,28 @@ Messages follow the envelope format:
 | `GET` | `/metrics` | Prometheus metrics |
 
 Full API reference: [`backend/api/openapi.yaml`](backend/api/openapi.yaml)
+
+## Supported Languages
+
+Pulse ships with 13 locale bundles. The UI language is selectable per-user from Settings.
+
+| Language | Code | Direction |
+|----------|------|-----------|
+| English | `en` | LTR |
+| العربية (Arabic) | `ar` | RTL |
+| Беларуская (Belarusian) | `be` | LTR |
+| Deutsch (German) | `de` | LTR |
+| Español (Spanish) | `es` | LTR |
+| Français (French) | `fr` | LTR |
+| Italiano (Italian) | `it` | LTR |
+| 日本語 (Japanese) | `ja` | LTR |
+| 한국어 (Korean) | `ko` | LTR |
+| Português (Portuguese) | `pt` | LTR |
+| Русский (Russian) | `ru` | LTR |
+| Türkçe (Turkish) | `tr` | LTR |
+| 中文 (Chinese) | `zh` | LTR |
+
+Non-English locales are lazy-loaded on demand. Fallback chain: active locale → English → key string.
 
 ## Development
 
@@ -228,7 +280,7 @@ For containerized frontend development with hot module replacement (HMR), use th
 docker compose -f docker-compose.dev.yml up frontend
 ```
 
-This starts the Vite dev server on port **5173** with HMR enabled — source file changes are reflected in the browser instantly. The service uses `node:22-alpine` with pnpm and bind-mounts `./frontend` for live editing.
+This starts the Vite dev server on port **5173** with HMR enabled — source file changes are reflected in the browser instantly.
 
 ### Running Tests
 
@@ -236,7 +288,7 @@ This starts the Vite dev server on port **5173** with HMR enabled — source fil
 # Backend tests
 make test
 
-# Frontend tests (218 tests — unit + property-based)
+# Frontend tests (unit + property-based via fast-check)
 cd frontend && pnpm test
 ```
 
@@ -269,6 +321,17 @@ services:
 
 Docker Compose automatically merges this with the base file.
 
+## Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Backend | Go 1.25, Gin, pgx/v5, sqlc, gorilla/websocket, golang-jwt/jwt/v5 |
+| Frontend | Svelte 5, SvelteKit, TypeScript strict, Tailwind CSS 3.4, uPlot |
+| Database | PostgreSQL 16 + TimescaleDB 2.17 |
+| Protocols | HTTP/HTTPS, HTTP/3 (QUIC), TCP, UDP, WebSocket, gRPC, DNS, ICMP, SMTP |
+| Observability | Prometheus client_golang |
+| Container | Multi-stage Dockerfile (distroless runtime) |
+
 ## License
 
-See [LICENSE](LICENSE) for details.
+Licensed under the [Apache License 2.0](LICENSE).

@@ -91,7 +91,7 @@ The project is at MVP completion. Full milestone breakdown: [docs/MILESTONES.md]
 - PostgreSQL schema + indexes, sqlc query layer, TimescaleDB history store
 - Docker Compose infrastructure, fail-fast startup, migration tooling
 - AES-256-GCM crypto module, secret write-only API, API token lifecycle, key rotation
-- Monitor engine: HTTP/HTTPS, TCP, UDP, WebSocket checkers with full protocol support
+- Monitor engine: HTTP/HTTPS, HTTP/3, TCP, UDP, WebSocket, gRPC, DNS, ICMP, SMTP checkers with full protocol support
 - Bounded worker pool scheduler (`PULSE_SCHEDULER_WORKERS`, default 50 dev / 200 prod)
 - LISTEN/NOTIFY wakeups for instant scheduling on monitor create/update
 - Graceful shutdown with context cancellation
@@ -145,7 +145,7 @@ The project is at MVP completion. Full milestone breakdown: [docs/MILESTONES.md]
 | WS handler | `backend/internal/api/handlers/ws.go` |
 | Scheduler | `backend/internal/monitor/scheduler.go` |
 | Target normalization | `backend/internal/target/normalize.go` |
-| Checkers | `backend/internal/monitor/{http,tcp,udp,websocket}.go` |
+| Checkers | `backend/internal/monitor/{http,http3,tcp,udp,websocket,grpc,dns,icmp,smtp}.go` |
 | sqlc queries | `backend/internal/store/postgres/` |
 | TimescaleDB | `backend/internal/store/timescale/` |
 | Migrations | `backend/migrations/` |
@@ -186,7 +186,7 @@ Primary commands:
 - Environment variables: `PULSE_PORT`, `PULSE_DEV`, `PULSE_SECRET_KEY`, `PULSE_JWT_SECRET`, `DATABASE_URL`, `PULSE_SCHEDULER_WORKERS`
 
 ## Delivery Constraints
-- MVP scope: HTTP/HTTPS, TCP, UDP, WebSocket monitors.
+- Supported protocols: HTTP/HTTPS, HTTP/3, TCP, UDP, WebSocket, gRPC, DNS, ICMP, SMTP.
 - Future scope only (do not implement unless requested): QUIC, multi-tenant, status page, alert channels, Terraform provider.
 - Keep infra local-first with Docker Compose and reproducible startup.
 

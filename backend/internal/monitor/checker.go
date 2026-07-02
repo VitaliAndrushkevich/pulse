@@ -63,5 +63,8 @@ func DefaultRegistry() *Registry {
 	reg.Register("udp", &UDPChecker{})
 	reg.Register("websocket", &WebSocketChecker{})
 	reg.Register("grpc", &GRPCChecker{})
+	reg.Register("dns", &DNSChecker{})
+	reg.Register("icmp", &ICMPChecker{})
+	reg.Register("smtp", &SMTPChecker{})
 	return reg
 }

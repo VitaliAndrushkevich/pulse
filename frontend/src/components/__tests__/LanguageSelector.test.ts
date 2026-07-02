@@ -74,11 +74,11 @@ describe('LanguageSelector', () => {
   });
 
   describe('locale options', () => {
-    it('renders all 11 locale options', () => {
+    it('renders all 13 locale options', () => {
       const { container } = render(LanguageSelector);
       const options = container.querySelectorAll('option');
 
-      expect(options.length).toBe(11);
+      expect(options.length).toBe(13);
     });
 
     it('each option has the correct locale code as value', () => {

@@ -21,6 +21,8 @@ import type { LocaleCode } from '../config';
 
 // --- Load all locale dictionaries statically for testing ---
 import enDict from '../../../locales/en.json';
+import arDict from '../../../locales/ar.json';
+import beDict from '../../../locales/be.json';
 import ruDict from '../../../locales/ru.json';
 import esDict from '../../../locales/es.json';
 import frDict from '../../../locales/fr.json';
@@ -35,6 +37,8 @@ import itDict from '../../../locales/it.json';
 /** Map of locale code to its dictionary */
 const dictionaries: Record<string, TranslationDictionary> = {
   en: enDict as TranslationDictionary,
+  ar: arDict as TranslationDictionary,
+  be: beDict as TranslationDictionary,
   ru: ruDict as TranslationDictionary,
   es: esDict as TranslationDictionary,
   fr: frDict as TranslationDictionary,

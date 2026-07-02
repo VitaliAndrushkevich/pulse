@@ -1,6 +1,6 @@
 // Core TypeScript types — matches backend OpenAPI contract
 
-export type MonitorType = 'http' | 'http3' | 'tcp' | 'udp' | 'websocket' | 'grpc';
+export type MonitorType = 'http' | 'http3' | 'tcp' | 'udp' | 'websocket' | 'grpc' | 'dns' | 'icmp' | 'smtp';
 
 /** TLS connection mode for gRPC monitors */
 export type TlsMode = 'plaintext' | 'tls' | 'tls_skip_verify';
@@ -13,6 +13,31 @@ export interface GrpcSettings {
   metadata?: Record<string, string>;
   expected_statuses: number[];
   request_payload?: string;
+}
+
+/** DNS record types supported by the DNS checker */
+export type DnsRecordType = 'A' | 'AAAA' | 'CNAME' | 'MX' | 'TXT' | 'SRV' | 'SOA' | 'PTR' | 'NS';
+
+/** DNS monitor settings — matches backend OpenAPI contract */
+export interface DnsSettings {
+  record_type: DnsRecordType;
+  expected_value?: string;
+  dns_server?: string;
+}
+
+/** ICMP monitor settings — matches backend OpenAPI contract */
+export interface IcmpSettings {
+  packet_count?: number;
+  loss_threshold_percent?: number;
+  use_ipv6?: boolean;
+}
+
+/** SMTP monitor settings — matches backend OpenAPI contract */
+export interface SmtpSettings {
+  port?: number;
+  starttls?: boolean;
+  ehlo_domain?: string;
+  ssl_expiry_threshold?: number;
 }
 
 /** Tag — key-value pair associated with a monitor */

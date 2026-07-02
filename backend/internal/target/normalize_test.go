@@ -53,8 +53,34 @@ func TestNormalize(t *testing.T) {
 		{name: "grpc missing port", monitorType: "grpc", target: "example.com", wantErr: true},
 		{name: "grpc with scheme", monitorType: "grpc", target: "grpc://example.com:443", wantErr: true},
 
+		// DNS
+		{name: "dns bare domain", monitorType: "dns", target: "example.com", want: "example.com"},
+		{name: "dns trailing dot stripped", monitorType: "dns", target: "example.com.", want: "example.com"},
+		{name: "dns subdomain", monitorType: "dns", target: "sub.example.com", want: "sub.example.com"},
+		{name: "dns with scheme", monitorType: "dns", target: "dns://example.com", wantErr: true},
+		{name: "dns with port", monitorType: "dns", target: "example.com:53", wantErr: true},
+		{name: "dns whitespace trimmed", monitorType: "dns", target: "  example.com.  ", want: "example.com"},
+
+		// ICMP
+		{name: "icmp bare hostname", monitorType: "icmp", target: "example.com", want: "example.com"},
+		{name: "icmp ipv4", monitorType: "icmp", target: "8.8.8.8", want: "8.8.8.8"},
+		{name: "icmp ipv6", monitorType: "icmp", target: "::1", want: "::1"},
+		{name: "icmp ipv6 full", monitorType: "icmp", target: "2001:db8::1", want: "2001:db8::1"},
+		{name: "icmp with scheme", monitorType: "icmp", target: "icmp://8.8.8.8", wantErr: true},
+		{name: "icmp with port", monitorType: "icmp", target: "8.8.8.8:80", wantErr: true},
+		{name: "icmp empty", monitorType: "icmp", target: "", wantErr: true},
+		{name: "icmp whitespace trimmed", monitorType: "icmp", target: "  8.8.8.8  ", want: "8.8.8.8"},
+
+		// SMTP
+		{name: "smtp bare hostname", monitorType: "smtp", target: "mail.example.com", want: "mail.example.com"},
+		{name: "smtp with port", monitorType: "smtp", target: "mail.example.com:587", want: "mail.example.com:587"},
+		{name: "smtp with scheme", monitorType: "smtp", target: "smtp://mail.example.com", wantErr: true},
+		{name: "smtp empty", monitorType: "smtp", target: "", wantErr: true},
+		{name: "smtp empty host with port", monitorType: "smtp", target: ":25", wantErr: true},
+		{name: "smtp whitespace trimmed", monitorType: "smtp", target: "  mail.example.com  ", want: "mail.example.com"},
+
 		// Unknown type passthrough
-		{name: "unknown type passthrough", monitorType: "icmp", target: "example.com", want: "example.com"},
+		{name: "unknown type passthrough", monitorType: "unknown", target: "example.com", want: "example.com"},
 	}
 
 	for _, tt := range tests {

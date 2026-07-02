@@ -7,7 +7,7 @@ export interface ValidationResult {
   error: string | null;
 }
 
-const VALID_MONITOR_TYPES: MonitorType[] = ['http', 'http3', 'tcp', 'udp', 'websocket', 'grpc'];
+const VALID_MONITOR_TYPES: MonitorType[] = ['http', 'http3', 'tcp', 'udp', 'websocket', 'grpc', 'dns', 'icmp', 'smtp'];
 
 /** Validates monitor name: non-empty, max 255 characters */
 export function validateName(name: string): ValidationResult {
@@ -23,7 +23,7 @@ export function validateName(name: string): ValidationResult {
 /** Validates monitor type: must be one of the allowed types */
 export function validateType(type: string): ValidationResult {
   if (!VALID_MONITOR_TYPES.includes(type as MonitorType)) {
-    return { valid: false, error: 'Type must be one of: http, http3, tcp, udp, websocket, grpc' };
+    return { valid: false, error: 'Type must be one of: http, http3, tcp, udp, websocket, grpc, dns, icmp, smtp' };
   }
   return { valid: true, error: null };
 }

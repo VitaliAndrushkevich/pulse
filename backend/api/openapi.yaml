@@ -49,7 +49,7 @@ paths:
           description: Filter by monitor type
           schema:
             type: string
-            enum: [http, http3, tcp, udp, websocket, grpc]
+            enum: [http, http3, tcp, udp, websocket, grpc, dns, icmp, smtp]
         - name: tag
           in: query
           description: >
@@ -657,7 +657,7 @@ components:
           type: string
         type:
           type: string
-          enum: [http, http3, tcp, udp, websocket, grpc]
+          enum: [http, http3, tcp, udp, websocket, grpc, dns, icmp, smtp]
         target:
           type: string
         interval_seconds:
@@ -680,7 +680,7 @@ components:
           nullable: true
         settings:
           type: object
-          description: "Type-specific settings. For type=http/http3, see HTTPSettings. For type=grpc, see GRPCSettings."
+          description: "Type-specific settings. For type=http/http3, see HTTPSettings. For type=grpc, see GRPCSettings. For type=dns, see DNSSettings. For type=icmp, see ICMPSettings. For type=smtp, see SMTPSettings."
         history_retention_days:
           type: integer
           minimum: 1
@@ -710,7 +710,7 @@ components:
           type: string
         type:
           type: string
-          enum: [http, http3, tcp, udp, websocket, grpc]
+          enum: [http, http3, tcp, udp, websocket, grpc, dns, icmp, smtp]
         target:
           type: string
           description: >
@@ -718,6 +718,9 @@ components:
             http/http3 — bare domain gets "https://" prefix (e.g., "example.com" → "https://example.com");
             websocket — bare domain gets "wss://" prefix;
             tcp/udp/grpc — must be host:port without scheme.
+            dns — domain name only (trailing dot stripped);
+            icmp — hostname or IP address;
+            smtp — hostname or host:port.
         interval_seconds:
           type: integer
           default: 60
@@ -730,7 +733,7 @@ components:
           default: active
         settings:
           type: object
-          description: "Type-specific settings. For type=http/http3, see HTTPSettings. For type=grpc, see GRPCSettings."
+          description: "Type-specific settings. For type=http/http3, see HTTPSettings. For type=grpc, see GRPCSettings. For type=dns, see DNSSettings. For type=icmp, see ICMPSettings. For type=smtp, see SMTPSettings."
         history_retention_days:
           type: integer
           minimum: 1
@@ -755,7 +758,7 @@ components:
           type: string
         type:
           type: string
-          enum: [http, http3, tcp, udp, websocket, grpc]
+          enum: [http, http3, tcp, udp, websocket, grpc, dns, icmp, smtp]
         target:
           type: string
           description: >
@@ -763,6 +766,9 @@ components:
             http/http3 — bare domain gets "https://" prefix (e.g., "example.com" → "https://example.com");
             websocket — bare domain gets "wss://" prefix;
             tcp/udp/grpc — must be host:port without scheme.
+            dns — domain name only (trailing dot stripped);
+            icmp — hostname or IP address;
+            smtp — hostname or host:port.
         interval_seconds:
           type: integer
           default: 60
@@ -775,7 +781,7 @@ components:
           default: active
         settings:
           type: object
-          description: "Type-specific settings. For type=http/http3, see HTTPSettings. For type=grpc, see GRPCSettings."
+          description: "Type-specific settings. For type=http/http3, see HTTPSettings. For type=grpc, see GRPCSettings. For type=dns, see DNSSettings. For type=icmp, see ICMPSettings. For type=smtp, see SMTPSettings."
         history_retention_days:
           type: integer
           minimum: 1
@@ -1262,6 +1268,62 @@ components:
           type: boolean
           default: true
           description: "Explicitly validate the full certificate chain against system root CAs"
+
+    DNSSettings:
+      type: object
+      description: Settings for DNS monitors (type=dns).
+      properties:
+        record_type:
+          type: string
+          enum: [A, AAAA, CNAME, MX, TXT, SRV, SOA, PTR, NS]
+          default: A
+          description: "DNS record type to query"
+        expected_value:
+          type: string
+          description: "Expected value to find in DNS results (contains semantics)"
+        dns_server:
+          type: string
+          description: "Custom DNS resolver address (host:port, e.g., 8.8.8.8:53)"
+
+    ICMPSettings:
+      type: object
+      description: Settings for ICMP/Ping monitors (type=icmp).
+      properties:
+        packet_count:
+          type: integer
+          minimum: 1
+          maximum: 10
+          default: 3
+          description: "Number of ICMP echo requests to send"
+        loss_threshold_percent:
+          type: integer
+          minimum: 0
+          maximum: 100
+          default: 100
+          description: "Maximum acceptable packet loss percentage before marking as down"
+        use_ipv6:
+          type: boolean
+          default: false
+          description: "Use IPv6 (ICMPv6) instead of IPv4"
+
+    SMTPSettings:
+      type: object
+      description: Settings for SMTP monitors (type=smtp).
+      properties:
+        port:
+          type: integer
+          minimum: 1
+          maximum: 65535
+          default: 25
+          description: "SMTP port to connect to"
+        starttls:
+          type: boolean
+          default: true
+          description: "Attempt STARTTLS upgrade after EHLO"
+        ehlo_domain:
+          type: string
+          default: "pulse.local"
+          description: "Domain name to use in EHLO greeting"
 
     Tag:
       type: object

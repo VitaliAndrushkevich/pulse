@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { MonitorType, GrpcSettings } from '$lib/types';
+  import type { MonitorType, GrpcSettings, DnsSettings, IcmpSettings, SmtpSettings } from '$lib/types';
   import type { CreateCredentialRequest } from '$lib/api';
   import { validateName, validateTarget, validateInterval, validateTimeout, validateType } from '$lib/validation';
   import { formatSecretReference } from '$lib/format';
@@ -7,6 +7,9 @@
   import AuthSection from './AuthSection.svelte';
   import CredentialForm from './CredentialForm.svelte';
   import GrpcSettingsForm from './GrpcSettingsForm.svelte';
+  import DnsSettingsForm from './DnsSettingsForm.svelte';
+  import IcmpSettingsForm from './IcmpSettingsForm.svelte';
+  import SmtpSettingsForm from './SmtpSettingsForm.svelte';
 
   interface MonitorFormValues {
     name: string;
@@ -95,6 +98,40 @@
         }
   );
 
+  // DNS-specific settings
+  let dnsSettings: DnsSettings = $state(
+    initialValues?.type === 'dns' && initialValues?.settings
+      ? {
+          record_type: (initialValues.settings.record_type as DnsSettings['record_type']) ?? 'A',
+          expected_value: initialValues.settings.expected_value as string | undefined,
+          dns_server: initialValues.settings.dns_server as string | undefined,
+        }
+      : { record_type: 'A' }
+  );
+
+  // ICMP-specific settings
+  let icmpSettings: IcmpSettings = $state(
+    initialValues?.type === 'icmp' && initialValues?.settings
+      ? {
+          packet_count: (initialValues.settings.packet_count as number) ?? 3,
+          loss_threshold_percent: (initialValues.settings.loss_threshold_percent as number) ?? 100,
+          use_ipv6: (initialValues.settings.use_ipv6 as boolean) ?? false,
+        }
+      : { packet_count: 3, loss_threshold_percent: 100, use_ipv6: false }
+  );
+
+  // SMTP-specific settings
+  let smtpSettings: SmtpSettings = $state(
+    initialValues?.type === 'smtp' && initialValues?.settings
+      ? {
+          port: (initialValues.settings.port as number) ?? 25,
+          starttls: (initialValues.settings.starttls as boolean) ?? true,
+          ehlo_domain: initialValues.settings.ehlo_domain as string | undefined,
+          ssl_expiry_threshold: initialValues.settings.ssl_expiry_threshold as number | undefined,
+        }
+      : { port: 25, starttls: true }
+  );
+
   // Pending credential for create mode (saved locally, sent after monitor creation)
   let pendingCredential = $state<CreateCredentialRequest | null>(null);
 
@@ -130,6 +167,9 @@
     type === 'udp' ? 'example.com:53' :
     type === 'websocket' ? 'wss://example.com/ws' :
     type === 'grpc' ? 'example.com:443' :
+    type === 'dns' ? 'example.com' :
+    type === 'icmp' ? '8.8.8.8' :
+    type === 'smtp' ? 'mail.example.com' :
     'https://example.com'
   );
 
@@ -139,6 +179,9 @@
     type === 'udp' ? t('monitors.form.targetHelp.udp') :
     type === 'websocket' ? t('monitors.form.targetHelp.websocket') :
     type === 'grpc' ? t('monitors.form.targetHelp.grpc') :
+    type === 'dns' ? t('monitors.form.targetHelp.dns') :
+    type === 'icmp' ? t('monitors.form.targetHelp.icmp') :
+    type === 'smtp' ? t('monitors.form.targetHelp.smtp') :
     t('monitors.form.targetHelp.http')
   );
 
@@ -155,6 +198,18 @@
   function buildSettings(): Record<string, unknown> {
     if (type === 'grpc') {
       return grpcSettings as unknown as Record<string, unknown>;
+    }
+
+    if (type === 'dns') {
+      return dnsSettings as unknown as Record<string, unknown>;
+    }
+
+    if (type === 'icmp') {
+      return icmpSettings as unknown as Record<string, unknown>;
+    }
+
+    if (type === 'smtp') {
+      return smtpSettings as unknown as Record<string, unknown>;
     }
 
     const settings: Record<string, unknown> = {};
@@ -232,7 +287,7 @@
     }
   }
 
-  const monitorTypes: MonitorType[] = ['http', 'http3', 'tcp', 'udp', 'websocket', 'grpc'];
+  const monitorTypes: MonitorType[] = ['http', 'http3', 'tcp', 'udp', 'websocket', 'grpc', 'dns', 'icmp', 'smtp'];
 </script>
 
 <form onsubmit={handleSubmit} class="mx-auto max-w-2xl space-y-6" data-testid="monitor-form">
@@ -276,7 +331,7 @@
       data-testid="input-type"
     >
       {#each monitorTypes as t}
-        <option value={t}>{t === 'http' ? 'HTTP(S)' : t === 'http3' ? 'HTTP/3' : t === 'grpc' ? 'gRPC' : t.toUpperCase()}</option>
+        <option value={t}>{t === 'http' ? 'HTTP(S)' : t === 'http3' ? 'HTTP/3' : t === 'grpc' ? 'gRPC' : t === 'dns' ? 'DNS' : t === 'icmp' ? 'ICMP' : t === 'smtp' ? 'SMTP' : t.toUpperCase()}</option>
       {/each}
     </select>
     {#if touched.type && !typeValidation.valid}
@@ -492,6 +547,18 @@
 
   {#if type === 'grpc'}
     <GrpcSettingsForm bind:settings={grpcSettings} />
+  {/if}
+
+  {#if type === 'dns'}
+    <DnsSettingsForm bind:settings={dnsSettings} />
+  {/if}
+
+  {#if type === 'icmp'}
+    <IcmpSettingsForm bind:settings={icmpSettings} />
+  {/if}
+
+  {#if type === 'smtp'}
+    <SmtpSettingsForm bind:settings={smtpSettings} />
   {/if}
 
   <!-- Authentication Section (HTTP and WebSocket only) -->

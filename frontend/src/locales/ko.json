@@ -266,7 +266,10 @@
         "tcp": "형식: 호스트:포트",
         "udp": "형식: 호스트:포트",
         "websocket": "ws:// 또는 wss:// 스킴의 URL, 또는 호스트명 (기본: wss://)",
-        "grpc": "형식: 호스트:포트"
+        "grpc": "형식: 호스트:포트",
+        "dns": "Domain name to query (e.g., example.com)",
+        "icmp": "Hostname or IP address (e.g., 8.8.8.8)",
+        "smtp": "Mail server hostname or host:port (e.g., mail.example.com)"
       }
     },
     "filter": {
@@ -417,5 +420,36 @@
     "network": "서비스를 사용할 수 없습니다. 나중에 다시 시도해 주세요.",
     "unexpected": "예기치 않은 오류가 발생했습니다.",
     "notFound": "찾을 수 없음"
+  },
+  "dns": {
+    "recordType": "Record Type",
+    "recordTypePlaceholder": "Select record type",
+    "recordTypeHelp": "DNS record type to query",
+    "expectedValue": "Expected Value",
+    "expectedValuePlaceholder": "93.184.216.34",
+    "expectedValueHelp": "If set, check passes only when this value is found among DNS results",
+    "dnsServer": "DNS Server",
+    "dnsServerPlaceholder": "8.8.8.8:53",
+    "dnsServerHelp": "Custom DNS resolver (leave empty for default)"
+  },
+  "icmp": {
+    "packetCount": "Packet Count",
+    "packetCountHelp": "Number of ICMP echo requests to send (1-10)",
+    "lossThreshold": "Loss Threshold (%)",
+    "lossThresholdHelp": "Percentage of packet loss that triggers a 'down' state",
+    "useIpv6": "Use IPv6",
+    "useIpv6Help": "Send ICMPv6 echo requests instead of IPv4"
+  },
+  "smtp": {
+    "port": "Port",
+    "portHelp": "SMTP server port (25, 587, 465)",
+    "starttls": "STARTTLS",
+    "starttlsHelp": "Attempt STARTTLS upgrade after EHLO",
+    "ehloDomain": "EHLO Domain",
+    "ehloDomainPlaceholder": "pulse.local",
+    "ehloDomainHelp": "Domain name used in the EHLO greeting",
+    "sslExpiryThreshold": "SSL Expiry Threshold (days)",
+    "sslExpiryThresholdPlaceholder": "14",
+    "sslExpiryThresholdHelp": "Alert when certificate expires within this many days (0 = disabled)"
   }
 }

@@ -20,6 +20,9 @@ import (
 //	udp:        must be host:port; no scheme allowed.
 //	websocket:  bare domain → "wss://domain"; explicit ws:// or wss:// kept.
 //	grpc:       must be host:port; no scheme allowed.
+//	dns:        bare domain; no scheme or port.
+//	icmp:       hostname or IP; no scheme or port.
+//	smtp:       bare hostname or host:port; no scheme.
 func Normalize(monitorType, target string) (string, error) {
 	target = strings.TrimSpace(target)
 	if target == "" {
@@ -37,6 +40,12 @@ func Normalize(monitorType, target string) (string, error) {
 		return normalizeWebSocket(target)
 	case "grpc":
 		return normalizeGRPC(target)
+	case "dns":
+		return normalizeDNS(target)
+	case "icmp":
+		return normalizeICMP(target)
+	case "smtp":
+		return normalizeSMTP(target)
 	default:
 		return target, nil
 	}
@@ -114,5 +123,75 @@ func normalizeGRPC(target string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("gRPC target must be host:port (e.g., example.com:443): %w", err)
 	}
+	return target, nil
+}
+
+// normalizeICMP validates that the target is a hostname or IP without port or scheme.
+// ICMP targets are raw IPs (v4/v6) or hostnames — no port, no scheme.
+func normalizeICMP(target string) (string, error) {
+	// Reject any scheme prefix.
+	if idx := strings.Index(target, "://"); idx > 0 {
+		return "", fmt.Errorf("ICMP target must be a hostname or IP without a scheme (e.g., 8.8.8.8)")
+	}
+
+	// Reject targets with port (but allow IPv6 addresses like ::1).
+	if _, _, err := net.SplitHostPort(target); err == nil {
+		return "", fmt.Errorf("ICMP target must not include a port (e.g., 8.8.8.8 or example.com)")
+	}
+
+	if target == "" {
+		return "", fmt.Errorf("target is required")
+	}
+
+	return target, nil
+}
+
+// normalizeSMTP accepts a bare hostname or host:port format.
+// If no port is present, it's kept bare (port comes from settings).
+func normalizeSMTP(target string) (string, error) {
+	// Reject any scheme prefix.
+	if idx := strings.Index(target, "://"); idx > 0 {
+		return "", fmt.Errorf("SMTP target must be a hostname or host:port without a scheme (e.g., mail.example.com)")
+	}
+
+	// If it has a port, validate the format.
+	if _, _, err := net.SplitHostPort(target); err == nil {
+		// Valid host:port format — verify host is not empty.
+		host, _, _ := net.SplitHostPort(target)
+		if host == "" {
+			return "", fmt.Errorf("SMTP target host must not be empty")
+		}
+		return target, nil
+	}
+
+	// Bare hostname — validate not empty.
+	if target == "" {
+		return "", fmt.Errorf("target is required")
+	}
+
+	return target, nil
+}
+
+// normalizeDNS strips trailing dots and validates domain format.
+// DNS targets must be bare domain names without scheme or port.
+func normalizeDNS(target string) (string, error) {
+	// Strip trailing dot (FQDN notation).
+	target = strings.TrimSuffix(target, ".")
+
+	// Reject any scheme prefix.
+	if idx := strings.Index(target, "://"); idx > 0 {
+		return "", fmt.Errorf("DNS target must be a domain name without a scheme (e.g., example.com)")
+	}
+
+	// Reject targets with port.
+	if _, _, err := net.SplitHostPort(target); err == nil {
+		return "", fmt.Errorf("DNS target must be a domain name without a port (e.g., example.com)")
+	}
+
+	// Basic domain validation: must have at least one dot or be a valid single-label.
+	if target == "" {
+		return "", fmt.Errorf("target is required")
+	}
+
 	return target, nil
 }
