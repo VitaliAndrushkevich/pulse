@@ -54,6 +54,20 @@
     {monitor.name}
   </span>
 
+  <!-- Tags (compact chips) -->
+  {#if monitor.tags && monitor.tags.length > 0}
+    <div class="hidden flex-shrink-0 items-center gap-1 md:flex" data-testid="monitor-tags">
+      {#each monitor.tags.slice(0, 3) as tag}
+        <span class="inline-flex items-center rounded-full bg-indigo-50 px-1.5 py-0.5 text-[10px] leading-none">
+          <span class="font-medium text-indigo-700">{tag.key}</span><span class="text-indigo-400">:</span><span class="text-indigo-600">{tag.value}</span>
+        </span>
+      {/each}
+      {#if monitor.tags.length > 3}
+        <span class="text-[10px] text-secondary">+{monitor.tags.length - 3}</span>
+      {/if}
+    </div>
+  {/if}
+
   <!-- Paused badge -->
   {#if isPaused}
     <span

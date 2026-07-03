@@ -15,10 +15,40 @@
   let error = $state<string | null>(null);
 
   // Filter state
-  let activeFilters = $state<{ types: MonitorType[]; tags: Tag[] }>({ types: [], tags: [] });
+  let activeFilters = $state<{ types: MonitorType[]; tags: Tag[]; showPaused: boolean }>({ types: [], tags: [], showPaused: false });
   const availableTypes: MonitorType[] = ['http', 'http3', 'tcp', 'udp', 'websocket', 'grpc', 'dns', 'icmp', 'smtp'];
 
   const LIMIT = 20;
+
+  // Wildcard tag matching: converts "service:*payment*" to a regex pattern
+  function matchesTagFilter(monitorTags: Tag[], filterTag: Tag): boolean {
+    const keyPattern = filterTag.key.includes('*')
+      ? new RegExp('^' + filterTag.key.replace(/\*/g, '.*') + '$', 'i')
+      : null;
+    const valuePattern = filterTag.value.includes('*')
+      ? new RegExp('^' + filterTag.value.replace(/\*/g, '.*') + '$', 'i')
+      : null;
+
+    return monitorTags.some((mt) => {
+      const keyMatch = keyPattern ? keyPattern.test(mt.key) : mt.key === filterTag.key;
+      const valueMatch = valuePattern ? valuePattern.test(mt.value) : mt.value === filterTag.value;
+      return keyMatch && valueMatch;
+    });
+  }
+
+  // Separate wildcard tags (client-side) from exact tags (server-side)
+  function splitTagFilters(tags: Tag[]): { exact: Tag[]; wildcard: Tag[] } {
+    const exact: Tag[] = [];
+    const wildcard: Tag[] = [];
+    for (const tag of tags) {
+      if (tag.key.includes('*') || tag.value.includes('*')) {
+        wildcard.push(tag);
+      } else {
+        exact.push(tag);
+      }
+    }
+    return { exact, wildcard };
+  }
 
   async function fetchMonitors() {
     loading = true;
@@ -31,8 +61,10 @@
         filterOptions.type = activeFilters.types[0];
       }
 
-      if (activeFilters.tags.length > 0) {
-        filterOptions.tags = activeFilters.tags.map((t) => `${t.key}:${t.value}`);
+      // Only send exact tags to the backend; wildcards are applied client-side
+      const { exact } = splitTagFilters(activeFilters.tags);
+      if (exact.length > 0) {
+        filterOptions.tags = exact.map((t) => `${t.key}:${t.value}`);
       }
 
       const result: PaginatedList<Monitor> = await getMonitors(page, LIMIT, filterOptions);
@@ -46,7 +78,27 @@
     }
   }
 
-  function handleFilterChange(filters: { types: MonitorType[]; tags: Tag[] }) {
+  // Client-side filtering (wildcards + paused)
+  let filteredMonitors = $derived.by(() => {
+    let result = monitors;
+
+    // Filter by paused status
+    if (activeFilters.showPaused) {
+      result = result.filter((m) => m.status === 'paused');
+    }
+
+    // Apply wildcard tag filters client-side
+    const { wildcard } = splitTagFilters(activeFilters.tags);
+    if (wildcard.length > 0) {
+      result = result.filter((m) =>
+        wildcard.every((wt) => matchesTagFilter(m.tags, wt))
+      );
+    }
+
+    return result;
+  });
+
+  function handleFilterChange(filters: { types: MonitorType[]; tags: Tag[]; showPaused: boolean }) {
     activeFilters = filters;
     page = 1;
     fetchMonitors();
@@ -122,7 +174,7 @@
   <!-- Monitor list -->
   {:else}
     <div class="overflow-hidden rounded-xl border border-[var(--color-border)] bg-surface" data-testid="monitor-list">
-      {#each monitors as monitor (monitor.id)}
+      {#each filteredMonitors as monitor (monitor.id)}
         <MonitorRow {monitor} />
       {/each}
     </div>

@@ -276,10 +276,25 @@
       "expand": "필터",
       "collapse": "필터 접기",
       "selectKey": "키 선택",
-      "addTag": "태그",
+      "addTag": "추가",
+      "paused": "일시중지",
+      "tagPlaceholder": "키:값 (예: env:prod 또는 service:*pay*)",
       "back": "← 뒤로",
       "cancel": "취소",
       "removeTag": "태그 {key}:{value} 제거"
+    },
+    "tags": {
+      "title": "태그",
+      "description": "모니터 정리 및 필터링을 위한 키-값 태그 (최대 20개).",
+      "keyPlaceholder": "키",
+      "valuePlaceholder": "값",
+      "keyError": "키는 소문자로 시작하며 a-z, 0-9, _ 또는 -만 포함해야 합니다 (최대 64자)",
+      "valueError": "값은 256자 이하여야 합니다",
+      "remove": "태그 {key}:{value} 제거",
+      "count": "{count} / {max} 태그",
+      "addTag": "태그 추가",
+      "confirm": "태그 확인",
+      "cancelRow": "취소"
     }
   },
   "settings": {

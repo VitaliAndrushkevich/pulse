@@ -276,10 +276,25 @@
       "expand": "Filtra",
       "collapse": "Nascondi filtri",
       "selectKey": "Seleziona chiave",
-      "addTag": "Tag",
+      "addTag": "Aggiungi",
+      "paused": "In pausa",
+      "tagPlaceholder": "chiave:valore (es. env:prod o service:*pay*)",
       "back": "← Indietro",
       "cancel": "Annulla",
       "removeTag": "Rimuovi tag {key}:{value}"
+    },
+    "tags": {
+      "title": "Tag",
+      "description": "Tag chiave-valore per organizzare e filtrare i monitor (max 20).",
+      "keyPlaceholder": "chiave",
+      "valuePlaceholder": "valore",
+      "keyError": "La chiave deve iniziare con una lettera minuscola e contenere solo a-z, 0-9, _ o - (max 64 caratteri)",
+      "valueError": "Il valore non deve superare i 256 caratteri",
+      "remove": "Rimuovi tag {key}:{value}",
+      "count": "{count} / {max} tag",
+      "addTag": "Aggiungi tag",
+      "confirm": "Conferma tag",
+      "cancelRow": "Annulla"
     }
   },
   "settings": {

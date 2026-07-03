@@ -276,10 +276,25 @@
       "expand": "Фільтр",
       "collapse": "Схаваць фільтры",
       "selectKey": "Абраць ключ",
-      "addTag": "Тэг",
+      "addTag": "Дадаць",
+      "paused": "Спынены",
+      "tagPlaceholder": "ключ:значэнне (напр. env:prod або service:*pay*)",
       "back": "← Назад",
       "cancel": "Скасаваць",
       "removeTag": "Прыбраць тэг {key}:{value}"
+    },
+    "tags": {
+      "title": "Тэгі",
+      "description": "Тэгі для арганізацыі і фільтрацыі маніторынгу (макс. 20).",
+      "keyPlaceholder": "ключ",
+      "valuePlaceholder": "значэнне",
+      "keyError": "Ключ павінен пачынацца з малой літары і змяшчаць толькі a-z, 0-9, _ або - (макс. 64 сімвалы)",
+      "valueError": "Значэнне не павінна перавышаць 256 сімвалаў",
+      "remove": "Прыбраць тэг {key}:{value}",
+      "count": "{count} / {max} тэгаў",
+      "addTag": "Дадаць тэг",
+      "confirm": "Пацвердзіць тэг",
+      "cancelRow": "Скасаваць"
     }
   },
   "settings": {

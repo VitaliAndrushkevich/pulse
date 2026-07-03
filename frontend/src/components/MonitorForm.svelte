@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { MonitorType, GrpcSettings, DnsSettings, IcmpSettings, SmtpSettings } from '$lib/types';
+  import type { MonitorType, GrpcSettings, DnsSettings, IcmpSettings, SmtpSettings, Tag } from '$lib/types';
   import type { CreateCredentialRequest } from '$lib/api';
   import { validateName, validateTarget, validateInterval, validateTimeout, validateType } from '$lib/validation';
   import { formatSecretReference } from '$lib/format';
@@ -10,6 +10,7 @@
   import DnsSettingsForm from './DnsSettingsForm.svelte';
   import IcmpSettingsForm from './IcmpSettingsForm.svelte';
   import SmtpSettingsForm from './SmtpSettingsForm.svelte';
+  import TagEditor from './TagEditor.svelte';
 
   interface MonitorFormValues {
     name: string;
@@ -19,6 +20,7 @@
     timeout_seconds: number;
     status: 'active' | 'paused';
     settings: Record<string, unknown>;
+    tags?: Tag[];
     history_retention_days?: number;
   }
 
@@ -30,13 +32,14 @@
   interface Props {
     mode: 'create' | 'edit';
     initialValues?: Partial<MonitorFormValues>;
+    initialTags?: Tag[];
     secrets?: Array<{ id: string; name: string }>;
     monitorId?: string;
     onSubmit: (values: MonitorFormValues, pendingCredential?: CreateCredentialRequest) => Promise<void>;
     onCancel: () => void;
   }
 
-  let { mode, initialValues, secrets = [], monitorId, onSubmit, onCancel }: Props = $props();
+  let { mode, initialValues, initialTags = [], secrets = [], monitorId, onSubmit, onCancel }: Props = $props();
 
   // Form field state
   let name = $state(initialValues?.name ?? '');
@@ -53,6 +56,9 @@
   let history_retention_days = $state<number>(
     initialValues?.history_retention_days ?? 30
   );
+
+  // Tags (key-value pairs)
+  let formTags = $state<Tag[]>(initialTags);
 
   // Type-specific settings
   let expectedStatusCodes = $state(
@@ -272,6 +278,7 @@
       timeout_seconds,
       status,
       settings: buildSettings(),
+      tags: formTags.length > 0 ? formTags : undefined,
       history_retention_days
     };
 
@@ -614,6 +621,9 @@
       <p class="mt-1 text-xs text-secondary">{t('monitors.form.secretReferenceHelp')}</p>
     </div>
   {/if}
+
+  <!-- Tags -->
+  <TagEditor tags={formTags} onchange={(updated) => { formTags = updated; }} />
 
   <!-- Form Actions -->
   <div class="flex items-center justify-end gap-3 border-t border-[var(--color-border)] pt-4">

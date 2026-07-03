@@ -276,10 +276,25 @@
       "expand": "تصفية",
       "collapse": "إخفاء التصفية",
       "selectKey": "اختيار المفتاح",
-      "addTag": "وسم",
+      "addTag": "إضافة",
+      "paused": "متوقف",
+      "tagPlaceholder": "مفتاح:قيمة (مثال: env:prod أو service:*pay*)",
       "back": "رجوع ←",
       "cancel": "إلغاء",
       "removeTag": "إزالة الوسم {key}:{value}"
+    },
+    "tags": {
+      "title": "الوسوم",
+      "description": "وسوم (مفتاح-قيمة) لتنظيم وتصفية المراقبات (حد أقصى 20).",
+      "keyPlaceholder": "مفتاح",
+      "valuePlaceholder": "قيمة",
+      "keyError": "يجب أن يبدأ المفتاح بحرف صغير ويحتوي فقط على a-z, 0-9, _ أو - (حد أقصى 64 حرفاً)",
+      "valueError": "يجب ألا تتجاوز القيمة 256 حرفاً",
+      "remove": "إزالة الوسم {key}:{value}",
+      "count": "{count} / {max} وسوم",
+      "addTag": "إضافة وسم",
+      "confirm": "تأكيد الوسم",
+      "cancelRow": "إلغاء"
     }
   },
   "settings": {

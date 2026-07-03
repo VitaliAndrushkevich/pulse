@@ -276,10 +276,25 @@
       "expand": "Фильтр",
       "collapse": "Скрыть фильтры",
       "selectKey": "Выбрать ключ",
-      "addTag": "Тег",
+      "addTag": "Добавить",
+      "paused": "Приостановлен",
+      "tagPlaceholder": "ключ:значение (напр. env:prod или service:*pay*)",
       "back": "← Назад",
       "cancel": "Отмена",
       "removeTag": "Убрать тег {key}:{value}"
+    },
+    "tags": {
+      "title": "Теги",
+      "description": "Теги для организации и фильтрации мониторов (макс. 20).",
+      "keyPlaceholder": "ключ",
+      "valuePlaceholder": "значение",
+      "keyError": "Ключ должен начинаться со строчной буквы и содержать только a-z, 0-9, _ или - (макс. 64 символа)",
+      "valueError": "Значение не должно превышать 256 символов",
+      "remove": "Убрать тег {key}:{value}",
+      "count": "{count} / {max} тегов",
+      "addTag": "Добавить тег",
+      "confirm": "Подтвердить тег",
+      "cancelRow": "Отмена"
     }
   },
   "settings": {

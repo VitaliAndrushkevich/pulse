@@ -276,10 +276,25 @@
       "expand": "Filtrer",
       "collapse": "Masquer les filtres",
       "selectKey": "Sélectionner la clé",
-      "addTag": "Tag",
+      "addTag": "Ajouter",
+      "paused": "En pause",
+      "tagPlaceholder": "clé:valeur (ex. env:prod ou service:*pay*)",
       "back": "← Retour",
       "cancel": "Annuler",
       "removeTag": "Retirer le tag {key}:{value}"
+    },
+    "tags": {
+      "title": "Tags",
+      "description": "Tags clé-valeur pour organiser et filtrer les moniteurs (max 20).",
+      "keyPlaceholder": "clé",
+      "valuePlaceholder": "valeur",
+      "keyError": "La clé doit commencer par une lettre minuscule et ne contenir que a-z, 0-9, _ ou - (max 64 caractères)",
+      "valueError": "La valeur ne doit pas dépasser 256 caractères",
+      "remove": "Retirer le tag {key}:{value}",
+      "count": "{count} / {max} tags",
+      "addTag": "Ajouter un tag",
+      "confirm": "Confirmer le tag",
+      "cancelRow": "Annuler"
     }
   },
   "settings": {

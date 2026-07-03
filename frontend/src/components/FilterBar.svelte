@@ -1,62 +1,36 @@
 <script lang="ts">
-  import { untrack } from 'svelte';
   import type { MonitorType, Tag } from '$lib/types';
-  import { getTags, getTagValues } from '$lib/api';
   import { t } from '$lib/i18n';
+
+  interface Filters {
+    types: MonitorType[];
+    tags: Tag[];
+    showPaused: boolean;
+  }
 
   interface Props {
     availableTypes: MonitorType[];
-    activeFilters: { types: MonitorType[]; tags: Tag[] };
-    onFilterChange: (filters: { types: MonitorType[]; tags: Tag[] }) => void;
+    activeFilters: Filters;
+    onFilterChange: (filters: Filters) => void;
   }
 
   let { availableTypes, activeFilters, onFilterChange }: Props = $props();
 
-  // Component-level cache for tag autocomplete data
-  let tagKeys = $state<string[]>([]);
-  let tagValuesCache = $state<Record<string, string[]>>({});
-  let isLoadingTags = $state(false);
+  // Tag input state
+  let tagInput = $state('');
+  let showTagInput = $state(false);
+  let tagInputEl = $state<HTMLInputElement | null>(null);
 
   // UI state
   let isExpanded = $state(false);
-  let isTagSelectorOpen = $state(false);
-  let selectedTagKey = $state<string | null>(null);
 
   // Derived: whether any filters are active
   let hasActiveFilters = $derived(
-    activeFilters.types.length > 0 || activeFilters.tags.length > 0
+    activeFilters.types.length > 0 || activeFilters.tags.length > 0 || activeFilters.showPaused
   );
 
   // Auto-expand when filters are active
   let showBar = $derived(isExpanded || hasActiveFilters);
-
-  // Fetch and cache tag keys + values on mount (once)
-  $effect(() => {
-    untrack(() => fetchTagOptions());
-  });
-
-  async function fetchTagOptions(): Promise<void> {
-    if (isLoadingTags) return;
-    isLoadingTags = true;
-    try {
-      const keys = await getTags();
-      tagKeys = keys;
-
-      // Pre-fetch values for each key
-      const valuesMap: Record<string, string[]> = {};
-      await Promise.all(
-        keys.map(async (key) => {
-          const values = await getTagValues(key);
-          valuesMap[key] = values;
-        })
-      );
-      tagValuesCache = valuesMap;
-    } catch {
-      // Silently handle errors — filter bar is non-critical
-    } finally {
-      isLoadingTags = false;
-    }
-  }
 
   function toggleType(type: MonitorType): void {
     const current = activeFilters.types;
@@ -64,27 +38,72 @@
       ? current.filter((t) => t !== type)
       : [...current, type];
 
-    onFilterChange({ types: updated, tags: activeFilters.tags });
+    onFilterChange({ ...activeFilters, types: updated });
+  }
+
+  function togglePaused(): void {
+    onFilterChange({ ...activeFilters, showPaused: !activeFilters.showPaused });
   }
 
   function removeTag(tag: Tag): void {
     const updated = activeFilters.tags.filter(
       (t) => !(t.key === tag.key && t.value === tag.value)
     );
-    onFilterChange({ types: activeFilters.types, tags: updated });
+    onFilterChange({ ...activeFilters, tags: updated });
   }
 
-  function addTag(key: string, value: string): void {
+  function addTagFromInput(): void {
+    const raw = tagInput.trim();
+    if (!raw) return;
+
+    // Parse key:value format
+    const colonIdx = raw.indexOf(':');
+    if (colonIdx <= 0) return; // must have key:value
+
+    const key = raw.slice(0, colonIdx).trim();
+    const value = raw.slice(colonIdx + 1).trim();
+    if (!key || !value) return;
+
     // Avoid duplicates
     const exists = activeFilters.tags.some(
       (t) => t.key === key && t.value === value
     );
-    if (exists) return;
+    if (exists) {
+      tagInput = '';
+      showTagInput = false;
+      return;
+    }
 
     const updated = [...activeFilters.tags, { key, value }];
-    onFilterChange({ types: activeFilters.types, tags: updated });
-    isTagSelectorOpen = false;
-    selectedTagKey = null;
+    onFilterChange({ ...activeFilters, tags: updated });
+    tagInput = '';
+    showTagInput = false;
+  }
+
+  function handleTagKeydown(event: KeyboardEvent): void {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      addTagFromInput();
+    }
+    if (event.key === 'Escape') {
+      showTagInput = false;
+      tagInput = '';
+    }
+  }
+
+  function openTagInput(): void {
+    showTagInput = true;
+    // Focus the input after it renders
+    setTimeout(() => tagInputEl?.focus(), 0);
+  }
+
+  function handleTagInputBlur(): void {
+    // Delay to allow Enter to fire first
+    setTimeout(() => {
+      if (!tagInput.trim()) {
+        showTagInput = false;
+      }
+    }, 150);
   }
 
   function handleExpandClick(): void {
@@ -95,20 +114,6 @@
     if (!hasActiveFilters) {
       isExpanded = false;
     }
-  }
-
-  function openTagSelector(): void {
-    isTagSelectorOpen = true;
-    selectedTagKey = null;
-  }
-
-  function closeTagSelector(): void {
-    isTagSelectorOpen = false;
-    selectedTagKey = null;
-  }
-
-  function selectTagKey(key: string): void {
-    selectedTagKey = key;
   }
 
   // Type display labels
@@ -156,41 +161,71 @@
 {:else}
   <!-- Expanded filter bar -->
   <div
-    class="flex flex-wrap items-center gap-2 rounded-lg border border-[var(--color-border)] bg-surface p-3"
+    class="space-y-2 rounded-lg border border-[var(--color-border)] bg-surface p-3"
     data-testid="filter-bar"
   >
-    <!-- Type pill toggles -->
-    <div class="flex flex-wrap items-center gap-1.5" data-testid="type-filters">
-      {#each availableTypes as type}
-        {@const isActive = activeFilters.types.includes(type)}
+    <!-- Row 1: Type pills + Paused toggle + collapse button -->
+    <div class="flex flex-wrap items-center gap-2">
+      <!-- Type pill toggles -->
+      <div class="flex flex-wrap items-center gap-1.5" data-testid="type-filters">
+        {#each availableTypes as type}
+          {@const isActive = activeFilters.types.includes(type)}
+          <button
+            type="button"
+            onclick={() => toggleType(type)}
+            class="rounded-full px-3 py-1 text-xs font-medium transition {isActive
+              ? typePillColors[type]
+              : 'bg-[var(--color-bg-surface-hover)] text-secondary hover:bg-[var(--color-bg-surface-hover)]'}"
+            aria-pressed={isActive}
+            data-testid="type-pill-{type}"
+          >
+            {typeLabels[type]}
+          </button>
+        {/each}
+      </div>
+
+      <!-- Separator -->
+      <div class="h-5 w-px bg-[var(--color-border)]" aria-hidden="true"></div>
+
+      <!-- Paused toggle -->
+      <button
+        type="button"
+        onclick={togglePaused}
+        class="rounded-full px-3 py-1 text-xs font-medium transition {activeFilters.showPaused
+          ? 'bg-slate-600 text-white'
+          : 'bg-[var(--color-bg-surface-hover)] text-secondary hover:bg-[var(--color-bg-surface-hover)]'}"
+        aria-pressed={activeFilters.showPaused}
+        data-testid="paused-filter"
+      >
+        {t('monitors.filter.paused')}
+      </button>
+
+      <!-- Collapse button -->
+      {#if !hasActiveFilters}
         <button
           type="button"
-          onclick={() => toggleType(type)}
-          class="rounded-full px-3 py-1 text-xs font-medium transition {isActive
-            ? typePillColors[type]
-            : 'bg-[var(--color-bg-surface-hover)] text-secondary hover:bg-[var(--color-bg-surface-hover)]'}"
-          aria-pressed={isActive}
-          data-testid="type-pill-{type}"
+          onclick={handleCollapseClick}
+          class="ml-auto inline-flex h-5 w-5 items-center justify-center rounded text-[var(--color-text-muted)] transition hover:text-secondary"
+          aria-label={t('monitors.filter.collapse')}
+          data-testid="filter-collapse-button"
         >
-          {typeLabels[type]}
+          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
         </button>
-      {/each}
+      {/if}
     </div>
 
-    <!-- Separator when both type and tag filters present -->
-    {#if availableTypes.length > 0 && (activeFilters.tags.length > 0 || tagKeys.length > 0)}
-      <div class="h-5 w-px bg-[var(--color-border)]" aria-hidden="true"></div>
-    {/if}
-
-    <!-- Active tag chips -->
-    {#if activeFilters.tags.length > 0}
-      <div class="flex flex-wrap items-center gap-1.5" data-testid="tag-chips">
+    <!-- Row 2: Active tag chips + inline tag input (shown on demand) -->
+    {#if activeFilters.tags.length > 0 || showTagInput}
+      <div class="flex flex-wrap items-center gap-1.5">
+        <!-- Active tag chips -->
         {#each activeFilters.tags as tag}
           <span
-            class="inline-flex items-center gap-1 rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-medium text-indigo-700"
+            class="inline-flex items-center gap-1 rounded-full bg-indigo-50 px-2 py-0.5 text-xs font-medium"
             data-testid="tag-chip-{tag.key}-{tag.value}"
           >
-            {tag.key}:{tag.value}
+            <span class="text-indigo-700">{tag.key}</span><span class="text-indigo-400">:</span><span class="text-indigo-600">{tag.value}</span>
             <button
               type="button"
               onclick={() => removeTag(tag)}
@@ -204,90 +239,64 @@
             </button>
           </span>
         {/each}
-      </div>
-    {/if}
 
-    <!-- Add tag button / selector -->
-    {#if tagKeys.length > 0}
-      <div class="relative">
-        {#if !isTagSelectorOpen}
+        <!-- Inline tag input (compact, appears when toggled) -->
+        {#if showTagInput}
+          <span class="inline-flex items-center gap-1">
+            <input
+              type="text"
+              bind:this={tagInputEl}
+              bind:value={tagInput}
+              onkeydown={handleTagKeydown}
+              onblur={handleTagInputBlur}
+              placeholder={t('monitors.filter.tagPlaceholder')}
+              class="w-48 rounded-full border border-[var(--color-border)] bg-surface px-2.5 py-0.5 text-xs text-primary placeholder:text-[var(--color-text-muted)] focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400"
+              data-testid="tag-filter-input"
+            />
+          </span>
+        {:else}
+          <!-- "+ Tag" pill button to open input -->
           <button
             type="button"
-            onclick={openTagSelector}
-            class="inline-flex items-center gap-1 rounded-full border border-dashed border-[var(--color-border)] px-2.5 py-0.5 text-xs font-medium text-secondary transition hover:border-[var(--color-border)] hover:text-primary"
-            data-testid="add-tag-button"
+            onclick={openTagInput}
+            class="inline-flex items-center gap-0.5 rounded-full border border-dashed border-[var(--color-border)] px-2 py-0.5 text-xs text-secondary transition hover:border-indigo-400 hover:text-indigo-600"
+            data-testid="tag-filter-add-btn"
           >
             <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
             </svg>
             {t('monitors.filter.addTag')}
           </button>
-        {:else}
-          <!-- Tag selector dropdown -->
-          <div
-            class="absolute left-0 top-full z-10 mt-1 min-w-[160px] rounded-md border border-[var(--color-border)] bg-surface py-1 shadow-lg"
-            data-testid="tag-selector"
-          >
-            {#if selectedTagKey === null}
-              <!-- Key selection -->
-              <div class="px-2 py-1 text-xs font-medium text-[var(--color-text-muted)]">{t('monitors.filter.selectKey')}</div>
-              {#each tagKeys as key}
-                <button
-                  type="button"
-                  onclick={() => selectTagKey(key)}
-                  class="block w-full px-3 py-1.5 text-left text-xs text-primary transition hover:bg-[var(--color-bg-surface-hover)]"
-                  data-testid="tag-key-option-{key}"
-                >
-                  {key}
-                </button>
-              {/each}
-            {:else}
-              <!-- Value selection for chosen key -->
-              <div class="px-2 py-1 text-xs font-medium text-[var(--color-text-muted)]">{selectedTagKey} =</div>
-              {#each tagValuesCache[selectedTagKey] ?? [] as value}
-                <button
-                  type="button"
-                  onclick={() => addTag(selectedTagKey!, value)}
-                  class="block w-full px-3 py-1.5 text-left text-xs text-primary transition hover:bg-[var(--color-bg-surface-hover)]"
-                  data-testid="tag-value-option-{value}"
-                >
-                  {value}
-                </button>
-              {/each}
-              <button
-                type="button"
-                onclick={() => (selectedTagKey = null)}
-                class="block w-full border-t border-[var(--color-border)] px-3 py-1.5 text-left text-xs text-[var(--color-text-muted)] transition hover:bg-[var(--color-bg-surface-hover)]"
-              >
-                {t('monitors.filter.back')}
-              </button>
-            {/if}
-            <button
-              type="button"
-              onclick={closeTagSelector}
-              class="block w-full border-t border-[var(--color-border)] px-3 py-1.5 text-left text-xs text-[var(--color-text-muted)] transition hover:bg-[var(--color-bg-surface-hover)]"
-              data-testid="tag-selector-close"
-            >
-              {t('monitors.filter.cancel')}
-            </button>
-          </div>
         {/if}
       </div>
-    {/if}
-
-    <!-- Collapse button (only when no filters active) -->
-    {#if !hasActiveFilters}
-      <button
-        type="button"
-        onclick={handleCollapseClick}
-        class="ml-auto inline-flex h-5 w-5 items-center justify-center rounded text-[var(--color-text-muted)] transition hover:text-secondary"
-        aria-label={t('monitors.filter.collapse')}
-        data-testid="filter-collapse-button"
-      >
-        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </button>
+    {:else}
+      <!-- No tags yet — show "+ Tag" button inline -->
+      <div class="flex items-center">
+        {#if showTagInput}
+          <input
+            type="text"
+            bind:this={tagInputEl}
+            bind:value={tagInput}
+            onkeydown={handleTagKeydown}
+            onblur={handleTagInputBlur}
+            placeholder={t('monitors.filter.tagPlaceholder')}
+            class="w-48 rounded-full border border-[var(--color-border)] bg-surface px-2.5 py-0.5 text-xs text-primary placeholder:text-[var(--color-text-muted)] focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400"
+            data-testid="tag-filter-input"
+          />
+        {:else}
+          <button
+            type="button"
+            onclick={openTagInput}
+            class="inline-flex items-center gap-0.5 rounded-full border border-dashed border-[var(--color-border)] px-2 py-0.5 text-xs text-secondary transition hover:border-indigo-400 hover:text-indigo-600"
+            data-testid="tag-filter-add-btn"
+          >
+            <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+            </svg>
+            {t('monitors.filter.addTag')}
+          </button>
+        {/if}
+      </div>
     {/if}
   </div>
 {/if}

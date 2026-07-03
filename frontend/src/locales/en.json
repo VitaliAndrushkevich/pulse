@@ -276,10 +276,25 @@
       "expand": "Filter",
       "collapse": "Collapse filter bar",
       "selectKey": "Select key",
-      "addTag": "Tag",
+      "addTag": "Add",
+      "paused": "Paused",
+      "tagPlaceholder": "key:value (e.g. env:prod or service:*pay*)",
       "back": "← Back",
       "cancel": "Cancel",
       "removeTag": "Remove tag {key}:{value}"
+    },
+    "tags": {
+      "title": "Tags",
+      "description": "Key-value tags for organizing and filtering monitors (max 20).",
+      "addTag": "Add tag",
+      "keyPlaceholder": "key",
+      "valuePlaceholder": "value",
+      "keyError": "Key must start with a lowercase letter and contain only a-z, 0-9, _ or - (max 64 chars)",
+      "valueError": "Value must be 256 characters or fewer",
+      "remove": "Remove tag {key}:{value}",
+      "confirm": "Confirm tag",
+      "cancelRow": "Cancel",
+      "count": "{count} / {max} tags"
     },
     "proto": {
       "uploadFiles": "Upload Proto Files",

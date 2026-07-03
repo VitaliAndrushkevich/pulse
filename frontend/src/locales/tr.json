@@ -276,10 +276,25 @@
       "expand": "Filtrele",
       "collapse": "Filtreleri gizle",
       "selectKey": "Anahtar seç",
-      "addTag": "Etiket",
+      "addTag": "Ekle",
+      "paused": "Duraklatılmış",
+      "tagPlaceholder": "anahtar:değer (ör. env:prod veya service:*pay*)",
       "back": "← Geri",
       "cancel": "İptal",
       "removeTag": "{key}:{value} etiketini kaldır"
+    },
+    "tags": {
+      "title": "Etiketler",
+      "description": "Monitörleri düzenlemek ve filtrelemek için anahtar-değer etiketleri (maks. 20).",
+      "keyPlaceholder": "anahtar",
+      "valuePlaceholder": "değer",
+      "keyError": "Anahtar küçük harfle başlamalı ve yalnızca a-z, 0-9, _ veya - içermelidir (maks. 64 karakter)",
+      "valueError": "Değer 256 karakteri geçmemelidir",
+      "remove": "{key}:{value} etiketini kaldır",
+      "count": "{count} / {max} etiket",
+      "addTag": "Etiket ekle",
+      "confirm": "Etiketi onayla",
+      "cancelRow": "İptal"
     }
   },
   "settings": {

@@ -276,10 +276,25 @@
       "expand": "Filtrar",
       "collapse": "Ocultar filtros",
       "selectKey": "Seleccionar clave",
-      "addTag": "Etiqueta",
+      "addTag": "Agregar",
+      "paused": "Pausado",
+      "tagPlaceholder": "clave:valor (ej. env:prod o service:*pay*)",
       "back": "← Atrás",
       "cancel": "Cancelar",
       "removeTag": "Quitar etiqueta {key}:{value}"
+    },
+    "tags": {
+      "title": "Etiquetas",
+      "description": "Etiquetas clave-valor para organizar y filtrar monitores (máx. 20).",
+      "keyPlaceholder": "clave",
+      "valuePlaceholder": "valor",
+      "keyError": "La clave debe empezar con letra minúscula y solo contener a-z, 0-9, _ o - (máx. 64 caracteres)",
+      "valueError": "El valor no debe superar los 256 caracteres",
+      "remove": "Quitar etiqueta {key}:{value}",
+      "count": "{count} / {max} etiquetas",
+      "addTag": "Agregar etiqueta",
+      "confirm": "Confirmar etiqueta",
+      "cancelRow": "Cancelar"
     }
   },
   "settings": {

@@ -276,10 +276,25 @@
       "expand": "Filter",
       "collapse": "Filterleiste einklappen",
       "selectKey": "Schlüssel wählen",
-      "addTag": "Tag",
+      "addTag": "Hinzufügen",
+      "paused": "Pausiert",
+      "tagPlaceholder": "schlüssel:wert (z.B. env:prod oder service:*pay*)",
       "back": "← Zurück",
       "cancel": "Abbrechen",
       "removeTag": "Tag {key}:{value} entfernen"
+    },
+    "tags": {
+      "title": "Tags",
+      "description": "Schlüssel-Wert-Tags zur Organisation und Filterung von Monitoren (max. 20).",
+      "keyPlaceholder": "Schlüssel",
+      "valuePlaceholder": "Wert",
+      "keyError": "Schlüssel muss mit einem Kleinbuchstaben beginnen und darf nur a-z, 0-9, _ oder - enthalten (max. 64 Zeichen)",
+      "valueError": "Wert darf maximal 256 Zeichen lang sein",
+      "remove": "Tag {key}:{value} entfernen",
+      "count": "{count} / {max} Tags",
+      "addTag": "Tag hinzufügen",
+      "confirm": "Tag bestätigen",
+      "cancelRow": "Abbrechen"
     }
   },
   "settings": {

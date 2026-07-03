@@ -276,10 +276,25 @@
       "expand": "フィルター",
       "collapse": "フィルターを閉じる",
       "selectKey": "キーを選択",
-      "addTag": "タグ",
+      "addTag": "追加",
+      "paused": "一時停止",
+      "tagPlaceholder": "キー:値 (例: env:prod または service:*pay*)",
       "back": "← 戻る",
       "cancel": "キャンセル",
       "removeTag": "タグ{key}:{value}を削除"
+    },
+    "tags": {
+      "title": "タグ",
+      "description": "モニターの整理とフィルタリング用のキー・バリュータグ（最大20）。",
+      "keyPlaceholder": "キー",
+      "valuePlaceholder": "値",
+      "keyError": "キーは小文字で始まり、a-z, 0-9, _ または - のみ使用可能（最大64文字）",
+      "valueError": "値は256文字以下にしてください",
+      "remove": "タグ{key}:{value}を削除",
+      "count": "{count} / {max} タグ",
+      "addTag": "タグを追加",
+      "confirm": "タグを確定",
+      "cancelRow": "キャンセル"
     }
   },
   "settings": {

@@ -276,10 +276,25 @@
       "expand": "筛选",
       "collapse": "收起筛选栏",
       "selectKey": "选择键",
-      "addTag": "标签",
+      "addTag": "添加",
+      "paused": "已暂停",
+      "tagPlaceholder": "键:值 (例如 env:prod 或 service:*pay*)",
       "back": "← 返回",
       "cancel": "取消",
       "removeTag": "移除标签 {key}:{value}"
+    },
+    "tags": {
+      "title": "标签",
+      "description": "用于组织和筛选监控器的键值标签（最多20个）。",
+      "keyPlaceholder": "键",
+      "valuePlaceholder": "值",
+      "keyError": "键必须以小写字母开头，只能包含 a-z、0-9、_ 或 -（最多64个字符）",
+      "valueError": "值不得超过256个字符",
+      "remove": "移除标签 {key}:{value}",
+      "count": "{count} / {max} 标签",
+      "addTag": "添加标签",
+      "confirm": "确认标签",
+      "cancelRow": "取消"
     }
   },
   "settings": {

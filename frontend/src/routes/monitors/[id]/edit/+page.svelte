@@ -102,6 +102,7 @@
         settings: monitor.settings,
         history_retention_days: monitor.history_retention_days
       }}
+      initialTags={monitor.tags}
       onSubmit={handleSubmit}
       onCancel={handleCancel}
     />
