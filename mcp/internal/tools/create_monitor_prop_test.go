@@ -16,7 +16,7 @@ import (
 // trackingFakeClient records whether CreateMonitor was called and captures the input.
 type trackingFakeClient struct {
 	fakePulseClient
-	createCalled bool
+	createCalled  bool
 	capturedInput pulseapi.CreateMonitorInput
 }
 
@@ -183,7 +183,7 @@ func TestProperty20_CreateMonitorBuildsCorrectPayloadAndReflectsDefaults(t *test
 
 // Feature: mcp-server, Property 21: Non-simple monitor type is rejected without calling Pulse
 //
-// For any monitor type not in {HTTP, TCP, UDP, ICMP} (including otherwise-valid Pulse types
+// For any monitor type not in {HTTP, TCP, UDP, ICMP, QUIC} (including otherwise-valid Pulse types
 // such as gRPC or DNS), the create-monitor tool returns an MCP error listing the supported
 // types and makes zero Pulse calls.
 //
@@ -191,7 +191,7 @@ func TestProperty20_CreateMonitorBuildsCorrectPayloadAndReflectsDefaults(t *test
 func TestProperty21_NonSimpleMonitorTypeRejectedWithoutCallingPulse(t *testing.T) {
 	// Set of supported types (lowercase) for create-monitor.
 	supported := map[string]bool{
-		"http": true, "tcp": true, "udp": true, "icmp": true,
+		"http": true, "tcp": true, "udp": true, "icmp": true, "quic": true,
 	}
 
 	rapid.Check(t, func(t *rapid.T) {
@@ -224,7 +224,7 @@ func TestProperty21_NonSimpleMonitorTypeRejectedWithoutCallingPulse(t *testing.T
 		}
 
 		// Error message should list supported types.
-		if !strings.Contains(mcpErr.Message, "HTTP, TCP, UDP, ICMP") {
+		if !strings.Contains(mcpErr.Message, "HTTP, TCP, UDP, ICMP, QUIC") {
 			t.Fatalf("error message should list supported types, got: %s", mcpErr.Message)
 		}
 

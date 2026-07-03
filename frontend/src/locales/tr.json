@@ -271,7 +271,8 @@
         "grpc": "Format: host:port",
         "dns": "Sorgulanacak alan adı (ör. example.com)",
         "icmp": "Ana bilgisayar adı veya IP adresi (ör. 8.8.8.8)",
-        "smtp": "Posta sunucusu ana bilgisayar adı veya host:port (ör. mail.example.com)"
+        "smtp": "Posta sunucusu ana bilgisayar adı veya host:port (ör. mail.example.com)",
+        "quic": "URL or domain name over QUIC/UDP transport (defaults to https://)"
       }
     },
     "filter": {

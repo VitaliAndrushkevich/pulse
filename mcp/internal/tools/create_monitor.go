@@ -16,15 +16,16 @@ var createMonitorTypes = map[string]string{
 	"tcp":  "tcp",
 	"udp":  "udp",
 	"icmp": "icmp",
+	"quic": "quic",
 }
 
 // createMonitorSupportedTypes is the sorted list shown in error messages.
-var createMonitorSupportedTypes = "HTTP, TCP, UDP, ICMP"
+var createMonitorSupportedTypes = "HTTP, TCP, UDP, ICMP, QUIC"
 
 // CreateMonitorToolInput defines the input schema for the create-monitor tool.
 type CreateMonitorToolInput struct {
-	// Type is the monitor type: HTTP, TCP, UDP, or ICMP (case-insensitive).
-	Type string `json:"type" jsonschema:"Monitor type: HTTP, TCP, UDP, or ICMP (case-insensitive)"`
+	// Type is the monitor type: HTTP, TCP, UDP, ICMP, or QUIC (case-insensitive).
+	Type string `json:"type" jsonschema:"Monitor type: HTTP, TCP, UDP, ICMP, or QUIC (case-insensitive)"`
 
 	// Name is the display name for the monitor (1–255 characters, not blank).
 	Name string `json:"name" jsonschema:"Monitor display name (1-255 characters)"`
@@ -166,8 +167,8 @@ func validateTarget(monitorType, target string) error {
 		// Allow IPv6 addresses (contain colons) but reject obvious host:port patterns.
 		// Simple heuristic: if it has a colon and the last segment is numeric, reject.
 		// Otherwise allow (could be IPv6 or hostname).
-	case "http":
-		// HTTP targets: non-empty is sufficient; Pulse handles normalization.
+	case "http", "quic":
+		// HTTP/QUIC targets: non-empty is sufficient; Pulse handles normalization.
 	}
 
 	return nil

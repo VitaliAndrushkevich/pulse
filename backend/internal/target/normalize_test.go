@@ -79,6 +79,16 @@ func TestNormalize(t *testing.T) {
 		{name: "smtp empty host with port", monitorType: "smtp", target: ":25", wantErr: true},
 		{name: "smtp whitespace trimmed", monitorType: "smtp", target: "  mail.example.com  ", want: "mail.example.com"},
 
+		// QUIC
+		{name: "quic bare domain", monitorType: "quic", target: "example.com", want: "https://example.com"},
+		{name: "quic bare domain with path", monitorType: "quic", target: "example.com/health", want: "https://example.com/health"},
+		{name: "quic with port", monitorType: "quic", target: "example.com:4433", want: "https://example.com:4433"},
+		{name: "quic explicit https", monitorType: "quic", target: "https://example.com", want: "https://example.com"},
+		{name: "quic explicit http", monitorType: "quic", target: "http://example.com", want: "http://example.com"},
+		{name: "quic bad scheme", monitorType: "quic", target: "ftp://example.com", wantErr: true},
+		{name: "quic empty", monitorType: "quic", target: "", wantErr: true},
+		{name: "quic whitespace trimmed", monitorType: "quic", target: "  example.com  ", want: "https://example.com"},
+
 		// Unknown type passthrough
 		{name: "unknown type passthrough", monitorType: "unknown", target: "example.com", want: "example.com"},
 	}

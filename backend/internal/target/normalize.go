@@ -23,6 +23,7 @@ import (
 //	dns:        bare domain; no scheme or port.
 //	icmp:       hostname or IP; no scheme or port.
 //	smtp:       bare hostname or host:port; no scheme.
+//	quic:       bare domain → "https://domain"; explicit http:// or https:// kept.
 func Normalize(monitorType, target string) (string, error) {
 	target = strings.TrimSpace(target)
 	if target == "" {
@@ -32,6 +33,8 @@ func Normalize(monitorType, target string) (string, error) {
 	switch monitorType {
 	case "http", "http3":
 		return normalizeHTTP(target)
+	case "quic":
+		return normalizeQUIC(target)
 	case "tcp":
 		return normalizeTCP(target)
 	case "udp":
@@ -65,6 +68,24 @@ func normalizeHTTP(target string) (string, error) {
 	if idx := strings.Index(target, "://"); idx > 0 {
 		scheme := target[:idx]
 		return "", fmt.Errorf("unsupported scheme %q for HTTP monitor; use http:// or https://", scheme)
+	}
+	return "https://" + target, nil
+}
+
+// normalizeQUIC ensures a QUIC target has an http:// or https:// scheme.
+// QUIC operates over UDP but uses the same URL format as HTTPS.
+// - "example.com" → "https://example.com"
+// - "example.com:4433" → "https://example.com:4433"
+// - "https://example.com" → kept as-is
+func normalizeQUIC(target string) (string, error) {
+	lower := strings.ToLower(target)
+	if strings.HasPrefix(lower, "http://") || strings.HasPrefix(lower, "https://") {
+		return target, nil
+	}
+	// Reject other explicit schemes.
+	if idx := strings.Index(target, "://"); idx > 0 {
+		scheme := target[:idx]
+		return "", fmt.Errorf("unsupported scheme %q for QUIC monitor; use https:// or http://", scheme)
 	}
 	return "https://" + target, nil
 }

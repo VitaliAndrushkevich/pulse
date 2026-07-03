@@ -70,5 +70,6 @@ func DefaultRegistry(queries *db.Queries) *Registry {
 	reg.Register("dns", &DNSChecker{})
 	reg.Register("icmp", &ICMPChecker{})
 	reg.Register("smtp", &SMTPChecker{})
+	reg.Register("quic", &QUICChecker{})
 	return reg
 }
