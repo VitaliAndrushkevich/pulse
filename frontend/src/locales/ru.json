@@ -6,6 +6,7 @@
   "nav": {
     "dashboard": "Панель",
     "monitors": "Мониторы",
+    "notifications": "Уведомления",
     "settings": "Настройки",
     "logout": "Выйти",
     "home": "Pulse — Главная"
@@ -39,47 +40,47 @@
     "next": "Далее"
   },
   "connection": {
-    "live": "Live",
-    "reconnecting": "Reconnecting…",
-    "paused": "Live updates paused",
-    "statusLive": "Connection status: live",
-    "statusPaused": "Connection status: live updates paused"
+    "live": "Подключено",
+    "reconnecting": "Переподключение…",
+    "paused": "Обновления приостановлены",
+    "statusLive": "Статус соединения: подключено",
+    "statusPaused": "Статус соединения: обновления приостановлены"
   },
   "login": {
-    "title": "Sign in to Pulse",
-    "subtitle": "Enter your credentials to continue",
+    "title": "Вход в Pulse",
+    "subtitle": "Введите учётные данные для продолжения",
     "email": "Email",
     "emailPlaceholder": "you@example.com",
-    "password": "Password",
+    "password": "Пароль",
     "passwordPlaceholder": "••••••••",
-    "submit": "Sign in",
-    "submitting": "Signing in…",
+    "submit": "Войти",
+    "submitting": "Вход…",
     "errors": {
-      "invalidCredentials": "Invalid email or password",
-      "networkError": "Service unavailable. Please try again later.",
-      "unexpected": "Service unavailable. Please try again later."
+      "invalidCredentials": "Неверный email или пароль",
+      "networkError": "Сервис недоступен. Попробуйте позже.",
+      "unexpected": "Сервис недоступен. Попробуйте позже."
     }
   },
   "setup": {
-    "title": "Welcome to Pulse",
-    "subtitle": "Create your admin account to get started",
+    "title": "Добро пожаловать в Pulse",
+    "subtitle": "Создайте учётную запись администратора",
     "email": "Email",
     "emailPlaceholder": "admin@example.com",
-    "password": "Password",
-    "confirmPassword": "Confirm Password",
-    "submit": "Create Admin Account",
-    "submitting": "Creating account…",
-    "checkingStatus": "Checking setup status…",
+    "password": "Пароль",
+    "confirmPassword": "Подтвердите пароль",
+    "submit": "Создать аккаунт администратора",
+    "submitting": "Создание аккаунта…",
+    "checkingStatus": "Проверка статуса настройки…",
     "errors": {
-      "statusCheck": "Unable to check setup status. Is the server running?",
-      "alreadyCompleted": "Setup has already been completed. Redirecting to login...",
-      "failed": "Setup failed. Please try again.",
-      "networkError": "Service unavailable. Please try again later.",
-      "unexpected": "An unexpected error occurred."
+      "statusCheck": "Не удалось проверить статус настройки. Сервер запущен?",
+      "alreadyCompleted": "Настройка уже выполнена. Перенаправление на страницу входа...",
+      "failed": "Настройка не удалась. Попробуйте снова.",
+      "networkError": "Сервис недоступен. Попробуйте позже.",
+      "unexpected": "Произошла непредвиденная ошибка."
     },
     "validation": {
-      "passwordLength": "Password must be at least 8 characters",
-      "passwordsMismatch": "Passwords do not match"
+      "passwordLength": "Пароль должен содержать не менее 8 символов",
+      "passwordsMismatch": "Пароли не совпадают"
     }
   },
   "dashboard": {
@@ -214,16 +215,16 @@
         "ongoing": "Продолжается"
       },
       "pause": {
-        "title": "Pause monitor?",
-        "description": "Pausing will stop all health checks for {name}. No data will be collected while paused.",
-        "button": "Pause",
-        "pausing": "Pausing..."
+        "title": "Приостановить монитор?",
+        "description": "При приостановке все проверки для {name} будут остановлены. Данные не будут собираться.",
+        "button": "Приостановить",
+        "pausing": "Приостановка..."
       },
       "resume": {
-        "title": "Resume monitor?",
-        "description": "Resuming will restart health checks for {name}. The next check will run shortly.",
-        "button": "Resume",
-        "resuming": "Resuming..."
+        "title": "Возобновить монитор?",
+        "description": "При возобновлении проверки для {name} будут перезапущены. Следующая проверка выполнится в ближайшее время.",
+        "button": "Возобновить",
+        "resuming": "Возобновление..."
       }
     },
     "form": {
@@ -249,7 +250,7 @@
       "headerNamePlaceholder": "Имя заголовка",
       "headerValuePlaceholder": "Значение",
       "removeHeader": "Убрать заголовок",
-      "payload": "Payload",
+      "payload": "Данные запроса",
       "payloadPlaceholder": "ping",
       "payloadHelp": "Данные для отправки на UDP-цель",
       "handshakeMessage": "Сообщение рукопожатия",
@@ -267,9 +268,9 @@
         "udp": "Формат: хост:порт",
         "websocket": "URL со схемой ws:// или wss://, либо имя хоста (по умолчанию wss://)",
         "grpc": "Формат: хост:порт",
-        "dns": "Domain name to query (e.g., example.com)",
-        "icmp": "Hostname or IP address (e.g., 8.8.8.8)",
-        "smtp": "Mail server hostname or host:port (e.g., mail.example.com)"
+        "dns": "Доменное имя для запроса (напр., example.com)",
+        "icmp": "Имя хоста или IP-адрес (напр., 8.8.8.8)",
+        "smtp": "Имя хоста почтового сервера или хост:порт (напр., mail.example.com)"
       }
     },
     "filter": {
@@ -295,6 +296,30 @@
       "addTag": "Добавить тег",
       "confirm": "Подтвердить тег",
       "cancelRow": "Отмена"
+    },
+    "proto": {
+      "uploadFiles": "Загрузить Proto-файлы",
+      "useReflection": "Использовать Server Reflection",
+      "reflectionHint": "Укажите адрес цели для включения рефлексии",
+      "dropZoneTitle": "Перетащите .proto или .desc файлы сюда",
+      "dropZoneHint": "Или нажмите для выбора (макс. 20 файлов)",
+      "noValidFiles": "Допустимые .proto или .desc файлы не найдены",
+      "uploadFailed": "Загрузка файлов не удалась",
+      "reflectionFailed": "Server Reflection не удалась",
+      "removeFailed": "Не удалось удалить Proto-источник",
+      "loading": "Обработка...",
+      "error": "Ошибка",
+      "sourceUpload": "Загруженный Proto-источник",
+      "sourceReflection": "Server Reflection",
+      "files": "Файлы",
+      "services": "Сервисы",
+      "replace": "Заменить",
+      "remove": "Удалить",
+      "selectMethod": "Выберите метод сервиса",
+      "payloadFormat": "Формат данных",
+      "payloadFormatRaw": "Raw (Base64)",
+      "payloadFormatProtoJson": "Proto JSON",
+      "saveFirst": "Сначала сохраните монитор для настройки Proto-источника и данных запроса."
     }
   },
   "settings": {
@@ -334,144 +359,381 @@
     }
   },
   "auth": {
-    "title": "Authentication",
-    "description": "Configure credentials for this monitor's health-check requests.",
-    "createDescription": "Optional credentials for this monitor's health-check requests.",
-    "authType": "Authentication Type",
+    "title": "Аутентификация",
+    "description": "Настройка учётных данных для проверочных запросов монитора.",
+    "createDescription": "Необязательные учётные данные для проверочных запросов монитора.",
+    "authType": "Тип аутентификации",
     "types": {
-      "none": "None",
+      "none": "Нет",
       "bearer": "Bearer Token",
       "basic": "Basic Auth",
-      "header": "Custom Header"
+      "header": "Пользовательский заголовок"
     },
     "fields": {
-      "token": "Token",
-      "tokenPlaceholder": "Enter bearer token",
-      "username": "Username",
-      "usernamePlaceholder": "Enter username",
-      "password": "Password",
-      "passwordPlaceholder": "Enter password",
-      "headerName": "Header Name",
-      "headerNamePlaceholder": "e.g. X-API-Key",
-      "headerValue": "Header Value",
-      "headerValuePlaceholder": "Enter header value"
+      "token": "Токен",
+      "tokenPlaceholder": "Введите bearer-токен",
+      "username": "Имя пользователя",
+      "usernamePlaceholder": "Введите имя пользователя",
+      "password": "Пароль",
+      "passwordPlaceholder": "Введите пароль",
+      "headerName": "Имя заголовка",
+      "headerNamePlaceholder": "напр. X-API-Key",
+      "headerValue": "Значение заголовка",
+      "headerValuePlaceholder": "Введите значение заголовка"
     },
     "validation": {
-      "tokenRequired": "Token is required",
-      "usernameRequired": "Username is required",
-      "passwordRequired": "Password is required",
-      "headerNameRequired": "Header name is required",
-      "headerValueRequired": "Header value is required"
+      "tokenRequired": "Токен обязателен",
+      "usernameRequired": "Имя пользователя обязательно",
+      "passwordRequired": "Пароль обязателен",
+      "headerNameRequired": "Имя заголовка обязательно",
+      "headerValueRequired": "Значение заголовка обязательно"
     },
-    "addCredential": "Add Credential",
-    "pendingCredential": "{authType} credential will be created with the monitor.",
-    "replacingNotice": "Replacing credential — fill in the new values below.",
-    "cancelReplace": "Cancel"
+    "addCredential": "Добавить учётные данные",
+    "pendingCredential": "Учётные данные {authType} будут созданы вместе с монитором.",
+    "replacingNotice": "Замена учётных данных — заполните новые значения ниже.",
+    "cancelReplace": "Отмена"
   },
   "credentials": {
-    "empty": "No credentials configured for this monitor.",
-    "created": "Created {date}",
-    "confirmDelete": "Confirm?",
-    "delete": "Delete",
-    "replace": "Replace",
-    "cancel": "Cancel"
+    "empty": "Учётные данные для этого монитора не настроены.",
+    "created": "Создано {date}",
+    "confirmDelete": "Подтвердить?",
+    "delete": "Удалить",
+    "replace": "Заменить",
+    "cancel": "Отмена"
   },
   "modal": {
-    "secretTitle": "Your Secret Value",
-    "secretWarning": "This secret will not be shown again. Make sure to copy it before closing.",
-    "secretLabel": "Secret value",
-    "secretDismiss": "I've copied the secret"
+    "secretTitle": "Ваше секретное значение",
+    "secretWarning": "Этот секрет больше не будет показан. Скопируйте его перед закрытием.",
+    "secretLabel": "Секретное значение",
+    "secretDismiss": "Я скопировал секрет"
   },
   "toast": {
-    "dismiss": "Dismiss notification",
-    "notifications": "Notifications",
-    "requestId": "Request ID: {id}"
+    "dismiss": "Закрыть уведомление",
+    "notifications": "Уведомления",
+    "requestId": "ID запроса: {id}"
   },
   "grpc": {
-    "serviceMethod": "Service Method",
+    "serviceMethod": "Метод сервиса",
     "serviceMethodPlaceholder": "grpc.health.v1.Health/Check",
-    "serviceMethodHelp": "Fully-qualified gRPC service and method (package.Service/Method)",
-    "tlsMode": "TLS Mode",
+    "serviceMethodHelp": "Полное имя gRPC-сервиса и метода (package.Service/Method)",
+    "tlsMode": "Режим TLS",
     "tlsModes": {
-      "plaintext": "Plaintext",
+      "plaintext": "Без шифрования",
       "tls": "TLS",
-      "tlsSkipVerify": "TLS (Skip Verify)"
+      "tlsSkipVerify": "TLS (без проверки)"
     },
-    "sslExpiryThreshold": "SSL Expiry Threshold (days)",
+    "sslExpiryThreshold": "Порог истечения SSL (дни)",
     "sslExpiryThresholdPlaceholder": "30",
-    "sslExpiryThresholdHelp": "Alert when certificate expires within this many days",
-    "metadata": "Metadata",
-    "addMetadata": "Add Metadata",
-    "metadataKeyPlaceholder": "Key",
-    "metadataValuePlaceholder": "Value",
-    "metadataHelp": "Custom gRPC metadata headers sent with each request",
-    "removeMetadataRow": "Remove metadata row {index}",
-    "expectedStatuses": "Expected Status Codes",
-    "expectedStatusesHelp": "gRPC status codes considered a healthy response",
-    "requestPayload": "Request Payload (Base64)",
-    "requestPayloadPlaceholder": "Base64-encoded protobuf message",
-    "requestPayloadHelp": "Optional base64-encoded protobuf request body"
+    "sslExpiryThresholdHelp": "Оповещать, когда сертификат истекает в течение указанного количества дней",
+    "metadata": "Метаданные",
+    "addMetadata": "Добавить метаданные",
+    "metadataKeyPlaceholder": "Ключ",
+    "metadataValuePlaceholder": "Значение",
+    "metadataHelp": "Пользовательские заголовки gRPC-метаданных, отправляемые с каждым запросом",
+    "removeMetadataRow": "Удалить строку метаданных {index}",
+    "expectedStatuses": "Ожидаемые коды статуса",
+    "expectedStatusesHelp": "Коды статуса gRPC, считающиеся успешным ответом",
+    "requestPayload": "Тело запроса (Base64)",
+    "requestPayloadPlaceholder": "Protobuf-сообщение в кодировке Base64",
+    "requestPayloadHelp": "Необязательное тело запроса в формате protobuf, закодированное в Base64"
+  },
+  "proto": {
+    "upload": {
+      "errorTitle": "Ошибка загрузки",
+      "unknownError": "Произошла неизвестная ошибка",
+      "currentSource": "Proto-источник",
+      "sourceType": "Источник",
+      "sourceTypeUpload": "Загрузка файлов",
+      "sourceTypeReflection": "Server Reflection",
+      "filenames": "Файлы",
+      "serviceCount": "Обнаружено сервисов: {count}",
+      "replace": "Заменить",
+      "remove": "Удалить",
+      "dropzone": "Перетащите .proto или .desc файлы сюда",
+      "dropzoneHint": "До 20 файлов (.proto или .desc)",
+      "dropzoneLabel": "Перетащите proto-файлы сюда или нажмите для выбора",
+      "selectedFiles": "Выбрано файлов: {count}",
+      "clearAll": "Очистить всё",
+      "removeFile": "Удалить {name}",
+      "uploading": "Загрузка…",
+      "uploadButton": "Загрузить файлы",
+      "or": "или",
+      "reflecting": "Обнаружение сервисов…",
+      "reflectionButton": "Использовать Server Reflection",
+      "reflectionHint": "Введите адрес цели для включения Server Reflection",
+      "processing": "Обработка…",
+      "selectMethod": "Выберите метод сервиса",
+      "methodCount": "Методов: {count}"
+    }
   },
   "timeRange": {
-    "custom": "Custom",
-    "start": "Start",
-    "end": "End",
+    "custom": "Произвольный",
+    "start": "Начало",
+    "end": "Конец",
     "validation": {
-      "bothRequired": "Please select both start and end times",
-      "invalidDates": "Invalid date values",
-      "startBeforeEnd": "Start time must be before end time"
+      "bothRequired": "Выберите начальное и конечное время",
+      "invalidDates": "Некорректные значения дат",
+      "startBeforeEnd": "Начальное время должно быть раньше конечного"
     },
-    "retentionNotice": "Selected range exceeds the {days}-day retention period. Data may be incomplete.",
-    "truncatedNotice": "Data has been truncated to the monitor's retention period ({days} days)."
+    "retentionNotice": "Выбранный диапазон превышает период хранения ({days} дн.). Данные могут быть неполными.",
+    "truncatedNotice": "Данные обрезаны до периода хранения монитора ({days} дн.)."
   },
   "history": {
-    "loading": "Loading history...",
-    "error": "Failed to load history data.",
-    "empty": "No data available for the selected period.",
-    "retry": "Retry"
+    "loading": "Загрузка истории...",
+    "error": "Не удалось загрузить данные истории.",
+    "empty": "Нет данных за выбранный период.",
+    "retry": "Повторить"
   },
   "errors": {
-    "generic": "Something went wrong",
-    "network": "Service unavailable. Please try again later.",
-    "unexpected": "An unexpected error occurred.",
-    "notFound": "Not found"
+    "generic": "Что-то пошло не так",
+    "network": "Сервис недоступен. Попробуйте позже.",
+    "unexpected": "Произошла непредвиденная ошибка.",
+    "notFound": "Не найдено"
   },
   "dns": {
-    "recordType": "Record Type",
-    "recordTypePlaceholder": "Select record type",
-    "recordTypeHelp": "DNS record type to query",
-    "expectedValue": "Expected Value",
+    "recordType": "Тип записи",
+    "recordTypePlaceholder": "Выберите тип записи",
+    "recordTypeHelp": "Тип DNS-записи для запроса",
+    "expectedValue": "Ожидаемое значение",
     "expectedValuePlaceholder": "93.184.216.34",
-    "expectedValueHelp": "If set, check passes only when this value is found among DNS results",
-    "dnsServer": "DNS Server",
+    "expectedValueHelp": "Если задано, проверка успешна только при наличии этого значения в результатах DNS",
+    "dnsServer": "DNS-сервер",
     "dnsServerPlaceholder": "8.8.8.8:53",
-    "dnsServerHelp": "Custom DNS resolver (leave empty for default)"
+    "dnsServerHelp": "Пользовательский DNS-резолвер (оставьте пустым для использования по умолчанию)"
   },
   "icmp": {
-    "packetCount": "Packet Count",
-    "packetCountHelp": "Number of ICMP echo requests to send (1-10)",
-    "lossThreshold": "Loss Threshold (%)",
-    "lossThresholdHelp": "Percentage of packet loss that triggers a 'down' state",
-    "useIpv6": "Use IPv6",
-    "useIpv6Help": "Send ICMPv6 echo requests instead of IPv4"
+    "packetCount": "Количество пакетов",
+    "packetCountHelp": "Количество ICMP echo-запросов для отправки (1–10)",
+    "lossThreshold": "Порог потерь (%)",
+    "lossThresholdHelp": "Процент потери пакетов, при котором монитор считается недоступным",
+    "useIpv6": "Использовать IPv6",
+    "useIpv6Help": "Отправлять ICMPv6 echo-запросы вместо IPv4"
   },
   "smtp": {
-    "port": "Port",
-    "portHelp": "SMTP server port (25, 587, 465)",
+    "port": "Порт",
+    "portHelp": "Порт SMTP-сервера (25, 587, 465)",
     "starttls": "STARTTLS",
-    "starttlsHelp": "Attempt STARTTLS upgrade after EHLO",
-    "ehloDomain": "EHLO Domain",
+    "starttlsHelp": "Попытка обновления до STARTTLS после EHLO (игнорируется при включённом Implicit TLS)",
+    "implicitTls": "Implicit TLS (SMTPS)",
+    "implicitTlsHelp": "Подключение с TLS с самого начала (порт 465). Используйте вместо STARTTLS для SMTPS-серверов.",
+    "ehloDomain": "Домен EHLO",
     "ehloDomainPlaceholder": "pulse.local",
-    "ehloDomainHelp": "Domain name used in the EHLO greeting",
-    "sslExpiryThreshold": "SSL Expiry Threshold (days)",
+    "ehloDomainHelp": "Доменное имя, используемое в приветствии EHLO",
+    "sslExpiryThreshold": "Порог истечения SSL (дни)",
     "sslExpiryThresholdPlaceholder": "14",
-    "sslExpiryThresholdHelp": "Alert when certificate expires within this many days (0 = disabled)"
+    "sslExpiryThresholdHelp": "Оповещать, когда сертификат истекает в течение указанного количества дней (0 = отключено)"
   },
   "payloadEditor": {
-    "placeholder": "Enter JSON payload (e.g. {\"name\": \"value\"})",
-    "label": "Request Payload (JSON)",
-    "jsonHint": "Write your gRPC request body as JSON. Use Format button for pretty-printing.",
-    "format": "Format",
-    "minify": "Minify"
+    "placeholder": "Введите JSON-данные (напр. {\"name\": \"value\"})",
+    "label": "Тело запроса (JSON)",
+    "jsonHint": "Введите тело gRPC-запроса в формате JSON. Используйте кнопку «Форматировать» для форматирования.",
+    "format": "Форматировать",
+    "minify": "Сжать"
+  },
+  "notifications": {
+    "title": "Уведомления",
+    "description": "Управление каналами уведомлений и доставкой оповещений.",
+    "channels": {
+      "title": "Каналы уведомлений",
+      "create": "Создать канал",
+      "edit": "Редактировать канал",
+      "loading": "Загрузка каналов...",
+      "empty": {
+        "title": "Каналы уведомлений отсутствуют",
+        "description": "Создайте первый канал, чтобы начать получать оповещения.",
+        "action": "Создать канал"
+      },
+      "list": {
+        "name": "Имя",
+        "type": "Тип",
+        "created": "Создан",
+        "actions": "Действия"
+      },
+      "types": {
+        "email": "Email",
+        "webhook": "Webhook"
+      },
+      "deleteConfirm": {
+        "title": "Удалить канал",
+        "description": "Вы уверены, что хотите удалить «{name}»? Все привязки, использующие этот канал, также будут удалены. Это действие необратимо.",
+        "confirm": "Удалить канал"
+      }
+    },
+    "form": {
+      "name": "Имя канала",
+      "namePlaceholder": "напр. Email команды, Slack Webhook",
+      "type": "Тип канала",
+      "typePlaceholder": "Выберите тип канала",
+      "submitCreate": "Создать канал",
+      "submitUpdate": "Обновить канал",
+      "email": {
+        "recipients": "Получатели",
+        "recipientsPlaceholder": "Введите email-адрес",
+        "recipientsHelp": "Добавьте до 50 email-адресов получателей.",
+        "addRecipient": "Добавить получателя",
+        "removeRecipient": "Удалить получателя"
+      },
+      "webhook": {
+        "url": "URL Webhook",
+        "urlPlaceholder": "https://hooks.example.com/...",
+        "urlHelp": "HTTP или HTTPS эндпоинт для получения уведомлений (макс. 2048 символов).",
+        "method": "HTTP-метод",
+        "methodHelp": "HTTP-метод, используемый для webhook-запроса.",
+        "headers": "Пользовательские заголовки",
+        "headersHelp": "Необязательные заголовки, отправляемые с каждым webhook-запросом (до 20).",
+        "addHeader": "Добавить заголовок",
+        "removeHeader": "Удалить заголовок",
+        "headerNamePlaceholder": "Имя заголовка",
+        "headerValuePlaceholder": "Значение заголовка",
+        "bodyTemplate": "Шаблон тела запроса",
+        "bodyTemplatePlaceholder": "{ \"text\": \"{{.Monitor.Name}} is {{.Status}}\" }",
+        "bodyTemplateHelp": "Go-шаблон тела webhook-запроса. Используйте переменные шаблона ниже."
+      }
+    },
+    "triggers": {
+      "title": "Условия срабатывания",
+      "description": "Выберите события, по которым должны отправляться уведомления для этой привязки.",
+      "monitorDown": "Монитор недоступен",
+      "monitorDownHelp": "Уведомлять при переходе монитора в состояние недоступности.",
+      "monitorUp": "Монитор восстановлен",
+      "monitorUpHelp": "Уведомлять при восстановлении монитора после недоступности.",
+      "degraded": "Ухудшение производительности",
+      "degradedHelp": "Уведомлять, когда время отклика превышает пороговое значение.",
+      "degradedThreshold": "Порог (мс)",
+      "degradedThresholdPlaceholder": "5000",
+      "sslExpiring": "Истечение SSL",
+      "sslExpiringHelp": "Уведомлять, когда SSL-сертификат истекает в указанный срок.",
+      "sslExpiringDays": "Дней до истечения",
+      "sslExpiringDaysPlaceholder": "14",
+      "nFailuresInRow": "Последовательные сбои",
+      "nFailuresInRowHelp": "Уведомлять, когда монитор завершается ошибкой N раз подряд.",
+      "nFailuresCount": "Количество сбоев",
+      "nFailuresCountPlaceholder": "5",
+      "noneSelected": "Необходимо выбрать хотя бы одно условие срабатывания."
+    },
+    "reminders": {
+      "title": "Политика напоминаний",
+      "description": "Повторная отправка уведомлений, пока условие сохраняется.",
+      "interval": "Интервал напоминаний",
+      "disabled": "Отключено",
+      "minutes": "{count} мин."
+    },
+    "bindings": {
+      "title": "Привязки уведомлений",
+      "description": "Настройте, какие каналы и условия применяются к этому монитору.",
+      "add": "Добавить привязку",
+      "remove": "Удалить привязку",
+      "channel": "Канал",
+      "channelPlaceholder": "Выберите канал",
+      "empty": {
+        "title": "Привязки уведомлений отсутствуют",
+        "description": "Добавьте привязку для получения оповещений по этому монитору."
+      },
+      "noChannels": {
+        "title": "Нет доступных каналов",
+        "description": "Сначала создайте канал уведомлений на странице «Уведомления».",
+        "action": "Перейти к уведомлениям"
+      },
+      "deleteConfirm": {
+        "title": "Удалить привязку",
+        "description": "Вы уверены, что хотите удалить эту привязку? Вы больше не будете получать оповещения от этого канала для данного монитора.",
+        "confirm": "Удалить привязку"
+      }
+    },
+    "test": {
+      "button": "Тест",
+      "sending": "Отправка...",
+      "success": "Тестовое уведомление успешно отправлено.",
+      "failure": "Тестовое уведомление не удалось: {error}"
+    },
+    "toast": {
+      "channelCreated": "Канал «{name}» успешно создан.",
+      "channelUpdated": "Канал «{name}» успешно обновлён.",
+      "channelDeleted": "Канал «{name}» удалён.",
+      "bindingCreated": "Привязка уведомления создана.",
+      "bindingUpdated": "Привязка уведомления обновлена.",
+      "bindingDeleted": "Привязка уведомления удалена.",
+      "testSuccess": "Тестовое уведомление успешно доставлено.",
+      "testFailure": "Тестовое уведомление не удалось: {error}"
+    },
+    "templateVariables": {
+      "title": "Переменные шаблона",
+      "description": "Доступные переменные для использования в шаблонах тела webhook.",
+      "groups": {
+        "monitor": "Монитор",
+        "incident": "Инцидент",
+        "general": "Общие"
+      },
+      "variables": {
+        "monitorName": "Имя монитора",
+        "monitorUrl": "URL монитора",
+        "monitorTarget": "Адрес цели монитора",
+        "status": "Текущий статус",
+        "previousStatus": "Предыдущий статус",
+        "responseTime": "Время отклика в миллисекундах",
+        "incidentStartedAt": "Время начала инцидента",
+        "incidentDuration": "Длительность инцидента",
+        "incidentId": "Уникальный ID инцидента",
+        "timestamp": "Временная метка события"
+      }
+    },
+    "smtpSettings": {
+      "title": "Настройки SMTP",
+      "description": "Настройка SMTP-сервера для отправки email-уведомлений.",
+      "host": "Хост SMTP",
+      "hostPlaceholder": "smtp.example.com",
+      "port": "Порт",
+      "portPlaceholder": "587",
+      "username": "Имя пользователя",
+      "usernamePlaceholder": "notifications@example.com",
+      "password": "Пароль",
+      "passwordPlaceholder": "Введите пароль SMTP",
+      "passwordSet": "Пароль установлен",
+      "passwordNotSet": "Пароль не настроен",
+      "fromAddress": "Адрес отправителя",
+      "fromAddressPlaceholder": "pulse@example.com",
+      "fromAddressHelp": "Адрес отправителя для email-уведомлений.",
+      "tlsEnabled": "Включить TLS",
+      "tlsEnabledHelp": "Использовать TLS-шифрование для SMTP-соединения.",
+      "testConnection": "Проверить соединение",
+      "testingConnection": "Проверка...",
+      "testSuccess": "SMTP-соединение успешно.",
+      "testFailure": "SMTP-соединение не удалось: {error}",
+      "saved": "Настройки SMTP сохранены.",
+      "deleted": "Настройки SMTP удалены. Email-уведомления отключены.",
+      "notConfigured": "SMTP не настроен. Email-уведомления отключены.",
+      "deleteConfirm": {
+        "title": "Удалить настройки SMTP",
+        "description": "Вы уверены, что хотите удалить настройки SMTP? Email-уведомления будут отключены.",
+        "confirm": "Удалить настройки"
+      }
+    },
+    "validation": {
+      "nameRequired": "Имя канала обязательно.",
+      "nameTooLong": "Имя канала должно быть не более 100 символов.",
+      "typeRequired": "Тип канала обязателен.",
+      "typeInvalid": "Тип канала должен быть «email» или «webhook».",
+      "recipientsRequired": "Необходим хотя бы один email получателя.",
+      "recipientsTooMany": "Максимум 50 получателей.",
+      "recipientInvalid": "Некорректный email-адрес: {email}",
+      "urlRequired": "URL Webhook обязателен.",
+      "urlInvalid": "URL должен начинаться с http:// или https://.",
+      "urlTooLong": "URL должен быть не более 2048 символов.",
+      "methodRequired": "HTTP-метод обязателен.",
+      "methodInvalid": "Метод должен быть одним из: GET, POST, PUT, PATCH, DELETE.",
+      "bodyTemplateRequired": "Шаблон тела обязателен для webhook-каналов.",
+      "bodyTemplateInvalid": "Некорректный шаблон: {error}",
+      "headerNameTooLong": "Имя заголовка должно быть не более 128 символов.",
+      "headerValueTooLong": "Значение заголовка должно быть не более 8192 символов.",
+      "headersTooMany": "Максимум 20 пользовательских заголовков.",
+      "degradedThresholdRange": "Порог должен быть от 1 до 60000 мс.",
+      "sslExpiringDaysRange": "Количество дней должно быть от 1 до 365.",
+      "nFailuresCountRange": "Количество должно быть от 1 до 100.",
+      "triggerRequired": "Необходимо хотя бы одно условие срабатывания.",
+      "smtpHostRequired": "Хост SMTP обязателен.",
+      "smtpPortRange": "Порт должен быть от 1 до 65535.",
+      "smtpFromRequired": "Адрес отправителя обязателен.",
+      "smtpFromInvalid": "Некорректный формат email-адреса."
+    }
   }
 }

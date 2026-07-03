@@ -177,16 +177,19 @@ Notification channels enable Pulse users to receive alerts when monitors change 
 
 ### Requirement 12: Instance-Level SMTP Configuration
 
-**User Story:** As a Pulse administrator, I want to configure SMTP settings at the instance level, so that all email channels use a single outgoing mail server.
+**User Story:** As a Pulse administrator, I want to configure SMTP settings through the UI and store them in the database, so that I can manage email delivery without server access.
 
 #### Acceptance Criteria
 
-1. THE System SHALL read SMTP configuration from environment variables (PULSE_SMTP_HOST, PULSE_SMTP_PORT, PULSE_SMTP_USERNAME, PULSE_SMTP_PASSWORD, PULSE_SMTP_FROM, PULSE_SMTP_TLS), where PULSE_SMTP_HOST, PULSE_SMTP_PORT, and PULSE_SMTP_FROM are required for SMTP to be considered configured, and PULSE_SMTP_USERNAME and PULSE_SMTP_PASSWORD are optional (supporting unauthenticated relay).
-2. WHEN all required SMTP environment variables are set, THE System SHALL attempt an SMTP connection (TCP connect and EHLO handshake) with a timeout of 10 seconds at startup and log the result as success or failure.
-3. IF SMTP connectivity validation fails at startup, THEN THE System SHALL log a warning with the connection error, mark SMTP as unavailable, and continue startup without terminating the process.
-4. IF any required SMTP environment variable (PULSE_SMTP_HOST, PULSE_SMTP_PORT, or PULSE_SMTP_FROM) is not set, THEN THE System SHALL log a warning indicating email notifications are disabled and skip connectivity validation.
-5. THE Notification_API SHALL expose an endpoint to check SMTP configuration status returning the configured state (configured/not configured), the host, port, and sender address when configured, without including PULSE_SMTP_USERNAME or PULSE_SMTP_PASSWORD values in the response.
-6. THE System SHALL validate that PULSE_SMTP_PORT is a numeric value between 1 and 65535 and that PULSE_SMTP_FROM is a valid RFC 5322 email address, logging an error and treating SMTP as not configured if validation fails.
+1. THE Notification_API SHALL provide a PUT endpoint to create or update SMTP settings (host, port, username, password, from address, TLS enabled) stored in the database.
+2. THE Notification_API SHALL encrypt the SMTP password at rest using AES-256-GCM before persisting to the database.
+3. THE Notification_API SHALL provide a GET endpoint that returns SMTP settings with host, port, username, from address, TLS enabled, and a boolean `password_set` indicator, without ever returning the raw password value.
+4. THE Notification_API SHALL provide a DELETE endpoint to remove SMTP settings, disabling email notifications.
+5. THE Notification_API SHALL provide a POST test endpoint that validates SMTP connectivity (TCP connect, EHLO handshake, optional AUTH) and returns a synchronous success/failure response.
+6. WHEN SMTP settings exist in the database at startup, THE System SHALL validate connectivity with a timeout of 10 seconds and log the result as success or failure.
+7. IF SMTP connectivity validation fails at startup, THEN THE System SHALL log a warning with the connection error, mark SMTP as unavailable, and continue startup without terminating the process.
+8. IF no SMTP settings exist in the database, THEN THE System SHALL log an info message indicating email notifications are disabled.
+9. THE System SHALL validate that the port is between 1 and 65535 and that the from address conforms to RFC 5322 format, returning a validation error if constraints are violated.
 
 ### Requirement 13: Database Schema and Migrations
 

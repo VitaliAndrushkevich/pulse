@@ -238,6 +238,113 @@ export type WidgetId =
   | 'heatmap'
   | 'events-feed';
 
+// ─── Notification Channel Types ─────────────────────────────────────────────
+
+/** Notification channel type */
+export type NotificationChannelType = 'email' | 'webhook';
+
+/** HTTP methods allowed for webhook channels */
+export type WebhookMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+
+/** Custom header for webhook channels */
+export interface WebhookHeader {
+  name: string;
+  value: string;
+}
+
+/** Email channel configuration */
+export interface EmailChannelConfig {
+  recipients: string[];
+}
+
+/** Webhook channel configuration */
+export interface WebhookChannelConfig {
+  url: string;
+  method: WebhookMethod;
+  body_template: string;
+  headers?: WebhookHeader[];
+}
+
+/** Notification channel — from channel CRUD API */
+export interface NotificationChannel {
+  id: string;
+  name: string;
+  type: NotificationChannelType;
+  config: EmailChannelConfig | WebhookChannelConfig;
+  created_at: string;
+  updated_at: string;
+}
+
+/** Trigger condition types */
+export type TriggerType = 'monitor_down' | 'monitor_up' | 'degraded' | 'ssl_expiring' | 'n_failures_in_row';
+
+/** A single trigger condition in a binding */
+export interface TriggerCondition {
+  type: TriggerType;
+  threshold_ms?: number;
+  days_before?: number;
+  count?: number;
+}
+
+/** Channel binding — links a channel to a monitor with triggers */
+export interface ChannelBinding {
+  id: string;
+  channel_id: string;
+  monitor_id: string;
+  triggers: TriggerCondition[];
+  reminder_interval_minutes: number | null;
+  created_at: string;
+  updated_at: string;
+}
+
+/** Template variable reference — returned by template-variables endpoint */
+export interface TemplateVariable {
+  name: string;
+  type: string;
+  description: string;
+  example: string;
+}
+
+/** Template variable group */
+export interface TemplateVariableGroup {
+  name: string;
+  variables: TemplateVariable[];
+}
+
+/** SMTP settings — returned by GET /notifications/smtp-settings */
+export interface SMTPSettings {
+  host: string;
+  port: number;
+  username: string;
+  from_address: string;
+  tls_enabled: boolean;
+  password_set: boolean;
+}
+
+/** SMTP settings update request */
+export interface SMTPSettingsRequest {
+  host: string;
+  port: number;
+  username?: string;
+  password?: string;
+  from_address: string;
+  tls_enabled: boolean;
+}
+
+/** Test channel result */
+export interface TestChannelResult {
+  success: boolean;
+  channel_type: NotificationChannelType;
+  channel_id: string;
+  error?: string;
+}
+
+/** Test SMTP result */
+export interface TestSMTPResult {
+  success: boolean;
+  error?: string;
+}
+
 // ─── Proto Source Types ─────────────────────────────────────────────────────
 
 /** Proto source metadata returned by the proto-source API */

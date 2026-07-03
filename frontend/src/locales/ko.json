@@ -6,6 +6,7 @@
   "nav": {
     "dashboard": "대시보드",
     "monitors": "모니터",
+    "notifications": "알림",
     "settings": "설정",
     "logout": "로그아웃",
     "home": "Pulse — 홈"
@@ -267,9 +268,9 @@
         "udp": "형식: 호스트:포트",
         "websocket": "ws:// 또는 wss:// 스킴의 URL, 또는 호스트명 (기본: wss://)",
         "grpc": "형식: 호스트:포트",
-        "dns": "Domain name to query (e.g., example.com)",
-        "icmp": "Hostname or IP address (e.g., 8.8.8.8)",
-        "smtp": "Mail server hostname or host:port (e.g., mail.example.com)"
+        "dns": "조회할 도메인 이름 (예: example.com)",
+        "icmp": "호스트명 또는 IP 주소 (예: 8.8.8.8)",
+        "smtp": "메일 서버 호스트명 또는 호스트:포트 (예: mail.example.com)"
       }
     },
     "filter": {
@@ -295,6 +296,30 @@
       "addTag": "태그 추가",
       "confirm": "태그 확인",
       "cancelRow": "취소"
+    },
+    "proto": {
+      "uploadFiles": "Proto 파일 업로드",
+      "useReflection": "Server Reflection 사용",
+      "reflectionHint": "Reflection을 활성화하려면 대상 주소를 설정하세요",
+      "dropZoneTitle": ".proto 또는 .desc 파일을 여기에 드롭하세요",
+      "dropZoneHint": "클릭하여 찾아보기 (최대 20개 파일)",
+      "noValidFiles": "유효한 .proto 또는 .desc 파일을 찾을 수 없습니다",
+      "uploadFailed": "파일 업로드에 실패했습니다",
+      "reflectionFailed": "Server Reflection에 실패했습니다",
+      "removeFailed": "Proto 소스 제거에 실패했습니다",
+      "loading": "처리 중...",
+      "error": "오류",
+      "sourceUpload": "업로드된 Proto 소스",
+      "sourceReflection": "Server Reflection",
+      "files": "파일",
+      "services": "서비스",
+      "replace": "교체",
+      "remove": "제거",
+      "selectMethod": "서비스 메서드 선택",
+      "payloadFormat": "페이로드 형식",
+      "payloadFormatRaw": "Raw (Base64)",
+      "payloadFormatProtoJson": "Proto JSON",
+      "saveFirst": "Proto 소스 및 요청 페이로드를 구성하려면 먼저 모니터를 저장하세요."
     }
   },
   "settings": {
@@ -412,6 +437,35 @@
     "requestPayloadPlaceholder": "Base64 인코딩된 protobuf 메시지",
     "requestPayloadHelp": "선택적 Base64 인코딩 protobuf 요청 본문"
   },
+  "proto": {
+    "upload": {
+      "errorTitle": "업로드 오류",
+      "unknownError": "알 수 없는 오류가 발생했습니다",
+      "currentSource": "Proto 소스",
+      "sourceType": "소스",
+      "sourceTypeUpload": "파일 업로드",
+      "sourceTypeReflection": "Server Reflection",
+      "filenames": "파일",
+      "serviceCount": "{count}개 서비스 발견",
+      "replace": "교체",
+      "remove": "제거",
+      "dropzone": ".proto 또는 .desc 파일을 여기에 드롭하세요",
+      "dropzoneHint": "최대 20개 파일 (.proto 또는 .desc)",
+      "dropzoneLabel": "Proto 파일을 여기에 드롭하거나 클릭하여 찾아보기",
+      "selectedFiles": "{count}개 파일 선택됨",
+      "clearAll": "모두 지우기",
+      "removeFile": "{name} 제거",
+      "uploading": "업로드 중…",
+      "uploadButton": "파일 업로드",
+      "or": "또는",
+      "reflecting": "서비스 검색 중…",
+      "reflectionButton": "Server Reflection 사용",
+      "reflectionHint": "Server Reflection을 활성화하려면 대상 주소를 입력하세요",
+      "processing": "처리 중…",
+      "selectMethod": "서비스 메서드 선택",
+      "methodCount": "{count}개 메서드"
+    }
+  },
   "timeRange": {
     "custom": "사용자 정의",
     "start": "시작",
@@ -437,41 +491,249 @@
     "notFound": "찾을 수 없음"
   },
   "dns": {
-    "recordType": "Record Type",
-    "recordTypePlaceholder": "Select record type",
-    "recordTypeHelp": "DNS record type to query",
-    "expectedValue": "Expected Value",
+    "recordType": "레코드 유형",
+    "recordTypePlaceholder": "레코드 유형 선택",
+    "recordTypeHelp": "조회할 DNS 레코드 유형",
+    "expectedValue": "기대값",
     "expectedValuePlaceholder": "93.184.216.34",
-    "expectedValueHelp": "If set, check passes only when this value is found among DNS results",
-    "dnsServer": "DNS Server",
+    "expectedValueHelp": "설정 시, DNS 결과에 이 값이 포함된 경우에만 체크가 성공합니다",
+    "dnsServer": "DNS 서버",
     "dnsServerPlaceholder": "8.8.8.8:53",
-    "dnsServerHelp": "Custom DNS resolver (leave empty for default)"
+    "dnsServerHelp": "사용자 정의 DNS 리졸버 (비워두면 기본값 사용)"
   },
   "icmp": {
-    "packetCount": "Packet Count",
-    "packetCountHelp": "Number of ICMP echo requests to send (1-10)",
-    "lossThreshold": "Loss Threshold (%)",
-    "lossThresholdHelp": "Percentage of packet loss that triggers a 'down' state",
-    "useIpv6": "Use IPv6",
-    "useIpv6Help": "Send ICMPv6 echo requests instead of IPv4"
+    "packetCount": "패킷 수",
+    "packetCountHelp": "전송할 ICMP 에코 요청 수 (1-10)",
+    "lossThreshold": "손실 임계값 (%)",
+    "lossThresholdHelp": "다운 상태를 트리거하는 패킷 손실 비율",
+    "useIpv6": "IPv6 사용",
+    "useIpv6Help": "IPv4 대신 ICMPv6 에코 요청을 전송합니다"
   },
   "smtp": {
-    "port": "Port",
-    "portHelp": "SMTP server port (25, 587, 465)",
+    "port": "포트",
+    "portHelp": "SMTP 서버 포트 (25, 587, 465)",
     "starttls": "STARTTLS",
-    "starttlsHelp": "Attempt STARTTLS upgrade after EHLO",
-    "ehloDomain": "EHLO Domain",
+    "starttlsHelp": "EHLO 후 STARTTLS 업그레이드를 시도합니다 (Implicit TLS 활성화 시 무시됨)",
+    "implicitTls": "Implicit TLS (SMTPS)",
+    "implicitTlsHelp": "연결 시작부터 TLS를 사용합니다 (포트 465). SMTPS 서버의 경우 STARTTLS 대신 사용하세요.",
+    "ehloDomain": "EHLO 도메인",
     "ehloDomainPlaceholder": "pulse.local",
-    "ehloDomainHelp": "Domain name used in the EHLO greeting",
-    "sslExpiryThreshold": "SSL Expiry Threshold (days)",
+    "ehloDomainHelp": "EHLO 인사에 사용되는 도메인 이름",
+    "sslExpiryThreshold": "SSL 만료 임계값 (일)",
     "sslExpiryThresholdPlaceholder": "14",
-    "sslExpiryThresholdHelp": "Alert when certificate expires within this many days (0 = disabled)"
+    "sslExpiryThresholdHelp": "인증서가 이 일수 내에 만료되면 알림 (0 = 비활성화)"
   },
   "payloadEditor": {
-    "placeholder": "Enter JSON payload (e.g. {\"name\": \"value\"})",
-    "label": "Request Payload (JSON)",
-    "jsonHint": "Write your gRPC request body as JSON. Use Format button for pretty-printing.",
-    "format": "Format",
-    "minify": "Minify"
+    "placeholder": "JSON 페이로드 입력 (예: {\"name\": \"value\"})",
+    "label": "요청 페이로드 (JSON)",
+    "jsonHint": "gRPC 요청 본문을 JSON으로 작성하세요. 포맷 버튼으로 정렬할 수 있습니다.",
+    "format": "포맷",
+    "minify": "압축"
+  },
+  "notifications": {
+    "title": "알림",
+    "description": "알림 채널 및 경고 전송을 관리합니다.",
+    "channels": {
+      "title": "알림 채널",
+      "create": "채널 만들기",
+      "edit": "채널 편집",
+      "loading": "채널 로딩 중...",
+      "empty": {
+        "title": "알림 채널이 없습니다",
+        "description": "경고를 수신하려면 첫 번째 채널을 만드세요.",
+        "action": "채널 만들기"
+      },
+      "list": {
+        "name": "이름",
+        "type": "유형",
+        "created": "생성일",
+        "actions": "작업"
+      },
+      "types": {
+        "email": "이메일",
+        "webhook": "Webhook"
+      },
+      "deleteConfirm": {
+        "title": "채널 삭제",
+        "description": "\"{name}\"을(를) 삭제하시겠습니까? 이 채널을 사용하는 모든 바인딩도 함께 제거됩니다. 이 작업은 취소할 수 없습니다.",
+        "confirm": "채널 삭제"
+      }
+    },
+    "form": {
+      "name": "채널 이름",
+      "namePlaceholder": "예: 운영팀 이메일, Slack Webhook",
+      "type": "채널 유형",
+      "typePlaceholder": "채널 유형 선택",
+      "submitCreate": "채널 만들기",
+      "submitUpdate": "채널 업데이트",
+      "email": {
+        "recipients": "수신자",
+        "recipientsPlaceholder": "이메일 주소 입력",
+        "recipientsHelp": "최대 50명의 수신자 이메일 주소를 추가할 수 있습니다.",
+        "addRecipient": "수신자 추가",
+        "removeRecipient": "수신자 제거"
+      },
+      "webhook": {
+        "url": "Webhook URL",
+        "urlPlaceholder": "https://hooks.example.com/...",
+        "urlHelp": "알림을 수신할 HTTP 또는 HTTPS 엔드포인트 (최대 2048자).",
+        "method": "HTTP 메서드",
+        "methodHelp": "Webhook 요청에 사용되는 HTTP 메서드.",
+        "headers": "사용자 정의 헤더",
+        "headersHelp": "각 Webhook 요청과 함께 전송되는 선택적 헤더 (최대 20개).",
+        "addHeader": "헤더 추가",
+        "removeHeader": "헤더 제거",
+        "headerNamePlaceholder": "헤더 이름",
+        "headerValuePlaceholder": "헤더 값",
+        "bodyTemplate": "본문 템플릿",
+        "bodyTemplatePlaceholder": "{ \"text\": \"{{.Monitor.Name}} is {{.Status}}\" }",
+        "bodyTemplateHelp": "Webhook 요청 본문의 Go 템플릿. 아래 템플릿 변수를 사용하세요."
+      }
+    },
+    "triggers": {
+      "title": "트리거 조건",
+      "description": "이 바인딩에 대해 알림을 발생시킬 이벤트를 선택하세요.",
+      "monitorDown": "모니터 다운",
+      "monitorDownHelp": "모니터가 다운 상태로 전환될 때 알립니다.",
+      "monitorUp": "모니터 복구",
+      "monitorUpHelp": "모니터가 다운 상태에서 복구될 때 알립니다.",
+      "degraded": "성능 저하",
+      "degradedHelp": "응답 시간이 임계값을 초과할 때 알립니다.",
+      "degradedThreshold": "임계값 (ms)",
+      "degradedThresholdPlaceholder": "5000",
+      "sslExpiring": "SSL 만료 임박",
+      "sslExpiringHelp": "SSL 인증서가 지정된 일수 내에 만료될 때 알립니다.",
+      "sslExpiringDays": "만료 전 일수",
+      "sslExpiringDaysPlaceholder": "14",
+      "nFailuresInRow": "연속 실패",
+      "nFailuresInRowHelp": "모니터가 N회 연속 실패할 때 알립니다.",
+      "nFailuresCount": "실패 횟수",
+      "nFailuresCountPlaceholder": "5",
+      "noneSelected": "최소 하나의 트리거 조건을 선택해야 합니다."
+    },
+    "reminders": {
+      "title": "리마인더 정책",
+      "description": "조건이 지속되는 동안 알림을 반복합니다.",
+      "interval": "리마인더 간격",
+      "disabled": "비활성화",
+      "minutes": "{count}분"
+    },
+    "bindings": {
+      "title": "알림 바인딩",
+      "description": "이 모니터에 적용할 채널과 트리거를 구성합니다.",
+      "add": "바인딩 추가",
+      "remove": "바인딩 제거",
+      "channel": "채널",
+      "channelPlaceholder": "채널 선택",
+      "empty": {
+        "title": "알림 바인딩이 없습니다",
+        "description": "이 모니터의 경고를 수신하려면 바인딩을 추가하세요."
+      },
+      "noChannels": {
+        "title": "사용 가능한 채널이 없습니다",
+        "description": "먼저 알림 페이지에서 알림 채널을 만드세요.",
+        "action": "알림으로 이동"
+      },
+      "deleteConfirm": {
+        "title": "바인딩 제거",
+        "description": "이 알림 바인딩을 제거하시겠습니까? 이 채널에서 이 모니터에 대한 경고를 더 이상 수신하지 않습니다.",
+        "confirm": "바인딩 제거"
+      }
+    },
+    "test": {
+      "button": "테스트",
+      "sending": "전송 중...",
+      "success": "테스트 알림이 성공적으로 전송되었습니다.",
+      "failure": "테스트 알림 실패: {error}"
+    },
+    "toast": {
+      "channelCreated": "채널 \"{name}\"이(가) 성공적으로 생성되었습니다.",
+      "channelUpdated": "채널 \"{name}\"이(가) 성공적으로 업데이트되었습니다.",
+      "channelDeleted": "채널 \"{name}\"이(가) 삭제되었습니다.",
+      "bindingCreated": "알림 바인딩이 생성되었습니다.",
+      "bindingUpdated": "알림 바인딩이 업데이트되었습니다.",
+      "bindingDeleted": "알림 바인딩이 제거되었습니다.",
+      "testSuccess": "테스트 알림이 성공적으로 전달되었습니다.",
+      "testFailure": "테스트 알림 실패: {error}"
+    },
+    "templateVariables": {
+      "title": "템플릿 변수",
+      "description": "Webhook 본문 템플릿에서 사용할 수 있는 변수입니다.",
+      "groups": {
+        "monitor": "모니터",
+        "incident": "인시던트",
+        "general": "일반"
+      },
+      "variables": {
+        "monitorName": "모니터 이름",
+        "monitorUrl": "모니터 URL",
+        "monitorTarget": "모니터 대상 주소",
+        "status": "현재 상태",
+        "previousStatus": "이전 상태",
+        "responseTime": "응답 시간 (밀리초)",
+        "incidentStartedAt": "인시던트 시작 시간",
+        "incidentDuration": "인시던트 지속 시간",
+        "incidentId": "인시던트 고유 ID",
+        "timestamp": "이벤트 타임스탬프"
+      }
+    },
+    "smtpSettings": {
+      "title": "SMTP 설정",
+      "description": "이메일 알림에 사용되는 SMTP 서버를 구성합니다.",
+      "host": "SMTP 호스트",
+      "hostPlaceholder": "smtp.example.com",
+      "port": "포트",
+      "portPlaceholder": "587",
+      "username": "사용자 이름",
+      "usernamePlaceholder": "notifications@example.com",
+      "password": "비밀번호",
+      "passwordPlaceholder": "SMTP 비밀번호 입력",
+      "passwordSet": "비밀번호가 설정되어 있습니다",
+      "passwordNotSet": "비밀번호가 구성되지 않았습니다",
+      "fromAddress": "발신자 주소",
+      "fromAddressPlaceholder": "pulse@example.com",
+      "fromAddressHelp": "알림 이메일의 발신자 주소.",
+      "tlsEnabled": "TLS 활성화",
+      "tlsEnabledHelp": "SMTP 연결에 TLS 암호화를 사용합니다.",
+      "testConnection": "연결 테스트",
+      "testingConnection": "테스트 중...",
+      "testSuccess": "SMTP 연결에 성공했습니다.",
+      "testFailure": "SMTP 연결 실패: {error}",
+      "saved": "SMTP 설정이 저장되었습니다.",
+      "deleted": "SMTP 설정이 제거되었습니다. 이메일 알림이 비활성화되었습니다.",
+      "notConfigured": "SMTP가 구성되지 않았습니다. 이메일 알림이 비활성화되어 있습니다.",
+      "deleteConfirm": {
+        "title": "SMTP 설정 제거",
+        "description": "SMTP 설정을 제거하시겠습니까? 이메일 알림이 비활성화됩니다.",
+        "confirm": "설정 제거"
+      }
+    },
+    "validation": {
+      "nameRequired": "채널 이름은 필수입니다.",
+      "nameTooLong": "채널 이름은 100자 이하여야 합니다.",
+      "typeRequired": "채널 유형은 필수입니다.",
+      "typeInvalid": "채널 유형은 \"email\" 또는 \"webhook\"이어야 합니다.",
+      "recipientsRequired": "최소 하나의 수신자 이메일이 필요합니다.",
+      "recipientsTooMany": "최대 50명의 수신자만 허용됩니다.",
+      "recipientInvalid": "잘못된 이메일 주소: {email}",
+      "urlRequired": "Webhook URL은 필수입니다.",
+      "urlInvalid": "URL은 http:// 또는 https://로 시작해야 합니다.",
+      "urlTooLong": "URL은 2048자 이하여야 합니다.",
+      "methodRequired": "HTTP 메서드는 필수입니다.",
+      "methodInvalid": "메서드는 GET, POST, PUT, PATCH, DELETE 중 하나여야 합니다.",
+      "bodyTemplateRequired": "Webhook 채널에는 본문 템플릿이 필수입니다.",
+      "bodyTemplateInvalid": "잘못된 템플릿: {error}",
+      "headerNameTooLong": "헤더 이름은 128자 이하여야 합니다.",
+      "headerValueTooLong": "헤더 값은 8192자 이하여야 합니다.",
+      "headersTooMany": "최대 20개의 사용자 정의 헤더만 허용됩니다.",
+      "degradedThresholdRange": "임계값은 1에서 60000 ms 사이여야 합니다.",
+      "sslExpiringDaysRange": "일수는 1에서 365 사이여야 합니다.",
+      "nFailuresCountRange": "횟수는 1에서 100 사이여야 합니다.",
+      "triggerRequired": "최소 하나의 트리거 조건이 필요합니다.",
+      "smtpHostRequired": "SMTP 호스트는 필수입니다.",
+      "smtpPortRange": "포트는 1에서 65535 사이여야 합니다.",
+      "smtpFromRequired": "발신자 주소는 필수입니다.",
+      "smtpFromInvalid": "잘못된 이메일 주소 형식입니다."
+    }
   }
 }

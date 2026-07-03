@@ -5,6 +5,7 @@
   import { getMonitor, updateMonitor, ApiRequestError } from '$lib/api';
   import { monitorStore } from '$lib/stores/monitors.svelte';
   import MonitorForm from '../../../../components/MonitorForm.svelte';
+  import MonitorNotificationBindings from '../../../../components/MonitorNotificationBindings.svelte';
   import type { Monitor } from '$lib/types';
   import { t } from '$lib/i18n';
 
@@ -49,6 +50,10 @@
     untrack(() => fetchData());
   });
 </script>
+
+{#snippet notificationBindingsSnippet()}
+  <MonitorNotificationBindings monitorId={monitorId} />
+{/snippet}
 
 <section class="space-y-6">
   <h1 class="text-2xl font-bold tracking-tight text-primary">{t('monitors.edit')}</h1>
@@ -105,6 +110,7 @@
       initialTags={monitor.tags}
       onSubmit={handleSubmit}
       onCancel={handleCancel}
+      extraSections={notificationBindingsSnippet}
     />
   {/if}
 </section>

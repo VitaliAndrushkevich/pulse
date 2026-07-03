@@ -6,6 +6,7 @@
   "nav": {
     "dashboard": "Übersicht",
     "monitors": "Monitore",
+    "notifications": "Benachrichtigungen",
     "settings": "Einstellungen",
     "logout": "Abmelden",
     "home": "Pulse — Startseite"
@@ -39,7 +40,7 @@
     "next": "Weiter"
   },
   "connection": {
-    "live": "Live",
+    "live": "Aktiv",
     "reconnecting": "Verbindung wird wiederhergestellt…",
     "paused": "Live-Updates pausiert",
     "statusLive": "Verbindungsstatus: live",
@@ -267,13 +268,13 @@
         "udp": "Format: Host:Port",
         "websocket": "URL mit ws:// oder wss://, oder Hostname (Standard: wss://)",
         "grpc": "Format: Host:Port",
-        "dns": "Domain name to query (e.g., example.com)",
-        "icmp": "Hostname or IP address (e.g., 8.8.8.8)",
-        "smtp": "Mail server hostname or host:port (e.g., mail.example.com)"
+        "dns": "Abzufragender Domainname (z.B. example.com)",
+        "icmp": "Hostname oder IP-Adresse (z.B. 8.8.8.8)",
+        "smtp": "Mailserver-Hostname oder Host:Port (z.B. mail.example.com)"
       }
     },
     "filter": {
-      "expand": "Filter",
+      "expand": "Filtern",
       "collapse": "Filterleiste einklappen",
       "selectKey": "Schlüssel wählen",
       "addTag": "Hinzufügen",
@@ -295,6 +296,30 @@
       "addTag": "Tag hinzufügen",
       "confirm": "Tag bestätigen",
       "cancelRow": "Abbrechen"
+    },
+    "proto": {
+      "uploadFiles": "Proto-Dateien hochladen",
+      "useReflection": "Server Reflection verwenden",
+      "reflectionHint": "Zieladresse angeben, um Reflection zu aktivieren",
+      "dropZoneTitle": ".proto- oder .desc-Dateien hier ablegen",
+      "dropZoneHint": "Oder zum Durchsuchen klicken (max. 20 Dateien)",
+      "noValidFiles": "Keine gültigen .proto- oder .desc-Dateien gefunden",
+      "uploadFailed": "Datei-Upload fehlgeschlagen",
+      "reflectionFailed": "Server Reflection fehlgeschlagen",
+      "removeFailed": "Proto-Quelle konnte nicht entfernt werden",
+      "loading": "Verarbeitung…",
+      "error": "Fehler",
+      "sourceUpload": "Hochgeladene Proto-Quelle",
+      "sourceReflection": "Server Reflection",
+      "files": "Dateien",
+      "services": "Dienste",
+      "replace": "Ersetzen",
+      "remove": "Entfernen",
+      "selectMethod": "Service-Methode auswählen",
+      "payloadFormat": "Payload-Format",
+      "payloadFormatRaw": "Raw (Base64)",
+      "payloadFormatProtoJson": "Proto JSON",
+      "saveFirst": "Speichern Sie den Monitor zuerst, um Proto-Quelle und Request-Payload zu konfigurieren."
     }
   },
   "settings": {
@@ -412,9 +437,38 @@
     "requestPayloadPlaceholder": "Base64-kodierte Protobuf-Nachricht",
     "requestPayloadHelp": "Optionaler Base64-kodierter Protobuf-Request-Body"
   },
+  "proto": {
+    "upload": {
+      "errorTitle": "Upload-Fehler",
+      "unknownError": "Ein unbekannter Fehler ist aufgetreten",
+      "currentSource": "Proto-Quelle",
+      "sourceType": "Quelle",
+      "sourceTypeUpload": "Datei-Upload",
+      "sourceTypeReflection": "Server Reflection",
+      "filenames": "Dateien",
+      "serviceCount": "{count} Service(s) entdeckt",
+      "replace": "Ersetzen",
+      "remove": "Entfernen",
+      "dropzone": ".proto- oder .desc-Dateien hier ablegen",
+      "dropzoneHint": "Bis zu 20 Dateien (.proto oder .desc)",
+      "dropzoneLabel": "Proto-Dateien hier ablegen oder zum Durchsuchen klicken",
+      "selectedFiles": "{count} Datei(en) ausgewählt",
+      "clearAll": "Alle entfernen",
+      "removeFile": "{name} entfernen",
+      "uploading": "Hochladen…",
+      "uploadButton": "Dateien hochladen",
+      "or": "oder",
+      "reflecting": "Services werden erkannt…",
+      "reflectionButton": "Server Reflection verwenden",
+      "reflectionHint": "Zieladresse eingeben, um Server Reflection zu aktivieren",
+      "processing": "Verarbeitung…",
+      "selectMethod": "Service-Methode auswählen",
+      "methodCount": "{count} Methode(n)"
+    }
+  },
   "timeRange": {
     "custom": "Benutzerdefiniert",
-    "start": "Start",
+    "start": "Beginn",
     "end": "Ende",
     "validation": {
       "bothRequired": "Bitte Start- und Endzeit auswählen",
@@ -437,41 +491,249 @@
     "notFound": "Nicht gefunden"
   },
   "dns": {
-    "recordType": "Record Type",
-    "recordTypePlaceholder": "Select record type",
-    "recordTypeHelp": "DNS record type to query",
-    "expectedValue": "Expected Value",
+    "recordType": "Eintragstyp",
+    "recordTypePlaceholder": "Eintragstyp wählen",
+    "recordTypeHelp": "DNS-Eintragstyp für die Abfrage",
+    "expectedValue": "Erwarteter Wert",
     "expectedValuePlaceholder": "93.184.216.34",
-    "expectedValueHelp": "If set, check passes only when this value is found among DNS results",
-    "dnsServer": "DNS Server",
+    "expectedValueHelp": "Wenn gesetzt, ist die Prüfung nur erfolgreich, wenn dieser Wert in den DNS-Ergebnissen enthalten ist",
+    "dnsServer": "DNS-Server",
     "dnsServerPlaceholder": "8.8.8.8:53",
-    "dnsServerHelp": "Custom DNS resolver (leave empty for default)"
+    "dnsServerHelp": "Benutzerdefinierter DNS-Resolver (leer lassen für Standard)"
   },
   "icmp": {
-    "packetCount": "Packet Count",
-    "packetCountHelp": "Number of ICMP echo requests to send (1-10)",
-    "lossThreshold": "Loss Threshold (%)",
-    "lossThresholdHelp": "Percentage of packet loss that triggers a 'down' state",
-    "useIpv6": "Use IPv6",
-    "useIpv6Help": "Send ICMPv6 echo requests instead of IPv4"
+    "packetCount": "Paketanzahl",
+    "packetCountHelp": "Anzahl der zu sendenden ICMP-Echo-Anfragen (1–10)",
+    "lossThreshold": "Verlustschwelle (%)",
+    "lossThresholdHelp": "Prozentsatz des Paketverlusts, der den Status 'Ausgefallen' auslöst",
+    "useIpv6": "IPv6 verwenden",
+    "useIpv6Help": "ICMPv6-Echo-Anfragen anstelle von IPv4 senden"
   },
   "smtp": {
     "port": "Port",
-    "portHelp": "SMTP server port (25, 587, 465)",
+    "portHelp": "SMTP-Server-Port (25, 587, 465)",
     "starttls": "STARTTLS",
-    "starttlsHelp": "Attempt STARTTLS upgrade after EHLO",
-    "ehloDomain": "EHLO Domain",
+    "starttlsHelp": "STARTTLS-Upgrade nach EHLO versuchen (wird ignoriert, wenn Implicit TLS aktiviert ist)",
+    "implicitTls": "Implicit TLS (SMTPS)",
+    "implicitTlsHelp": "Von Beginn an mit TLS verbinden (Port 465). Verwenden Sie dies anstelle von STARTTLS für SMTPS-Server.",
+    "ehloDomain": "EHLO-Domain",
     "ehloDomainPlaceholder": "pulse.local",
-    "ehloDomainHelp": "Domain name used in the EHLO greeting",
-    "sslExpiryThreshold": "SSL Expiry Threshold (days)",
+    "ehloDomainHelp": "Domainname für die EHLO-Begrüßung",
+    "sslExpiryThreshold": "SSL-Ablaufschwelle (Tage)",
     "sslExpiryThresholdPlaceholder": "14",
-    "sslExpiryThresholdHelp": "Alert when certificate expires within this many days (0 = disabled)"
+    "sslExpiryThresholdHelp": "Warnung, wenn das Zertifikat innerhalb dieser Tage abläuft (0 = deaktiviert)"
   },
   "payloadEditor": {
-    "placeholder": "Enter JSON payload (e.g. {\"name\": \"value\"})",
-    "label": "Request Payload (JSON)",
-    "jsonHint": "Write your gRPC request body as JSON. Use Format button for pretty-printing.",
-    "format": "Format",
-    "minify": "Minify"
+    "placeholder": "JSON-Payload eingeben (z.B. {\"name\": \"value\"})",
+    "label": "Request-Payload (JSON)",
+    "jsonHint": "Schreiben Sie den gRPC-Request-Body als JSON. Verwenden Sie die Formatieren-Schaltfläche für die Darstellung.",
+    "format": "Formatieren",
+    "minify": "Minifizieren"
+  },
+  "notifications": {
+    "title": "Benachrichtigungen",
+    "description": "Benachrichtigungskanäle und Alarmzustellung verwalten.",
+    "channels": {
+      "title": "Benachrichtigungskanäle",
+      "create": "Kanal erstellen",
+      "edit": "Kanal bearbeiten",
+      "loading": "Kanäle werden geladen…",
+      "empty": {
+        "title": "Keine Benachrichtigungskanäle",
+        "description": "Erstellen Sie Ihren ersten Kanal, um Alarme zu empfangen.",
+        "action": "Kanal erstellen"
+      },
+      "list": {
+        "name": "Name",
+        "type": "Typ",
+        "created": "Erstellt",
+        "actions": "Aktionen"
+      },
+      "types": {
+        "email": "E-Mail",
+        "webhook": "Webhook"
+      },
+      "deleteConfirm": {
+        "title": "Kanal löschen",
+        "description": "Möchten Sie \"{name}\" wirklich löschen? Alle Verknüpfungen mit diesem Kanal werden ebenfalls entfernt. Diese Aktion kann nicht rückgängig gemacht werden.",
+        "confirm": "Kanal löschen"
+      }
+    },
+    "form": {
+      "name": "Kanalname",
+      "namePlaceholder": "z.B. Ops-Team E-Mail, Slack Webhook",
+      "type": "Kanaltyp",
+      "typePlaceholder": "Kanaltyp auswählen",
+      "submitCreate": "Kanal erstellen",
+      "submitUpdate": "Kanal aktualisieren",
+      "email": {
+        "recipients": "Empfänger",
+        "recipientsPlaceholder": "E-Mail-Adresse eingeben",
+        "recipientsHelp": "Bis zu 50 Empfänger-E-Mail-Adressen hinzufügen.",
+        "addRecipient": "Empfänger hinzufügen",
+        "removeRecipient": "Empfänger entfernen"
+      },
+      "webhook": {
+        "url": "Webhook-URL",
+        "urlPlaceholder": "https://hooks.example.com/...",
+        "urlHelp": "HTTP- oder HTTPS-Endpunkt für Benachrichtigungen (max. 2048 Zeichen).",
+        "method": "HTTP-Methode",
+        "methodHelp": "HTTP-Methode für die Webhook-Anfrage.",
+        "headers": "Benutzerdefinierte Header",
+        "headersHelp": "Optionale Header, die mit jeder Webhook-Anfrage gesendet werden (bis zu 20).",
+        "addHeader": "Header hinzufügen",
+        "removeHeader": "Header entfernen",
+        "headerNamePlaceholder": "Header-Name",
+        "headerValuePlaceholder": "Header-Wert",
+        "bodyTemplate": "Body-Template",
+        "bodyTemplatePlaceholder": "{ \"text\": \"{{.Monitor.Name}} is {{.Status}}\" }",
+        "bodyTemplateHelp": "Go-Template für den Webhook-Request-Body. Verwenden Sie die unten aufgeführten Template-Variablen."
+      }
+    },
+    "triggers": {
+      "title": "Auslösebedingungen",
+      "description": "Wählen Sie, welche Ereignisse Benachrichtigungen für diese Verknüpfung auslösen sollen.",
+      "monitorDown": "Monitor ausgefallen",
+      "monitorDownHelp": "Benachrichtigung, wenn der Monitor in den Status \u201eAusgefallen\u201c wechselt.",
+      "monitorUp": "Monitor erreichbar",
+      "monitorUpHelp": "Benachrichtigung, wenn sich der Monitor von einem Ausfall erholt.",
+      "degraded": "Verschlechterte Leistung",
+      "degradedHelp": "Benachrichtigung, wenn die Antwortzeit den Schwellenwert überschreitet.",
+      "degradedThreshold": "Schwellenwert (ms)",
+      "degradedThresholdPlaceholder": "5000",
+      "sslExpiring": "SSL läuft ab",
+      "sslExpiringHelp": "Benachrichtigung, wenn das SSL-Zertifikat innerhalb der angegebenen Tage abläuft.",
+      "sslExpiringDays": "Tage vor Ablauf",
+      "sslExpiringDaysPlaceholder": "14",
+      "nFailuresInRow": "Aufeinanderfolgende Fehler",
+      "nFailuresInRowHelp": "Benachrichtigung, wenn der Monitor N-mal in Folge fehlschlägt.",
+      "nFailuresCount": "Fehleranzahl",
+      "nFailuresCountPlaceholder": "5",
+      "noneSelected": "Mindestens eine Auslösebedingung muss ausgewählt werden."
+    },
+    "reminders": {
+      "title": "Erinnerungsrichtlinie",
+      "description": "Benachrichtigungen wiederholen, solange die Bedingung besteht.",
+      "interval": "Erinnerungsintervall",
+      "disabled": "Deaktiviert",
+      "minutes": "{count} Minuten"
+    },
+    "bindings": {
+      "title": "Benachrichtigungsverknüpfungen",
+      "description": "Konfigurieren Sie, welche Kanäle und Auslöser für diesen Monitor gelten.",
+      "add": "Verknüpfung hinzufügen",
+      "remove": "Verknüpfung entfernen",
+      "channel": "Kanal",
+      "channelPlaceholder": "Kanal auswählen",
+      "empty": {
+        "title": "Keine Benachrichtigungsverknüpfungen",
+        "description": "Fügen Sie eine Verknüpfung hinzu, um Alarme für diesen Monitor zu erhalten."
+      },
+      "noChannels": {
+        "title": "Keine Kanäle verfügbar",
+        "description": "Erstellen Sie zuerst einen Benachrichtigungskanal auf der Benachrichtigungsseite.",
+        "action": "Zu Benachrichtigungen"
+      },
+      "deleteConfirm": {
+        "title": "Verknüpfung entfernen",
+        "description": "Möchten Sie diese Benachrichtigungsverknüpfung wirklich entfernen? Sie erhalten keine Alarme mehr von diesem Kanal für diesen Monitor.",
+        "confirm": "Verknüpfung entfernen"
+      }
+    },
+    "test": {
+      "button": "Testen",
+      "sending": "Senden…",
+      "success": "Testbenachrichtigung erfolgreich gesendet.",
+      "failure": "Testbenachrichtigung fehlgeschlagen: {error}"
+    },
+    "toast": {
+      "channelCreated": "Kanal \"{name}\" erfolgreich erstellt.",
+      "channelUpdated": "Kanal \"{name}\" erfolgreich aktualisiert.",
+      "channelDeleted": "Kanal \"{name}\" gelöscht.",
+      "bindingCreated": "Benachrichtigungsverknüpfung erstellt.",
+      "bindingUpdated": "Benachrichtigungsverknüpfung aktualisiert.",
+      "bindingDeleted": "Benachrichtigungsverknüpfung entfernt.",
+      "testSuccess": "Testbenachrichtigung erfolgreich zugestellt.",
+      "testFailure": "Testbenachrichtigung fehlgeschlagen: {error}"
+    },
+    "templateVariables": {
+      "title": "Template-Variablen",
+      "description": "Verfügbare Variablen für Webhook-Body-Templates.",
+      "groups": {
+        "monitor": "Monitor",
+        "incident": "Vorfall",
+        "general": "Allgemein"
+      },
+      "variables": {
+        "monitorName": "Monitor-Name",
+        "monitorUrl": "Monitor-URL",
+        "monitorTarget": "Monitor-Zieladresse",
+        "status": "Aktueller Status",
+        "previousStatus": "Vorheriger Status",
+        "responseTime": "Antwortzeit in Millisekunden",
+        "incidentStartedAt": "Startzeit des Vorfalls",
+        "incidentDuration": "Dauer des Vorfalls",
+        "incidentId": "Eindeutige Vorfalls-ID",
+        "timestamp": "Ereignis-Zeitstempel"
+      }
+    },
+    "smtpSettings": {
+      "title": "SMTP-Einstellungen",
+      "description": "SMTP-Server für E-Mail-Benachrichtigungen konfigurieren.",
+      "host": "SMTP-Host",
+      "hostPlaceholder": "smtp.example.com",
+      "port": "Port",
+      "portPlaceholder": "587",
+      "username": "Benutzername",
+      "usernamePlaceholder": "notifications@example.com",
+      "password": "Passwort",
+      "passwordPlaceholder": "SMTP-Passwort eingeben",
+      "passwordSet": "Passwort ist gesetzt",
+      "passwordNotSet": "Kein Passwort konfiguriert",
+      "fromAddress": "Absenderadresse",
+      "fromAddressPlaceholder": "pulse@example.com",
+      "fromAddressHelp": "Absenderadresse für Benachrichtigungs-E-Mails.",
+      "tlsEnabled": "TLS aktivieren",
+      "tlsEnabledHelp": "TLS-Verschlüsselung für die SMTP-Verbindung verwenden.",
+      "testConnection": "Verbindung testen",
+      "testingConnection": "Teste…",
+      "testSuccess": "SMTP-Verbindung erfolgreich.",
+      "testFailure": "SMTP-Verbindung fehlgeschlagen: {error}",
+      "saved": "SMTP-Einstellungen gespeichert.",
+      "deleted": "SMTP-Einstellungen entfernt. E-Mail-Benachrichtigungen sind jetzt deaktiviert.",
+      "notConfigured": "SMTP ist nicht konfiguriert. E-Mail-Benachrichtigungen sind deaktiviert.",
+      "deleteConfirm": {
+        "title": "SMTP-Einstellungen entfernen",
+        "description": "Möchten Sie die SMTP-Einstellungen wirklich entfernen? E-Mail-Benachrichtigungen werden deaktiviert.",
+        "confirm": "Einstellungen entfernen"
+      }
+    },
+    "validation": {
+      "nameRequired": "Kanalname ist erforderlich.",
+      "nameTooLong": "Kanalname darf maximal 100 Zeichen lang sein.",
+      "typeRequired": "Kanaltyp ist erforderlich.",
+      "typeInvalid": "Kanaltyp muss \"email\" oder \"webhook\" sein.",
+      "recipientsRequired": "Mindestens eine Empfänger-E-Mail ist erforderlich.",
+      "recipientsTooMany": "Maximal 50 Empfänger erlaubt.",
+      "recipientInvalid": "Ungültige E-Mail-Adresse: {email}",
+      "urlRequired": "Webhook-URL ist erforderlich.",
+      "urlInvalid": "URL muss mit http:// oder https:// beginnen.",
+      "urlTooLong": "URL darf maximal 2048 Zeichen lang sein.",
+      "methodRequired": "HTTP-Methode ist erforderlich.",
+      "methodInvalid": "Methode muss eine der folgenden sein: GET, POST, PUT, PATCH, DELETE.",
+      "bodyTemplateRequired": "Body-Template ist für Webhook-Kanäle erforderlich.",
+      "bodyTemplateInvalid": "Ungültiges Template: {error}",
+      "headerNameTooLong": "Header-Name darf maximal 128 Zeichen lang sein.",
+      "headerValueTooLong": "Header-Wert darf maximal 8192 Zeichen lang sein.",
+      "headersTooMany": "Maximal 20 benutzerdefinierte Header erlaubt.",
+      "degradedThresholdRange": "Schwellenwert muss zwischen 1 und 60000 ms liegen.",
+      "sslExpiringDaysRange": "Tage müssen zwischen 1 und 365 liegen.",
+      "nFailuresCountRange": "Anzahl muss zwischen 1 und 100 liegen.",
+      "triggerRequired": "Mindestens eine Auslösebedingung ist erforderlich.",
+      "smtpHostRequired": "SMTP-Host ist erforderlich.",
+      "smtpPortRange": "Port muss zwischen 1 und 65535 liegen.",
+      "smtpFromRequired": "Absenderadresse ist erforderlich.",
+      "smtpFromInvalid": "Ungültiges E-Mail-Adressformat."
+    }
   }
 }

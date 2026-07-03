@@ -6,6 +6,7 @@
   "nav": {
     "dashboard": "Панэль",
     "monitors": "Маніторы",
+    "notifications": "Апавяшчэнні",
     "settings": "Налады",
     "logout": "Выйсці",
     "home": "Pulse — Галоўная"
@@ -267,9 +268,9 @@
         "udp": "Фармат: хост:порт",
         "websocket": "URL са схемай ws:// або wss://, або імя хаста (па змаўчанні wss://)",
         "grpc": "Фармат: хост:порт",
-        "dns": "Domain name to query (e.g., example.com)",
-        "icmp": "Hostname or IP address (e.g., 8.8.8.8)",
-        "smtp": "Mail server hostname or host:port (e.g., mail.example.com)"
+        "dns": "Даменнае імя для запыту (напр. example.com)",
+        "icmp": "Імя хаста або IP-адрас (напр. 8.8.8.8)",
+        "smtp": "Імя хаста паштовага сервера або хост:порт (напр. mail.example.com)"
       }
     },
     "filter": {
@@ -295,6 +296,30 @@
       "addTag": "Дадаць тэг",
       "confirm": "Пацвердзіць тэг",
       "cancelRow": "Скасаваць"
+    },
+    "proto": {
+      "uploadFiles": "Загрузіць Proto-файлы",
+      "useReflection": "Выкарыстаць Server Reflection",
+      "reflectionHint": "Задайце адрас мэты, каб уключыць рэфлексію",
+      "dropZoneTitle": "Перацягніце .proto або .desc файлы сюды",
+      "dropZoneHint": "Або націсніце для выбару (макс. 20 файлаў)",
+      "noValidFiles": "Не знойдзена карэктных .proto або .desc файлаў",
+      "uploadFailed": "Загрузка файлаў не ўдалася",
+      "reflectionFailed": "Server Reflection не ўдалася",
+      "removeFailed": "Не ўдалося прыбраць proto-крыніцу",
+      "loading": "Апрацоўка...",
+      "error": "Памылка",
+      "sourceUpload": "Загружаная Proto-крыніца",
+      "sourceReflection": "Server Reflection",
+      "files": "Файлы",
+      "services": "Сэрвісы",
+      "replace": "Замяніць",
+      "remove": "Прыбраць",
+      "selectMethod": "Абярыце метад сэрвісу",
+      "payloadFormat": "Фармат нагрузкі",
+      "payloadFormatRaw": "Raw (Base64)",
+      "payloadFormatProtoJson": "Proto JSON",
+      "saveFirst": "Спачатку захавайце манітор, каб наладзіць proto-крыніцу і карысную нагрузку запыту."
     }
   },
   "settings": {
@@ -412,6 +437,35 @@
     "requestPayloadPlaceholder": "Base64-кадаванае protobuf-паведамленне",
     "requestPayloadHelp": "Неабавязковае Base64-кадаванае цела запыту protobuf"
   },
+  "proto": {
+    "upload": {
+      "errorTitle": "Памылка загрузкі",
+      "unknownError": "Адбылася невядомая памылка",
+      "currentSource": "Proto-крыніца",
+      "sourceType": "Крыніца",
+      "sourceTypeUpload": "Загрузка файла",
+      "sourceTypeReflection": "Server Reflection",
+      "filenames": "Файлы",
+      "serviceCount": "{count} сэрвіс(аў) выяўлена",
+      "replace": "Замяніць",
+      "remove": "Прыбраць",
+      "dropzone": "Перацягніце .proto або .desc файлы сюды",
+      "dropzoneHint": "Да 20 файлаў (.proto або .desc)",
+      "dropzoneLabel": "Перацягніце proto-файлы сюды або націсніце для выбару",
+      "selectedFiles": "{count} файл(аў) абрана",
+      "clearAll": "Ачысціць усё",
+      "removeFile": "Прыбраць {name}",
+      "uploading": "Загрузка…",
+      "uploadButton": "Загрузіць файлы",
+      "or": "або",
+      "reflecting": "Пошук сэрвісаў…",
+      "reflectionButton": "Выкарыстаць Server Reflection",
+      "reflectionHint": "Увядзіце адрас мэты, каб уключыць Server Reflection",
+      "processing": "Апрацоўка…",
+      "selectMethod": "Абярыце метад сэрвісу",
+      "methodCount": "{count} метад(аў)"
+    }
+  },
   "timeRange": {
     "custom": "Карыстальніцкі",
     "start": "Пачатак",
@@ -437,41 +491,249 @@
     "notFound": "Не знойдзена"
   },
   "dns": {
-    "recordType": "Record Type",
-    "recordTypePlaceholder": "Select record type",
-    "recordTypeHelp": "DNS record type to query",
-    "expectedValue": "Expected Value",
+    "recordType": "Тып запісу",
+    "recordTypePlaceholder": "Абярыце тып запісу",
+    "recordTypeHelp": "Тып DNS-запісу для запыту",
+    "expectedValue": "Чаканае значэнне",
     "expectedValuePlaceholder": "93.184.216.34",
-    "expectedValueHelp": "If set, check passes only when this value is found among DNS results",
-    "dnsServer": "DNS Server",
+    "expectedValueHelp": "Калі зададзена, праверка лічыцца паспяховай толькі калі гэта значэнне знойдзена сярод вынікаў DNS",
+    "dnsServer": "DNS-сервер",
     "dnsServerPlaceholder": "8.8.8.8:53",
-    "dnsServerHelp": "Custom DNS resolver (leave empty for default)"
+    "dnsServerHelp": "Карыстальніцкі DNS-рэзалвер (пакіньце пустым для стандартнага)"
   },
   "icmp": {
-    "packetCount": "Packet Count",
-    "packetCountHelp": "Number of ICMP echo requests to send (1-10)",
-    "lossThreshold": "Loss Threshold (%)",
-    "lossThresholdHelp": "Percentage of packet loss that triggers a 'down' state",
-    "useIpv6": "Use IPv6",
-    "useIpv6Help": "Send ICMPv6 echo requests instead of IPv4"
+    "packetCount": "Колькасць пакетаў",
+    "packetCountHelp": "Колькасць ICMP echo-запытаў для адпраўкі (1-10)",
+    "lossThreshold": "Парог страт (%)",
+    "lossThresholdHelp": "Працэнт страты пакетаў, які выклікае стан «недаступны»",
+    "useIpv6": "Выкарыстоўваць IPv6",
+    "useIpv6Help": "Адпраўляць ICMPv6 echo-запыты замест IPv4"
   },
   "smtp": {
-    "port": "Port",
-    "portHelp": "SMTP server port (25, 587, 465)",
+    "port": "Порт",
+    "portHelp": "Порт SMTP-сервера (25, 587, 465)",
     "starttls": "STARTTLS",
-    "starttlsHelp": "Attempt STARTTLS upgrade after EHLO",
-    "ehloDomain": "EHLO Domain",
+    "starttlsHelp": "Спрабаваць абнавіць злучэнне праз STARTTLS пасля EHLO",
+    "implicitTls": "Implicit TLS (SMTPS)",
+    "implicitTlsHelp": "Падключацца з TLS з самага пачатку (порт 465). Выкарыстоўвайце замест STARTTLS для SMTPS-сервераў.",
+    "ehloDomain": "Дамен EHLO",
     "ehloDomainPlaceholder": "pulse.local",
-    "ehloDomainHelp": "Domain name used in the EHLO greeting",
-    "sslExpiryThreshold": "SSL Expiry Threshold (days)",
+    "ehloDomainHelp": "Даменнае імя, якое выкарыстоўваецца ў прывітанні EHLO",
+    "sslExpiryThreshold": "Парог заканчэння SSL (дзён)",
     "sslExpiryThresholdPlaceholder": "14",
-    "sslExpiryThresholdHelp": "Alert when certificate expires within this many days (0 = disabled)"
+    "sslExpiryThresholdHelp": "Папярэджваць, калі сертыфікат сканчаецца на працягу гэтых дзён (0 = адключана)"
   },
   "payloadEditor": {
-    "placeholder": "Enter JSON payload (e.g. {\"name\": \"value\"})",
-    "label": "Request Payload (JSON)",
-    "jsonHint": "Write your gRPC request body as JSON. Use Format button for pretty-printing.",
-    "format": "Format",
-    "minify": "Minify"
+    "placeholder": "Увядзіце JSON (напр. {\"name\": \"value\"})",
+    "label": "Карысная нагрузка запыту (JSON)",
+    "jsonHint": "Напішыце цела gRPC-запыту як JSON. Кнопка «Фарматаваць» для прыгожага выгляду.",
+    "format": "Фарматаваць",
+    "minify": "Мініфіцыраваць"
+  },
+  "notifications": {
+    "title": "Апавяшчэнні",
+    "description": "Кіраванне каналамі апавяшчэнняў і дастаўкай абвестак.",
+    "channels": {
+      "title": "Каналы апавяшчэнняў",
+      "create": "Стварыць канал",
+      "edit": "Рэдагаваць канал",
+      "loading": "Загрузка каналаў...",
+      "empty": {
+        "title": "Каналаў апавяшчэнняў няма",
+        "description": "Стварыце першы канал, каб пачаць атрымліваць абвесткі.",
+        "action": "Стварыць канал"
+      },
+      "list": {
+        "name": "Назва",
+        "type": "Тып",
+        "created": "Створаны",
+        "actions": "Дзеянні"
+      },
+      "types": {
+        "email": "Email",
+        "webhook": "Webhook"
+      },
+      "deleteConfirm": {
+        "title": "Выдаліць канал",
+        "description": "Вы ўпэўнены, што хочаце выдаліць \"{name}\"? Усе прывязкі гэтага канала таксама будуць выдалены. Гэта дзеянне нельга адмяніць.",
+        "confirm": "Выдаліць канал"
+      }
+    },
+    "form": {
+      "name": "Назва канала",
+      "namePlaceholder": "напр. Email каманды, Slack Webhook",
+      "type": "Тып канала",
+      "typePlaceholder": "Абярыце тып канала",
+      "submitCreate": "Стварыць канал",
+      "submitUpdate": "Абнавіць канал",
+      "email": {
+        "recipients": "Атрымальнікі",
+        "recipientsPlaceholder": "Увядзіце адрас электроннай пошты",
+        "recipientsHelp": "Дадайце да 50 адрасоў электроннай пошты атрымальнікаў.",
+        "addRecipient": "Дадаць атрымальніка",
+        "removeRecipient": "Прыбраць атрымальніка"
+      },
+      "webhook": {
+        "url": "URL вэбхука",
+        "urlPlaceholder": "https://hooks.example.com/...",
+        "urlHelp": "HTTP або HTTPS канчатковая кропка для атрымання апавяшчэнняў (макс. 2048 сімвалаў).",
+        "method": "HTTP-метад",
+        "methodHelp": "HTTP-метад для запыту вэбхука.",
+        "headers": "Карыстальніцкія загалоўкі",
+        "headersHelp": "Дадатковыя загалоўкі, якія адпраўляюцца з кожным запытам вэбхука (да 20).",
+        "addHeader": "Дадаць загаловак",
+        "removeHeader": "Прыбраць загаловак",
+        "headerNamePlaceholder": "Імя загалоўка",
+        "headerValuePlaceholder": "Значэнне загалоўка",
+        "bodyTemplate": "Шаблон цела",
+        "bodyTemplatePlaceholder": "{ \"text\": \"{{.Monitor.Name}} is {{.Status}}\" }",
+        "bodyTemplateHelp": "Go-шаблон для цела запыту вэбхука. Выкарыстоўвайце зменныя шаблону ніжэй."
+      }
+    },
+    "triggers": {
+      "title": "Умовы спрацоўвання",
+      "description": "Абярыце, якія падзеі павінны выклікаць апавяшчэнні для гэтай прывязкі.",
+      "monitorDown": "Манітор недаступны",
+      "monitorDownHelp": "Апавяшчаць, калі манітор пераходзіць у стан недаступнасці.",
+      "monitorUp": "Манітор аднавіўся",
+      "monitorUpHelp": "Апавяшчаць, калі манітор аднаўляецца пасля збою.",
+      "degraded": "Зніжаная прадукцыйнасць",
+      "degradedHelp": "Апавяшчаць, калі час адказу перавышае парог.",
+      "degradedThreshold": "Парог (мс)",
+      "degradedThresholdPlaceholder": "5000",
+      "sslExpiring": "SSL сканчаецца",
+      "sslExpiringHelp": "Апавяшчаць, калі SSL-сертыфікат сканчаецца на працягу зададзеных дзён.",
+      "sslExpiringDays": "Дзён да заканчэння",
+      "sslExpiringDaysPlaceholder": "14",
+      "nFailuresInRow": "Паслядоўныя збоі",
+      "nFailuresInRowHelp": "Апавяшчаць, калі манітор збоіць N разоў запар.",
+      "nFailuresCount": "Колькасць збояў",
+      "nFailuresCountPlaceholder": "5",
+      "noneSelected": "Неабходна абраць хаця б адну ўмову спрацоўвання."
+    },
+    "reminders": {
+      "title": "Палітыка нагадванняў",
+      "description": "Паўтараць апавяшчэнні, пакуль умова захоўваецца.",
+      "interval": "Інтэрвал нагадвання",
+      "disabled": "Адключана",
+      "minutes": "{count} хвілін"
+    },
+    "bindings": {
+      "title": "Прывязкі апавяшчэнняў",
+      "description": "Наладзьце, якія каналы і ўмовы дзейнічаюць для гэтага манітора.",
+      "add": "Дадаць прывязку",
+      "remove": "Прыбраць прывязку",
+      "channel": "Канал",
+      "channelPlaceholder": "Абярыце канал",
+      "empty": {
+        "title": "Прывязак апавяшчэнняў няма",
+        "description": "Дадайце прывязку, каб атрымліваць абвесткі для гэтага манітора."
+      },
+      "noChannels": {
+        "title": "Каналы недаступны",
+        "description": "Спачатку стварыце канал апавяшчэнняў на старонцы Апавяшчэнняў.",
+        "action": "Да апавяшчэнняў"
+      },
+      "deleteConfirm": {
+        "title": "Прыбраць прывязку",
+        "description": "Вы ўпэўнены, што хочаце прыбраць гэту прывязку апавяшчэнняў? Вы больш не будзеце атрымліваць абвесткі ад гэтага канала для гэтага манітора.",
+        "confirm": "Прыбраць прывязку"
+      }
+    },
+    "test": {
+      "button": "Тэст",
+      "sending": "Адпраўка...",
+      "success": "Тэставае апавяшчэнне паспяхова адпраўлена.",
+      "failure": "Тэставае апавяшчэнне не ўдалося: {error}"
+    },
+    "toast": {
+      "channelCreated": "Канал \"{name}\" паспяхова створаны.",
+      "channelUpdated": "Канал \"{name}\" паспяхова абноўлены.",
+      "channelDeleted": "Канал \"{name}\" выдалены.",
+      "bindingCreated": "Прывязку апавяшчэнняў створана.",
+      "bindingUpdated": "Прывязку апавяшчэнняў абноўлена.",
+      "bindingDeleted": "Прывязку апавяшчэнняў прыбрана.",
+      "testSuccess": "Тэставае апавяшчэнне паспяхова дастаўлена.",
+      "testFailure": "Тэставае апавяшчэнне не ўдалося: {error}"
+    },
+    "templateVariables": {
+      "title": "Зменныя шаблону",
+      "description": "Даступныя зменныя для выкарыстання ў шаблонах цела вэбхука.",
+      "groups": {
+        "monitor": "Манітор",
+        "incident": "Інцыдэнт",
+        "general": "Агульныя"
+      },
+      "variables": {
+        "monitorName": "Назва манітора",
+        "monitorUrl": "URL манітора",
+        "monitorTarget": "Адрас мэты манітора",
+        "status": "Бягучы статус",
+        "previousStatus": "Папярэдні статус",
+        "responseTime": "Час адказу ў мілісекундах",
+        "incidentStartedAt": "Час пачатку інцыдэнту",
+        "incidentDuration": "Працягласць інцыдэнту",
+        "incidentId": "Унікальны ID інцыдэнту",
+        "timestamp": "Часовая пазнака падзеі"
+      }
+    },
+    "smtpSettings": {
+      "title": "Налады SMTP",
+      "description": "Наладзьце SMTP-сервер для адпраўкі email-апавяшчэнняў.",
+      "host": "Хост SMTP",
+      "hostPlaceholder": "smtp.example.com",
+      "port": "Порт",
+      "portPlaceholder": "587",
+      "username": "Імя карыстальніка",
+      "usernamePlaceholder": "notifications@example.com",
+      "password": "Пароль",
+      "passwordPlaceholder": "Увядзіце пароль SMTP",
+      "passwordSet": "Пароль усталяваны",
+      "passwordNotSet": "Пароль не наладжаны",
+      "fromAddress": "Адрас адпраўшчыка",
+      "fromAddressPlaceholder": "pulse@example.com",
+      "fromAddressHelp": "Адрас адпраўшчыка для email-апавяшчэнняў.",
+      "tlsEnabled": "Уключыць TLS",
+      "tlsEnabledHelp": "Выкарыстоўваць TLS-шыфраванне для SMTP-злучэння.",
+      "testConnection": "Праверыць злучэнне",
+      "testingConnection": "Праверка...",
+      "testSuccess": "SMTP-злучэнне паспяховае.",
+      "testFailure": "SMTP-злучэнне не ўдалося: {error}",
+      "saved": "Налады SMTP захаваны.",
+      "deleted": "Налады SMTP выдалены. Email-апавяшчэнні цяпер адключаны.",
+      "notConfigured": "SMTP не наладжаны. Email-апавяшчэнні адключаны.",
+      "deleteConfirm": {
+        "title": "Выдаліць налады SMTP",
+        "description": "Вы ўпэўнены, што хочаце выдаліць налады SMTP? Email-апавяшчэнні будуць адключаны.",
+        "confirm": "Выдаліць налады"
+      }
+    },
+    "validation": {
+      "nameRequired": "Назва канала абавязковая.",
+      "nameTooLong": "Назва канала не павінна перавышаць 100 сімвалаў.",
+      "typeRequired": "Тып канала абавязковы.",
+      "typeInvalid": "Тып канала павінен быць \"email\" або \"webhook\".",
+      "recipientsRequired": "Неабходны хаця б адзін атрымальнік.",
+      "recipientsTooMany": "Максімум 50 атрымальнікаў дазволена.",
+      "recipientInvalid": "Няправільны адрас электроннай пошты: {email}",
+      "urlRequired": "URL вэбхука абавязковы.",
+      "urlInvalid": "URL павінен пачынацца з http:// або https://.",
+      "urlTooLong": "URL не павінен перавышаць 2048 сімвалаў.",
+      "methodRequired": "HTTP-метад абавязковы.",
+      "methodInvalid": "Метад павінен быць адным з: GET, POST, PUT, PATCH, DELETE.",
+      "bodyTemplateRequired": "Шаблон цела абавязковы для каналаў вэбхука.",
+      "bodyTemplateInvalid": "Няправільны шаблон: {error}",
+      "headerNameTooLong": "Імя загалоўка не павінна перавышаць 128 сімвалаў.",
+      "headerValueTooLong": "Значэнне загалоўка не павінна перавышаць 8192 сімвалаў.",
+      "headersTooMany": "Максімум 20 карыстальніцкіх загалоўкаў дазволена.",
+      "degradedThresholdRange": "Парог павінен быць ад 1 да 60000 мс.",
+      "sslExpiringDaysRange": "Дні павінны быць ад 1 да 365.",
+      "nFailuresCountRange": "Колькасць павінна быць ад 1 да 100.",
+      "triggerRequired": "Неабходна абраць хаця б адну ўмову спрацоўвання.",
+      "smtpHostRequired": "Хост SMTP абавязковы.",
+      "smtpPortRange": "Порт павінен быць ад 1 да 65535.",
+      "smtpFromRequired": "Адрас адпраўшчыка абавязковы.",
+      "smtpFromInvalid": "Няправільны фармат адрасу электроннай пошты."
+    }
   }
 }

@@ -6,9 +6,10 @@
   "nav": {
     "dashboard": "Pannello",
     "monitors": "Monitor",
+    "notifications": "Notifiche",
     "settings": "Impostazioni",
     "logout": "Esci",
-    "home": "Pulse — Home"
+    "home": "Pulse — Pagina iniziale"
   },
   "common": {
     "save": "Salva",
@@ -39,7 +40,7 @@
     "next": "Successivo"
   },
   "connection": {
-    "live": "Live",
+    "live": "Connesso",
     "reconnecting": "Riconnessione…",
     "paused": "Aggiornamenti in tempo reale sospesi",
     "statusLive": "Stato connessione: live",
@@ -267,9 +268,9 @@
         "udp": "Formato: host:porta",
         "websocket": "URL con schema ws:// o wss://, o nome host (predefinito: wss://)",
         "grpc": "Formato: host:porta",
-        "dns": "Domain name to query (e.g., example.com)",
-        "icmp": "Hostname or IP address (e.g., 8.8.8.8)",
-        "smtp": "Mail server hostname or host:port (e.g., mail.example.com)"
+        "dns": "Nome di dominio da interrogare (es. example.com)",
+        "icmp": "Nome host o indirizzo IP (es. 8.8.8.8)",
+        "smtp": "Nome host del mail server o host:porta (es. mail.example.com)"
       }
     },
     "filter": {
@@ -295,6 +296,30 @@
       "addTag": "Aggiungi tag",
       "confirm": "Conferma tag",
       "cancelRow": "Annulla"
+    },
+    "proto": {
+      "uploadFiles": "Carica file Proto",
+      "useReflection": "Usa Server Reflection",
+      "reflectionHint": "Imposta un indirizzo destinazione per abilitare la riflessione",
+      "dropZoneTitle": "Trascina file .proto o .desc qui",
+      "dropZoneHint": "Oppure clicca per sfogliare (max 20 file)",
+      "noValidFiles": "Nessun file .proto o .desc valido trovato",
+      "uploadFailed": "Caricamento file fallito",
+      "reflectionFailed": "Server Reflection fallita",
+      "removeFailed": "Impossibile rimuovere la sorgente proto",
+      "loading": "Elaborazione...",
+      "error": "Errore",
+      "sourceUpload": "Sorgente Proto caricata",
+      "sourceReflection": "Server Reflection",
+      "files": "File",
+      "services": "Servizi",
+      "replace": "Sostituisci",
+      "remove": "Rimuovi",
+      "selectMethod": "Seleziona un metodo di servizio",
+      "payloadFormat": "Formato payload",
+      "payloadFormatRaw": "Raw (Base64)",
+      "payloadFormatProtoJson": "Proto JSON",
+      "saveFirst": "Salva prima il monitor per configurare la sorgente proto e il payload della richiesta."
     }
   },
   "settings": {
@@ -412,6 +437,75 @@
     "requestPayloadPlaceholder": "Messaggio protobuf codificato in Base64",
     "requestPayloadHelp": "Body richiesta protobuf codificato in Base64 opzionale"
   },
+  "proto": {
+    "upload": {
+      "errorTitle": "Errore di caricamento",
+      "unknownError": "Si è verificato un errore sconosciuto",
+      "currentSource": "Sorgente Proto",
+      "sourceType": "Sorgente",
+      "sourceTypeUpload": "Caricamento file",
+      "sourceTypeReflection": "Server Reflection",
+      "filenames": "File",
+      "serviceCount": "{count} servizio/i individuati",
+      "replace": "Sostituisci",
+      "remove": "Rimuovi",
+      "dropzone": "Trascina file .proto o .desc qui",
+      "dropzoneHint": "Fino a 20 file (.proto o .desc)",
+      "dropzoneLabel": "Trascina i file proto qui o clicca per sfogliare",
+      "selectedFiles": "{count} file selezionati",
+      "clearAll": "Rimuovi tutti",
+      "removeFile": "Rimuovi {name}",
+      "uploading": "Caricamento…",
+      "uploadButton": "Carica file",
+      "or": "oppure",
+      "reflecting": "Individuazione servizi…",
+      "reflectionButton": "Usa Server Reflection",
+      "reflectionHint": "Inserisci un indirizzo destinazione per abilitare Server Reflection",
+      "processing": "Elaborazione…",
+      "selectMethod": "Seleziona un metodo di servizio",
+      "methodCount": "{count} metodo/i"
+    }
+  },
+  "payloadEditor": {
+    "placeholder": "Inserisci payload JSON (es. {\"name\": \"value\"})",
+    "label": "Payload richiesta (JSON)",
+    "jsonHint": "Scrivi il body della richiesta gRPC in formato JSON. Usa il pulsante Formatta per la formattazione.",
+    "format": "Formatta",
+    "minify": "Minimizza"
+  },
+  "dns": {
+    "recordType": "Tipo di record",
+    "recordTypePlaceholder": "Seleziona tipo di record",
+    "recordTypeHelp": "Tipo di record DNS da interrogare",
+    "expectedValue": "Valore atteso",
+    "expectedValuePlaceholder": "93.184.216.34",
+    "expectedValueHelp": "Se impostato, la verifica passa solo quando questo valore è presente tra i risultati DNS",
+    "dnsServer": "Server DNS",
+    "dnsServerPlaceholder": "8.8.8.8:53",
+    "dnsServerHelp": "Resolver DNS personalizzato (lascia vuoto per quello predefinito)"
+  },
+  "icmp": {
+    "packetCount": "Numero di pacchetti",
+    "packetCountHelp": "Numero di richieste echo ICMP da inviare (1-10)",
+    "lossThreshold": "Soglia di perdita (%)",
+    "lossThresholdHelp": "Percentuale di perdita pacchetti che attiva lo stato 'down'",
+    "useIpv6": "Usa IPv6",
+    "useIpv6Help": "Invia richieste echo ICMPv6 invece di IPv4"
+  },
+  "smtp": {
+    "port": "Porta",
+    "portHelp": "Porta del server SMTP (25, 587, 465)",
+    "starttls": "STARTTLS",
+    "starttlsHelp": "Tenta l'upgrade STARTTLS dopo EHLO (ignorato quando Implicit TLS è abilitato)",
+    "implicitTls": "Implicit TLS (SMTPS)",
+    "implicitTlsHelp": "Connetti con TLS dall'inizio (porta 465). Usa questo al posto di STARTTLS per i server SMTPS.",
+    "ehloDomain": "Dominio EHLO",
+    "ehloDomainPlaceholder": "pulse.local",
+    "ehloDomainHelp": "Nome di dominio usato nel saluto EHLO",
+    "sslExpiryThreshold": "Soglia scadenza SSL (giorni)",
+    "sslExpiryThresholdPlaceholder": "14",
+    "sslExpiryThresholdHelp": "Avvisa quando il certificato scade entro questi giorni (0 = disabilitato)"
+  },
   "timeRange": {
     "custom": "Personalizzato",
     "start": "Inizio",
@@ -430,48 +524,216 @@
     "empty": "Nessun dato disponibile per il periodo selezionato.",
     "retry": "Riprova"
   },
+  "notifications": {
+    "title": "Notifiche",
+    "description": "Gestisci i canali di notifica e la consegna degli avvisi.",
+    "channels": {
+      "title": "Canali di notifica",
+      "create": "Crea canale",
+      "edit": "Modifica canale",
+      "loading": "Caricamento canali...",
+      "empty": {
+        "title": "Nessun canale di notifica",
+        "description": "Crea il tuo primo canale per iniziare a ricevere avvisi.",
+        "action": "Crea canale"
+      },
+      "list": {
+        "name": "Nome",
+        "type": "Tipo",
+        "created": "Creato",
+        "actions": "Azioni"
+      },
+      "types": {
+        "email": "Email",
+        "webhook": "Webhook"
+      },
+      "deleteConfirm": {
+        "title": "Elimina canale",
+        "description": "Sei sicuro di voler eliminare \"{name}\"? Tutti i binding che usano questo canale verranno rimossi. Questa azione è irreversibile.",
+        "confirm": "Elimina canale"
+      }
+    },
+    "form": {
+      "name": "Nome canale",
+      "namePlaceholder": "es. Email Team Ops, Webhook Slack",
+      "type": "Tipo di canale",
+      "typePlaceholder": "Seleziona tipo di canale",
+      "submitCreate": "Crea canale",
+      "submitUpdate": "Aggiorna canale",
+      "email": {
+        "recipients": "Destinatari",
+        "recipientsPlaceholder": "Inserisci indirizzo email",
+        "recipientsHelp": "Aggiungi fino a 50 indirizzi email destinatari.",
+        "addRecipient": "Aggiungi destinatario",
+        "removeRecipient": "Rimuovi destinatario"
+      },
+      "webhook": {
+        "url": "URL Webhook",
+        "urlPlaceholder": "https://hooks.example.com/...",
+        "urlHelp": "Endpoint HTTP o HTTPS per ricevere le notifiche (max 2048 caratteri).",
+        "method": "Metodo HTTP",
+        "methodHelp": "Metodo HTTP usato per la richiesta webhook.",
+        "headers": "Header personalizzati",
+        "headersHelp": "Header opzionali inviati con ogni richiesta webhook (fino a 20).",
+        "addHeader": "Aggiungi header",
+        "removeHeader": "Rimuovi header",
+        "headerNamePlaceholder": "Nome header",
+        "headerValuePlaceholder": "Valore header",
+        "bodyTemplate": "Template del body",
+        "bodyTemplatePlaceholder": "{ \"text\": \"{{.Monitor.Name}} is {{.Status}}\" }",
+        "bodyTemplateHelp": "Template Go per il body della richiesta webhook. Usa le variabili template sotto."
+      }
+    },
+    "triggers": {
+      "title": "Condizioni di attivazione",
+      "description": "Seleziona quali eventi devono inviare notifiche per questo binding.",
+      "monitorDown": "Monitor in errore",
+      "monitorDownHelp": "Notifica quando il monitor passa allo stato di errore.",
+      "monitorUp": "Monitor attivo",
+      "monitorUpHelp": "Notifica quando il monitor si riprende da uno stato di errore.",
+      "degraded": "Prestazioni degradate",
+      "degradedHelp": "Notifica quando il tempo di risposta supera la soglia.",
+      "degradedThreshold": "Soglia (ms)",
+      "degradedThresholdPlaceholder": "5000",
+      "sslExpiring": "SSL in scadenza",
+      "sslExpiringHelp": "Notifica quando il certificato SSL sta per scadere entro i giorni specificati.",
+      "sslExpiringDays": "Giorni prima della scadenza",
+      "sslExpiringDaysPlaceholder": "14",
+      "nFailuresInRow": "Errori consecutivi",
+      "nFailuresInRowHelp": "Notifica quando il monitor fallisce N volte consecutive.",
+      "nFailuresCount": "Numero di errori",
+      "nFailuresCountPlaceholder": "5",
+      "noneSelected": "È necessario selezionare almeno una condizione di attivazione."
+    },
+    "reminders": {
+      "title": "Politica promemoria",
+      "description": "Ripeti le notifiche finché la condizione persiste.",
+      "interval": "Intervallo promemoria",
+      "disabled": "Disabilitato",
+      "minutes": "{count} minuti"
+    },
+    "bindings": {
+      "title": "Binding di notifica",
+      "description": "Configura quali canali e condizioni si applicano a questo monitor.",
+      "add": "Aggiungi binding",
+      "remove": "Rimuovi binding",
+      "channel": "Canale",
+      "channelPlaceholder": "Seleziona un canale",
+      "empty": {
+        "title": "Nessun binding di notifica",
+        "description": "Aggiungi un binding per ricevere avvisi per questo monitor."
+      },
+      "noChannels": {
+        "title": "Nessun canale disponibile",
+        "description": "Crea prima un canale di notifica dalla pagina Notifiche.",
+        "action": "Vai alle notifiche"
+      },
+      "deleteConfirm": {
+        "title": "Rimuovi binding",
+        "description": "Sei sicuro di voler rimuovere questo binding di notifica? Non riceverai più avvisi da questo canale per questo monitor.",
+        "confirm": "Rimuovi binding"
+      }
+    },
+    "test": {
+      "button": "Test",
+      "sending": "Invio...",
+      "success": "Notifica di test inviata con successo.",
+      "failure": "Notifica di test fallita: {error}"
+    },
+    "toast": {
+      "channelCreated": "Canale \"{name}\" creato con successo.",
+      "channelUpdated": "Canale \"{name}\" aggiornato con successo.",
+      "channelDeleted": "Canale \"{name}\" eliminato.",
+      "bindingCreated": "Binding di notifica creato.",
+      "bindingUpdated": "Binding di notifica aggiornato.",
+      "bindingDeleted": "Binding di notifica rimosso.",
+      "testSuccess": "Notifica di test consegnata con successo.",
+      "testFailure": "Notifica di test fallita: {error}"
+    },
+    "templateVariables": {
+      "title": "Variabili template",
+      "description": "Variabili disponibili per i template del body webhook.",
+      "groups": {
+        "monitor": "Monitor",
+        "incident": "Incidente",
+        "general": "Generale"
+      },
+      "variables": {
+        "monitorName": "Nome del monitor",
+        "monitorUrl": "URL del monitor",
+        "monitorTarget": "Indirizzo destinazione del monitor",
+        "status": "Stato attuale",
+        "previousStatus": "Stato precedente",
+        "responseTime": "Tempo di risposta in millisecondi",
+        "incidentStartedAt": "Ora di inizio incidente",
+        "incidentDuration": "Durata incidente",
+        "incidentId": "ID univoco incidente",
+        "timestamp": "Timestamp dell'evento"
+      }
+    },
+    "smtpSettings": {
+      "title": "Impostazioni SMTP",
+      "description": "Configura il server SMTP usato per le notifiche email.",
+      "host": "Host SMTP",
+      "hostPlaceholder": "smtp.example.com",
+      "port": "Porta",
+      "portPlaceholder": "587",
+      "username": "Nome utente",
+      "usernamePlaceholder": "notifications@example.com",
+      "password": "Password",
+      "passwordPlaceholder": "Inserisci password SMTP",
+      "passwordSet": "Password impostata",
+      "passwordNotSet": "Nessuna password configurata",
+      "fromAddress": "Indirizzo mittente",
+      "fromAddressPlaceholder": "pulse@example.com",
+      "fromAddressHelp": "Indirizzo mittente per le email di notifica.",
+      "tlsEnabled": "Abilita TLS",
+      "tlsEnabledHelp": "Usa la crittografia TLS per la connessione SMTP.",
+      "testConnection": "Testa connessione",
+      "testingConnection": "Test in corso...",
+      "testSuccess": "Connessione SMTP riuscita.",
+      "testFailure": "Connessione SMTP fallita: {error}",
+      "saved": "Impostazioni SMTP salvate.",
+      "deleted": "Impostazioni SMTP rimosse. Le notifiche email sono ora disabilitate.",
+      "notConfigured": "SMTP non configurato. Le notifiche email sono disabilitate.",
+      "deleteConfirm": {
+        "title": "Rimuovi impostazioni SMTP",
+        "description": "Sei sicuro di voler rimuovere le impostazioni SMTP? Le notifiche email verranno disabilitate.",
+        "confirm": "Rimuovi impostazioni"
+      }
+    },
+    "validation": {
+      "nameRequired": "Il nome del canale è obbligatorio.",
+      "nameTooLong": "Il nome del canale deve essere di 100 caratteri o meno.",
+      "typeRequired": "Il tipo di canale è obbligatorio.",
+      "typeInvalid": "Il tipo di canale deve essere \"email\" o \"webhook\".",
+      "recipientsRequired": "È necessario almeno un indirizzo email destinatario.",
+      "recipientsTooMany": "Massimo 50 destinatari consentiti.",
+      "recipientInvalid": "Indirizzo email non valido: {email}",
+      "urlRequired": "L'URL del webhook è obbligatorio.",
+      "urlInvalid": "L'URL deve iniziare con http:// o https://.",
+      "urlTooLong": "L'URL deve essere di 2048 caratteri o meno.",
+      "methodRequired": "Il metodo HTTP è obbligatorio.",
+      "methodInvalid": "Il metodo deve essere uno tra: GET, POST, PUT, PATCH, DELETE.",
+      "bodyTemplateRequired": "Il template del body è obbligatorio per i canali webhook.",
+      "bodyTemplateInvalid": "Template non valido: {error}",
+      "headerNameTooLong": "Il nome dell'header deve essere di 128 caratteri o meno.",
+      "headerValueTooLong": "Il valore dell'header deve essere di 8192 caratteri o meno.",
+      "headersTooMany": "Massimo 20 header personalizzati consentiti.",
+      "degradedThresholdRange": "La soglia deve essere compresa tra 1 e 60000 ms.",
+      "sslExpiringDaysRange": "I giorni devono essere compresi tra 1 e 365.",
+      "nFailuresCountRange": "Il conteggio deve essere compreso tra 1 e 100.",
+      "triggerRequired": "È necessaria almeno una condizione di attivazione.",
+      "smtpHostRequired": "L'host SMTP è obbligatorio.",
+      "smtpPortRange": "La porta deve essere compresa tra 1 e 65535.",
+      "smtpFromRequired": "L'indirizzo mittente è obbligatorio.",
+      "smtpFromInvalid": "Formato indirizzo email non valido."
+    }
+  },
   "errors": {
     "generic": "Qualcosa è andato storto",
     "network": "Servizio non disponibile. Riprova più tardi.",
     "unexpected": "Si è verificato un errore imprevisto.",
     "notFound": "Non trovato"
-  },
-  "dns": {
-    "recordType": "Record Type",
-    "recordTypePlaceholder": "Select record type",
-    "recordTypeHelp": "DNS record type to query",
-    "expectedValue": "Expected Value",
-    "expectedValuePlaceholder": "93.184.216.34",
-    "expectedValueHelp": "If set, check passes only when this value is found among DNS results",
-    "dnsServer": "DNS Server",
-    "dnsServerPlaceholder": "8.8.8.8:53",
-    "dnsServerHelp": "Custom DNS resolver (leave empty for default)"
-  },
-  "icmp": {
-    "packetCount": "Packet Count",
-    "packetCountHelp": "Number of ICMP echo requests to send (1-10)",
-    "lossThreshold": "Loss Threshold (%)",
-    "lossThresholdHelp": "Percentage of packet loss that triggers a 'down' state",
-    "useIpv6": "Use IPv6",
-    "useIpv6Help": "Send ICMPv6 echo requests instead of IPv4"
-  },
-  "smtp": {
-    "port": "Port",
-    "portHelp": "SMTP server port (25, 587, 465)",
-    "starttls": "STARTTLS",
-    "starttlsHelp": "Attempt STARTTLS upgrade after EHLO",
-    "ehloDomain": "EHLO Domain",
-    "ehloDomainPlaceholder": "pulse.local",
-    "ehloDomainHelp": "Domain name used in the EHLO greeting",
-    "sslExpiryThreshold": "SSL Expiry Threshold (days)",
-    "sslExpiryThresholdPlaceholder": "14",
-    "sslExpiryThresholdHelp": "Alert when certificate expires within this many days (0 = disabled)"
-  },
-  "payloadEditor": {
-    "placeholder": "Enter JSON payload (e.g. {\"name\": \"value\"})",
-    "label": "Request Payload (JSON)",
-    "jsonHint": "Write your gRPC request body as JSON. Use Format button for pretty-printing.",
-    "format": "Format",
-    "minify": "Minify"
   }
 }

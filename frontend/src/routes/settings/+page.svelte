@@ -1,5 +1,6 @@
 <script lang="ts">
   import ApiTokenSection from './ApiTokenSection.svelte';
+  import SmtpSettingsSection from './SmtpSettingsSection.svelte';
   import LanguageSelector from '../../components/LanguageSelector.svelte';
   import { t } from '$lib/i18n/locale.svelte';
 </script>
@@ -20,4 +21,6 @@
   </section>
 
   <ApiTokenSection />
+
+  <SmtpSettingsSection />
 </div>

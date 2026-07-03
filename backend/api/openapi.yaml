@@ -773,6 +773,405 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /notifications/channels:
+    get:
+      operationId: listNotificationChannels
+      summary: List notification channels
+      tags: [Notifications]
+      parameters:
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: Paginated list of notification channels
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/X-Request-ID"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotificationChannelListResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    post:
+      operationId: createNotificationChannel
+      summary: Create a notification channel
+      tags: [Notifications]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateNotificationChannelRequest"
+      responses:
+        "201":
+          description: Channel created
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/X-Request-ID"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotificationChannel"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /notifications/channels/{id}:
+    get:
+      operationId: getNotificationChannel
+      summary: Get a notification channel by ID
+      tags: [Notifications]
+      parameters:
+        - $ref: "#/components/parameters/NotificationChannelID"
+      responses:
+        "200":
+          description: Channel details (header values redacted)
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/X-Request-ID"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotificationChannel"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    put:
+      operationId: updateNotificationChannel
+      summary: Update a notification channel (full replacement)
+      tags: [Notifications]
+      parameters:
+        - $ref: "#/components/parameters/NotificationChannelID"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateNotificationChannelRequest"
+      responses:
+        "200":
+          description: Channel updated
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/X-Request-ID"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotificationChannel"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    delete:
+      operationId: deleteNotificationChannel
+      summary: Delete a notification channel
+      description: Deletes the channel and cascades to all associated bindings.
+      tags: [Notifications]
+      parameters:
+        - $ref: "#/components/parameters/NotificationChannelID"
+      responses:
+        "204":
+          description: Channel deleted
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/X-Request-ID"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /monitors/{id}/notification-bindings:
+    get:
+      operationId: listNotificationBindings
+      summary: List notification bindings for a monitor
+      tags: [Notifications]
+      parameters:
+        - $ref: "#/components/parameters/MonitorID"
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: Paginated list of bindings for the monitor
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/X-Request-ID"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotificationBindingListResponse"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    post:
+      operationId: createNotificationBinding
+      summary: Create a notification binding for a monitor
+      description: >
+        Binds a notification channel to a monitor with specific trigger conditions.
+        Each channel-monitor pair can have at most one binding.
+      tags: [Notifications]
+      parameters:
+        - $ref: "#/components/parameters/MonitorID"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateNotificationBindingRequest"
+      responses:
+        "201":
+          description: Binding created
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/X-Request-ID"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotificationBinding"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: A binding already exists for this channel-monitor pair
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /monitors/{id}/notification-bindings/{bindingId}:
+    put:
+      operationId: updateNotificationBinding
+      summary: Update a notification binding
+      tags: [Notifications]
+      parameters:
+        - $ref: "#/components/parameters/MonitorID"
+        - $ref: "#/components/parameters/BindingID"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateNotificationBindingRequest"
+      responses:
+        "200":
+          description: Binding updated
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/X-Request-ID"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotificationBinding"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    delete:
+      operationId: deleteNotificationBinding
+      summary: Delete a notification binding
+      tags: [Notifications]
+      parameters:
+        - $ref: "#/components/parameters/MonitorID"
+        - $ref: "#/components/parameters/BindingID"
+      responses:
+        "204":
+          description: Binding deleted
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/X-Request-ID"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /notifications/template-variables:
+    get:
+      operationId: getTemplateVariables
+      summary: Get available webhook template variables
+      description: >
+        Returns a static reference of all available template variables that can be
+        used in webhook body templates. Variables are grouped by their dot-notation
+        prefix (monitor, Incident, top-level).
+      tags: [Notifications]
+      responses:
+        "200":
+          description: Template variable reference grouped by prefix
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/X-Request-ID"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TemplateVariablesResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /notifications/channels/{id}/test:
+    post:
+      operationId: testNotificationChannel
+      summary: Send a test notification
+      description: >
+        Dispatches a test notification through the specified channel using sample
+        data. Returns the delivery result synchronously within a 10s timeout.
+        Test notifications do NOT create delivery_log records and are NOT queued
+        for retry on failure.
+      tags: [Notifications]
+      parameters:
+        - $ref: "#/components/parameters/NotificationChannelID"
+      responses:
+        "200":
+          description: Test result (success or failure with error detail)
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/X-Request-ID"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TestNotificationResponse"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "504":
+          description: Test delivery timed out (10s exceeded)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /notifications/smtp-settings:
+    get:
+      operationId: getSMTPSettings
+      summary: Get SMTP configuration status
+      description: >
+        Returns the current SMTP configuration. The raw password is never returned;
+        only a boolean `password_set` indicator is included. If SMTP is not
+        configured, returns `{ "configured": false }`.
+      tags: [Notifications]
+      responses:
+        "200":
+          description: SMTP configuration (password redacted)
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/X-Request-ID"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SMTPSettingsResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    put:
+      operationId: updateSMTPSettings
+      summary: Create or update SMTP settings
+      description: >
+        Creates or updates the singleton SMTP configuration. The password is
+        encrypted at rest with AES-256-GCM. If password is omitted, the existing
+        password is preserved.
+      tags: [Notifications]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SMTPSettingsRequest"
+      responses:
+        "200":
+          description: SMTP settings saved
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/X-Request-ID"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SMTPSettingsResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    delete:
+      operationId: deleteSMTPSettings
+      summary: Remove SMTP settings
+      description: >
+        Deletes the SMTP configuration row, disabling email notifications.
+      tags: [Notifications]
+      responses:
+        "204":
+          description: SMTP settings deleted
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/X-Request-ID"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /notifications/channels/{id}/delivery-logs:
+    get:
+      operationId: listChannelDeliveryLogs
+      summary: List delivery logs for a notification channel
+      description: >
+        Returns a paginated list of delivery log entries for the specified
+        notification channel, ordered by created_at descending.
+      tags: [Notifications]
+      parameters:
+        - $ref: "#/components/parameters/NotificationChannelID"
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: Paginated list of delivery logs
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/X-Request-ID"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeliveryLogListResponse"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /notifications/smtp-settings/test:
+    post:
+      operationId: testSMTPConnection
+      summary: Test SMTP connectivity
+      description: >
+        Tests SMTP connectivity by establishing a TCP connection, sending EHLO,
+        and optionally authenticating. Uses the currently saved SMTP settings.
+        Returns the result synchronously.
+      tags: [Notifications]
+      responses:
+        "200":
+          description: Test result (success or failure with error detail)
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/X-Request-ID"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SMTPTestResponse"
+        "400":
+          description: SMTP settings are not configured
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
 components:
   securitySchemes:
     bearerAuth:
@@ -822,6 +1221,22 @@ components:
       schema:
         type: string
         format: uuid
+    NotificationChannelID:
+      name: id
+      in: path
+      required: true
+      description: Notification channel UUID
+      schema:
+        type: string
+        format: uuid
+    BindingID:
+      name: bindingId
+      in: path
+      required: true
+      description: Notification binding UUID
+      schema:
+        type: string
+        format: uuid
 
   responses:
     BadRequest:
@@ -843,6 +1258,14 @@ components:
           schema:
             $ref: "#/components/schemas/ErrorResponse"
 
+  headers:
+    X-Request-ID:
+      description: Unique request identifier for tracing and correlation
+      schema:
+        type: string
+        format: uuid
+        example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+
   schemas:
     ErrorResponse:
       type: object
@@ -856,6 +1279,12 @@ components:
               type: string
               description: >
                 Machine-readable error code. Known codes include:
+                VALIDATION_ERROR - general field validation failure;
+                TEMPLATE_ERROR - webhook template parsing or unknown variable error;
+                NOT_FOUND - referenced resource does not exist;
+                CONFLICT - duplicate resource (e.g., binding for same channel-monitor pair);
+                TIMEOUT - operation exceeded time limit;
+                DB_ERROR - internal database error;
                 INVALID_TAGS - tag validation failed (invalid key format, value too long,
                 too many tags, duplicate key-value pairs, or reserved prefix usage);
                 INVALID_RETENTION_PERIOD - history_retention_days value is outside the
@@ -1974,3 +2403,409 @@ components:
         comment:
           type: string
           description: Proto source comment associated with this field (if any)
+
+    NotificationChannel:
+      type: object
+      description: >
+        A notification channel (email or webhook). Webhook header values are
+        redacted in GET responses.
+      required: [id, name, type, config, created_at, updated_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        type:
+          type: string
+          enum: [email, webhook]
+        config:
+          type: object
+          description: >
+            Type-specific configuration. For email: { recipients: string[] }.
+            For webhook: { url, method, body_template, headers: [{name, value}] }.
+            Header values are "[REDACTED]" in GET responses.
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    CreateNotificationChannelRequest:
+      type: object
+      required: [name, type, config]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+          description: Human-readable channel name
+        type:
+          type: string
+          enum: [email, webhook]
+          description: Channel type
+        config:
+          type: object
+          description: >
+            Type-specific configuration.
+            Email: { "recipients": ["addr@example.com"] } (1-50 RFC 5322 addresses, max 254 chars each).
+            Webhook: { "url": "https://...", "method": "POST", "body_template": "...", "headers": [{"name": "X-Key", "value": "secret"}] }
+            (URL max 2048 chars, http/https only; method: GET/POST/PUT/PATCH/DELETE;
+            body_template: valid Go text/template with known variables; headers: 0-20 items,
+            name max 128 chars, value max 8192 chars).
+
+    NotificationChannelListResponse:
+      type: object
+      required: [data, total, page, limit, total_pages]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/NotificationChannel"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+        total_pages:
+          type: integer
+
+    NotificationBinding:
+      type: object
+      description: A binding between a notification channel and a monitor with trigger conditions.
+      required: [id, channel_id, monitor_id, triggers, created_at, updated_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        channel_id:
+          type: string
+          format: uuid
+        monitor_id:
+          type: string
+          format: uuid
+        triggers:
+          type: array
+          items:
+            $ref: "#/components/schemas/TriggerCondition"
+          minItems: 1
+          description: At least one trigger condition is required
+        reminder_interval_minutes:
+          type: integer
+          enum: [5, 10, 15, 30, 60]
+          nullable: true
+          description: >
+            Reminder interval in minutes. When set, recurring reminders are sent
+            at this interval while the triggering condition persists. Null means disabled.
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    CreateNotificationBindingRequest:
+      type: object
+      required: [channel_id, triggers]
+      properties:
+        channel_id:
+          type: string
+          format: uuid
+          description: The notification channel to bind
+        triggers:
+          type: array
+          items:
+            $ref: "#/components/schemas/TriggerCondition"
+          minItems: 1
+          description: At least one trigger condition is required
+        reminder_interval_minutes:
+          type: integer
+          enum: [5, 10, 15, 30, 60]
+          nullable: true
+          description: Reminder interval in minutes (null to disable)
+
+    UpdateNotificationBindingRequest:
+      type: object
+      required: [triggers]
+      properties:
+        triggers:
+          type: array
+          items:
+            $ref: "#/components/schemas/TriggerCondition"
+          minItems: 1
+          description: At least one trigger condition is required
+        reminder_interval_minutes:
+          type: integer
+          enum: [5, 10, 15, 30, 60]
+          nullable: true
+          description: Reminder interval in minutes (null to disable)
+
+    TriggerCondition:
+      type: object
+      description: >
+        A trigger condition that determines when a notification fires.
+        Additional fields are required depending on the trigger type.
+      required: [type]
+      properties:
+        type:
+          type: string
+          enum: [monitor_down, monitor_up, degraded, ssl_expiring, n_failures_in_row]
+          description: The type of event that triggers the notification
+        threshold_ms:
+          type: integer
+          minimum: 1
+          maximum: 60000
+          description: Response time threshold in ms (required for type "degraded")
+        days_before:
+          type: integer
+          minimum: 1
+          maximum: 365
+          description: Days before SSL expiry to trigger (required for type "ssl_expiring")
+        count:
+          type: integer
+          minimum: 1
+          maximum: 100
+          description: Number of consecutive failures (required for type "n_failures_in_row")
+
+    ReminderPolicy:
+      type: object
+      description: >
+        Configuration for repeating notifications while a triggering condition
+        persists. When enabled, reminders are sent at the configured interval
+        until the condition resolves.
+      required: [enabled]
+      properties:
+        enabled:
+          type: boolean
+          description: Whether reminder notifications are active
+        interval_minutes:
+          type: integer
+          enum: [5, 10, 15, 30, 60]
+          description: >
+            Interval in minutes between reminder notifications. Required when
+            enabled is true.
+
+    NotificationBindingListResponse:
+      type: object
+      required: [data, total, page, limit, total_pages]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/NotificationBinding"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+        total_pages:
+          type: integer
+
+    TemplateVariablesResponse:
+      type: object
+      description: >
+        Reference of all available webhook template variables grouped by
+        dot-notation prefix.
+      required: [groups]
+      properties:
+        groups:
+          type: array
+          items:
+            $ref: "#/components/schemas/TemplateVariableGroup"
+
+    TemplateVariableGroup:
+      type: object
+      description: A group of template variables sharing a common prefix.
+      required: [name, variables]
+      properties:
+        name:
+          type: string
+          description: >
+            Group name (dot-notation prefix). Empty string for top-level variables.
+          example: "monitor"
+        variables:
+          type: array
+          items:
+            $ref: "#/components/schemas/TemplateVariable"
+
+    TemplateVariable:
+      type: object
+      description: A single template variable available for use in webhook body templates.
+      required: [name, type, description, example]
+      properties:
+        name:
+          type: string
+          description: Full variable name as used in Go templates (e.g. "monitor.Name")
+          example: "monitor.Name"
+        type:
+          type: string
+          description: Go type of the variable
+          example: "string"
+        description:
+          type: string
+          description: Human-readable description of what the variable contains
+          example: "Monitor display name"
+        example:
+          type: string
+          description: Example value for documentation and testing purposes
+          example: "API Health Check"
+
+    TestNotificationResponse:
+      type: object
+      required: [success, channel_id, channel_type]
+      properties:
+        success:
+          type: boolean
+          description: Whether the test notification was delivered successfully
+        channel_id:
+          type: string
+          format: uuid
+          description: The channel through which the test was dispatched
+        channel_type:
+          type: string
+          enum: [email, webhook]
+          description: The type of channel tested
+        error:
+          type: string
+          description: Error detail if delivery failed (connection error, auth failure, timeout, non-2xx)
+
+    SMTPSettingsRequest:
+      type: object
+      required: [host, port, from_address]
+      properties:
+        host:
+          type: string
+          minLength: 1
+          description: SMTP server hostname
+          example: "smtp.example.com"
+        port:
+          type: integer
+          minimum: 1
+          maximum: 65535
+          description: SMTP server port
+          example: 587
+        username:
+          type: string
+          nullable: true
+          description: SMTP username (optional)
+          example: "user@example.com"
+        password:
+          type: string
+          nullable: true
+          description: >
+            SMTP password (optional). Write-only — never returned by GET.
+            If omitted on update, the existing password is preserved.
+        from_address:
+          type: string
+          description: Sender email address (RFC 5322)
+          example: "noreply@example.com"
+        tls_enabled:
+          type: boolean
+          default: true
+          description: Use implicit TLS (SMTPS) connection
+
+    SMTPSettingsResponse:
+      type: object
+      required: [configured, password_set]
+      properties:
+        configured:
+          type: boolean
+          description: Whether SMTP settings exist
+        host:
+          type: string
+          description: SMTP server hostname (omitted when not configured)
+        port:
+          type: integer
+          description: SMTP server port (omitted when not configured)
+        username:
+          type: string
+          nullable: true
+          description: SMTP username (omitted when not configured)
+        from_address:
+          type: string
+          description: Sender email address (omitted when not configured)
+        tls_enabled:
+          type: boolean
+          description: Whether TLS is enabled (omitted when not configured)
+        password_set:
+          type: boolean
+          description: >
+            Indicates whether a password is configured. The raw password is
+            never returned.
+
+    SMTPTestResponse:
+      type: object
+      required: [success]
+      properties:
+        success:
+          type: boolean
+          description: Whether SMTP connectivity test passed
+        error:
+          type: string
+          description: Error detail if test failed (connection, EHLO, or auth failure)
+
+    DeliveryLog:
+      type: object
+      description: >
+        A record of a notification delivery attempt. Each attempt (initial and retries)
+        generates a separate log entry for auditability.
+      required: [id, channel_id, monitor_id, trigger_type, attempt, status, created_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        channel_id:
+          type: string
+          format: uuid
+          description: The notification channel used for delivery
+        monitor_id:
+          type: string
+          format: uuid
+          description: The monitor that triggered the notification
+        binding_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: The binding that matched (nullable if binding was since deleted)
+        trigger_type:
+          type: string
+          enum: [monitor_down, monitor_up, degraded, ssl_expiring, n_failures_in_row]
+          description: The trigger condition that caused this notification
+        attempt:
+          type: integer
+          minimum: 1
+          description: Attempt number (1 = initial, 2+ = retries)
+        status:
+          type: string
+          enum: [success, failure]
+          description: Delivery outcome
+        error_detail:
+          type: string
+          nullable: true
+          maxLength: 1024
+          description: Error message if delivery failed (truncated to 1024 characters)
+        created_at:
+          type: string
+          format: date-time
+
+    DeliveryLogListResponse:
+      type: object
+      required: [data, total, page, limit, total_pages]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/DeliveryLog"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+        total_pages:
+          type: integer

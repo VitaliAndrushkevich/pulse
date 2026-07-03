@@ -6,6 +6,7 @@
   "nav": {
     "dashboard": "Gösterge Paneli",
     "monitors": "Monitörler",
+    "notifications": "Bildirimler",
     "settings": "Ayarlar",
     "logout": "Çıkış",
     "home": "Pulse — Ana Sayfa"
@@ -116,6 +117,7 @@
       "ariaLabel": "Son 24 saatin saatlik sistem durumunu gösteren çalışma süresi haritası",
       "blockAria": "{time}: {up} aktif, {down} çalışmıyor, {unknown} bilinmiyor",
       "tooltipCounts": "↑{up} ↓{down} ?{unknown}"
+
     },
     "sparklines": {
       "title": "Yanıt Süresi",
@@ -267,9 +269,9 @@
         "udp": "Format: host:port",
         "websocket": "ws:// veya wss:// şemalı URL veya ana bilgisayar adı (varsayılan: wss://)",
         "grpc": "Format: host:port",
-        "dns": "Domain name to query (e.g., example.com)",
-        "icmp": "Hostname or IP address (e.g., 8.8.8.8)",
-        "smtp": "Mail server hostname or host:port (e.g., mail.example.com)"
+        "dns": "Sorgulanacak alan adı (ör. example.com)",
+        "icmp": "Ana bilgisayar adı veya IP adresi (ör. 8.8.8.8)",
+        "smtp": "Posta sunucusu ana bilgisayar adı veya host:port (ör. mail.example.com)"
       }
     },
     "filter": {
@@ -295,6 +297,30 @@
       "addTag": "Etiket ekle",
       "confirm": "Etiketi onayla",
       "cancelRow": "İptal"
+    },
+    "proto": {
+      "uploadFiles": "Proto Dosyalarını Yükle",
+      "useReflection": "Server Reflection Kullan",
+      "reflectionHint": "Reflection'ı etkinleştirmek için hedef adres ayarlayın",
+      "dropZoneTitle": ".proto veya .desc dosyalarını buraya bırakın",
+      "dropZoneHint": "Veya göz atmak için tıklayın (maks. 20 dosya)",
+      "noValidFiles": "Geçerli .proto veya .desc dosyası bulunamadı",
+      "uploadFailed": "Dosya yükleme başarısız",
+      "reflectionFailed": "Server Reflection başarısız",
+      "removeFailed": "Proto kaynağı kaldırılamadı",
+      "loading": "İşleniyor...",
+      "error": "Hata",
+      "sourceUpload": "Yüklenen Proto Kaynağı",
+      "sourceReflection": "Server Reflection",
+      "files": "Dosyalar",
+      "services": "Servisler",
+      "replace": "Değiştir",
+      "remove": "Kaldır",
+      "selectMethod": "Servis metodu seçin",
+      "payloadFormat": "Veri Yükü Formatı",
+      "payloadFormatRaw": "Raw (Base64)",
+      "payloadFormatProtoJson": "Proto JSON",
+      "saveFirst": "Proto kaynağını ve istek veri yükünü yapılandırmak için önce monitörü kaydedin."
     }
   },
   "settings": {
@@ -412,6 +438,35 @@
     "requestPayloadPlaceholder": "Base64 kodlanmış protobuf mesajı",
     "requestPayloadHelp": "İsteğe bağlı Base64 kodlanmış protobuf istek gövdesi"
   },
+  "proto": {
+    "upload": {
+      "errorTitle": "Yükleme Hatası",
+      "unknownError": "Bilinmeyen bir hata oluştu",
+      "currentSource": "Proto Kaynağı",
+      "sourceType": "Kaynak",
+      "sourceTypeUpload": "Dosya Yükleme",
+      "sourceTypeReflection": "Server Reflection",
+      "filenames": "Dosyalar",
+      "serviceCount": "{count} servis keşfedildi",
+      "replace": "Değiştir",
+      "remove": "Kaldır",
+      "dropzone": ".proto veya .desc dosyalarını buraya bırakın",
+      "dropzoneHint": "En fazla 20 dosya (.proto veya .desc)",
+      "dropzoneLabel": "Proto dosyalarını buraya bırakın veya göz atmak için tıklayın",
+      "selectedFiles": "{count} dosya seçildi",
+      "clearAll": "Tümünü temizle",
+      "removeFile": "{name} kaldır",
+      "uploading": "Yükleniyor…",
+      "uploadButton": "Dosyaları Yükle",
+      "or": "veya",
+      "reflecting": "Servisler keşfediliyor…",
+      "reflectionButton": "Server Reflection Kullan",
+      "reflectionHint": "Server Reflection'ı etkinleştirmek için hedef adres girin",
+      "processing": "İşleniyor…",
+      "selectMethod": "Servis metodu seçin",
+      "methodCount": "{count} metod"
+    }
+  },
   "timeRange": {
     "custom": "Özel",
     "start": "Başlangıç",
@@ -437,41 +492,249 @@
     "notFound": "Bulunamadı"
   },
   "dns": {
-    "recordType": "Record Type",
-    "recordTypePlaceholder": "Select record type",
-    "recordTypeHelp": "DNS record type to query",
-    "expectedValue": "Expected Value",
+    "recordType": "Kayıt Türü",
+    "recordTypePlaceholder": "Kayıt türü seçin",
+    "recordTypeHelp": "Sorgulanacak DNS kayıt türü",
+    "expectedValue": "Beklenen Değer",
     "expectedValuePlaceholder": "93.184.216.34",
-    "expectedValueHelp": "If set, check passes only when this value is found among DNS results",
-    "dnsServer": "DNS Server",
+    "expectedValueHelp": "Ayarlanırsa, kontrol yalnızca bu değer DNS sonuçları arasında bulunduğunda başarılı olur",
+    "dnsServer": "DNS Sunucusu",
     "dnsServerPlaceholder": "8.8.8.8:53",
-    "dnsServerHelp": "Custom DNS resolver (leave empty for default)"
+    "dnsServerHelp": "Özel DNS çözümleyici (varsayılan için boş bırakın)"
   },
   "icmp": {
-    "packetCount": "Packet Count",
-    "packetCountHelp": "Number of ICMP echo requests to send (1-10)",
-    "lossThreshold": "Loss Threshold (%)",
-    "lossThresholdHelp": "Percentage of packet loss that triggers a 'down' state",
-    "useIpv6": "Use IPv6",
-    "useIpv6Help": "Send ICMPv6 echo requests instead of IPv4"
+    "packetCount": "Paket Sayısı",
+    "packetCountHelp": "Gönderilecek ICMP echo istek sayısı (1-10)",
+    "lossThreshold": "Kayıp Eşiği (%)",
+    "lossThresholdHelp": "'Çalışmıyor' durumunu tetikleyen paket kayıp yüzdesi",
+    "useIpv6": "IPv6 Kullan",
+    "useIpv6Help": "IPv4 yerine ICMPv6 echo istekleri gönder"
   },
   "smtp": {
     "port": "Port",
-    "portHelp": "SMTP server port (25, 587, 465)",
+    "portHelp": "SMTP sunucu portu (25, 587, 465)",
     "starttls": "STARTTLS",
-    "starttlsHelp": "Attempt STARTTLS upgrade after EHLO",
-    "ehloDomain": "EHLO Domain",
+    "starttlsHelp": "EHLO sonrası STARTTLS yükseltmesi dene (Implicit TLS etkinken yok sayılır)",
+    "implicitTls": "Implicit TLS (SMTPS)",
+    "implicitTlsHelp": "Başlangıçtan itibaren TLS ile bağlan (port 465). SMTPS sunucuları için STARTTLS yerine bunu kullanın.",
+    "ehloDomain": "EHLO Alan Adı",
     "ehloDomainPlaceholder": "pulse.local",
-    "ehloDomainHelp": "Domain name used in the EHLO greeting",
-    "sslExpiryThreshold": "SSL Expiry Threshold (days)",
+    "ehloDomainHelp": "EHLO selamlamasında kullanılan alan adı",
+    "sslExpiryThreshold": "SSL Sona Erme Eşiği (gün)",
     "sslExpiryThresholdPlaceholder": "14",
-    "sslExpiryThresholdHelp": "Alert when certificate expires within this many days (0 = disabled)"
+    "sslExpiryThresholdHelp": "Sertifika bu gün sayısı içinde sona erdiğinde uyar (0 = devre dışı)"
   },
   "payloadEditor": {
-    "placeholder": "Enter JSON payload (e.g. {\"name\": \"value\"})",
-    "label": "Request Payload (JSON)",
-    "jsonHint": "Write your gRPC request body as JSON. Use Format button for pretty-printing.",
-    "format": "Format",
-    "minify": "Minify"
+    "placeholder": "JSON veri yükü girin (ör. {\"name\": \"value\"})",
+    "label": "İstek Veri Yükü (JSON)",
+    "jsonHint": "gRPC istek gövdenizi JSON olarak yazın. Güzel biçimlendirme için Format düğmesini kullanın.",
+    "format": "Biçimlendir",
+    "minify": "Küçült"
+  },
+  "notifications": {
+    "title": "Bildirimler",
+    "description": "Bildirim kanallarını ve uyarı iletimini yönetin.",
+    "channels": {
+      "title": "Bildirim Kanalları",
+      "create": "Kanal Oluştur",
+      "edit": "Kanalı Düzenle",
+      "loading": "Kanallar yükleniyor...",
+      "empty": {
+        "title": "Bildirim kanalı yok",
+        "description": "Uyarı almaya başlamak için ilk kanalınızı oluşturun.",
+        "action": "Kanal Oluştur"
+      },
+      "list": {
+        "name": "Ad",
+        "type": "Tür",
+        "created": "Oluşturulma",
+        "actions": "İşlemler"
+      },
+      "types": {
+        "email": "E-posta",
+        "webhook": "Webhook"
+      },
+      "deleteConfirm": {
+        "title": "Kanalı Sil",
+        "description": "\"{name}\" kanalını silmek istediğinizden emin misiniz? Bu kanalı kullanan tüm bağlamalar da kaldırılacaktır. Bu işlem geri alınamaz.",
+        "confirm": "Kanalı Sil"
+      }
+    },
+    "form": {
+      "name": "Kanal Adı",
+      "namePlaceholder": "ör. Ops Ekip E-postası, Slack Webhook",
+      "type": "Kanal Türü",
+      "typePlaceholder": "Kanal türü seçin",
+      "submitCreate": "Kanal Oluştur",
+      "submitUpdate": "Kanalı Güncelle",
+      "email": {
+        "recipients": "Alıcılar",
+        "recipientsPlaceholder": "E-posta adresi girin",
+        "recipientsHelp": "En fazla 50 alıcı e-posta adresi ekleyin.",
+        "addRecipient": "Alıcı Ekle",
+        "removeRecipient": "Alıcıyı kaldır"
+      },
+      "webhook": {
+        "url": "Webhook URL",
+        "urlPlaceholder": "https://hooks.example.com/...",
+        "urlHelp": "Bildirimleri alacak HTTP veya HTTPS uç noktası (maks. 2048 karakter).",
+        "method": "HTTP Metodu",
+        "methodHelp": "Webhook isteği için kullanılan HTTP metodu.",
+        "headers": "Özel Başlıklar",
+        "headersHelp": "Her webhook isteğiyle gönderilen isteğe bağlı başlıklar (en fazla 20).",
+        "addHeader": "Başlık Ekle",
+        "removeHeader": "Başlığı kaldır",
+        "headerNamePlaceholder": "Başlık adı",
+        "headerValuePlaceholder": "Başlık değeri",
+        "bodyTemplate": "Gövde Şablonu",
+        "bodyTemplatePlaceholder": "{ \"text\": \"{{.Monitor.Name}} is {{.Status}}\" }",
+        "bodyTemplateHelp": "Webhook istek gövdesi için Go şablonu. Aşağıdaki şablon değişkenlerini kullanın."
+      }
+    },
+    "triggers": {
+      "title": "Tetikleme Koşulları",
+      "description": "Bu bağlama için hangi olayların bildirim göndereceğini seçin.",
+      "monitorDown": "Monitör Çalışmıyor",
+      "monitorDownHelp": "Monitör çalışmıyor durumuna geçtiğinde bildir.",
+      "monitorUp": "Monitör Aktif",
+      "monitorUpHelp": "Monitör çalışmıyor durumundan kurtulduğunda bildir.",
+      "degraded": "Düşük Performans",
+      "degradedHelp": "Yanıt süresi eşik değerini aştığında bildir.",
+      "degradedThreshold": "Eşik (ms)",
+      "degradedThresholdPlaceholder": "5000",
+      "sslExpiring": "SSL Sona Eriyor",
+      "sslExpiringHelp": "SSL sertifikası belirtilen gün içinde sona erecekse bildir.",
+      "sslExpiringDays": "Sona Ermeden Önceki Gün",
+      "sslExpiringDaysPlaceholder": "14",
+      "nFailuresInRow": "Ardışık Başarısızlıklar",
+      "nFailuresInRowHelp": "Monitör art arda N kez başarısız olduğunda bildir.",
+      "nFailuresCount": "Başarısızlık Sayısı",
+      "nFailuresCountPlaceholder": "5",
+      "noneSelected": "En az bir tetikleme koşulu seçilmelidir."
+    },
+    "reminders": {
+      "title": "Hatırlatma Politikası",
+      "description": "Koşul devam ederken bildirimleri tekrarla.",
+      "interval": "Hatırlatma Aralığı",
+      "disabled": "Devre dışı",
+      "minutes": "{count} dakika"
+    },
+    "bindings": {
+      "title": "Bildirim Bağlamaları",
+      "description": "Bu monitör için hangi kanalların ve tetikleyicilerin uygulanacağını yapılandırın.",
+      "add": "Bağlama Ekle",
+      "remove": "Bağlamayı Kaldır",
+      "channel": "Kanal",
+      "channelPlaceholder": "Kanal seçin",
+      "empty": {
+        "title": "Bildirim bağlaması yok",
+        "description": "Bu monitör için uyarı almak üzere bir bağlama ekleyin."
+      },
+      "noChannels": {
+        "title": "Kullanılabilir kanal yok",
+        "description": "Önce Bildirimler sayfasından bir bildirim kanalı oluşturun.",
+        "action": "Bildirimlere Git"
+      },
+      "deleteConfirm": {
+        "title": "Bağlamayı Kaldır",
+        "description": "Bu bildirim bağlamasını kaldırmak istediğinizden emin misiniz? Bu monitör için artık bu kanaldan uyarı almayacaksınız.",
+        "confirm": "Bağlamayı Kaldır"
+      }
+    },
+    "test": {
+      "button": "Test",
+      "sending": "Gönderiliyor...",
+      "success": "Test bildirimi başarıyla gönderildi.",
+      "failure": "Test bildirimi başarısız: {error}"
+    },
+    "toast": {
+      "channelCreated": "\"{name}\" kanalı başarıyla oluşturuldu.",
+      "channelUpdated": "\"{name}\" kanalı başarıyla güncellendi.",
+      "channelDeleted": "\"{name}\" kanalı silindi.",
+      "bindingCreated": "Bildirim bağlaması oluşturuldu.",
+      "bindingUpdated": "Bildirim bağlaması güncellendi.",
+      "bindingDeleted": "Bildirim bağlaması kaldırıldı.",
+      "testSuccess": "Test bildirimi başarıyla iletildi.",
+      "testFailure": "Test bildirimi başarısız: {error}"
+    },
+    "templateVariables": {
+      "title": "Şablon Değişkenleri",
+      "description": "Webhook gövde şablonlarında kullanılabilecek değişkenler.",
+      "groups": {
+        "monitor": "Monitör",
+        "incident": "Olay",
+        "general": "Genel"
+      },
+      "variables": {
+        "monitorName": "Monitör adı",
+        "monitorUrl": "Monitör URL'si",
+        "monitorTarget": "Monitör hedef adresi",
+        "status": "Mevcut durum",
+        "previousStatus": "Önceki durum",
+        "responseTime": "Milisaniye cinsinden yanıt süresi",
+        "incidentStartedAt": "Olay başlangıç zamanı",
+        "incidentDuration": "Olay süresi",
+        "incidentId": "Olay benzersiz kimliği",
+        "timestamp": "Olay zaman damgası"
+      }
+    },
+    "smtpSettings": {
+      "title": "SMTP Ayarları",
+      "description": "E-posta bildirimleri için kullanılan SMTP sunucusunu yapılandırın.",
+      "host": "SMTP Sunucusu",
+      "hostPlaceholder": "smtp.example.com",
+      "port": "Port",
+      "portPlaceholder": "587",
+      "username": "Kullanıcı Adı",
+      "usernamePlaceholder": "notifications@example.com",
+      "password": "Şifre",
+      "passwordPlaceholder": "SMTP şifresini girin",
+      "passwordSet": "Şifre ayarlandı",
+      "passwordNotSet": "Şifre yapılandırılmadı",
+      "fromAddress": "Gönderen Adresi",
+      "fromAddressPlaceholder": "pulse@example.com",
+      "fromAddressHelp": "Bildirim e-postaları için gönderen adresi.",
+      "tlsEnabled": "TLS Etkinleştir",
+      "tlsEnabledHelp": "SMTP bağlantısı için TLS şifreleme kullan.",
+      "testConnection": "Bağlantıyı Test Et",
+      "testingConnection": "Test ediliyor...",
+      "testSuccess": "SMTP bağlantısı başarılı.",
+      "testFailure": "SMTP bağlantısı başarısız: {error}",
+      "saved": "SMTP ayarları kaydedildi.",
+      "deleted": "SMTP ayarları kaldırıldı. E-posta bildirimleri artık devre dışı.",
+      "notConfigured": "SMTP yapılandırılmadı. E-posta bildirimleri devre dışı.",
+      "deleteConfirm": {
+        "title": "SMTP Ayarlarını Kaldır",
+        "description": "SMTP ayarlarını kaldırmak istediğinizden emin misiniz? E-posta bildirimleri devre dışı kalacaktır.",
+        "confirm": "Ayarları Kaldır"
+      }
+    },
+    "validation": {
+      "nameRequired": "Kanal adı gereklidir.",
+      "nameTooLong": "Kanal adı 100 karakter veya daha az olmalıdır.",
+      "typeRequired": "Kanal türü gereklidir.",
+      "typeInvalid": "Kanal türü \"email\" veya \"webhook\" olmalıdır.",
+      "recipientsRequired": "En az bir alıcı e-posta adresi gereklidir.",
+      "recipientsTooMany": "En fazla 50 alıcıya izin verilir.",
+      "recipientInvalid": "Geçersiz e-posta adresi: {email}",
+      "urlRequired": "Webhook URL gereklidir.",
+      "urlInvalid": "URL http:// veya https:// ile başlamalıdır.",
+      "urlTooLong": "URL 2048 karakter veya daha az olmalıdır.",
+      "methodRequired": "HTTP metodu gereklidir.",
+      "methodInvalid": "Metod şunlardan biri olmalıdır: GET, POST, PUT, PATCH, DELETE.",
+      "bodyTemplateRequired": "Webhook kanalları için gövde şablonu gereklidir.",
+      "bodyTemplateInvalid": "Geçersiz şablon: {error}",
+      "headerNameTooLong": "Başlık adı 128 karakter veya daha az olmalıdır.",
+      "headerValueTooLong": "Başlık değeri 8192 karakter veya daha az olmalıdır.",
+      "headersTooMany": "En fazla 20 özel başlığa izin verilir.",
+      "degradedThresholdRange": "Eşik 1 ile 60000 ms arasında olmalıdır.",
+      "sslExpiringDaysRange": "Gün sayısı 1 ile 365 arasında olmalıdır.",
+      "nFailuresCountRange": "Sayı 1 ile 100 arasında olmalıdır.",
+      "triggerRequired": "En az bir tetikleme koşulu gereklidir.",
+      "smtpHostRequired": "SMTP sunucusu gereklidir.",
+      "smtpPortRange": "Port 1 ile 65535 arasında olmalıdır.",
+      "smtpFromRequired": "Gönderen adresi gereklidir.",
+      "smtpFromInvalid": "Geçersiz e-posta adresi formatı."
+    }
   }
 }

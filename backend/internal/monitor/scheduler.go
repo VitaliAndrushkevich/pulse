@@ -15,6 +15,7 @@ import (
 
 	"github.com/VitaliAndrushkevich/pulse/internal/crypto"
 	"github.com/VitaliAndrushkevich/pulse/internal/hub"
+	"github.com/VitaliAndrushkevich/pulse/internal/notification"
 	db "github.com/VitaliAndrushkevich/pulse/internal/store/postgres"
 	"github.com/VitaliAndrushkevich/pulse/internal/store/timescale"
 )
@@ -44,14 +45,15 @@ type Scheduler struct {
 	queries       *db.Queries
 	tsStore       *timescale.Store
 	dynMetrics    *DynamicMetrics
-	hub           *hub.Hub      // WebSocket broadcast hub (may be nil)
-	encryptionKey []byte        // AES-256-GCM key for credential decryption
-	wakeupCh      chan struct{} // signals immediate re-poll (from LISTEN/NOTIFY)
+	hub           *hub.Hub                    // WebSocket broadcast hub (may be nil)
+	dispatcher    *notification.Dispatcher    // Notification dispatcher (may be nil)
+	encryptionKey []byte                      // AES-256-GCM key for credential decryption
+	wakeupCh      chan struct{}               // signals immediate re-poll (from LISTEN/NOTIFY)
 	stopOnce      sync.Once
 }
 
 // NewScheduler creates a scheduler with the given configuration and dependencies.
-func NewScheduler(cfg SchedulerConfig, registry *Registry, queries *db.Queries, tsStore *timescale.Store, dynMetrics *DynamicMetrics, wsHub *hub.Hub, encryptionKey []byte) *Scheduler {
+func NewScheduler(cfg SchedulerConfig, registry *Registry, queries *db.Queries, tsStore *timescale.Store, dynMetrics *DynamicMetrics, wsHub *hub.Hub, encryptionKey []byte, dispatcher *notification.Dispatcher) *Scheduler {
 	if cfg.Workers <= 0 {
 		cfg.Workers = DefaultWorkers
 	}
@@ -68,6 +70,7 @@ func NewScheduler(cfg SchedulerConfig, registry *Registry, queries *db.Queries, 
 		tsStore:       tsStore,
 		dynMetrics:    dynMetrics,
 		hub:           wsHub,
+		dispatcher:    dispatcher,
 		encryptionKey: encryptionKey,
 		wakeupCh:      make(chan struct{}, 1),
 	}
@@ -373,6 +376,86 @@ func (s *Scheduler) executeCheck(ctx context.Context, m db.Monitor, tags map[str
 			result.CheckedAt,
 		))
 	}
+
+	// Dispatch notifications for state changes (non-blocking).
+	// EvaluateAndDispatch → Enqueue uses select/default so it never blocks the scheduler.
+	if s.dispatcher != nil {
+		s.dispatchNotifications(ctx, m, result)
+	}
+}
+
+// dispatchNotifications looks up notification bindings for a monitor and
+// dispatches notifications based on the check result. This method is non-blocking:
+// EvaluateAndDispatch enqueues jobs onto a buffered channel with select/default.
+func (s *Scheduler) dispatchNotifications(ctx context.Context, m db.Monitor, result Result) {
+	// Look up bindings for this monitor.
+	dbBindings, err := s.queries.ListBindingsByMonitor(ctx, m.ID)
+	if err != nil {
+		log.Printf("scheduler: monitor %s: list bindings for notification: %v", m.ID, err)
+		return
+	}
+	if len(dbBindings) == 0 {
+		return
+	}
+
+	// Convert DB bindings to notification.BindingWithChannel.
+	bindings := make([]notification.BindingWithChannel, 0, len(dbBindings))
+	for _, b := range dbBindings {
+		var triggers []notification.TriggerCondition
+		if err := json.Unmarshal(b.Triggers, &triggers); err != nil {
+			log.Printf("scheduler: monitor %s: unmarshal binding triggers: %v", m.ID, err)
+			continue
+		}
+		bindings = append(bindings, notification.BindingWithChannel{
+			ID:        b.ID,
+			ChannelID: b.ChannelID,
+			MonitorID: b.MonitorID,
+			Triggers:  triggers,
+		})
+	}
+	if len(bindings) == 0 {
+		return
+	}
+
+	// Count consecutive failures from recent check results.
+	consecFailures := s.countConsecutiveFailures(ctx, m.ID)
+
+	// Build the notification CheckResult from the scheduler's Result.
+	// m.State is the previous state (before UpdateMonitorState was called).
+	checkResult := notification.CheckResult{
+		State:               result.State,
+		PreviousState:       m.State,
+		ResponseTimeMs:      result.LatencyMs,
+		SSLDaysRemaining:    result.SSLDaysRemaining,
+		ConsecutiveFailures: consecFailures,
+	}
+
+	s.dispatcher.EvaluateAndDispatch(ctx, m.ID, checkResult, bindings)
+}
+
+// countConsecutiveFailures queries the most recent check results for a monitor
+// and counts how many consecutive "down" states there are from the latest.
+func (s *Scheduler) countConsecutiveFailures(ctx context.Context, monitorID uuid.UUID) int {
+	// Fetch the latest check results (limited to a reasonable window).
+	results, err := s.queries.ListCheckResultsByMonitor(ctx, db.ListCheckResultsByMonitorParams{
+		MonitorID: monitorID,
+		Limit:     100,
+		Offset:    0,
+	})
+	if err != nil {
+		log.Printf("scheduler: monitor %s: count consecutive failures: %v", monitorID, err)
+		return 0
+	}
+
+	count := 0
+	for _, r := range results {
+		if r.State == "down" {
+			count++
+		} else {
+			break
+		}
+	}
+	return count
 }
 
 // recordFailure handles cases where the checker itself couldn't be resolved.

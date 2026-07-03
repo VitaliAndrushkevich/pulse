@@ -6,6 +6,7 @@
   "nav": {
     "dashboard": "Dashboard",
     "monitors": "Monitors",
+    "notifications": "Notifications",
     "settings": "Settings",
     "logout": "Logout",
     "home": "Pulse — Home"
@@ -522,6 +523,212 @@
     "error": "Failed to load history data.",
     "empty": "No data available for the selected period.",
     "retry": "Retry"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "description": "Manage notification channels and alert delivery.",
+    "channels": {
+      "title": "Notification Channels",
+      "create": "Create Channel",
+      "edit": "Edit Channel",
+      "loading": "Loading channels...",
+      "empty": {
+        "title": "No notification channels",
+        "description": "Create your first channel to start receiving alerts.",
+        "action": "Create Channel"
+      },
+      "list": {
+        "name": "Name",
+        "type": "Type",
+        "created": "Created",
+        "actions": "Actions"
+      },
+      "types": {
+        "email": "Email",
+        "webhook": "Webhook"
+      },
+      "deleteConfirm": {
+        "title": "Delete Channel",
+        "description": "Are you sure you want to delete \"{name}\"? All bindings using this channel will also be removed. This action cannot be undone.",
+        "confirm": "Delete Channel"
+      }
+    },
+    "form": {
+      "name": "Channel Name",
+      "namePlaceholder": "e.g. Ops Team Email, Slack Webhook",
+      "type": "Channel Type",
+      "typePlaceholder": "Select channel type",
+      "submitCreate": "Create Channel",
+      "submitUpdate": "Update Channel",
+      "email": {
+        "recipients": "Recipients",
+        "recipientsPlaceholder": "Enter email address",
+        "recipientsHelp": "Add up to 50 recipient email addresses.",
+        "addRecipient": "Add Recipient",
+        "removeRecipient": "Remove recipient"
+      },
+      "webhook": {
+        "url": "Webhook URL",
+        "urlPlaceholder": "https://hooks.example.com/...",
+        "urlHelp": "HTTP or HTTPS endpoint to receive notifications (max 2048 characters).",
+        "method": "HTTP Method",
+        "methodHelp": "HTTP method used for the webhook request.",
+        "headers": "Custom Headers",
+        "headersHelp": "Optional headers sent with each webhook request (up to 20).",
+        "addHeader": "Add Header",
+        "removeHeader": "Remove header",
+        "headerNamePlaceholder": "Header name",
+        "headerValuePlaceholder": "Header value",
+        "bodyTemplate": "Body Template",
+        "bodyTemplatePlaceholder": "{ \"text\": \"{{.Monitor.Name}} is {{.Status}}\" }",
+        "bodyTemplateHelp": "Go template for the webhook request body. Use template variables below."
+      }
+    },
+    "triggers": {
+      "title": "Trigger Conditions",
+      "description": "Select which events should fire notifications for this binding.",
+      "monitorDown": "Monitor Down",
+      "monitorDownHelp": "Notify when the monitor transitions to a down state.",
+      "monitorUp": "Monitor Up",
+      "monitorUpHelp": "Notify when the monitor recovers from a down state.",
+      "degraded": "Degraded Performance",
+      "degradedHelp": "Notify when response time exceeds the threshold.",
+      "degradedThreshold": "Threshold (ms)",
+      "degradedThresholdPlaceholder": "5000",
+      "sslExpiring": "SSL Expiring",
+      "sslExpiringHelp": "Notify when SSL certificate is expiring within the specified days.",
+      "sslExpiringDays": "Days Before Expiry",
+      "sslExpiringDaysPlaceholder": "14",
+      "nFailuresInRow": "Consecutive Failures",
+      "nFailuresInRowHelp": "Notify when the monitor fails N times in a row.",
+      "nFailuresCount": "Failure Count",
+      "nFailuresCountPlaceholder": "5",
+      "noneSelected": "At least one trigger condition must be selected."
+    },
+    "reminders": {
+      "title": "Reminder Policy",
+      "description": "Repeat notifications while the condition persists.",
+      "interval": "Reminder Interval",
+      "disabled": "Disabled",
+      "minutes": "{count} minutes"
+    },
+    "bindings": {
+      "title": "Notification Bindings",
+      "description": "Configure which channels and triggers apply to this monitor.",
+      "add": "Add Binding",
+      "remove": "Remove Binding",
+      "channel": "Channel",
+      "channelPlaceholder": "Select a channel",
+      "empty": {
+        "title": "No notification bindings",
+        "description": "Add a binding to receive alerts for this monitor."
+      },
+      "noChannels": {
+        "title": "No channels available",
+        "description": "Create a notification channel first from the Notifications page.",
+        "action": "Go to Notifications"
+      },
+      "deleteConfirm": {
+        "title": "Remove Binding",
+        "description": "Are you sure you want to remove this notification binding? You will no longer receive alerts from this channel for this monitor.",
+        "confirm": "Remove Binding"
+      }
+    },
+    "test": {
+      "button": "Test",
+      "sending": "Sending...",
+      "success": "Test notification sent successfully.",
+      "failure": "Test notification failed: {error}"
+    },
+    "toast": {
+      "channelCreated": "Channel \"{name}\" created successfully.",
+      "channelUpdated": "Channel \"{name}\" updated successfully.",
+      "channelDeleted": "Channel \"{name}\" deleted.",
+      "bindingCreated": "Notification binding created.",
+      "bindingUpdated": "Notification binding updated.",
+      "bindingDeleted": "Notification binding removed.",
+      "testSuccess": "Test notification delivered successfully.",
+      "testFailure": "Test notification failed: {error}"
+    },
+    "templateVariables": {
+      "title": "Template Variables",
+      "description": "Available variables for use in webhook body templates.",
+      "groups": {
+        "monitor": "Monitor",
+        "incident": "Incident",
+        "general": "General"
+      },
+      "variables": {
+        "monitorName": "Monitor name",
+        "monitorUrl": "Monitor URL",
+        "monitorTarget": "Monitor target address",
+        "status": "Current status",
+        "previousStatus": "Previous status",
+        "responseTime": "Response time in milliseconds",
+        "incidentStartedAt": "Incident start time",
+        "incidentDuration": "Incident duration",
+        "incidentId": "Incident unique ID",
+        "timestamp": "Event timestamp"
+      }
+    },
+    "smtpSettings": {
+      "title": "SMTP Settings",
+      "description": "Configure the SMTP server used for email notifications.",
+      "host": "SMTP Host",
+      "hostPlaceholder": "smtp.example.com",
+      "port": "Port",
+      "portPlaceholder": "587",
+      "username": "Username",
+      "usernamePlaceholder": "notifications@example.com",
+      "password": "Password",
+      "passwordPlaceholder": "Enter SMTP password",
+      "passwordSet": "Password is set",
+      "passwordNotSet": "No password configured",
+      "fromAddress": "From Address",
+      "fromAddressPlaceholder": "pulse@example.com",
+      "fromAddressHelp": "Sender address for notification emails.",
+      "tlsEnabled": "Enable TLS",
+      "tlsEnabledHelp": "Use TLS encryption for the SMTP connection.",
+      "testConnection": "Test Connection",
+      "testingConnection": "Testing...",
+      "testSuccess": "SMTP connection successful.",
+      "testFailure": "SMTP connection failed: {error}",
+      "saved": "SMTP settings saved.",
+      "deleted": "SMTP settings removed. Email notifications are now disabled.",
+      "notConfigured": "SMTP is not configured. Email notifications are disabled.",
+      "deleteConfirm": {
+        "title": "Remove SMTP Settings",
+        "description": "Are you sure you want to remove SMTP settings? Email notifications will be disabled.",
+        "confirm": "Remove Settings"
+      }
+    },
+    "validation": {
+      "nameRequired": "Channel name is required.",
+      "nameTooLong": "Channel name must be 100 characters or fewer.",
+      "typeRequired": "Channel type is required.",
+      "typeInvalid": "Channel type must be \"email\" or \"webhook\".",
+      "recipientsRequired": "At least one recipient email is required.",
+      "recipientsTooMany": "Maximum of 50 recipients allowed.",
+      "recipientInvalid": "Invalid email address: {email}",
+      "urlRequired": "Webhook URL is required.",
+      "urlInvalid": "URL must start with http:// or https://.",
+      "urlTooLong": "URL must be 2048 characters or fewer.",
+      "methodRequired": "HTTP method is required.",
+      "methodInvalid": "Method must be one of: GET, POST, PUT, PATCH, DELETE.",
+      "bodyTemplateRequired": "Body template is required for webhook channels.",
+      "bodyTemplateInvalid": "Invalid template: {error}",
+      "headerNameTooLong": "Header name must be 128 characters or fewer.",
+      "headerValueTooLong": "Header value must be 8192 characters or fewer.",
+      "headersTooMany": "Maximum of 20 custom headers allowed.",
+      "degradedThresholdRange": "Threshold must be between 1 and 60000 ms.",
+      "sslExpiringDaysRange": "Days must be between 1 and 365.",
+      "nFailuresCountRange": "Count must be between 1 and 100.",
+      "triggerRequired": "At least one trigger condition is required.",
+      "smtpHostRequired": "SMTP host is required.",
+      "smtpPortRange": "Port must be between 1 and 65535.",
+      "smtpFromRequired": "From address is required.",
+      "smtpFromInvalid": "Invalid email address format."
+    }
   },
   "errors": {
     "generic": "Something went wrong",

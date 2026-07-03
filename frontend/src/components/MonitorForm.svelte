@@ -37,9 +37,10 @@
     monitorId?: string;
     onSubmit: (values: MonitorFormValues, pendingCredential?: CreateCredentialRequest) => Promise<void>;
     onCancel: () => void;
+    extraSections?: import('svelte').Snippet;
   }
 
-  let { mode, initialValues, initialTags = [], secrets = [], monitorId, onSubmit, onCancel }: Props = $props();
+  let { mode, initialValues, initialTags = [], secrets = [], monitorId, onSubmit, onCancel, extraSections }: Props = $props();
 
   // Form field state
   let name = $state(initialValues?.name ?? '');
@@ -624,6 +625,11 @@
 
   <!-- Tags -->
   <TagEditor tags={formTags} onchange={(updated) => { formTags = updated; }} />
+
+  <!-- Extra sections (e.g. notification bindings in edit mode) -->
+  {#if extraSections}
+    {@render extraSections()}
+  {/if}
 
   <!-- Form Actions -->
   <div class="flex items-center justify-end gap-3 border-t border-[var(--color-border)] pt-4">

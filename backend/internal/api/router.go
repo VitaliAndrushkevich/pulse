@@ -18,6 +18,7 @@ import (
 	"github.com/VitaliAndrushkevich/pulse/internal/api/middleware"
 	"github.com/VitaliAndrushkevich/pulse/internal/frontend"
 	"github.com/VitaliAndrushkevich/pulse/internal/hub"
+	smtpclient "github.com/VitaliAndrushkevich/pulse/internal/notification/smtp"
 	db "github.com/VitaliAndrushkevich/pulse/internal/store/postgres"
 	"github.com/VitaliAndrushkevich/pulse/internal/store/timescale"
 	"github.com/VitaliAndrushkevich/pulse/internal/token"
@@ -34,8 +35,10 @@ type Deps struct {
 	Metrics        *handlers.Metrics
 	PromRegistry   *prometheus.Registry
 	Hub            *hub.Hub
+	SMTPClient     *smtpclient.Client // nil if SMTP not configured
 	DevMode        bool
 	OpenAPIDir     string // directory containing openapi.yaml, used for swagger in dev mode
+	BaseURL        string // public base URL for notification links
 }
 
 func NewRouter(deps Deps) *gin.Engine {
@@ -124,6 +127,16 @@ func NewRouter(deps Deps) *gin.Engine {
 	// Dashboard aggregate summary (dashboard-refactor).
 	dashboardHandler := handlers.NewDashboardHandler(deps.Queries, deps.Pool)
 	dashboardHandler.Register(protected)
+
+	// Notification channels and bindings (notification-channels).
+	notifChannelHandler := handlers.NewNotificationChannelHandler(deps.Queries, deps.SecretKey, deps.BaseURL)
+	if deps.SMTPClient != nil {
+		notifChannelHandler.SetSMTPClient(deps.SMTPClient)
+	}
+	notifChannelHandler.Register(protected)
+
+	notifBindingHandler := handlers.NewNotificationBindingHandler(deps.Queries)
+	notifBindingHandler.Register(protected)
 
 	// Proto source management (grpc-proto-payload).
 	protoSourceHandler := handlers.NewProtoSourceHandler(deps.Queries, deps.Pool)

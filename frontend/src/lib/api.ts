@@ -2,7 +2,12 @@
 
 import { getToken, clearToken } from '$lib/stores/auth.svelte';
 import { toastStore } from '$lib/stores/toast.svelte';
-import type { Monitor, PaginatedList, HistoryPoint, Incident, Secret, Tag, DashboardSummary, ProtoSourceMeta } from '$lib/types';
+import type {
+  Monitor, PaginatedList, HistoryPoint, Incident, Secret, Tag, DashboardSummary, ProtoSourceMeta,
+  NotificationChannel, NotificationChannelType, ChannelBinding, TriggerCondition,
+  TemplateVariableGroup, SMTPSettings, SMTPSettingsRequest, TestChannelResult, TestSMTPResult,
+  EmailChannelConfig, WebhookChannelConfig
+} from '$lib/types';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -663,4 +668,163 @@ export async function getProtoSource(monitorId: string): Promise<ProtoSourceMeta
  */
 export async function deleteProtoSource(monitorId: string): Promise<void> {
   await apiRequest<{ ok: boolean }>('DELETE', `/monitors/${monitorId}/proto-source`);
+}
+
+
+// ---------------------------------------------------------------------------
+// Notification Channels
+// ---------------------------------------------------------------------------
+
+export interface CreateNotificationChannelRequest {
+  name: string;
+  type: NotificationChannelType;
+  config: EmailChannelConfig | WebhookChannelConfig;
+}
+
+export interface UpdateNotificationChannelRequest {
+  name: string;
+  type: NotificationChannelType;
+  config: EmailChannelConfig | WebhookChannelConfig;
+}
+
+/** POST /api/v1/notifications/channels */
+export async function createNotificationChannel(
+  data: CreateNotificationChannelRequest
+): Promise<NotificationChannel> {
+  return apiRequest<NotificationChannel>('POST', '/notifications/channels', data);
+}
+
+/** GET /api/v1/notifications/channels?page=&limit= */
+export async function listNotificationChannels(
+  page: number = 1,
+  limit: number = 20
+): Promise<PaginatedList<NotificationChannel>> {
+  return apiRequest<PaginatedList<NotificationChannel>>(
+    'GET',
+    `/notifications/channels?page=${page}&limit=${limit}`
+  );
+}
+
+/** GET /api/v1/notifications/channels/:id */
+export async function getNotificationChannel(id: string): Promise<NotificationChannel> {
+  return apiRequest<NotificationChannel>('GET', `/notifications/channels/${id}`);
+}
+
+/** PUT /api/v1/notifications/channels/:id */
+export async function updateNotificationChannel(
+  id: string,
+  data: UpdateNotificationChannelRequest
+): Promise<NotificationChannel> {
+  return apiRequest<NotificationChannel>('PUT', `/notifications/channels/${id}`, data);
+}
+
+/** DELETE /api/v1/notifications/channels/:id */
+export async function deleteNotificationChannel(id: string): Promise<void> {
+  return apiRequest<void>('DELETE', `/notifications/channels/${id}`);
+}
+
+/** POST /api/v1/notifications/channels/:id/test */
+export async function testNotificationChannel(id: string): Promise<TestChannelResult> {
+  return apiRequest<TestChannelResult>('POST', `/notifications/channels/${id}/test`);
+}
+
+/** GET /api/v1/notifications/template-variables */
+export async function getTemplateVariables(): Promise<TemplateVariableGroup[]> {
+  const res = await apiRequest<{ groups: TemplateVariableGroup[] }>('GET', '/notifications/template-variables');
+  return res.groups;
+}
+
+// ---------------------------------------------------------------------------
+// Notification Bindings (per-monitor)
+// ---------------------------------------------------------------------------
+
+export interface CreateBindingRequest {
+  channel_id: string;
+  triggers: TriggerCondition[];
+  reminder_interval_minutes?: number | null;
+}
+
+export interface UpdateBindingRequest {
+  triggers: TriggerCondition[];
+  reminder_interval_minutes?: number | null;
+}
+
+/** POST /api/v1/monitors/:id/notification-bindings */
+export async function createNotificationBinding(
+  monitorId: string,
+  data: CreateBindingRequest
+): Promise<ChannelBinding> {
+  return apiRequest<ChannelBinding>(
+    'POST',
+    `/monitors/${monitorId}/notification-bindings`,
+    data
+  );
+}
+
+/** GET /api/v1/monitors/:id/notification-bindings */
+export async function listNotificationBindings(
+  monitorId: string
+): Promise<ChannelBinding[]> {
+  const result = await apiRequest<PaginatedList<ChannelBinding>>(
+    'GET',
+    `/monitors/${monitorId}/notification-bindings`
+  );
+  return result.data;
+}
+
+/** PUT /api/v1/monitors/:id/notification-bindings/:bindingId */
+export async function updateNotificationBinding(
+  monitorId: string,
+  bindingId: string,
+  data: UpdateBindingRequest
+): Promise<ChannelBinding> {
+  return apiRequest<ChannelBinding>(
+    'PUT',
+    `/monitors/${monitorId}/notification-bindings/${bindingId}`,
+    data
+  );
+}
+
+/** DELETE /api/v1/monitors/:id/notification-bindings/:bindingId */
+export async function deleteNotificationBinding(
+  monitorId: string,
+  bindingId: string
+): Promise<void> {
+  return apiRequest<void>(
+    'DELETE',
+    `/monitors/${monitorId}/notification-bindings/${bindingId}`
+  );
+}
+
+// ---------------------------------------------------------------------------
+// SMTP Settings
+// ---------------------------------------------------------------------------
+
+/** GET /api/v1/notifications/smtp-settings */
+export async function getSMTPSettings(): Promise<SMTPSettings | null> {
+  try {
+    return await apiRequest<SMTPSettings>('GET', '/notifications/smtp-settings', undefined, {
+      skipToast: true,
+    });
+  } catch (err) {
+    if (err instanceof ApiRequestError && err.statusCode === 404) {
+      return null;
+    }
+    throw err;
+  }
+}
+
+/** PUT /api/v1/notifications/smtp-settings */
+export async function updateSMTPSettings(data: SMTPSettingsRequest): Promise<SMTPSettings> {
+  return apiRequest<SMTPSettings>('PUT', '/notifications/smtp-settings', data);
+}
+
+/** DELETE /api/v1/notifications/smtp-settings */
+export async function deleteSMTPSettings(): Promise<void> {
+  return apiRequest<void>('DELETE', '/notifications/smtp-settings');
+}
+
+/** POST /api/v1/notifications/smtp-settings/test */
+export async function testSMTPSettings(data?: SMTPSettingsRequest): Promise<TestSMTPResult> {
+  return apiRequest<TestSMTPResult>('POST', '/notifications/smtp-settings/test', data);
 }

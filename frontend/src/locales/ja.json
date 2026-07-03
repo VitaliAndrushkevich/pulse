@@ -6,6 +6,7 @@
   "nav": {
     "dashboard": "ダッシュボード",
     "monitors": "モニター",
+    "notifications": "通知",
     "settings": "設定",
     "logout": "ログアウト",
     "home": "Pulse — ホーム"
@@ -267,9 +268,9 @@
         "udp": "形式：ホスト:ポート",
         "websocket": "ws://またはwss://スキームのURL、またはホスト名（デフォルト：wss://）",
         "grpc": "形式：ホスト:ポート",
-        "dns": "Domain name to query (e.g., example.com)",
-        "icmp": "Hostname or IP address (e.g., 8.8.8.8)",
-        "smtp": "Mail server hostname or host:port (e.g., mail.example.com)"
+        "dns": "クエリするドメイン名（例：example.com）",
+        "icmp": "ホスト名またはIPアドレス（例：8.8.8.8）",
+        "smtp": "メールサーバーのホスト名またはホスト:ポート（例：mail.example.com）"
       }
     },
     "filter": {
@@ -295,6 +296,30 @@
       "addTag": "タグを追加",
       "confirm": "タグを確定",
       "cancelRow": "キャンセル"
+    },
+    "proto": {
+      "uploadFiles": "Protoファイルをアップロード",
+      "useReflection": "Server Reflectionを使用",
+      "reflectionHint": "Reflectionを有効にするにはターゲットアドレスを設定してください",
+      "dropZoneTitle": ".protoまたは.descファイルをここにドロップ",
+      "dropZoneHint": "またはクリックして参照（最大20ファイル）",
+      "noValidFiles": "有効な.protoまたは.descファイルが見つかりません",
+      "uploadFailed": "ファイルのアップロードに失敗しました",
+      "reflectionFailed": "Server Reflectionに失敗しました",
+      "removeFailed": "Protoソースの削除に失敗しました",
+      "loading": "処理中...",
+      "error": "エラー",
+      "sourceUpload": "アップロード済みProtoソース",
+      "sourceReflection": "Server Reflection",
+      "files": "ファイル",
+      "services": "サービス",
+      "replace": "置換",
+      "remove": "削除",
+      "selectMethod": "サービスメソッドを選択",
+      "payloadFormat": "ペイロード形式",
+      "payloadFormatRaw": "Raw (Base64)",
+      "payloadFormatProtoJson": "Proto JSON",
+      "saveFirst": "Protoソースとリクエストペイロードを設定するには、まずモニターを保存してください。"
     }
   },
   "settings": {
@@ -412,6 +437,35 @@
     "requestPayloadPlaceholder": "Base64エンコードされたprotobufメッセージ",
     "requestPayloadHelp": "オプションのBase64エンコードprotobufリクエストボディ"
   },
+  "proto": {
+    "upload": {
+      "errorTitle": "アップロードエラー",
+      "unknownError": "不明なエラーが発生しました",
+      "currentSource": "Protoソース",
+      "sourceType": "ソース",
+      "sourceTypeUpload": "ファイルアップロード",
+      "sourceTypeReflection": "Server Reflection",
+      "filenames": "ファイル",
+      "serviceCount": "{count}個のサービスを検出",
+      "replace": "置換",
+      "remove": "削除",
+      "dropzone": ".protoまたは.descファイルをここにドロップ",
+      "dropzoneHint": "最大20ファイル（.protoまたは.desc）",
+      "dropzoneLabel": "Protoファイルをここにドロップまたはクリックして参照",
+      "selectedFiles": "{count}個のファイルを選択中",
+      "clearAll": "すべてクリア",
+      "removeFile": "{name}を削除",
+      "uploading": "アップロード中…",
+      "uploadButton": "ファイルをアップロード",
+      "or": "または",
+      "reflecting": "サービスを検出中…",
+      "reflectionButton": "Server Reflectionを使用",
+      "reflectionHint": "Server Reflectionを有効にするにはターゲットアドレスを入力してください",
+      "processing": "処理中…",
+      "selectMethod": "サービスメソッドを選択",
+      "methodCount": "{count}個のメソッド"
+    }
+  },
   "timeRange": {
     "custom": "カスタム",
     "start": "開始",
@@ -437,41 +491,249 @@
     "notFound": "見つかりません"
   },
   "dns": {
-    "recordType": "Record Type",
-    "recordTypePlaceholder": "Select record type",
-    "recordTypeHelp": "DNS record type to query",
-    "expectedValue": "Expected Value",
+    "recordType": "レコードタイプ",
+    "recordTypePlaceholder": "レコードタイプを選択",
+    "recordTypeHelp": "クエリするDNSレコードタイプ",
+    "expectedValue": "期待する値",
     "expectedValuePlaceholder": "93.184.216.34",
-    "expectedValueHelp": "If set, check passes only when this value is found among DNS results",
-    "dnsServer": "DNS Server",
+    "expectedValueHelp": "設定した場合、DNS結果にこの値が含まれる場合のみチェック成功とします",
+    "dnsServer": "DNSサーバー",
     "dnsServerPlaceholder": "8.8.8.8:53",
-    "dnsServerHelp": "Custom DNS resolver (leave empty for default)"
+    "dnsServerHelp": "カスタムDNSリゾルバ（空欄でデフォルト使用）"
   },
   "icmp": {
-    "packetCount": "Packet Count",
-    "packetCountHelp": "Number of ICMP echo requests to send (1-10)",
-    "lossThreshold": "Loss Threshold (%)",
-    "lossThresholdHelp": "Percentage of packet loss that triggers a 'down' state",
-    "useIpv6": "Use IPv6",
-    "useIpv6Help": "Send ICMPv6 echo requests instead of IPv4"
+    "packetCount": "パケット数",
+    "packetCountHelp": "送信するICMPエコーリクエストの数（1〜10）",
+    "lossThreshold": "パケットロスしきい値（%）",
+    "lossThresholdHelp": "ダウン状態と判定するパケットロスの割合",
+    "useIpv6": "IPv6を使用",
+    "useIpv6Help": "IPv4の代わりにICMPv6エコーリクエストを送信"
   },
   "smtp": {
-    "port": "Port",
-    "portHelp": "SMTP server port (25, 587, 465)",
+    "port": "ポート",
+    "portHelp": "SMTPサーバーポート（25, 587, 465）",
     "starttls": "STARTTLS",
-    "starttlsHelp": "Attempt STARTTLS upgrade after EHLO",
-    "ehloDomain": "EHLO Domain",
+    "starttlsHelp": "EHLO後にSTARTTLSアップグレードを試行（Implicit TLS有効時は無視）",
+    "implicitTls": "Implicit TLS (SMTPS)",
+    "implicitTlsHelp": "接続開始時からTLSを使用（ポート465）。SMTPSサーバーにはSTARTTLSの代わりにこちらを使用してください。",
+    "ehloDomain": "EHLOドメイン",
     "ehloDomainPlaceholder": "pulse.local",
-    "ehloDomainHelp": "Domain name used in the EHLO greeting",
-    "sslExpiryThreshold": "SSL Expiry Threshold (days)",
+    "ehloDomainHelp": "EHLOグリーティングで使用するドメイン名",
+    "sslExpiryThreshold": "SSL有効期限しきい値（日）",
     "sslExpiryThresholdPlaceholder": "14",
-    "sslExpiryThresholdHelp": "Alert when certificate expires within this many days (0 = disabled)"
+    "sslExpiryThresholdHelp": "証明書がこの日数内に期限切れになる場合にアラート（0 = 無効）"
   },
   "payloadEditor": {
-    "placeholder": "Enter JSON payload (e.g. {\"name\": \"value\"})",
-    "label": "Request Payload (JSON)",
-    "jsonHint": "Write your gRPC request body as JSON. Use Format button for pretty-printing.",
-    "format": "Format",
-    "minify": "Minify"
+    "placeholder": "JSONペイロードを入力（例：{\"name\": \"value\"}）",
+    "label": "リクエストペイロード（JSON）",
+    "jsonHint": "gRPCリクエストボディをJSONで記述します。整形ボタンで読みやすく表示できます。",
+    "format": "整形",
+    "minify": "圧縮"
+  },
+  "notifications": {
+    "title": "通知",
+    "description": "通知チャンネルとアラート配信を管理します。",
+    "channels": {
+      "title": "通知チャンネル",
+      "create": "チャンネルを作成",
+      "edit": "チャンネルを編集",
+      "loading": "チャンネルを読み込み中...",
+      "empty": {
+        "title": "通知チャンネルがありません",
+        "description": "最初のチャンネルを作成してアラートの受信を開始しましょう。",
+        "action": "チャンネルを作成"
+      },
+      "list": {
+        "name": "名前",
+        "type": "タイプ",
+        "created": "作成日",
+        "actions": "操作"
+      },
+      "types": {
+        "email": "メール",
+        "webhook": "Webhook"
+      },
+      "deleteConfirm": {
+        "title": "チャンネルを削除",
+        "description": "「{name}」を削除してもよろしいですか？このチャンネルを使用しているすべてのバインディングも削除されます。この操作は取り消せません。",
+        "confirm": "チャンネルを削除"
+      }
+    },
+    "form": {
+      "name": "チャンネル名",
+      "namePlaceholder": "例：運用チームメール、Slack Webhook",
+      "type": "チャンネルタイプ",
+      "typePlaceholder": "チャンネルタイプを選択",
+      "submitCreate": "チャンネルを作成",
+      "submitUpdate": "チャンネルを更新",
+      "email": {
+        "recipients": "受信者",
+        "recipientsPlaceholder": "メールアドレスを入力",
+        "recipientsHelp": "最大50件の受信者メールアドレスを追加できます。",
+        "addRecipient": "受信者を追加",
+        "removeRecipient": "受信者を削除"
+      },
+      "webhook": {
+        "url": "Webhook URL",
+        "urlPlaceholder": "https://hooks.example.com/...",
+        "urlHelp": "通知を受信するHTTPまたはHTTPSエンドポイント（最大2048文字）。",
+        "method": "HTTPメソッド",
+        "methodHelp": "Webhookリクエストに使用するHTTPメソッド。",
+        "headers": "カスタムヘッダー",
+        "headersHelp": "各Webhookリクエストで送信されるオプションヘッダー（最大20）。",
+        "addHeader": "ヘッダーを追加",
+        "removeHeader": "ヘッダーを削除",
+        "headerNamePlaceholder": "ヘッダー名",
+        "headerValuePlaceholder": "ヘッダー値",
+        "bodyTemplate": "ボディテンプレート",
+        "bodyTemplatePlaceholder": "{ \"text\": \"{{.Monitor.Name}} is {{.Status}}\" }",
+        "bodyTemplateHelp": "Webhookリクエストボディ用のGoテンプレート。以下のテンプレート変数を使用してください。"
+      }
+    },
+    "triggers": {
+      "title": "トリガー条件",
+      "description": "このバインディングで通知を発火するイベントを選択します。",
+      "monitorDown": "モニターダウン",
+      "monitorDownHelp": "モニターがダウン状態に遷移した際に通知します。",
+      "monitorUp": "モニター復旧",
+      "monitorUpHelp": "モニターがダウン状態から復旧した際に通知します。",
+      "degraded": "パフォーマンス低下",
+      "degradedHelp": "レスポンスタイムがしきい値を超えた際に通知します。",
+      "degradedThreshold": "しきい値（ms）",
+      "degradedThresholdPlaceholder": "5000",
+      "sslExpiring": "SSL期限切れ間近",
+      "sslExpiringHelp": "SSL証明書が指定日数以内に期限切れになる場合に通知します。",
+      "sslExpiringDays": "有効期限までの日数",
+      "sslExpiringDaysPlaceholder": "14",
+      "nFailuresInRow": "連続失敗",
+      "nFailuresInRowHelp": "モニターがN回連続で失敗した際に通知します。",
+      "nFailuresCount": "失敗回数",
+      "nFailuresCountPlaceholder": "5",
+      "noneSelected": "少なくとも1つのトリガー条件を選択してください。"
+    },
+    "reminders": {
+      "title": "リマインダーポリシー",
+      "description": "条件が継続している間、通知を繰り返します。",
+      "interval": "リマインダー間隔",
+      "disabled": "無効",
+      "minutes": "{count}分"
+    },
+    "bindings": {
+      "title": "通知バインディング",
+      "description": "このモニターに適用するチャンネルとトリガーを設定します。",
+      "add": "バインディングを追加",
+      "remove": "バインディングを削除",
+      "channel": "チャンネル",
+      "channelPlaceholder": "チャンネルを選択",
+      "empty": {
+        "title": "通知バインディングがありません",
+        "description": "このモニターのアラートを受信するにはバインディングを追加してください。"
+      },
+      "noChannels": {
+        "title": "利用可能なチャンネルがありません",
+        "description": "まず通知ページで通知チャンネルを作成してください。",
+        "action": "通知へ移動"
+      },
+      "deleteConfirm": {
+        "title": "バインディングを削除",
+        "description": "この通知バインディングを削除してもよろしいですか？このモニターのこのチャンネルからのアラートは届かなくなります。",
+        "confirm": "バインディングを削除"
+      }
+    },
+    "test": {
+      "button": "テスト",
+      "sending": "送信中...",
+      "success": "テスト通知を送信しました。",
+      "failure": "テスト通知に失敗しました：{error}"
+    },
+    "toast": {
+      "channelCreated": "チャンネル「{name}」を作成しました。",
+      "channelUpdated": "チャンネル「{name}」を更新しました。",
+      "channelDeleted": "チャンネル「{name}」を削除しました。",
+      "bindingCreated": "通知バインディングを作成しました。",
+      "bindingUpdated": "通知バインディングを更新しました。",
+      "bindingDeleted": "通知バインディングを削除しました。",
+      "testSuccess": "テスト通知を正常に配信しました。",
+      "testFailure": "テスト通知に失敗しました：{error}"
+    },
+    "templateVariables": {
+      "title": "テンプレート変数",
+      "description": "Webhookボディテンプレートで使用可能な変数。",
+      "groups": {
+        "monitor": "モニター",
+        "incident": "インシデント",
+        "general": "一般"
+      },
+      "variables": {
+        "monitorName": "モニター名",
+        "monitorUrl": "モニターURL",
+        "monitorTarget": "モニターのターゲットアドレス",
+        "status": "現在のステータス",
+        "previousStatus": "前回のステータス",
+        "responseTime": "レスポンスタイム（ミリ秒）",
+        "incidentStartedAt": "インシデント開始時刻",
+        "incidentDuration": "インシデント期間",
+        "incidentId": "インシデント固有ID",
+        "timestamp": "イベントタイムスタンプ"
+      }
+    },
+    "smtpSettings": {
+      "title": "SMTP設定",
+      "description": "メール通知に使用するSMTPサーバーを設定します。",
+      "host": "SMTPホスト",
+      "hostPlaceholder": "smtp.example.com",
+      "port": "ポート",
+      "portPlaceholder": "587",
+      "username": "ユーザー名",
+      "usernamePlaceholder": "notifications@example.com",
+      "password": "パスワード",
+      "passwordPlaceholder": "SMTPパスワードを入力",
+      "passwordSet": "パスワード設定済み",
+      "passwordNotSet": "パスワード未設定",
+      "fromAddress": "送信元アドレス",
+      "fromAddressPlaceholder": "pulse@example.com",
+      "fromAddressHelp": "通知メールの送信元アドレス。",
+      "tlsEnabled": "TLSを有効化",
+      "tlsEnabledHelp": "SMTP接続にTLS暗号化を使用します。",
+      "testConnection": "接続テスト",
+      "testingConnection": "テスト中...",
+      "testSuccess": "SMTP接続に成功しました。",
+      "testFailure": "SMTP接続に失敗しました：{error}",
+      "saved": "SMTP設定を保存しました。",
+      "deleted": "SMTP設定を削除しました。メール通知は無効になりました。",
+      "notConfigured": "SMTPが設定されていません。メール通知は無効です。",
+      "deleteConfirm": {
+        "title": "SMTP設定を削除",
+        "description": "SMTP設定を削除してもよろしいですか？メール通知は無効になります。",
+        "confirm": "設定を削除"
+      }
+    },
+    "validation": {
+      "nameRequired": "チャンネル名は必須です。",
+      "nameTooLong": "チャンネル名は100文字以下にしてください。",
+      "typeRequired": "チャンネルタイプは必須です。",
+      "typeInvalid": "チャンネルタイプは「email」または「webhook」である必要があります。",
+      "recipientsRequired": "少なくとも1つの受信者メールアドレスが必要です。",
+      "recipientsTooMany": "受信者は最大50件までです。",
+      "recipientInvalid": "無効なメールアドレス：{email}",
+      "urlRequired": "Webhook URLは必須です。",
+      "urlInvalid": "URLはhttp://またはhttps://で始まる必要があります。",
+      "urlTooLong": "URLは2048文字以下にしてください。",
+      "methodRequired": "HTTPメソッドは必須です。",
+      "methodInvalid": "メソッドはGET、POST、PUT、PATCH、DELETEのいずれかである必要があります。",
+      "bodyTemplateRequired": "Webhookチャンネルにはボディテンプレートが必須です。",
+      "bodyTemplateInvalid": "無効なテンプレート：{error}",
+      "headerNameTooLong": "ヘッダー名は128文字以下にしてください。",
+      "headerValueTooLong": "ヘッダー値は8192文字以下にしてください。",
+      "headersTooMany": "カスタムヘッダーは最大20件までです。",
+      "degradedThresholdRange": "しきい値は1〜60000 msの範囲で指定してください。",
+      "sslExpiringDaysRange": "日数は1〜365の範囲で指定してください。",
+      "nFailuresCountRange": "回数は1〜100の範囲で指定してください。",
+      "triggerRequired": "少なくとも1つのトリガー条件が必要です。",
+      "smtpHostRequired": "SMTPホストは必須です。",
+      "smtpPortRange": "ポートは1〜65535の範囲で指定してください。",
+      "smtpFromRequired": "送信元アドレスは必須です。",
+      "smtpFromInvalid": "無効なメールアドレス形式です。"
+    }
   }
 }

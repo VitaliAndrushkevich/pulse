@@ -15,6 +15,7 @@ services:
       PULSE_SECRET_KEY: "cHVsc2UtZGV2LXNlY3JldC1rZXktMDEyMzQ1Njc4OTA="
       PULSE_JWT_SECRET: "pulse-dev-jwt-secret-change-in-production"
       PULSE_JWT_EXPIRY: "24h"
+      PULSE_BASE_URL: "http://localhost:5173"
     ports:
       - "8080:8080"
     volumes:

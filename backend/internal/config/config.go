@@ -3,6 +3,7 @@ package config
 import (
 	"os"
 	"strconv"
+	"strings"
 )
 
 const (
@@ -22,6 +23,7 @@ type App struct {
 	JWTExpiry        string
 	DevMode          bool
 	OpenAPIDir       string
+	BaseURL          string // Public base URL for links in notifications (e.g. "https://pulse.example.com")
 }
 
 // Migrate stores runtime configuration for the migration command.
@@ -40,6 +42,7 @@ func LoadApp() App {
 		JWTExpiry:        getEnv("PULSE_JWT_EXPIRY", defaultJWTExpiry),
 		DevMode:          getEnv("PULSE_DEV", "") == "true",
 		OpenAPIDir:       getEnv("PULSE_OPENAPI_DIR", "api"),
+		BaseURL:          strings.TrimRight(getEnv("PULSE_BASE_URL", ""), "/"),
 	}
 }
 

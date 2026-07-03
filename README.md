@@ -7,6 +7,7 @@ Pulse is a self-hosted uptime monitoring platform. It ships as a single binary w
 ## Key Features
 
 - **Multi-protocol monitoring** — HTTP/HTTPS, HTTP/3, TCP, UDP, WebSocket, gRPC, DNS, ICMP, SMTP
+- **Notifications** — Email (SMTP) and webhook channels with trigger-based rules, deduplication, retry with exponential backoff, and reminders
 - **Single deployable container** — Go binary with embedded SvelteKit frontend
 - **Real-time updates** — WebSocket diff/patch messages for instant UI sync
 - **API-first** — full REST API with OpenAPI 3.0.3 spec
@@ -48,6 +49,7 @@ Pulse runs as a single Go process serving both the API and the frontend:
 | `backend/cmd/pulse/main.go` | Application entrypoint |
 | `backend/internal/api/` | HTTP handlers and gin router |
 | `backend/internal/monitor/` | Scheduler, worker pool, protocol checkers |
+| `backend/internal/notification/` | Notification dispatcher, SMTP/webhook delivery, retry, reminders |
 | `backend/internal/hub/` | WebSocket hub with fan-out broadcast |
 | `backend/internal/store/` | Database layer (postgres + timescale) |
 | `backend/internal/frontend/` | Embedded SPA assets (`go:embed`) |
@@ -63,6 +65,7 @@ Pulse runs as a single Go process serving both the API and the frontend:
 3. **Results** are persisted to TimescaleDB and broadcast to the **WebSocket Hub**
 4. **Hub** sends diff/patch messages to connected clients
 5. **Frontend** merges patches into local state for real-time UI updates
+6. **Notification Dispatcher** evaluates trigger conditions and delivers alerts via email/webhook
 
 ## Prerequisites
 
@@ -100,6 +103,9 @@ On first launch you'll be guided through initial setup to create your admin acco
 | `PULSE_SECRET_KEY` | AES-256-GCM key for secrets at rest (base64, 32 bytes) | **required** |
 | `PULSE_JWT_SECRET` | Secret for signing JWT tokens | **required** |
 | `PULSE_JWT_EXPIRY` | JWT token expiry duration (Go duration) | `24h` |
+| `PULSE_BASE_URL` | Public URL for links in email notifications (e.g. `https://pulse.example.com`) | *(empty — links omitted)* |
+| `PULSE_NOTIFICATION_WORKERS` | Number of concurrent notification delivery workers | `50` |
+| `PULSE_NOTIFICATION_DRAIN_TIMEOUT` | Max time to drain in-flight notifications on shutdown (Go duration) | `30s` |
 | `DATABASE_URL` | PostgreSQL connection string | `postgres://pulse:pulse@postgres:5432/pulse?sslmode=disable` |
 
 Generate secrets:
@@ -209,10 +215,107 @@ Messages follow the envelope format:
 | `DELETE` | `/api/v1/monitors/{id}/proto-source` | Delete proto source |
 | `POST` | `/api/v1/grpc/reflect` | Ad-hoc Server Reflection (no monitor required) |
 | `POST` | `/api/v1/grpc/parse-proto` | Ad-hoc proto file parsing (no monitor required) |
+| `POST` | `/api/v1/notifications/channels` | Create notification channel |
+| `GET` | `/api/v1/notifications/channels` | List notification channels |
+| `GET` | `/api/v1/notifications/channels/{id}` | Get channel details |
+| `PUT` | `/api/v1/notifications/channels/{id}` | Update channel |
+| `DELETE` | `/api/v1/notifications/channels/{id}` | Delete channel |
+| `POST` | `/api/v1/notifications/channels/{id}/test` | Send test notification |
+| `GET` | `/api/v1/notifications/channels/{id}/delivery-logs` | Delivery log for channel |
+| `GET` | `/api/v1/notifications/template-variables` | Available template variables |
+| `GET` | `/api/v1/notifications/smtp-settings` | Get SMTP config |
+| `PUT` | `/api/v1/notifications/smtp-settings` | Create/update SMTP settings |
+| `DELETE` | `/api/v1/notifications/smtp-settings` | Remove SMTP settings |
+| `POST` | `/api/v1/notifications/smtp-settings/test` | Test SMTP connection |
+| `POST` | `/api/v1/monitors/{id}/notification-bindings` | Create notification binding |
+| `GET` | `/api/v1/monitors/{id}/notification-bindings` | List bindings for monitor |
+| `PUT` | `/api/v1/monitors/{id}/notification-bindings/{bindingId}` | Update binding |
+| `DELETE` | `/api/v1/monitors/{id}/notification-bindings/{bindingId}` | Delete binding |
 | `GET` | `/healthz` | Health check |
 | `GET` | `/metrics` | Prometheus metrics |
 
 Full API reference: [`backend/api/openapi.yaml`](backend/api/openapi.yaml)
+
+## Notifications
+
+Pulse includes a built-in notification system that alerts you when monitors change state. Notifications are delivered asynchronously via a bounded worker pool, separate from the monitoring engine.
+
+### Supported Channels
+
+- **Email (SMTP)** — Branded HTML emails with monitor status, response time, and incident links. Configure SMTP settings in the UI (Settings → SMTP) or via the API.
+- **Webhook** — HTTP callbacks to any URL. Customizable request method, headers (encrypted at rest), and body template using Go `text/template` syntax.
+
+### Trigger Conditions
+
+Create notification bindings to control when alerts fire:
+
+| Trigger | Description | Parameters |
+|---------|-------------|------------|
+| `monitor_down` | Monitor transitions to "down" | — |
+| `monitor_up` | Monitor recovers (down → up) | — |
+| `degraded` | Response time exceeds threshold | `threshold_ms` (1–60000) |
+| `ssl_expiring` | SSL certificate expiring soon | `days_before` (1–365) |
+| `n_failures_in_row` | Consecutive failures reach count | `count` (1–100) |
+
+Notifications are deduplicated — a trigger fires once per state transition, not on every check.
+
+### Reminders
+
+Bindings support optional reminders (`reminder_interval_minutes`: 5, 10, 15, 30, or 60) that re-send notifications at regular intervals while a condition persists.
+
+### Retry & Delivery Logs
+
+Failed deliveries are retried with exponential backoff (30s → 60s → 120s, max 4 attempts). Non-retryable errors (malformed templates, oversized payloads) fail immediately. All delivery attempts are recorded in the delivery log, accessible per-channel via the API.
+
+### Webhook Template Variables
+
+Use these variables in webhook body templates:
+
+```
+{{.Monitor.Name}}       — Monitor display name
+{{.Monitor.Target}}     — Target URL/host
+{{.Status}}             — Current state ("up" or "down")
+{{.PreviousStatus}}     — State before this check
+{{.ResponseTime}}       — Response time in milliseconds
+{{.Incident.ID}}        — Incident UUID
+{{.Incident.StartedAt}} — Incident start time
+{{.Incident.Duration}}  — Incident duration
+{{.Timestamp}}          — Event timestamp
+{{.BaseURL}}            — Pulse public URL (from PULSE_BASE_URL)
+```
+
+### Example: Create a Webhook Channel
+
+```bash
+curl -X POST http://localhost:8080/api/v1/notifications/channels \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Slack Alerts",
+    "type": "webhook",
+    "config": {
+      "url": "https://hooks.slack.com/services/T.../B.../xxx",
+      "method": "POST",
+      "body_template": "{\"text\": \"{{.Monitor.Name}} is {{.Status}}\"}"
+    }
+  }'
+```
+
+### Example: Bind a Channel to a Monitor
+
+```bash
+curl -X POST http://localhost:8080/api/v1/monitors/<monitor-id>/notification-bindings \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "channel_id": "<channel-uuid>",
+    "triggers": [
+      {"type": "monitor_down"},
+      {"type": "monitor_up"}
+    ],
+    "reminder_interval_minutes": 15
+  }'
+```
 
 ## Supported Languages
 

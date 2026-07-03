@@ -24,6 +24,16 @@ type ApiToken struct {
 	Prefix     string             `db:"prefix" json:"prefix"`
 }
 
+type ChannelBinding struct {
+	ID                      uuid.UUID       `db:"id" json:"id"`
+	ChannelID               uuid.UUID       `db:"channel_id" json:"channel_id"`
+	MonitorID               uuid.UUID       `db:"monitor_id" json:"monitor_id"`
+	Triggers                json.RawMessage `db:"triggers" json:"triggers"`
+	ReminderIntervalMinutes *int32          `db:"reminder_interval_minutes" json:"reminder_interval_minutes"`
+	CreatedAt               time.Time       `db:"created_at" json:"created_at"`
+	UpdatedAt               time.Time       `db:"updated_at" json:"updated_at"`
+}
+
 type CheckResult struct {
 	ID               uuid.UUID `db:"id" json:"id"`
 	MonitorID        uuid.UUID `db:"monitor_id" json:"monitor_id"`
@@ -34,6 +44,18 @@ type CheckResult struct {
 	Error            *string   `db:"error" json:"error"`
 	CreatedAt        time.Time `db:"created_at" json:"created_at"`
 	SslDaysRemaining *int32    `db:"ssl_days_remaining" json:"ssl_days_remaining"`
+}
+
+type DeliveryLog struct {
+	ID          uuid.UUID   `db:"id" json:"id"`
+	ChannelID   uuid.UUID   `db:"channel_id" json:"channel_id"`
+	MonitorID   uuid.UUID   `db:"monitor_id" json:"monitor_id"`
+	BindingID   pgtype.UUID `db:"binding_id" json:"binding_id"`
+	TriggerType string      `db:"trigger_type" json:"trigger_type"`
+	Attempt     int32       `db:"attempt" json:"attempt"`
+	Status      string      `db:"status" json:"status"`
+	ErrorDetail *string     `db:"error_detail" json:"error_detail"`
+	CreatedAt   time.Time   `db:"created_at" json:"created_at"`
 }
 
 type Incident struct {
@@ -79,6 +101,15 @@ type MonitorTag struct {
 	Value     string    `db:"value" json:"value"`
 }
 
+type NotificationChannel struct {
+	ID          uuid.UUID       `db:"id" json:"id"`
+	Name        string          `db:"name" json:"name"`
+	ChannelType string          `db:"channel_type" json:"channel_type"`
+	Config      json.RawMessage `db:"config" json:"config"`
+	CreatedAt   time.Time       `db:"created_at" json:"created_at"`
+	UpdatedAt   time.Time       `db:"updated_at" json:"updated_at"`
+}
+
 type ProtoSource struct {
 	ID              uuid.UUID       `db:"id" json:"id"`
 	MonitorID       uuid.UUID       `db:"monitor_id" json:"monitor_id"`
@@ -95,6 +126,18 @@ type Secret struct {
 	EncryptedValue string    `db:"encrypted_value" json:"encrypted_value"`
 	CreatedAt      time.Time `db:"created_at" json:"created_at"`
 	UpdatedAt      time.Time `db:"updated_at" json:"updated_at"`
+}
+
+type SmtpSetting struct {
+	ID          uuid.UUID `db:"id" json:"id"`
+	Host        string    `db:"host" json:"host"`
+	Port        int32     `db:"port" json:"port"`
+	Username    *string   `db:"username" json:"username"`
+	PasswordEnc []byte    `db:"password_enc" json:"password_enc"`
+	FromAddress string    `db:"from_address" json:"from_address"`
+	TlsEnabled  bool      `db:"tls_enabled" json:"tls_enabled"`
+	CreatedAt   time.Time `db:"created_at" json:"created_at"`
+	UpdatedAt   time.Time `db:"updated_at" json:"updated_at"`
 }
 
 type User struct {

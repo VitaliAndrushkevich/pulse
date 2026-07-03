@@ -6,6 +6,7 @@
   "nav": {
     "dashboard": "Painel",
     "monitors": "Monitores",
+    "notifications": "Notificações",
     "settings": "Configurações",
     "logout": "Sair",
     "home": "Pulse — Início"
@@ -267,9 +268,9 @@
         "udp": "Formato: host:porta",
         "websocket": "URL com esquema ws:// ou wss://, ou nome do host (padrão: wss://)",
         "grpc": "Formato: host:porta",
-        "dns": "Domain name to query (e.g., example.com)",
-        "icmp": "Hostname or IP address (e.g., 8.8.8.8)",
-        "smtp": "Mail server hostname or host:port (e.g., mail.example.com)"
+        "dns": "Nome de domínio para consultar (ex. example.com)",
+        "icmp": "Hostname ou endereço IP (ex. 8.8.8.8)",
+        "smtp": "Hostname do servidor de e-mail ou host:porta (ex. mail.example.com)"
       }
     },
     "filter": {
@@ -295,6 +296,30 @@
       "addTag": "Adicionar tag",
       "confirm": "Confirmar tag",
       "cancelRow": "Cancelar"
+    },
+    "proto": {
+      "uploadFiles": "Enviar arquivos Proto",
+      "useReflection": "Usar Server Reflection",
+      "reflectionHint": "Defina um endereço de destino para ativar a reflexão",
+      "dropZoneTitle": "Solte arquivos .proto ou .desc aqui",
+      "dropZoneHint": "Ou clique para navegar (máx. 20 arquivos)",
+      "noValidFiles": "Nenhum arquivo .proto ou .desc válido encontrado",
+      "uploadFailed": "Falha no envio do arquivo",
+      "reflectionFailed": "Falha no Server Reflection",
+      "removeFailed": "Falha ao remover a fonte proto",
+      "loading": "Processando...",
+      "error": "Erro",
+      "sourceUpload": "Fonte Proto enviada",
+      "sourceReflection": "Server Reflection",
+      "files": "Arquivos",
+      "services": "Serviços",
+      "replace": "Substituir",
+      "remove": "Remover",
+      "selectMethod": "Selecione um método de serviço",
+      "payloadFormat": "Formato do Payload",
+      "payloadFormatRaw": "Raw (Base64)",
+      "payloadFormatProtoJson": "Proto JSON",
+      "saveFirst": "Salve o monitor primeiro para configurar a fonte proto e o payload da requisição."
     }
   },
   "settings": {
@@ -412,6 +437,35 @@
     "requestPayloadPlaceholder": "Mensagem protobuf codificada em Base64",
     "requestPayloadHelp": "Body da requisição protobuf codificado em Base64 opcional"
   },
+  "proto": {
+    "upload": {
+      "errorTitle": "Erro no envio",
+      "unknownError": "Ocorreu um erro desconhecido",
+      "currentSource": "Fonte Proto",
+      "sourceType": "Fonte",
+      "sourceTypeUpload": "Envio de arquivo",
+      "sourceTypeReflection": "Server Reflection",
+      "filenames": "Arquivos",
+      "serviceCount": "{count} serviço(s) descoberto(s)",
+      "replace": "Substituir",
+      "remove": "Remover",
+      "dropzone": "Solte arquivos .proto ou .desc aqui",
+      "dropzoneHint": "Até 20 arquivos (.proto ou .desc)",
+      "dropzoneLabel": "Solte arquivos proto aqui ou clique para navegar",
+      "selectedFiles": "{count} arquivo(s) selecionado(s)",
+      "clearAll": "Limpar tudo",
+      "removeFile": "Remover {name}",
+      "uploading": "Enviando…",
+      "uploadButton": "Enviar arquivos",
+      "or": "ou",
+      "reflecting": "Descobrindo serviços…",
+      "reflectionButton": "Usar Server Reflection",
+      "reflectionHint": "Insira um endereço de destino para ativar o Server Reflection",
+      "processing": "Processando…",
+      "selectMethod": "Selecione um método de serviço",
+      "methodCount": "{count} método(s)"
+    }
+  },
   "timeRange": {
     "custom": "Personalizado",
     "start": "Início",
@@ -437,41 +491,249 @@
     "notFound": "Não encontrado"
   },
   "dns": {
-    "recordType": "Record Type",
-    "recordTypePlaceholder": "Select record type",
-    "recordTypeHelp": "DNS record type to query",
-    "expectedValue": "Expected Value",
+    "recordType": "Tipo de registro",
+    "recordTypePlaceholder": "Selecione o tipo de registro",
+    "recordTypeHelp": "Tipo de registro DNS a consultar",
+    "expectedValue": "Valor esperado",
     "expectedValuePlaceholder": "93.184.216.34",
-    "expectedValueHelp": "If set, check passes only when this value is found among DNS results",
-    "dnsServer": "DNS Server",
+    "expectedValueHelp": "Se definido, a verificação passa somente quando este valor é encontrado nos resultados DNS",
+    "dnsServer": "Servidor DNS",
     "dnsServerPlaceholder": "8.8.8.8:53",
-    "dnsServerHelp": "Custom DNS resolver (leave empty for default)"
+    "dnsServerHelp": "Resolvedor DNS personalizado (deixe vazio para o padrão)"
   },
   "icmp": {
-    "packetCount": "Packet Count",
-    "packetCountHelp": "Number of ICMP echo requests to send (1-10)",
-    "lossThreshold": "Loss Threshold (%)",
-    "lossThresholdHelp": "Percentage of packet loss that triggers a 'down' state",
-    "useIpv6": "Use IPv6",
-    "useIpv6Help": "Send ICMPv6 echo requests instead of IPv4"
+    "packetCount": "Contagem de pacotes",
+    "packetCountHelp": "Número de requisições ICMP echo a enviar (1-10)",
+    "lossThreshold": "Limiar de perda (%)",
+    "lossThresholdHelp": "Percentual de perda de pacotes que aciona o estado 'fora do ar'",
+    "useIpv6": "Usar IPv6",
+    "useIpv6Help": "Enviar requisições ICMPv6 echo em vez de IPv4"
   },
   "smtp": {
-    "port": "Port",
-    "portHelp": "SMTP server port (25, 587, 465)",
+    "port": "Porta",
+    "portHelp": "Porta do servidor SMTP (25, 587, 465)",
     "starttls": "STARTTLS",
-    "starttlsHelp": "Attempt STARTTLS upgrade after EHLO",
-    "ehloDomain": "EHLO Domain",
+    "starttlsHelp": "Tentar upgrade STARTTLS após EHLO (ignorado quando TLS implícito está ativado)",
+    "implicitTls": "TLS implícito (SMTPS)",
+    "implicitTlsHelp": "Conectar com TLS desde o início (porta 465). Use isso em vez de STARTTLS para servidores SMTPS.",
+    "ehloDomain": "Domínio EHLO",
     "ehloDomainPlaceholder": "pulse.local",
-    "ehloDomainHelp": "Domain name used in the EHLO greeting",
-    "sslExpiryThreshold": "SSL Expiry Threshold (days)",
+    "ehloDomainHelp": "Nome de domínio usado na saudação EHLO",
+    "sslExpiryThreshold": "Limiar de expiração SSL (dias)",
     "sslExpiryThresholdPlaceholder": "14",
-    "sslExpiryThresholdHelp": "Alert when certificate expires within this many days (0 = disabled)"
+    "sslExpiryThresholdHelp": "Alertar quando o certificado expirar dentro de N dias (0 = desativado)"
   },
   "payloadEditor": {
-    "placeholder": "Enter JSON payload (e.g. {\"name\": \"value\"})",
-    "label": "Request Payload (JSON)",
-    "jsonHint": "Write your gRPC request body as JSON. Use Format button for pretty-printing.",
-    "format": "Format",
-    "minify": "Minify"
+    "placeholder": "Digite o payload JSON (ex. {\"name\": \"value\"})",
+    "label": "Payload da requisição (JSON)",
+    "jsonHint": "Escreva o corpo da requisição gRPC como JSON. Use o botão Formatar para formatação.",
+    "format": "Formatar",
+    "minify": "Minificar"
+  },
+  "notifications": {
+    "title": "Notificações",
+    "description": "Gerencie canais de notificação e entrega de alertas.",
+    "channels": {
+      "title": "Canais de notificação",
+      "create": "Criar canal",
+      "edit": "Editar canal",
+      "loading": "Carregando canais...",
+      "empty": {
+        "title": "Nenhum canal de notificação",
+        "description": "Crie seu primeiro canal para começar a receber alertas.",
+        "action": "Criar canal"
+      },
+      "list": {
+        "name": "Nome",
+        "type": "Tipo",
+        "created": "Criado",
+        "actions": "Ações"
+      },
+      "types": {
+        "email": "Email",
+        "webhook": "Webhook"
+      },
+      "deleteConfirm": {
+        "title": "Excluir canal",
+        "description": "Tem certeza de que deseja excluir \"{name}\"? Todas as vinculações usando este canal também serão removidas. Esta ação não pode ser desfeita.",
+        "confirm": "Excluir canal"
+      }
+    },
+    "form": {
+      "name": "Nome do canal",
+      "namePlaceholder": "ex. Email da equipe, Slack Webhook",
+      "type": "Tipo de canal",
+      "typePlaceholder": "Selecione o tipo de canal",
+      "submitCreate": "Criar canal",
+      "submitUpdate": "Atualizar canal",
+      "email": {
+        "recipients": "Destinatários",
+        "recipientsPlaceholder": "Digite o endereço de e-mail",
+        "recipientsHelp": "Adicione até 50 endereços de e-mail de destinatários.",
+        "addRecipient": "Adicionar destinatário",
+        "removeRecipient": "Remover destinatário"
+      },
+      "webhook": {
+        "url": "URL do Webhook",
+        "urlPlaceholder": "https://hooks.example.com/...",
+        "urlHelp": "Endpoint HTTP ou HTTPS para receber notificações (máx. 2048 caracteres).",
+        "method": "Método HTTP",
+        "methodHelp": "Método HTTP usado na requisição do webhook.",
+        "headers": "Headers personalizados",
+        "headersHelp": "Headers opcionais enviados com cada requisição do webhook (até 20).",
+        "addHeader": "Adicionar header",
+        "removeHeader": "Remover header",
+        "headerNamePlaceholder": "Nome do header",
+        "headerValuePlaceholder": "Valor do header",
+        "bodyTemplate": "Template do corpo",
+        "bodyTemplatePlaceholder": "{ \"text\": \"{{.Monitor.Name}} is {{.Status}}\" }",
+        "bodyTemplateHelp": "Template Go para o corpo da requisição do webhook. Use as variáveis de template abaixo."
+      }
+    },
+    "triggers": {
+      "title": "Condições de disparo",
+      "description": "Selecione quais eventos devem disparar notificações para esta vinculação.",
+      "monitorDown": "Monitor fora do ar",
+      "monitorDownHelp": "Notificar quando o monitor transicionar para o estado fora do ar.",
+      "monitorUp": "Monitor ativo",
+      "monitorUpHelp": "Notificar quando o monitor se recuperar de um estado fora do ar.",
+      "degraded": "Desempenho degradado",
+      "degradedHelp": "Notificar quando o tempo de resposta exceder o limiar.",
+      "degradedThreshold": "Limiar (ms)",
+      "degradedThresholdPlaceholder": "5000",
+      "sslExpiring": "SSL expirando",
+      "sslExpiringHelp": "Notificar quando o certificado SSL estiver expirando dentro dos dias especificados.",
+      "sslExpiringDays": "Dias antes da expiração",
+      "sslExpiringDaysPlaceholder": "14",
+      "nFailuresInRow": "Falhas consecutivas",
+      "nFailuresInRowHelp": "Notificar quando o monitor falhar N vezes seguidas.",
+      "nFailuresCount": "Contagem de falhas",
+      "nFailuresCountPlaceholder": "5",
+      "noneSelected": "Pelo menos uma condição de disparo deve ser selecionada."
+    },
+    "reminders": {
+      "title": "Política de lembretes",
+      "description": "Repetir notificações enquanto a condição persistir.",
+      "interval": "Intervalo de lembrete",
+      "disabled": "Desativado",
+      "minutes": "{count} minutos"
+    },
+    "bindings": {
+      "title": "Vinculações de notificação",
+      "description": "Configure quais canais e gatilhos se aplicam a este monitor.",
+      "add": "Adicionar vinculação",
+      "remove": "Remover vinculação",
+      "channel": "Canal",
+      "channelPlaceholder": "Selecione um canal",
+      "empty": {
+        "title": "Nenhuma vinculação de notificação",
+        "description": "Adicione uma vinculação para receber alertas deste monitor."
+      },
+      "noChannels": {
+        "title": "Nenhum canal disponível",
+        "description": "Crie um canal de notificação primeiro na página de Notificações.",
+        "action": "Ir para Notificações"
+      },
+      "deleteConfirm": {
+        "title": "Remover vinculação",
+        "description": "Tem certeza de que deseja remover esta vinculação de notificação? Você não receberá mais alertas deste canal para este monitor.",
+        "confirm": "Remover vinculação"
+      }
+    },
+    "test": {
+      "button": "Testar",
+      "sending": "Enviando...",
+      "success": "Notificação de teste enviada com sucesso.",
+      "failure": "Falha na notificação de teste: {error}"
+    },
+    "toast": {
+      "channelCreated": "Canal \"{name}\" criado com sucesso.",
+      "channelUpdated": "Canal \"{name}\" atualizado com sucesso.",
+      "channelDeleted": "Canal \"{name}\" excluído.",
+      "bindingCreated": "Vinculação de notificação criada.",
+      "bindingUpdated": "Vinculação de notificação atualizada.",
+      "bindingDeleted": "Vinculação de notificação removida.",
+      "testSuccess": "Notificação de teste entregue com sucesso.",
+      "testFailure": "Falha na notificação de teste: {error}"
+    },
+    "templateVariables": {
+      "title": "Variáveis de template",
+      "description": "Variáveis disponíveis para uso em templates de corpo do webhook.",
+      "groups": {
+        "monitor": "Monitor",
+        "incident": "Incidente",
+        "general": "Geral"
+      },
+      "variables": {
+        "monitorName": "Nome do monitor",
+        "monitorUrl": "URL do monitor",
+        "monitorTarget": "Endereço de destino do monitor",
+        "status": "Status atual",
+        "previousStatus": "Status anterior",
+        "responseTime": "Tempo de resposta em milissegundos",
+        "incidentStartedAt": "Hora de início do incidente",
+        "incidentDuration": "Duração do incidente",
+        "incidentId": "ID único do incidente",
+        "timestamp": "Timestamp do evento"
+      }
+    },
+    "smtpSettings": {
+      "title": "Configurações SMTP",
+      "description": "Configure o servidor SMTP usado para notificações por e-mail.",
+      "host": "Host SMTP",
+      "hostPlaceholder": "smtp.example.com",
+      "port": "Porta",
+      "portPlaceholder": "587",
+      "username": "Usuário",
+      "usernamePlaceholder": "notifications@example.com",
+      "password": "Senha",
+      "passwordPlaceholder": "Digite a senha SMTP",
+      "passwordSet": "Senha configurada",
+      "passwordNotSet": "Nenhuma senha configurada",
+      "fromAddress": "Endereço de remetente",
+      "fromAddressPlaceholder": "pulse@example.com",
+      "fromAddressHelp": "Endereço do remetente para e-mails de notificação.",
+      "tlsEnabled": "Ativar TLS",
+      "tlsEnabledHelp": "Usar criptografia TLS para a conexão SMTP.",
+      "testConnection": "Testar conexão",
+      "testingConnection": "Testando...",
+      "testSuccess": "Conexão SMTP bem-sucedida.",
+      "testFailure": "Falha na conexão SMTP: {error}",
+      "saved": "Configurações SMTP salvas.",
+      "deleted": "Configurações SMTP removidas. Notificações por e-mail agora estão desativadas.",
+      "notConfigured": "SMTP não está configurado. Notificações por e-mail estão desativadas.",
+      "deleteConfirm": {
+        "title": "Remover configurações SMTP",
+        "description": "Tem certeza de que deseja remover as configurações SMTP? Notificações por e-mail serão desativadas.",
+        "confirm": "Remover configurações"
+      }
+    },
+    "validation": {
+      "nameRequired": "O nome do canal é obrigatório.",
+      "nameTooLong": "O nome do canal deve ter no máximo 100 caracteres.",
+      "typeRequired": "O tipo de canal é obrigatório.",
+      "typeInvalid": "O tipo de canal deve ser \"email\" ou \"webhook\".",
+      "recipientsRequired": "Pelo menos um e-mail de destinatário é obrigatório.",
+      "recipientsTooMany": "Máximo de 50 destinatários permitido.",
+      "recipientInvalid": "Endereço de e-mail inválido: {email}",
+      "urlRequired": "A URL do webhook é obrigatória.",
+      "urlInvalid": "A URL deve começar com http:// ou https://.",
+      "urlTooLong": "A URL deve ter no máximo 2048 caracteres.",
+      "methodRequired": "O método HTTP é obrigatório.",
+      "methodInvalid": "O método deve ser um destes: GET, POST, PUT, PATCH, DELETE.",
+      "bodyTemplateRequired": "O template do corpo é obrigatório para canais webhook.",
+      "bodyTemplateInvalid": "Template inválido: {error}",
+      "headerNameTooLong": "O nome do header deve ter no máximo 128 caracteres.",
+      "headerValueTooLong": "O valor do header deve ter no máximo 8192 caracteres.",
+      "headersTooMany": "Máximo de 20 headers personalizados permitido.",
+      "degradedThresholdRange": "O limiar deve estar entre 1 e 60000 ms.",
+      "sslExpiringDaysRange": "Os dias devem estar entre 1 e 365.",
+      "nFailuresCountRange": "A contagem deve estar entre 1 e 100.",
+      "triggerRequired": "Pelo menos uma condição de disparo é obrigatória.",
+      "smtpHostRequired": "O host SMTP é obrigatório.",
+      "smtpPortRange": "A porta deve estar entre 1 e 65535.",
+      "smtpFromRequired": "O endereço de remetente é obrigatório.",
+      "smtpFromInvalid": "Formato de endereço de e-mail inválido."
+    }
   }
 }

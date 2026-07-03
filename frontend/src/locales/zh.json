@@ -6,6 +6,7 @@
   "nav": {
     "dashboard": "仪表板",
     "monitors": "监控器",
+    "notifications": "通知",
     "settings": "设置",
     "logout": "退出",
     "home": "Pulse — 首页"
@@ -267,9 +268,9 @@
         "udp": "格式：主机:端口",
         "websocket": "带ws://或wss://的URL，或主机名（默认：wss://）",
         "grpc": "格式：主机:端口",
-        "dns": "Domain name to query (e.g., example.com)",
-        "icmp": "Hostname or IP address (e.g., 8.8.8.8)",
-        "smtp": "Mail server hostname or host:port (e.g., mail.example.com)"
+        "dns": "要查询的域名（例如 example.com）",
+        "icmp": "主机名或IP地址（例如 8.8.8.8）",
+        "smtp": "邮件服务器主机名或主机:端口（例如 mail.example.com）"
       }
     },
     "filter": {
@@ -295,6 +296,30 @@
       "addTag": "添加标签",
       "confirm": "确认标签",
       "cancelRow": "取消"
+    },
+    "proto": {
+      "uploadFiles": "上传 Proto 文件",
+      "useReflection": "使用 Server Reflection",
+      "reflectionHint": "设置目标地址以启用反射",
+      "dropZoneTitle": "将 .proto 或 .desc 文件拖放到此处",
+      "dropZoneHint": "或点击浏览（最多 20 个文件）",
+      "noValidFiles": "未找到有效的 .proto 或 .desc 文件",
+      "uploadFailed": "文件上传失败",
+      "reflectionFailed": "Server Reflection 失败",
+      "removeFailed": "移除 proto 来源失败",
+      "loading": "处理中...",
+      "error": "错误",
+      "sourceUpload": "已上传的 Proto 来源",
+      "sourceReflection": "Server Reflection",
+      "files": "文件",
+      "services": "服务",
+      "replace": "替换",
+      "remove": "移除",
+      "selectMethod": "选择服务方法",
+      "payloadFormat": "有效载荷格式",
+      "payloadFormatRaw": "Raw (Base64)",
+      "payloadFormatProtoJson": "Proto JSON",
+      "saveFirst": "请先保存监控器，然后再配置 proto 来源和请求有效载荷。"
     }
   },
   "settings": {
@@ -412,6 +437,35 @@
     "requestPayloadPlaceholder": "Base64编码的protobuf消息",
     "requestPayloadHelp": "可选的Base64编码protobuf请求体"
   },
+  "proto": {
+    "upload": {
+      "errorTitle": "上传错误",
+      "unknownError": "发生未知错误",
+      "currentSource": "Proto 来源",
+      "sourceType": "来源",
+      "sourceTypeUpload": "文件上传",
+      "sourceTypeReflection": "Server Reflection",
+      "filenames": "文件",
+      "serviceCount": "已发现 {count} 个服务",
+      "replace": "替换",
+      "remove": "移除",
+      "dropzone": "将 .proto 或 .desc 文件拖放到此处",
+      "dropzoneHint": "最多 20 个文件（.proto 或 .desc）",
+      "dropzoneLabel": "将 proto 文件拖放到此处或点击浏览",
+      "selectedFiles": "已选择 {count} 个文件",
+      "clearAll": "全部清除",
+      "removeFile": "移除 {name}",
+      "uploading": "上传中…",
+      "uploadButton": "上传文件",
+      "or": "或",
+      "reflecting": "发现服务中…",
+      "reflectionButton": "使用 Server Reflection",
+      "reflectionHint": "输入目标地址以启用 Server Reflection",
+      "processing": "处理中…",
+      "selectMethod": "选择服务方法",
+      "methodCount": "{count} 个方法"
+    }
+  },
   "timeRange": {
     "custom": "自定义",
     "start": "开始",
@@ -437,41 +491,249 @@
     "notFound": "未找到"
   },
   "dns": {
-    "recordType": "Record Type",
-    "recordTypePlaceholder": "Select record type",
-    "recordTypeHelp": "DNS record type to query",
-    "expectedValue": "Expected Value",
+    "recordType": "记录类型",
+    "recordTypePlaceholder": "选择记录类型",
+    "recordTypeHelp": "要查询的 DNS 记录类型",
+    "expectedValue": "预期值",
     "expectedValuePlaceholder": "93.184.216.34",
-    "expectedValueHelp": "If set, check passes only when this value is found among DNS results",
-    "dnsServer": "DNS Server",
+    "expectedValueHelp": "如设置，仅当 DNS 结果中包含此值时检查才通过",
+    "dnsServer": "DNS 服务器",
     "dnsServerPlaceholder": "8.8.8.8:53",
-    "dnsServerHelp": "Custom DNS resolver (leave empty for default)"
+    "dnsServerHelp": "自定义 DNS 解析器（留空使用默认值）"
   },
   "icmp": {
-    "packetCount": "Packet Count",
-    "packetCountHelp": "Number of ICMP echo requests to send (1-10)",
-    "lossThreshold": "Loss Threshold (%)",
-    "lossThresholdHelp": "Percentage of packet loss that triggers a 'down' state",
-    "useIpv6": "Use IPv6",
-    "useIpv6Help": "Send ICMPv6 echo requests instead of IPv4"
+    "packetCount": "数据包数量",
+    "packetCountHelp": "发送的 ICMP 回显请求数量 (1-10)",
+    "lossThreshold": "丢包阈值 (%)",
+    "lossThresholdHelp": "触发「宕机」状态的丢包百分比",
+    "useIpv6": "使用 IPv6",
+    "useIpv6Help": "发送 ICMPv6 回显请求（替代 IPv4）"
   },
   "smtp": {
-    "port": "Port",
-    "portHelp": "SMTP server port (25, 587, 465)",
+    "port": "端口",
+    "portHelp": "SMTP 服务器端口 (25, 587, 465)",
     "starttls": "STARTTLS",
-    "starttlsHelp": "Attempt STARTTLS upgrade after EHLO",
-    "ehloDomain": "EHLO Domain",
+    "starttlsHelp": "在 EHLO 后尝试 STARTTLS 升级（启用 Implicit TLS 时忽略）",
+    "implicitTls": "Implicit TLS (SMTPS)",
+    "implicitTlsHelp": "从连接开始即使用 TLS（端口 465）。用于 SMTPS 服务器，替代 STARTTLS。",
+    "ehloDomain": "EHLO 域名",
     "ehloDomainPlaceholder": "pulse.local",
-    "ehloDomainHelp": "Domain name used in the EHLO greeting",
-    "sslExpiryThreshold": "SSL Expiry Threshold (days)",
+    "ehloDomainHelp": "EHLO 问候中使用的域名",
+    "sslExpiryThreshold": "SSL 到期阈值（天）",
     "sslExpiryThresholdPlaceholder": "14",
-    "sslExpiryThresholdHelp": "Alert when certificate expires within this many days (0 = disabled)"
+    "sslExpiryThresholdHelp": "证书在此天数内到期时发出警报（0 = 禁用）"
   },
   "payloadEditor": {
-    "placeholder": "Enter JSON payload (e.g. {\"name\": \"value\"})",
-    "label": "Request Payload (JSON)",
-    "jsonHint": "Write your gRPC request body as JSON. Use Format button for pretty-printing.",
-    "format": "Format",
-    "minify": "Minify"
+    "placeholder": "输入 JSON 有效载荷（例如 {\"name\": \"value\"}）",
+    "label": "请求有效载荷 (JSON)",
+    "jsonHint": "以 JSON 格式编写 gRPC 请求体。使用「格式化」按钮美化输出。",
+    "format": "格式化",
+    "minify": "压缩"
+  },
+  "notifications": {
+    "title": "通知",
+    "description": "管理通知渠道和告警发送。",
+    "channels": {
+      "title": "通知渠道",
+      "create": "创建渠道",
+      "edit": "编辑渠道",
+      "loading": "加载渠道中...",
+      "empty": {
+        "title": "暂无通知渠道",
+        "description": "创建您的第一个渠道以开始接收告警。",
+        "action": "创建渠道"
+      },
+      "list": {
+        "name": "名称",
+        "type": "类型",
+        "created": "创建时间",
+        "actions": "操作"
+      },
+      "types": {
+        "email": "Email",
+        "webhook": "Webhook"
+      },
+      "deleteConfirm": {
+        "title": "删除渠道",
+        "description": "确定要删除「{name}」吗？所有使用此渠道的绑定也将被移除。此操作无法撤销。",
+        "confirm": "删除渠道"
+      }
+    },
+    "form": {
+      "name": "渠道名称",
+      "namePlaceholder": "例如 运维团队邮件, Slack Webhook",
+      "type": "渠道类型",
+      "typePlaceholder": "选择渠道类型",
+      "submitCreate": "创建渠道",
+      "submitUpdate": "更新渠道",
+      "email": {
+        "recipients": "收件人",
+        "recipientsPlaceholder": "输入邮箱地址",
+        "recipientsHelp": "最多添加 50 个收件人邮箱地址。",
+        "addRecipient": "添加收件人",
+        "removeRecipient": "移除收件人"
+      },
+      "webhook": {
+        "url": "Webhook URL",
+        "urlPlaceholder": "https://hooks.example.com/...",
+        "urlHelp": "接收通知的 HTTP 或 HTTPS 端点（最多 2048 个字符）。",
+        "method": "HTTP 方法",
+        "methodHelp": "Webhook 请求使用的 HTTP 方法。",
+        "headers": "自定义头部",
+        "headersHelp": "每次 Webhook 请求发送的可选头部（最多 20 个）。",
+        "addHeader": "添加头部",
+        "removeHeader": "移除头部",
+        "headerNamePlaceholder": "头部名称",
+        "headerValuePlaceholder": "头部值",
+        "bodyTemplate": "请求体模板",
+        "bodyTemplatePlaceholder": "{ \"text\": \"{{.Monitor.Name}} is {{.Status}}\" }",
+        "bodyTemplateHelp": "Webhook 请求体的 Go 模板。使用下方的模板变量。"
+      }
+    },
+    "triggers": {
+      "title": "触发条件",
+      "description": "选择此绑定触发通知的事件。",
+      "monitorDown": "监控器宕机",
+      "monitorDownHelp": "当监控器转为宕机状态时通知。",
+      "monitorUp": "监控器恢复",
+      "monitorUpHelp": "当监控器从宕机状态恢复时通知。",
+      "degraded": "性能下降",
+      "degradedHelp": "当响应时间超过阈值时通知。",
+      "degradedThreshold": "阈值 (ms)",
+      "degradedThresholdPlaceholder": "5000",
+      "sslExpiring": "SSL 即将到期",
+      "sslExpiringHelp": "当 SSL 证书在指定天数内到期时通知。",
+      "sslExpiringDays": "到期前天数",
+      "sslExpiringDaysPlaceholder": "14",
+      "nFailuresInRow": "连续失败",
+      "nFailuresInRowHelp": "当监控器连续失败 N 次时通知。",
+      "nFailuresCount": "失败次数",
+      "nFailuresCountPlaceholder": "5",
+      "noneSelected": "至少需要选择一个触发条件。"
+    },
+    "reminders": {
+      "title": "提醒策略",
+      "description": "在条件持续期间重复发送通知。",
+      "interval": "提醒间隔",
+      "disabled": "已禁用",
+      "minutes": "{count} 分钟"
+    },
+    "bindings": {
+      "title": "通知绑定",
+      "description": "配置适用于此监控器的渠道和触发条件。",
+      "add": "添加绑定",
+      "remove": "移除绑定",
+      "channel": "渠道",
+      "channelPlaceholder": "选择渠道",
+      "empty": {
+        "title": "暂无通知绑定",
+        "description": "添加绑定以接收此监控器的告警。"
+      },
+      "noChannels": {
+        "title": "无可用渠道",
+        "description": "请先在通知页面创建一个通知渠道。",
+        "action": "前往通知"
+      },
+      "deleteConfirm": {
+        "title": "移除绑定",
+        "description": "确定要移除此通知绑定吗？您将不再从此渠道接收此监控器的告警。",
+        "confirm": "移除绑定"
+      }
+    },
+    "test": {
+      "button": "测试",
+      "sending": "发送中...",
+      "success": "测试通知发送成功。",
+      "failure": "测试通知发送失败：{error}"
+    },
+    "toast": {
+      "channelCreated": "渠道「{name}」创建成功。",
+      "channelUpdated": "渠道「{name}」更新成功。",
+      "channelDeleted": "渠道「{name}」已删除。",
+      "bindingCreated": "通知绑定已创建。",
+      "bindingUpdated": "通知绑定已更新。",
+      "bindingDeleted": "通知绑定已移除。",
+      "testSuccess": "测试通知发送成功。",
+      "testFailure": "测试通知发送失败：{error}"
+    },
+    "templateVariables": {
+      "title": "模板变量",
+      "description": "可在 Webhook 请求体模板中使用的变量。",
+      "groups": {
+        "monitor": "监控器",
+        "incident": "事件",
+        "general": "通用"
+      },
+      "variables": {
+        "monitorName": "监控器名称",
+        "monitorUrl": "监控器 URL",
+        "monitorTarget": "监控器目标地址",
+        "status": "当前状态",
+        "previousStatus": "前一状态",
+        "responseTime": "响应时间（毫秒）",
+        "incidentStartedAt": "事件开始时间",
+        "incidentDuration": "事件持续时间",
+        "incidentId": "事件唯一 ID",
+        "timestamp": "事件时间戳"
+      }
+    },
+    "smtpSettings": {
+      "title": "SMTP 设置",
+      "description": "配置用于邮件通知的 SMTP 服务器。",
+      "host": "SMTP 主机",
+      "hostPlaceholder": "smtp.example.com",
+      "port": "端口",
+      "portPlaceholder": "587",
+      "username": "用户名",
+      "usernamePlaceholder": "notifications@example.com",
+      "password": "密码",
+      "passwordPlaceholder": "输入 SMTP 密码",
+      "passwordSet": "密码已设置",
+      "passwordNotSet": "未配置密码",
+      "fromAddress": "发件人地址",
+      "fromAddressPlaceholder": "pulse@example.com",
+      "fromAddressHelp": "通知邮件的发件人地址。",
+      "tlsEnabled": "启用 TLS",
+      "tlsEnabledHelp": "为 SMTP 连接使用 TLS 加密。",
+      "testConnection": "测试连接",
+      "testingConnection": "测试中...",
+      "testSuccess": "SMTP 连接成功。",
+      "testFailure": "SMTP 连接失败：{error}",
+      "saved": "SMTP 设置已保存。",
+      "deleted": "SMTP 设置已移除。邮件通知现已禁用。",
+      "notConfigured": "SMTP 未配置。邮件通知已禁用。",
+      "deleteConfirm": {
+        "title": "移除 SMTP 设置",
+        "description": "确定要移除 SMTP 设置吗？邮件通知将被禁用。",
+        "confirm": "移除设置"
+      }
+    },
+    "validation": {
+      "nameRequired": "渠道名称为必填项。",
+      "nameTooLong": "渠道名称不得超过 100 个字符。",
+      "typeRequired": "渠道类型为必填项。",
+      "typeInvalid": "渠道类型必须为「email」或「webhook」。",
+      "recipientsRequired": "至少需要一个收件人邮箱。",
+      "recipientsTooMany": "最多允许 50 个收件人。",
+      "recipientInvalid": "无效的邮箱地址：{email}",
+      "urlRequired": "Webhook URL 为必填项。",
+      "urlInvalid": "URL 必须以 http:// 或 https:// 开头。",
+      "urlTooLong": "URL 不得超过 2048 个字符。",
+      "methodRequired": "HTTP 方法为必填项。",
+      "methodInvalid": "方法必须为以下之一：GET、POST、PUT、PATCH、DELETE。",
+      "bodyTemplateRequired": "Webhook 渠道必须填写请求体模板。",
+      "bodyTemplateInvalid": "无效的模板：{error}",
+      "headerNameTooLong": "头部名称不得超过 128 个字符。",
+      "headerValueTooLong": "头部值不得超过 8192 个字符。",
+      "headersTooMany": "最多允许 20 个自定义头部。",
+      "degradedThresholdRange": "阈值必须在 1 到 60000 ms 之间。",
+      "sslExpiringDaysRange": "天数必须在 1 到 365 之间。",
+      "nFailuresCountRange": "次数必须在 1 到 100 之间。",
+      "triggerRequired": "至少需要一个触发条件。",
+      "smtpHostRequired": "SMTP 主机为必填项。",
+      "smtpPortRange": "端口必须在 1 到 65535 之间。",
+      "smtpFromRequired": "发件人地址为必填项。",
+      "smtpFromInvalid": "邮箱地址格式无效。"
+    }
   }
 }

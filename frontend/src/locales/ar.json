@@ -6,6 +6,7 @@
   "nav": {
     "dashboard": "لوحة التحكم",
     "monitors": "المراقبات",
+    "notifications": "الإشعارات",
     "settings": "الإعدادات",
     "logout": "تسجيل الخروج",
     "home": "Pulse — الرئيسية"
@@ -267,9 +268,9 @@
         "udp": "الصيغة: المضيف:المنفذ",
         "websocket": "عنوان URL بنظام ws:// أو wss://، أو اسم المضيف (افتراضي: wss://)",
         "grpc": "الصيغة: المضيف:المنفذ",
-        "dns": "Domain name to query (e.g., example.com)",
-        "icmp": "Hostname or IP address (e.g., 8.8.8.8)",
-        "smtp": "Mail server hostname or host:port (e.g., mail.example.com)"
+        "dns": "اسم النطاق المراد الاستعلام عنه (مثال: example.com)",
+        "icmp": "اسم المضيف أو عنوان IP (مثال: 8.8.8.8)",
+        "smtp": "اسم مضيف خادم البريد أو المضيف:المنفذ (مثال: mail.example.com)"
       }
     },
     "filter": {
@@ -295,6 +296,30 @@
       "addTag": "إضافة وسم",
       "confirm": "تأكيد الوسم",
       "cancelRow": "إلغاء"
+    },
+    "proto": {
+      "uploadFiles": "رفع ملفات Proto",
+      "useReflection": "استخدام Server Reflection",
+      "reflectionHint": "حدد عنوان الهدف لتمكين الانعكاس",
+      "dropZoneTitle": "أفلت ملفات .proto أو .desc هنا",
+      "dropZoneHint": "أو انقر للتصفح (حد أقصى 20 ملفاً)",
+      "noValidFiles": "لم يتم العثور على ملفات .proto أو .desc صالحة",
+      "uploadFailed": "فشل رفع الملف",
+      "reflectionFailed": "فشل Server Reflection",
+      "removeFailed": "فشلت إزالة مصدر proto",
+      "loading": "جارٍ المعالجة...",
+      "error": "خطأ",
+      "sourceUpload": "مصدر Proto المرفوع",
+      "sourceReflection": "Server Reflection",
+      "files": "الملفات",
+      "services": "الخدمات",
+      "replace": "استبدال",
+      "remove": "إزالة",
+      "selectMethod": "اختر طريقة خدمة",
+      "payloadFormat": "صيغة الحمولة",
+      "payloadFormatRaw": "Raw (Base64)",
+      "payloadFormatProtoJson": "Proto JSON",
+      "saveFirst": "احفظ المراقبة أولاً لتكوين مصدر proto وحمولة الطلب."
     }
   },
   "settings": {
@@ -412,6 +437,35 @@
     "requestPayloadPlaceholder": "رسالة protobuf مشفرة بـ Base64",
     "requestPayloadHelp": "جسم طلب protobuf مشفر بـ Base64 اختياري"
   },
+  "proto": {
+    "upload": {
+      "errorTitle": "خطأ في الرفع",
+      "unknownError": "حدث خطأ غير معروف",
+      "currentSource": "مصدر Proto",
+      "sourceType": "المصدر",
+      "sourceTypeUpload": "رفع ملف",
+      "sourceTypeReflection": "Server Reflection",
+      "filenames": "الملفات",
+      "serviceCount": "تم اكتشاف {count} خدمة(خدمات)",
+      "replace": "استبدال",
+      "remove": "إزالة",
+      "dropzone": "أفلت ملفات .proto أو .desc هنا",
+      "dropzoneHint": "حتى 20 ملفاً (.proto أو .desc)",
+      "dropzoneLabel": "أفلت ملفات proto هنا أو انقر للتصفح",
+      "selectedFiles": "تم اختيار {count} ملف(ملفات)",
+      "clearAll": "مسح الكل",
+      "removeFile": "إزالة {name}",
+      "uploading": "جارٍ الرفع…",
+      "uploadButton": "رفع الملفات",
+      "or": "أو",
+      "reflecting": "جارٍ اكتشاف الخدمات…",
+      "reflectionButton": "استخدام Server Reflection",
+      "reflectionHint": "أدخل عنوان الهدف لتمكين Server Reflection",
+      "processing": "جارٍ المعالجة…",
+      "selectMethod": "اختر طريقة خدمة",
+      "methodCount": "{count} طريقة(طرق)"
+    }
+  },
   "timeRange": {
     "custom": "مخصص",
     "start": "البداية",
@@ -437,41 +491,249 @@
     "notFound": "غير موجود"
   },
   "dns": {
-    "recordType": "Record Type",
-    "recordTypePlaceholder": "Select record type",
-    "recordTypeHelp": "DNS record type to query",
-    "expectedValue": "Expected Value",
+    "recordType": "نوع السجل",
+    "recordTypePlaceholder": "اختر نوع السجل",
+    "recordTypeHelp": "نوع سجل DNS المراد الاستعلام عنه",
+    "expectedValue": "القيمة المتوقعة",
     "expectedValuePlaceholder": "93.184.216.34",
-    "expectedValueHelp": "If set, check passes only when this value is found among DNS results",
-    "dnsServer": "DNS Server",
+    "expectedValueHelp": "عند التعيين، ينجح الفحص فقط عند وجود هذه القيمة ضمن نتائج DNS",
+    "dnsServer": "خادم DNS",
     "dnsServerPlaceholder": "8.8.8.8:53",
-    "dnsServerHelp": "Custom DNS resolver (leave empty for default)"
+    "dnsServerHelp": "محلل DNS مخصص (اتركه فارغاً لاستخدام الافتراضي)"
   },
   "icmp": {
-    "packetCount": "Packet Count",
-    "packetCountHelp": "Number of ICMP echo requests to send (1-10)",
-    "lossThreshold": "Loss Threshold (%)",
-    "lossThresholdHelp": "Percentage of packet loss that triggers a 'down' state",
-    "useIpv6": "Use IPv6",
-    "useIpv6Help": "Send ICMPv6 echo requests instead of IPv4"
+    "packetCount": "عدد الحزم",
+    "packetCountHelp": "عدد طلبات ICMP echo المرسلة (1-10)",
+    "lossThreshold": "عتبة فقدان الحزم (%)",
+    "lossThresholdHelp": "نسبة فقدان الحزم التي تؤدي إلى حالة 'متوقف'",
+    "useIpv6": "استخدام IPv6",
+    "useIpv6Help": "إرسال طلبات ICMPv6 echo بدلاً من IPv4"
   },
   "smtp": {
-    "port": "Port",
-    "portHelp": "SMTP server port (25, 587, 465)",
+    "port": "المنفذ",
+    "portHelp": "منفذ خادم SMTP (25، 587، 465)",
     "starttls": "STARTTLS",
-    "starttlsHelp": "Attempt STARTTLS upgrade after EHLO",
-    "ehloDomain": "EHLO Domain",
+    "starttlsHelp": "محاولة ترقية STARTTLS بعد EHLO (يُتجاهل عند تمكين TLS الضمني)",
+    "implicitTls": "TLS ضمني (SMTPS)",
+    "implicitTlsHelp": "الاتصال بـ TLS من البداية (المنفذ 465). استخدم هذا بدلاً من STARTTLS لخوادم SMTPS.",
+    "ehloDomain": "نطاق EHLO",
     "ehloDomainPlaceholder": "pulse.local",
-    "ehloDomainHelp": "Domain name used in the EHLO greeting",
-    "sslExpiryThreshold": "SSL Expiry Threshold (days)",
+    "ehloDomainHelp": "اسم النطاق المستخدم في تحية EHLO",
+    "sslExpiryThreshold": "عتبة انتهاء SSL (أيام)",
     "sslExpiryThresholdPlaceholder": "14",
-    "sslExpiryThresholdHelp": "Alert when certificate expires within this many days (0 = disabled)"
+    "sslExpiryThresholdHelp": "تنبيه عندما تنتهي صلاحية الشهادة خلال هذا العدد من الأيام (0 = معطل)"
   },
   "payloadEditor": {
-    "placeholder": "Enter JSON payload (e.g. {\"name\": \"value\"})",
-    "label": "Request Payload (JSON)",
-    "jsonHint": "Write your gRPC request body as JSON. Use Format button for pretty-printing.",
-    "format": "Format",
-    "minify": "Minify"
+    "placeholder": "أدخل حمولة JSON (مثال: {\"name\": \"value\"})",
+    "label": "حمولة الطلب (JSON)",
+    "jsonHint": "اكتب جسم طلب gRPC بصيغة JSON. استخدم زر التنسيق لتحسين العرض.",
+    "format": "تنسيق",
+    "minify": "تصغير"
+  },
+  "notifications": {
+    "title": "الإشعارات",
+    "description": "إدارة قنوات الإشعارات وتسليم التنبيهات.",
+    "channels": {
+      "title": "قنوات الإشعارات",
+      "create": "إنشاء قناة",
+      "edit": "تعديل القناة",
+      "loading": "جارٍ تحميل القنوات...",
+      "empty": {
+        "title": "لا توجد قنوات إشعارات",
+        "description": "أنشئ أول قناة لبدء تلقي التنبيهات.",
+        "action": "إنشاء قناة"
+      },
+      "list": {
+        "name": "الاسم",
+        "type": "النوع",
+        "created": "تاريخ الإنشاء",
+        "actions": "الإجراءات"
+      },
+      "types": {
+        "email": "البريد الإلكتروني",
+        "webhook": "Webhook"
+      },
+      "deleteConfirm": {
+        "title": "حذف القناة",
+        "description": "هل أنت متأكد من حذف \"{name}\"؟ سيتم أيضاً إزالة جميع الربطات المستخدمة لهذه القناة. لا يمكن التراجع عن هذا الإجراء.",
+        "confirm": "حذف القناة"
+      }
+    },
+    "form": {
+      "name": "اسم القناة",
+      "namePlaceholder": "e.g. Ops Team Email, Slack Webhook",
+      "type": "نوع القناة",
+      "typePlaceholder": "اختر نوع القناة",
+      "submitCreate": "إنشاء القناة",
+      "submitUpdate": "تحديث القناة",
+      "email": {
+        "recipients": "المستلمون",
+        "recipientsPlaceholder": "Enter email address",
+        "recipientsHelp": "أضف حتى 50 عنوان بريد إلكتروني للمستلمين.",
+        "addRecipient": "إضافة مستلم",
+        "removeRecipient": "إزالة المستلم"
+      },
+      "webhook": {
+        "url": "عنوان Webhook",
+        "urlPlaceholder": "https://hooks.example.com/...",
+        "urlHelp": "نقطة نهاية HTTP أو HTTPS لتلقي الإشعارات (حد أقصى 2048 حرفاً).",
+        "method": "طريقة HTTP",
+        "methodHelp": "طريقة HTTP المستخدمة لطلب Webhook.",
+        "headers": "ترويسات مخصصة",
+        "headersHelp": "ترويسات اختيارية تُرسل مع كل طلب Webhook (حتى 20).",
+        "addHeader": "إضافة ترويسة",
+        "removeHeader": "إزالة الترويسة",
+        "headerNamePlaceholder": "Header name",
+        "headerValuePlaceholder": "Header value",
+        "bodyTemplate": "قالب المحتوى",
+        "bodyTemplatePlaceholder": "{ \"text\": \"{{.Monitor.Name}} is {{.Status}}\" }",
+        "bodyTemplateHelp": "قالب Go لجسم طلب Webhook. استخدم متغيرات القالب أدناه."
+      }
+    },
+    "triggers": {
+      "title": "شروط التشغيل",
+      "description": "حدد الأحداث التي يجب أن تُطلق الإشعارات لهذه الربطة.",
+      "monitorDown": "المراقبة متوقفة",
+      "monitorDownHelp": "إشعار عند انتقال المراقبة إلى حالة التوقف.",
+      "monitorUp": "المراقبة تعمل",
+      "monitorUpHelp": "إشعار عند تعافي المراقبة من حالة التوقف.",
+      "degraded": "أداء متدهور",
+      "degradedHelp": "إشعار عند تجاوز وقت الاستجابة للعتبة المحددة.",
+      "degradedThreshold": "العتبة (مللي ثانية)",
+      "degradedThresholdPlaceholder": "5000",
+      "sslExpiring": "شهادة SSL تنتهي قريباً",
+      "sslExpiringHelp": "إشعار عند اقتراب انتهاء شهادة SSL خلال الأيام المحددة.",
+      "sslExpiringDays": "الأيام قبل الانتهاء",
+      "sslExpiringDaysPlaceholder": "14",
+      "nFailuresInRow": "إخفاقات متتالية",
+      "nFailuresInRowHelp": "إشعار عند فشل المراقبة N مرات متتالية.",
+      "nFailuresCount": "عدد الإخفاقات",
+      "nFailuresCountPlaceholder": "5",
+      "noneSelected": "يجب تحديد شرط تشغيل واحد على الأقل."
+    },
+    "reminders": {
+      "title": "سياسة التذكير",
+      "description": "تكرار الإشعارات طالما استمرت الحالة.",
+      "interval": "فترة التذكير",
+      "disabled": "معطل",
+      "minutes": "{count} دقيقة"
+    },
+    "bindings": {
+      "title": "ربطات الإشعارات",
+      "description": "تكوين القنوات والشروط المطبقة على هذه المراقبة.",
+      "add": "إضافة ربطة",
+      "remove": "إزالة الربطة",
+      "channel": "القناة",
+      "channelPlaceholder": "اختر قناة",
+      "empty": {
+        "title": "لا توجد ربطات إشعارات",
+        "description": "أضف ربطة لتلقي التنبيهات لهذه المراقبة."
+      },
+      "noChannels": {
+        "title": "لا توجد قنوات متاحة",
+        "description": "أنشئ قناة إشعارات أولاً من صفحة الإشعارات.",
+        "action": "الذهاب إلى الإشعارات"
+      },
+      "deleteConfirm": {
+        "title": "إزالة الربطة",
+        "description": "هل أنت متأكد من إزالة ربطة الإشعارات هذه؟ لن تتلقى تنبيهات من هذه القناة لهذه المراقبة بعد الآن.",
+        "confirm": "إزالة الربطة"
+      }
+    },
+    "test": {
+      "button": "اختبار",
+      "sending": "جارٍ الإرسال...",
+      "success": "تم إرسال إشعار الاختبار بنجاح.",
+      "failure": "فشل إشعار الاختبار: {error}"
+    },
+    "toast": {
+      "channelCreated": "تم إنشاء القناة \"{name}\" بنجاح.",
+      "channelUpdated": "تم تحديث القناة \"{name}\" بنجاح.",
+      "channelDeleted": "تم حذف القناة \"{name}\".",
+      "bindingCreated": "تم إنشاء ربطة الإشعارات.",
+      "bindingUpdated": "تم تحديث ربطة الإشعارات.",
+      "bindingDeleted": "تم إزالة ربطة الإشعارات.",
+      "testSuccess": "تم تسليم إشعار الاختبار بنجاح.",
+      "testFailure": "فشل إشعار الاختبار: {error}"
+    },
+    "templateVariables": {
+      "title": "متغيرات القالب",
+      "description": "المتغيرات المتاحة للاستخدام في قوالب جسم Webhook.",
+      "groups": {
+        "monitor": "المراقبة",
+        "incident": "الحادثة",
+        "general": "عام"
+      },
+      "variables": {
+        "monitorName": "اسم المراقبة",
+        "monitorUrl": "عنوان URL للمراقبة",
+        "monitorTarget": "عنوان هدف المراقبة",
+        "status": "الحالة الحالية",
+        "previousStatus": "الحالة السابقة",
+        "responseTime": "وقت الاستجابة بالمللي ثانية",
+        "incidentStartedAt": "وقت بدء الحادثة",
+        "incidentDuration": "مدة الحادثة",
+        "incidentId": "المعرّف الفريد للحادثة",
+        "timestamp": "الطابع الزمني للحدث"
+      }
+    },
+    "smtpSettings": {
+      "title": "إعدادات SMTP",
+      "description": "تكوين خادم SMTP المستخدم لإشعارات البريد الإلكتروني.",
+      "host": "مضيف SMTP",
+      "hostPlaceholder": "smtp.example.com",
+      "port": "المنفذ",
+      "portPlaceholder": "587",
+      "username": "اسم المستخدم",
+      "usernamePlaceholder": "notifications@example.com",
+      "password": "كلمة المرور",
+      "passwordPlaceholder": "أدخل كلمة مرور SMTP",
+      "passwordSet": "كلمة المرور مُعيّنة",
+      "passwordNotSet": "لم يتم تكوين كلمة مرور",
+      "fromAddress": "عنوان المرسل",
+      "fromAddressPlaceholder": "pulse@example.com",
+      "fromAddressHelp": "عنوان المرسل لرسائل الإشعارات.",
+      "tlsEnabled": "تمكين TLS",
+      "tlsEnabledHelp": "استخدام تشفير TLS لاتصال SMTP.",
+      "testConnection": "اختبار الاتصال",
+      "testingConnection": "جارٍ الاختبار...",
+      "testSuccess": "اتصال SMTP ناجح.",
+      "testFailure": "فشل اتصال SMTP: {error}",
+      "saved": "تم حفظ إعدادات SMTP.",
+      "deleted": "تم إزالة إعدادات SMTP. إشعارات البريد الإلكتروني معطلة الآن.",
+      "notConfigured": "لم يتم تكوين SMTP. إشعارات البريد الإلكتروني معطلة.",
+      "deleteConfirm": {
+        "title": "إزالة إعدادات SMTP",
+        "description": "هل أنت متأكد من إزالة إعدادات SMTP؟ سيتم تعطيل إشعارات البريد الإلكتروني.",
+        "confirm": "إزالة الإعدادات"
+      }
+    },
+    "validation": {
+      "nameRequired": "اسم القناة مطلوب.",
+      "nameTooLong": "يجب ألا يتجاوز اسم القناة 100 حرف.",
+      "typeRequired": "نوع القناة مطلوب.",
+      "typeInvalid": "يجب أن يكون نوع القناة \"email\" أو \"webhook\".",
+      "recipientsRequired": "مطلوب عنوان بريد إلكتروني واحد على الأقل.",
+      "recipientsTooMany": "الحد الأقصى 50 مستلماً.",
+      "recipientInvalid": "عنوان بريد إلكتروني غير صالح: {email}",
+      "urlRequired": "عنوان Webhook مطلوب.",
+      "urlInvalid": "يجب أن يبدأ العنوان بـ http:// أو https://.",
+      "urlTooLong": "يجب ألا يتجاوز العنوان 2048 حرفاً.",
+      "methodRequired": "طريقة HTTP مطلوبة.",
+      "methodInvalid": "يجب أن تكون الطريقة واحدة من: GET, POST, PUT, PATCH, DELETE.",
+      "bodyTemplateRequired": "قالب المحتوى مطلوب لقنوات Webhook.",
+      "bodyTemplateInvalid": "قالب غير صالح: {error}",
+      "headerNameTooLong": "يجب ألا يتجاوز اسم الترويسة 128 حرفاً.",
+      "headerValueTooLong": "يجب ألا تتجاوز قيمة الترويسة 8192 حرفاً.",
+      "headersTooMany": "الحد الأقصى 20 ترويسة مخصصة.",
+      "degradedThresholdRange": "يجب أن تكون العتبة بين 1 و 60000 مللي ثانية.",
+      "sslExpiringDaysRange": "يجب أن تكون الأيام بين 1 و 365.",
+      "nFailuresCountRange": "يجب أن يكون العدد بين 1 و 100.",
+      "triggerRequired": "مطلوب شرط تشغيل واحد على الأقل.",
+      "smtpHostRequired": "مضيف SMTP مطلوب.",
+      "smtpPortRange": "يجب أن يكون المنفذ بين 1 و 65535.",
+      "smtpFromRequired": "عنوان المرسل مطلوب.",
+      "smtpFromInvalid": "صيغة عنوان البريد الإلكتروني غير صالحة."
+    }
   }
 }

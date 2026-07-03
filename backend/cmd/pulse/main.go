@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
 	"time"
 
@@ -15,6 +16,8 @@ import (
 	"github.com/VitaliAndrushkevich/pulse/internal/crypto"
 	"github.com/VitaliAndrushkevich/pulse/internal/hub"
 	"github.com/VitaliAndrushkevich/pulse/internal/monitor"
+	"github.com/VitaliAndrushkevich/pulse/internal/notification"
+	smtpclient "github.com/VitaliAndrushkevich/pulse/internal/notification/smtp"
 	"github.com/VitaliAndrushkevich/pulse/internal/retention"
 	db "github.com/VitaliAndrushkevich/pulse/internal/store/postgres"
 	"github.com/VitaliAndrushkevich/pulse/internal/store/timescale"
@@ -113,6 +116,28 @@ func main() {
 	// and handles pulse_monitor_up, pulse_monitor_response_time_seconds, and pulse_monitors_total.
 	dynMetrics := monitor.NewDynamicMetrics(promRegistry)
 
+	// Initialize notification dispatcher (notification-channels).
+	notifWorkers := getEnvInt("PULSE_NOTIFICATION_WORKERS", 10)
+	notifDrainTimeout := getEnvDuration("PULSE_NOTIFICATION_DRAIN_TIMEOUT", 30*time.Second)
+	notifCfg := notification.DispatcherConfig{
+		Workers:      notifWorkers,
+		BufferSize:   256,
+		DrainTimeout: notifDrainTimeout,
+	}
+	notifMetrics := notification.NewMetrics(promRegistry)
+	stateTracker := notification.NewStateTracker()
+	dispatcher := notification.NewDispatcher(notifCfg, queries, pool, notifMetrics, stateTracker)
+	dispatcher.Start()
+	log.Printf("startup: notification dispatcher started (%d workers, drain timeout %s)", notifWorkers, notifDrainTimeout)
+
+	// Start reminder scheduler for recurring notifications.
+	reminderScheduler := notification.NewReminderScheduler(dispatcher, stateTracker, time.Minute)
+	reminderScheduler.Start()
+
+	// SMTP startup validation: load settings from DB, validate connectivity.
+	// Returns nil if SMTP is not configured or validation fails — app continues either way.
+	smtpClient := smtpclient.ValidateOnStartup(startupCtx, queries, secretKey)
+
 	// Initialize monitor engine (TASK-014 through TASK-020).
 	registry := monitor.DefaultRegistry(queries)
 
@@ -123,7 +148,7 @@ func main() {
 
 	scheduler := monitor.NewScheduler(monitor.SchedulerConfig{
 		Workers: cfg.SchedulerWorkers,
-	}, registry, queries, timescaleStore, dynMetrics, wsHub, secretKey)
+	}, registry, queries, timescaleStore, dynMetrics, wsHub, secretKey, dispatcher)
 
 	// Start scheduler and LISTEN/NOTIFY listener in background.
 	appCtx, appCancel := context.WithCancel(context.Background())
@@ -145,8 +170,10 @@ func main() {
 		Metrics:        nil,
 		PromRegistry:   promRegistry,
 		Hub:            wsHub,
+		SMTPClient:     smtpClient,
 		DevMode:        cfg.DevMode,
 		OpenAPIDir:     cfg.OpenAPIDir,
+		BaseURL:        cfg.BaseURL,
 	})
 	addr := ":" + cfg.Port
 	if cfg.DevMode {
@@ -160,6 +187,15 @@ func main() {
 		signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
 		sig := <-sigCh
 		log.Printf("received %s, shutting down...", sig)
+
+		// Stop reminder scheduler first (no new reminders enqueued).
+		reminderScheduler.Stop()
+
+		// Drain the notification dispatcher within its configured timeout.
+		drainCtx, drainCancel := context.WithTimeout(context.Background(), notifDrainTimeout)
+		dispatcher.Shutdown(drainCtx)
+		drainCancel()
+
 		wsHub.Stop()
 		appCancel()
 	}()
@@ -167,4 +203,26 @@ func main() {
 	if err := r.Run(addr); err != nil {
 		log.Fatalf("server exited with error: %v", err)
 	}
+}
+
+// getEnvInt reads an environment variable as a positive integer, returning
+// the fallback value if the variable is unset, empty, or invalid.
+func getEnvInt(name string, fallback int) int {
+	if value := os.Getenv(name); value != "" {
+		if n, err := strconv.Atoi(value); err == nil && n > 0 {
+			return n
+		}
+	}
+	return fallback
+}
+
+// getEnvDuration reads an environment variable as a time.Duration, returning
+// the fallback value if the variable is unset, empty, or invalid.
+func getEnvDuration(name string, fallback time.Duration) time.Duration {
+	if value := os.Getenv(name); value != "" {
+		if d, err := time.ParseDuration(value); err == nil && d > 0 {
+			return d
+		}
+	}
+	return fallback
 }

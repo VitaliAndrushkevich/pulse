@@ -9,6 +9,7 @@
   import HistoryChart from '../../../components/HistoryChart.svelte';
   import StatusTimeline from '../../../components/StatusTimeline.svelte';
   import HistoryExplorer from '../../../components/HistoryExplorer.svelte';
+
   import type { Monitor, HistoryPoint, Incident, MonitorPatch, MonitorStats } from '$lib/types';
   import { t } from '$lib/i18n';
 

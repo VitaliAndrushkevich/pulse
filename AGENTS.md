@@ -86,6 +86,7 @@ The project is at MVP completion. Full milestone breakdown: [docs/MILESTONES.md]
 | G: Frontend Product | ✅ Done |
 | H: Packaging & Release | ✅ Done (CI deferred) |
 | I: Branding & Theming | ✅ Done |
+| J: Notifications | ✅ Done |
 
 ### Completed (A–H):
 - PostgreSQL schema + indexes, sqlc query layer, TimescaleDB history store
@@ -105,6 +106,7 @@ The project is at MVP completion. Full milestone breakdown: [docs/MILESTONES.md]
 - Typed message envelope with `monitor_status` (diff/patch) and `connected` message types
 - Authenticated `/ws` endpoint with query-param token validation (JWT + API token)
 - Scheduler → Hub broadcast (check results sent to hub after execution)
+- Notification subsystem: dispatcher with bounded worker pool, email (SMTP) and webhook channels, trigger-based fan-out, exponential backoff retry, delivery logging, reminder scheduler
 - Full SvelteKit 5 frontend with TypeScript strict mode and Tailwind CSS 3.4
 - API client with Bearer auth, 15s timeout, error envelope parsing, X-Request-ID
 - WebSocket client with exponential backoff reconnection (1s–30s, ±25% jitter)
@@ -132,6 +134,26 @@ The project is at MVP completion. Full milestone breakdown: [docs/MILESTONES.md]
 - Login/setup pages with centered BrandLockup
 - Property-based tests: stroke proportionality, scaling, WCAG contrast, cycle persistence, icon correctness, token mapping
 
+### Completed (J: Notifications):
+- Notification dispatcher with bounded worker pool (`PULSE_NOTIFICATION_WORKERS`, default 50, buffer 256)
+- Email (SMTP) channel: TLS support, PLAIN auth, branded HTML templates, encrypted password at rest
+- Webhook channel: configurable method/URL/headers, Go `text/template` body rendering, encrypted headers at rest, 1 MB body limit
+- Trigger-based fan-out: `monitor_down`, `monitor_up`, `degraded`, `ssl_expiring`, `n_failures_in_row`
+- State deduplication via `StateTracker` (prevents repeated alerts for same ongoing condition)
+- Exponential backoff retry queue (30s → 60s → 120s, max 4 attempts total)
+- Retryable vs non-retryable error classification (`DeliveryError` type)
+- Delivery logging: all attempts recorded in `delivery_logs` table (success/failure + error detail, max 1024 chars)
+- Reminder scheduler: periodic re-notification (5/10/15/30/60 min) while condition persists, auto-deactivates on recovery
+- Notification channel CRUD API (`/api/v1/notifications/channels`)
+- Notification binding CRUD API (`/api/v1/monitors/{id}/notification-bindings`)
+- SMTP settings management API (GET/PUT/DELETE + test connection)
+- Template variable reference endpoint (`/api/v1/notifications/template-variables`)
+- Test notification delivery endpoint (`/api/v1/notifications/channels/{id}/test`)
+- Graceful shutdown: drain timeout, in-flight tracking, reject-on-stopping
+- Prometheus metrics: `pulse_notification_deliveries_total`, `pulse_notification_dropped_total`, `pulse_notification_in_flight`, `pulse_notification_retry_queue_size`
+- Panic recovery in workers (never crashes the dispatcher)
+- Scheduler → Dispatcher integration: non-blocking enqueue after each check result
+
 ### Deferred:
 - CI quality gates (GitHub Actions) — not required for MVP
 
@@ -146,6 +168,19 @@ The project is at MVP completion. Full milestone breakdown: [docs/MILESTONES.md]
 | Scheduler | `backend/internal/monitor/scheduler.go` |
 | Target normalization | `backend/internal/target/normalize.go` |
 | Checkers | `backend/internal/monitor/{http,http3,tcp,udp,websocket,grpc,dns,icmp,smtp}.go` |
+| Notification dispatcher | `backend/internal/notification/dispatcher.go` |
+| Notification types & metrics | `backend/internal/notification/types.go` |
+| Notification fan-out | `backend/internal/notification/fanout.go` |
+| Notification state tracker | `backend/internal/notification/state_tracker.go` |
+| Notification retry queue | `backend/internal/notification/retry.go` |
+| Notification reminders | `backend/internal/notification/reminder.go` |
+| SMTP email client | `backend/internal/notification/smtp/client.go` |
+| SMTP email template | `backend/internal/notification/smtp/template.go` |
+| Webhook client | `backend/internal/notification/webhook/client.go` |
+| Webhook template validation | `backend/internal/notification/webhook/template.go` |
+| Notification channel handlers | `backend/internal/api/handlers/notification_channels.go` |
+| Notification binding handlers | `backend/internal/api/handlers/notification_bindings.go` |
+| SMTP settings handlers | `backend/internal/api/handlers/smtp_settings.go` |
 | sqlc queries | `backend/internal/store/postgres/` |
 | TimescaleDB | `backend/internal/store/timescale/` |
 | Migrations | `backend/migrations/` |
@@ -183,7 +218,7 @@ Primary commands:
 - Backend port: 8080
 - Frontend dev container: service `frontend`, base image `node:22-alpine`, port 5173, runs Vite dev server with HMR for local frontend development
 - Postgres: `pulse:pulse@localhost:5432/pulse`
-- Environment variables: `PULSE_PORT`, `PULSE_DEV`, `PULSE_SECRET_KEY`, `PULSE_JWT_SECRET`, `DATABASE_URL`, `PULSE_SCHEDULER_WORKERS`
+- Environment variables: `PULSE_PORT`, `PULSE_DEV`, `PULSE_SECRET_KEY`, `PULSE_JWT_SECRET`, `DATABASE_URL`, `PULSE_SCHEDULER_WORKERS`, `PULSE_BASE_URL`
 - ICMP monitoring requires `CAP_NET_RAW` (granted via `cap_add: [NET_RAW]` in docker-compose). Falls back to unprivileged UDP ICMP on Linux 3.0+ when available.
 
 ## Delivery Constraints
@@ -212,6 +247,77 @@ When working on code, reference these skills for domain guidance:
 
 ### Backend (Golang)
 - Multiple Golang skills available for database, concurrency, error handling, testing, performance, security, observability, and troubleshooting. Load as needed per task domain.
+
+## Notifications
+
+### Architecture
+The notification subsystem (`backend/internal/notification/`) is an asynchronous, non-blocking pipeline integrated into the scheduler. When a check completes, the scheduler evaluates trigger conditions and fan-outs delivery jobs to a bounded worker pool — independent from the monitoring workers.
+
+### Channel Types
+- **Email (SMTP)**: Branded HTML emails via configurable SMTP server. Instance-wide SMTP settings stored encrypted in DB. Supports TLS, PLAIN auth.
+- **Webhook**: HTTP callbacks with Go `text/template` body rendering. Custom headers (encrypted at rest). Configurable method (GET/POST/PUT/PATCH/DELETE).
+
+### Trigger Conditions
+Bindings connect a notification channel to a monitor with trigger rules:
+- `monitor_down` — fires once on transition to "down" state
+- `monitor_up` — fires once on recovery (down → up)
+- `degraded` — response time exceeds `threshold_ms` (1–60000 ms)
+- `ssl_expiring` — SSL certificate expires within `days_before` (1–365 days)
+- `n_failures_in_row` — consecutive failures reach `count` (1–100)
+
+State deduplication prevents repeated notifications for the same ongoing condition.
+
+### Delivery Pipeline
+1. Scheduler completes a check → calls `dispatchNotifications`
+2. Fan-out: `EvaluateAndDispatch` evaluates trigger conditions against bindings
+3. Matching triggers → independent `DeliveryJob` per binding enqueued (non-blocking `select/default`)
+4. Worker pool processes jobs with panic recovery and metric tracking
+5. Delivery log recorded in `delivery_logs` table (success/failure with error detail)
+6. Failed retryable deliveries → exponential backoff retry queue (30s → 60s → 120s, max 4 attempts)
+7. Non-retryable errors (template parse, oversized body, decryption) → immediate permanent failure
+
+### Reminders
+The `ReminderScheduler` re-enqueues notifications at configurable intervals (5/10/15/30/60 min) while a triggering condition persists. Deactivates automatically on recovery.
+
+### Template Variables (Webhook)
+Available in webhook body templates via Go `text/template` syntax:
+- `.Monitor.ID`, `.Monitor.Name`, `.Monitor.URL`, `.Monitor.Target`
+- `.Status`, `.PreviousStatus`, `.ResponseTime`
+- `.Incident.ID`, `.Incident.StartedAt`, `.Incident.Duration`
+- `.Timestamp`, `.BaseURL`
+
+### API Endpoints
+| Method | Path | Description |
+|--------|------|-------------|
+| `POST` | `/api/v1/notifications/channels` | Create notification channel (email/webhook) |
+| `GET` | `/api/v1/notifications/channels` | List channels |
+| `GET` | `/api/v1/notifications/channels/{id}` | Get channel details |
+| `PUT` | `/api/v1/notifications/channels/{id}` | Update channel |
+| `DELETE` | `/api/v1/notifications/channels/{id}` | Delete channel |
+| `POST` | `/api/v1/notifications/channels/{id}/test` | Send test notification |
+| `GET` | `/api/v1/notifications/channels/{id}/delivery-logs` | List delivery logs |
+| `GET` | `/api/v1/notifications/template-variables` | Get available template variables |
+| `GET` | `/api/v1/notifications/smtp-settings` | Get SMTP config (password redacted) |
+| `PUT` | `/api/v1/notifications/smtp-settings` | Create/update SMTP settings |
+| `DELETE` | `/api/v1/notifications/smtp-settings` | Remove SMTP settings |
+| `POST` | `/api/v1/notifications/smtp-settings/test` | Test SMTP connection |
+| `POST` | `/api/v1/monitors/{id}/notification-bindings` | Create binding (channel → monitor + triggers) |
+| `GET` | `/api/v1/monitors/{id}/notification-bindings` | List bindings for monitor |
+| `PUT` | `/api/v1/monitors/{id}/notification-bindings/{bindingId}` | Update binding triggers |
+| `DELETE` | `/api/v1/monitors/{id}/notification-bindings/{bindingId}` | Delete binding |
+
+### Environment Variables
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `PULSE_NOTIFICATION_WORKERS` | Concurrent notification delivery workers | `50` |
+| `PULSE_NOTIFICATION_DRAIN_TIMEOUT` | Graceful shutdown drain timeout (Go duration) | `30s` |
+| `PULSE_BASE_URL` | Public URL for links in email notifications | *(empty — links omitted)* |
+
+### Prometheus Metrics
+- `pulse_notification_deliveries_total{channel_type, outcome}` — delivery attempts by channel and result
+- `pulse_notification_dropped_total{channel_type}` — notifications dropped (buffer full or shutting down)
+- `pulse_notification_in_flight` — deliveries currently in progress
+- `pulse_notification_retry_queue_size` — notifications waiting in retry queue
 
 ## Localization (i18n)
 
