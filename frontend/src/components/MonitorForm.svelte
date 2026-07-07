@@ -48,7 +48,7 @@
   let target = $state(initialValues?.target ?? '');
 
   // Whether the auth section should be visible (HTTP-family and WebSocket)
-  let showAuthSection = $derived(type === 'http' || type === 'http3' || type === 'websocket');
+  let showAuthSection = $derived(type === 'http' || type === 'http3' || type === 'websocket' || type === 'quic');
   let interval_seconds = $state(initialValues?.interval_seconds ?? 60);
   let timeout_seconds = $state(initialValues?.timeout_seconds ?? 10);
   let status: 'active' | 'paused' = $state(initialValues?.status ?? 'active');
@@ -178,6 +178,7 @@
     type === 'dns' ? 'example.com' :
     type === 'icmp' ? '8.8.8.8' :
     type === 'smtp' ? 'mail.example.com' :
+    type === 'quic' ? 'https://example.com:4433' :
     'https://example.com'
   );
 
@@ -190,6 +191,7 @@
     type === 'dns' ? t('monitors.form.targetHelp.dns') :
     type === 'icmp' ? t('monitors.form.targetHelp.icmp') :
     type === 'smtp' ? t('monitors.form.targetHelp.smtp') :
+    type === 'quic' ? t('monitors.form.targetHelp.quic') :
     t('monitors.form.targetHelp.http')
   );
 
@@ -222,7 +224,7 @@
 
     const settings: Record<string, unknown> = {};
 
-    if ((type === 'http' || type === 'http3') && expectedStatusCodes.trim()) {
+    if ((type === 'http' || type === 'http3' || type === 'quic') && expectedStatusCodes.trim()) {
       const codes = expectedStatusCodes
         .split(',')
         .map(s => parseInt(s.trim(), 10))
@@ -233,12 +235,12 @@
     }
 
     // include skip_tls_verify for HTTP-family monitors (disable certificate verification)
-    if ((type === 'http' || type === 'http3') && skipTLSVerify) {
+    if ((type === 'http' || type === 'http3' || type === 'quic') && skipTLSVerify) {
       settings.skip_tls_verify = true;
     }
 
     // include custom headers for HTTP-family monitors (non-secret key-value pairs)
-    if (type === 'http' || type === 'http3') {
+    if (type === 'http' || type === 'http3' || type === 'quic') {
       const validHeaders = customHeaders.filter(h => h.key.trim() && h.value.trim());
       if (validHeaders.length > 0) {
         const headersMap: Record<string, string> = {};
@@ -296,7 +298,7 @@
     }
   }
 
-  const monitorTypes: MonitorType[] = ['http', 'http3', 'tcp', 'udp', 'websocket', 'grpc', 'dns', 'icmp', 'smtp'];
+  const monitorTypes: MonitorType[] = ['http', 'http3', 'tcp', 'udp', 'websocket', 'grpc', 'dns', 'icmp', 'smtp', 'quic'];
 </script>
 
 <form onsubmit={handleSubmit} class="mx-auto max-w-2xl space-y-6" data-testid="monitor-form">
@@ -340,7 +342,7 @@
       data-testid="input-type"
     >
       {#each monitorTypes as t}
-        <option value={t}>{t === 'http' ? 'HTTP(S)' : t === 'http3' ? 'HTTP/3' : t === 'grpc' ? 'gRPC' : t === 'dns' ? 'DNS' : t === 'icmp' ? 'ICMP' : t === 'smtp' ? 'SMTP' : t.toUpperCase()}</option>
+        <option value={t}>{t === 'http' ? 'HTTP(S)' : t === 'http3' ? 'HTTP/3' : t === 'quic' ? 'QUIC' : t === 'grpc' ? 'gRPC' : t === 'dns' ? 'DNS' : t === 'icmp' ? 'ICMP' : t === 'smtp' ? 'SMTP' : t.toUpperCase()}</option>
       {/each}
     </select>
     {#if touched.type && !typeValidation.valid}
@@ -446,7 +448,7 @@
   </div>
 
   <!-- Type-specific settings -->
-  {#if type === 'http' || type === 'http3'}
+  {#if type === 'http' || type === 'http3' || type === 'quic'}
     <div>
       <label for="monitor-status-codes" class="block text-sm font-medium text-primary">
         {t('monitors.form.expectedStatusCodes')}

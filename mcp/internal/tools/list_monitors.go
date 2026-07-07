@@ -21,16 +21,17 @@ var recognizedTypes = map[string]string{
 	"dns":       "dns",
 	"icmp":      "icmp",
 	"smtp":      "smtp",
+	"quic":      "quic",
 }
 
 // recognizedTypeNames is the sorted list shown in error messages.
 var recognizedTypeNames = []string{
-	"DNS", "HTTP", "HTTP/3", "HTTPS", "ICMP", "SMTP", "TCP", "UDP", "WebSocket", "gRPC",
+	"DNS", "HTTP", "HTTP/3", "HTTPS", "ICMP", "QUIC", "SMTP", "TCP", "UDP", "WebSocket", "gRPC",
 }
 
 // ListMonitorsInput is the input schema for the list-monitors tool.
 type ListMonitorsInput struct {
-	Type  string   `json:"type,omitempty" jsonschema:"Filter by monitor type (case-insensitive). Recognized: HTTP, HTTPS, HTTP/3, TCP, UDP, WebSocket, gRPC, DNS, ICMP, SMTP"`
+	Type  string   `json:"type,omitempty" jsonschema:"Filter by monitor type (case-insensitive). Recognized: HTTP, HTTPS, HTTP/3, TCP, UDP, WebSocket, gRPC, DNS, ICMP, SMTP, QUIC"`
 	Tags  []string `json:"tags,omitempty" jsonschema:"Filter by tags (key:value format, AND semantics)"`
 	Page  int      `json:"page,omitempty" jsonschema:"Page number (minimum 1, default 1)"`
 	Limit int      `json:"limit,omitempty" jsonschema:"Results per page (1-100, default 50)"`

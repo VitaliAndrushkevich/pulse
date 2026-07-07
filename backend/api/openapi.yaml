@@ -49,7 +49,7 @@ paths:
           description: Filter by monitor type
           schema:
             type: string
-            enum: [http, http3, tcp, udp, websocket, grpc, dns, icmp, smtp]
+            enum: [http, http3, tcp, udp, websocket, grpc, dns, icmp, smtp, quic]
         - name: tag
           in: query
           description: >
@@ -1347,7 +1347,7 @@ components:
           type: string
         type:
           type: string
-          enum: [http, http3, tcp, udp, websocket, grpc, dns, icmp, smtp]
+          enum: [http, http3, tcp, udp, websocket, grpc, dns, icmp, smtp, quic]
         target:
           type: string
         interval_seconds:
@@ -1370,7 +1370,7 @@ components:
           nullable: true
         settings:
           type: object
-          description: "Type-specific settings. For type=http/http3, see HTTPSettings. For type=grpc, see GRPCSettings. For type=dns, see DNSSettings. For type=icmp, see ICMPSettings. For type=smtp, see SMTPSettings."
+          description: "Type-specific settings. For type=http/http3/quic, see HTTPSettings. For type=grpc, see GRPCSettings. For type=dns, see DNSSettings. For type=icmp, see ICMPSettings. For type=smtp, see SMTPSettings."
         history_retention_days:
           type: integer
           minimum: 1
@@ -1400,7 +1400,7 @@ components:
           type: string
         type:
           type: string
-          enum: [http, http3, tcp, udp, websocket, grpc, dns, icmp, smtp]
+          enum: [http, http3, tcp, udp, websocket, grpc, dns, icmp, smtp, quic]
         target:
           type: string
           description: >
@@ -1410,7 +1410,8 @@ components:
             tcp/udp/grpc — must be host:port without scheme.
             dns — domain name only (trailing dot stripped);
             icmp — hostname or IP address;
-            smtp — hostname or host:port.
+            smtp — hostname or host:port;
+            quic — bare domain gets "https://" prefix, operates over UDP/QUIC transport.
         interval_seconds:
           type: integer
           default: 60
@@ -1423,7 +1424,7 @@ components:
           default: active
         settings:
           type: object
-          description: "Type-specific settings. For type=http/http3, see HTTPSettings. For type=grpc, see GRPCSettings. For type=dns, see DNSSettings. For type=icmp, see ICMPSettings. For type=smtp, see SMTPSettings."
+          description: "Type-specific settings. For type=http/http3/quic, see HTTPSettings. For type=grpc, see GRPCSettings. For type=dns, see DNSSettings. For type=icmp, see ICMPSettings. For type=smtp, see SMTPSettings."
         history_retention_days:
           type: integer
           minimum: 1
@@ -1448,7 +1449,7 @@ components:
           type: string
         type:
           type: string
-          enum: [http, http3, tcp, udp, websocket, grpc, dns, icmp, smtp]
+          enum: [http, http3, tcp, udp, websocket, grpc, dns, icmp, smtp, quic]
         target:
           type: string
           description: >
@@ -1458,7 +1459,8 @@ components:
             tcp/udp/grpc — must be host:port without scheme.
             dns — domain name only (trailing dot stripped);
             icmp — hostname or IP address;
-            smtp — hostname or host:port.
+            smtp — hostname or host:port;
+            quic — bare domain gets "https://" prefix, operates over UDP/QUIC transport.
         interval_seconds:
           type: integer
           default: 60
@@ -1471,7 +1473,7 @@ components:
           default: active
         settings:
           type: object
-          description: "Type-specific settings. For type=http/http3, see HTTPSettings. For type=grpc, see GRPCSettings. For type=dns, see DNSSettings. For type=icmp, see ICMPSettings. For type=smtp, see SMTPSettings."
+          description: "Type-specific settings. For type=http/http3/quic, see HTTPSettings. For type=grpc, see GRPCSettings. For type=dns, see DNSSettings. For type=icmp, see ICMPSettings. For type=smtp, see SMTPSettings."
         history_retention_days:
           type: integer
           minimum: 1

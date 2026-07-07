@@ -111,7 +111,7 @@ func (h *MonitorHandler) Create(c *gin.Context) {
 	}
 
 	if !isValidMonitorType(req.Type) {
-		apiError(c, http.StatusBadRequest, "VALIDATION_ERROR", "type must be one of: http, http3, tcp, udp, websocket, grpc, dns, icmp, smtp")
+		apiError(c, http.StatusBadRequest, "VALIDATION_ERROR", "type must be one of: http, http3, tcp, udp, websocket, grpc, dns, icmp, smtp, quic")
 		return
 	}
 
@@ -336,7 +336,7 @@ func (h *MonitorHandler) Put(c *gin.Context) {
 	}
 
 	if !isValidMonitorType(req.Type) {
-		apiError(c, http.StatusBadRequest, "VALIDATION_ERROR", "type must be one of: http, http3, tcp, udp, websocket, grpc, dns, icmp, smtp")
+		apiError(c, http.StatusBadRequest, "VALIDATION_ERROR", "type must be one of: http, http3, tcp, udp, websocket, grpc, dns, icmp, smtp, quic")
 		return
 	}
 
@@ -492,7 +492,7 @@ func (h *MonitorHandler) Delete(c *gin.Context) {
 
 func isValidMonitorType(t string) bool {
 	switch t {
-	case "http", "http3", "tcp", "udp", "websocket", "grpc", "dns", "icmp", "smtp":
+	case "http", "http3", "tcp", "udp", "websocket", "grpc", "dns", "icmp", "smtp", "quic":
 		return true
 	}
 	return false

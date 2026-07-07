@@ -270,7 +270,8 @@
         "grpc": "Format: host:port",
         "dns": "Domain name to query (e.g., example.com)",
         "icmp": "Hostname or IP address (e.g., 8.8.8.8)",
-        "smtp": "Mail server hostname or host:port (e.g., mail.example.com)"
+        "smtp": "Mail server hostname or host:port (e.g., mail.example.com)",
+        "quic": "URL or domain name over QUIC/UDP transport (defaults to https://)"
       }
     },
     "filter": {

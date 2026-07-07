@@ -7,7 +7,7 @@ export interface ValidationResult {
   error: string | null;
 }
 
-const VALID_MONITOR_TYPES: MonitorType[] = ['http', 'http3', 'tcp', 'udp', 'websocket', 'grpc', 'dns', 'icmp', 'smtp'];
+const VALID_MONITOR_TYPES: MonitorType[] = ['http', 'http3', 'tcp', 'udp', 'websocket', 'grpc', 'dns', 'icmp', 'smtp', 'quic'];
 
 /** Validates monitor name: non-empty, max 255 characters */
 export function validateName(name: string): ValidationResult {

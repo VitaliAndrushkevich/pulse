@@ -270,7 +270,8 @@
         "grpc": "Фармат: хост:порт",
         "dns": "Даменнае імя для запыту (напр. example.com)",
         "icmp": "Імя хаста або IP-адрас (напр. 8.8.8.8)",
-        "smtp": "Імя хаста паштовага сервера або хост:порт (напр. mail.example.com)"
+        "smtp": "Імя хаста паштовага сервера або хост:порт (напр. mail.example.com)",
+        "quic": "URL or domain name over QUIC/UDP transport (defaults to https://)"
       }
     },
     "filter": {

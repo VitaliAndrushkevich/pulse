@@ -270,7 +270,8 @@
         "grpc": "형식: 호스트:포트",
         "dns": "조회할 도메인 이름 (예: example.com)",
         "icmp": "호스트명 또는 IP 주소 (예: 8.8.8.8)",
-        "smtp": "메일 서버 호스트명 또는 호스트:포트 (예: mail.example.com)"
+        "smtp": "메일 서버 호스트명 또는 호스트:포트 (예: mail.example.com)",
+        "quic": "URL or domain name over QUIC/UDP transport (defaults to https://)"
       }
     },
     "filter": {

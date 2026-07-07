@@ -191,6 +191,7 @@ func TestProperty4_MonitorTypeFilterNormalizesCaseInsensitively(t *testing.T) {
 		{"dns", "dns"},
 		{"icmp", "icmp"},
 		{"smtp", "smtp"},
+		{"quic", "quic"},
 	}
 
 	rapid.Check(t, func(t *rapid.T) {
