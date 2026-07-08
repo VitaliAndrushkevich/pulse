@@ -271,7 +271,7 @@
         "dns": "اسم النطاق المراد الاستعلام عنه (مثال: example.com)",
         "icmp": "اسم المضيف أو عنوان IP (مثال: 8.8.8.8)",
         "smtp": "اسم مضيف خادم البريد أو المضيف:المنفذ (مثال: mail.example.com)",
-        "quic": "URL or domain name over QUIC/UDP transport (defaults to https://)"
+        "quic": "عنوان URL أو اسم النطاق عبر بروتوكول QUIC/UDP (الافتراضي https://)"
       }
     },
     "filter": {

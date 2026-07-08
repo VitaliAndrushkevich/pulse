@@ -271,7 +271,7 @@
         "dns": "クエリするドメイン名（例：example.com）",
         "icmp": "ホスト名またはIPアドレス（例：8.8.8.8）",
         "smtp": "メールサーバーのホスト名またはホスト:ポート（例：mail.example.com）",
-        "quic": "URL or domain name over QUIC/UDP transport (defaults to https://)"
+        "quic": "QUIC/UDPトランスポート経由のURLまたはドメイン名（デフォルト: https://）"
       }
     },
     "filter": {

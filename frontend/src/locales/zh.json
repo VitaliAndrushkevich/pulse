@@ -271,7 +271,7 @@
         "dns": "要查询的域名（例如 example.com）",
         "icmp": "主机名或IP地址（例如 8.8.8.8）",
         "smtp": "邮件服务器主机名或主机:端口（例如 mail.example.com）",
-        "quic": "URL or domain name over QUIC/UDP transport (defaults to https://)"
+        "quic": "通过 QUIC/UDP 传输的 URL 或域名（默认 https://）"
       }
     },
     "filter": {

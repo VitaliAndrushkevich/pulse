@@ -271,7 +271,7 @@
         "dns": "Nombre de dominio a consultar (ej. example.com)",
         "icmp": "Nombre de host o dirección IP (ej. 8.8.8.8)",
         "smtp": "Nombre de host del servidor de correo o host:puerto (ej. mail.example.com)",
-        "quic": "URL or domain name over QUIC/UDP transport (defaults to https://)"
+        "quic": "URL o nombre de dominio a través de transporte QUIC/UDP (por defecto https://)"
       }
     },
     "filter": {

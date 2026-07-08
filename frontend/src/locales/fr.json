@@ -271,7 +271,7 @@
         "dns": "Nom de domaine à interroger (ex. example.com)",
         "icmp": "Nom d'hôte ou adresse IP (ex. 8.8.8.8)",
         "smtp": "Nom d'hôte du serveur mail ou hôte:port (ex. mail.example.com)",
-        "quic": "URL or domain name over QUIC/UDP transport (defaults to https://)"
+        "quic": "URL ou nom de domaine via le transport QUIC/UDP (https:// par défaut)"
       }
     },
     "filter": {
