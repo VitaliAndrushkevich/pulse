@@ -622,13 +622,15 @@
     "bindings": {
       "title": "Vinculações de notificação",
       "description": "Configure quais canais e gatilhos se aplicam a este monitor.",
+      "createDescription": "Optionally configure notifications for this monitor. Bindings will be created after the monitor is saved.",
       "add": "Adicionar vinculação",
       "remove": "Remover vinculação",
       "channel": "Canal",
       "channelPlaceholder": "Selecione um canal",
       "empty": {
         "title": "Nenhuma vinculação de notificação",
-        "description": "Adicione uma vinculação para receber alertas deste monitor."
+        "description": "Adicione uma vinculação para receber alertas deste monitor.",
+        "createHint": "No notifications configured. Add a binding to receive alerts when this monitor triggers."
       },
       "noChannels": {
         "title": "Nenhum canal disponível",

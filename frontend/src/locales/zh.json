@@ -622,13 +622,15 @@
     "bindings": {
       "title": "通知绑定",
       "description": "配置适用于此监控器的渠道和触发条件。",
+      "createDescription": "Optionally configure notifications for this monitor. Bindings will be created after the monitor is saved.",
       "add": "添加绑定",
       "remove": "移除绑定",
       "channel": "渠道",
       "channelPlaceholder": "选择渠道",
       "empty": {
         "title": "暂无通知绑定",
-        "description": "添加绑定以接收此监控器的告警。"
+        "description": "添加绑定以接收此监控器的告警。",
+        "createHint": "No notifications configured. Add a binding to receive alerts when this monitor triggers."
       },
       "noChannels": {
         "title": "无可用渠道",

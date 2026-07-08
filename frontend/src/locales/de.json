@@ -595,7 +595,7 @@
       "title": "Auslösebedingungen",
       "description": "Wählen Sie, welche Ereignisse Benachrichtigungen für diese Verknüpfung auslösen sollen.",
       "monitorDown": "Monitor ausgefallen",
-      "monitorDownHelp": "Benachrichtigung, wenn der Monitor in den Status \u201eAusgefallen\u201c wechselt.",
+      "monitorDownHelp": "Benachrichtigung, wenn der Monitor in den Status „Ausgefallen“ wechselt.",
       "monitorUp": "Monitor erreichbar",
       "monitorUpHelp": "Benachrichtigung, wenn sich der Monitor von einem Ausfall erholt.",
       "degraded": "Verschlechterte Leistung",
@@ -622,13 +622,15 @@
     "bindings": {
       "title": "Benachrichtigungsverknüpfungen",
       "description": "Konfigurieren Sie, welche Kanäle und Auslöser für diesen Monitor gelten.",
+      "createDescription": "Optionally configure notifications for this monitor. Bindings will be created after the monitor is saved.",
       "add": "Verknüpfung hinzufügen",
       "remove": "Verknüpfung entfernen",
       "channel": "Kanal",
       "channelPlaceholder": "Kanal auswählen",
       "empty": {
         "title": "Keine Benachrichtigungsverknüpfungen",
-        "description": "Fügen Sie eine Verknüpfung hinzu, um Alarme für diesen Monitor zu erhalten."
+        "description": "Fügen Sie eine Verknüpfung hinzu, um Alarme für diesen Monitor zu erhalten.",
+        "createHint": "No notifications configured. Add a binding to receive alerts when this monitor triggers."
       },
       "noChannels": {
         "title": "Keine Kanäle verfügbar",

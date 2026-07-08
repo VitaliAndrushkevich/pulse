@@ -622,13 +622,15 @@
     "bindings": {
       "title": "通知バインディング",
       "description": "このモニターに適用するチャンネルとトリガーを設定します。",
+      "createDescription": "Optionally configure notifications for this monitor. Bindings will be created after the monitor is saved.",
       "add": "バインディングを追加",
       "remove": "バインディングを削除",
       "channel": "チャンネル",
       "channelPlaceholder": "チャンネルを選択",
       "empty": {
         "title": "通知バインディングがありません",
-        "description": "このモニターのアラートを受信するにはバインディングを追加してください。"
+        "description": "このモニターのアラートを受信するにはバインディングを追加してください。",
+        "createHint": "No notifications configured. Add a binding to receive alerts when this monitor triggers."
       },
       "noChannels": {
         "title": "利用可能なチャンネルがありません",

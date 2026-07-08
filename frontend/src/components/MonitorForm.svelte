@@ -11,6 +11,7 @@
   import IcmpSettingsForm from './IcmpSettingsForm.svelte';
   import SmtpSettingsForm from './SmtpSettingsForm.svelte';
   import TagEditor from './TagEditor.svelte';
+  import PendingNotificationBindings, { type PendingBinding } from './PendingNotificationBindings.svelte';
 
   interface MonitorFormValues {
     name: string;
@@ -27,6 +28,7 @@
   export interface MonitorFormSubmitData {
     values: MonitorFormValues;
     pendingCredential?: CreateCredentialRequest;
+    pendingBindings?: PendingBinding[];
   }
 
   interface Props {
@@ -35,7 +37,7 @@
     initialTags?: Tag[];
     secrets?: Array<{ id: string; name: string }>;
     monitorId?: string;
-    onSubmit: (values: MonitorFormValues, pendingCredential?: CreateCredentialRequest) => Promise<void>;
+    onSubmit: (values: MonitorFormValues, pendingCredential?: CreateCredentialRequest, pendingBindings?: PendingBinding[]) => Promise<void>;
     onCancel: () => void;
     extraSections?: import('svelte').Snippet;
   }
@@ -60,6 +62,9 @@
 
   // Tags (key-value pairs)
   let formTags = $state<Tag[]>(initialTags);
+
+  // Pending notification bindings (create mode only)
+  let pendingBindings = $state<PendingBinding[]>([]);
 
   // Type-specific settings
   let expectedStatusCodes = $state(
@@ -286,7 +291,7 @@
     };
 
     try {
-      await onSubmit(values, pendingCredential ?? undefined);
+      await onSubmit(values, pendingCredential ?? undefined, pendingBindings.length > 0 ? pendingBindings : undefined);
     } catch (err: unknown) {
       if (err instanceof Error) {
         apiError = err.message;
@@ -627,6 +632,14 @@
 
   <!-- Tags -->
   <TagEditor tags={formTags} onchange={(updated) => { formTags = updated; }} />
+
+  <!-- Notification Bindings (create mode — pending, no API calls until submit) -->
+  {#if mode === 'create'}
+    <PendingNotificationBindings
+      bindings={pendingBindings}
+      onchange={(updated) => { pendingBindings = updated; }}
+    />
+  {/if}
 
   <!-- Extra sections (e.g. notification bindings in edit mode) -->
   {#if extraSections}

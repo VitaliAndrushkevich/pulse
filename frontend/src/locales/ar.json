@@ -622,13 +622,15 @@
     "bindings": {
       "title": "ربطات الإشعارات",
       "description": "تكوين القنوات والشروط المطبقة على هذه المراقبة.",
+      "createDescription": "Optionally configure notifications for this monitor. Bindings will be created after the monitor is saved.",
       "add": "إضافة ربطة",
       "remove": "إزالة الربطة",
       "channel": "القناة",
       "channelPlaceholder": "اختر قناة",
       "empty": {
         "title": "لا توجد ربطات إشعارات",
-        "description": "أضف ربطة لتلقي التنبيهات لهذه المراقبة."
+        "description": "أضف ربطة لتلقي التنبيهات لهذه المراقبة.",
+        "createHint": "No notifications configured. Add a binding to receive alerts when this monitor triggers."
       },
       "noChannels": {
         "title": "لا توجد قنوات متاحة",

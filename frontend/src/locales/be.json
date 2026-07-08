@@ -622,13 +622,15 @@
     "bindings": {
       "title": "Прывязкі апавяшчэнняў",
       "description": "Наладзьце, якія каналы і ўмовы дзейнічаюць для гэтага манітора.",
+      "createDescription": "Optionally configure notifications for this monitor. Bindings will be created after the monitor is saved.",
       "add": "Дадаць прывязку",
       "remove": "Прыбраць прывязку",
       "channel": "Канал",
       "channelPlaceholder": "Абярыце канал",
       "empty": {
         "title": "Прывязак апавяшчэнняў няма",
-        "description": "Дадайце прывязку, каб атрымліваць абвесткі для гэтага манітора."
+        "description": "Дадайце прывязку, каб атрымліваць абвесткі для гэтага манітора.",
+        "createHint": "No notifications configured. Add a binding to receive alerts when this monitor triggers."
       },
       "noChannels": {
         "title": "Каналы недаступны",

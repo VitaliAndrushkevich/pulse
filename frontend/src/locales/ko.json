@@ -622,13 +622,15 @@
     "bindings": {
       "title": "알림 바인딩",
       "description": "이 모니터에 적용할 채널과 트리거를 구성합니다.",
+      "createDescription": "Optionally configure notifications for this monitor. Bindings will be created after the monitor is saved.",
       "add": "바인딩 추가",
       "remove": "바인딩 제거",
       "channel": "채널",
       "channelPlaceholder": "채널 선택",
       "empty": {
         "title": "알림 바인딩이 없습니다",
-        "description": "이 모니터의 경고를 수신하려면 바인딩을 추가하세요."
+        "description": "이 모니터의 경고를 수신하려면 바인딩을 추가하세요.",
+        "createHint": "No notifications configured. Add a binding to receive alerts when this monitor triggers."
       },
       "noChannels": {
         "title": "사용 가능한 채널이 없습니다",

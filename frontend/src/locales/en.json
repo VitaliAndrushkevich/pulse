@@ -616,13 +616,15 @@
     "bindings": {
       "title": "Notification Bindings",
       "description": "Configure which channels and triggers apply to this monitor.",
+      "createDescription": "Optionally configure notifications for this monitor. Bindings will be created after the monitor is saved.",
       "add": "Add Binding",
       "remove": "Remove Binding",
       "channel": "Channel",
       "channelPlaceholder": "Select a channel",
       "empty": {
         "title": "No notification bindings",
-        "description": "Add a binding to receive alerts for this monitor."
+        "description": "Add a binding to receive alerts for this monitor.",
+        "createHint": "No notifications configured. Add a binding to receive alerts when this monitor triggers."
       },
       "noChannels": {
         "title": "No channels available",

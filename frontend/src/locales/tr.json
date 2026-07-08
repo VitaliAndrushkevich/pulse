@@ -117,7 +117,6 @@
       "ariaLabel": "Son 24 saatin saatlik sistem durumunu gösteren çalışma süresi haritası",
       "blockAria": "{time}: {up} aktif, {down} çalışmıyor, {unknown} bilinmiyor",
       "tooltipCounts": "↑{up} ↓{down} ?{unknown}"
-
     },
     "sparklines": {
       "title": "Yanıt Süresi",
@@ -623,13 +622,15 @@
     "bindings": {
       "title": "Bildirim Bağlamaları",
       "description": "Bu monitör için hangi kanalların ve tetikleyicilerin uygulanacağını yapılandırın.",
+      "createDescription": "Optionally configure notifications for this monitor. Bindings will be created after the monitor is saved.",
       "add": "Bağlama Ekle",
       "remove": "Bağlamayı Kaldır",
       "channel": "Kanal",
       "channelPlaceholder": "Kanal seçin",
       "empty": {
         "title": "Bildirim bağlaması yok",
-        "description": "Bu monitör için uyarı almak üzere bir bağlama ekleyin."
+        "description": "Bu monitör için uyarı almak üzere bir bağlama ekleyin.",
+        "createHint": "No notifications configured. Add a binding to receive alerts when this monitor triggers."
       },
       "noChannels": {
         "title": "Kullanılabilir kanal yok",
