@@ -179,7 +179,8 @@
       "backToMonitors": "Monitörlere dön",
       "tabs": {
         "overview": "Genel Bakış",
-        "history": "Geçmiş"
+        "history": "Geçmiş",
+        "notifications": "Bildirimler"
       },
       "checkInterval": "Her {seconds}sn kontrol ediliyor",
       "stats": {
@@ -617,12 +618,15 @@
       "description": "Koşul devam ederken bildirimleri tekrarla.",
       "interval": "Hatırlatma Aralığı",
       "disabled": "Devre dışı",
-      "minutes": "{count} dakika"
+      "minutes": "{count} dakika",
+      "hours": "{count} saat",
+      "minutesLabel": "dakika",
+      "custom": "Özel..."
     },
     "bindings": {
       "title": "Bildirim Bağlamaları",
       "description": "Bu monitör için hangi kanalların ve tetikleyicilerin uygulanacağını yapılandırın.",
-      "createDescription": "Optionally configure notifications for this monitor. Bindings will be created after the monitor is saved.",
+      "createDescription": "Bu monitör için isteğe bağlı olarak bildirimler yapılandırın. Bağlamalar monitör kaydedildikten sonra oluşturulacaktır.",
       "add": "Bağlama Ekle",
       "remove": "Bağlamayı Kaldır",
       "channel": "Kanal",
@@ -630,7 +634,7 @@
       "empty": {
         "title": "Bildirim bağlaması yok",
         "description": "Bu monitör için uyarı almak üzere bir bağlama ekleyin.",
-        "createHint": "No notifications configured. Add a binding to receive alerts when this monitor triggers."
+        "createHint": "Bildirim yapılandırılmadı. Bu monitör tetiklendiğinde uyarı almak için bir bağlama ekleyin."
       },
       "noChannels": {
         "title": "Kullanılabilir kanal yok",
@@ -658,6 +662,18 @@
       "bindingDeleted": "Bildirim bağlaması kaldırıldı.",
       "testSuccess": "Test bildirimi başarıyla iletildi.",
       "testFailure": "Test bildirimi başarısız: {error}"
+    },
+    "deliveryLogs": {
+      "title": "Teslimat Geçmişi",
+      "empty": "Henüz teslimat kaydı yok. Bildirimler tetiklendiğinde burada görünecektir.",
+      "status": "Durum",
+      "trigger": "Tetikleyici",
+      "attempt": "Deneme",
+      "error": "Hata",
+      "time": "Zaman",
+      "statusSuccess": "Gönderildi",
+      "statusFailure": "Başarısız",
+      "total": "Toplam {count} teslimat"
     },
     "templateVariables": {
       "title": "Şablon Değişkenleri",

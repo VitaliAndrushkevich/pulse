@@ -17,7 +17,7 @@ func TestEvaluateAndDispatch_NBindingsNJobs(t *testing.T) {
 	m := newTestMetrics(t)
 	st := NewStateTracker()
 
-	d := NewDispatcher(DispatcherConfig{Workers: 1, BufferSize: 256}, nil, nil, m, st)
+	d := NewDispatcher(DispatcherConfig{Workers: 1, BufferSize: 256}, nil, nil, m, st, nil)
 
 	monitorID := uuid.New()
 
@@ -73,7 +73,7 @@ func TestEvaluateAndDispatch_FailureInOneDoesNotAffectOthers(t *testing.T) {
 	st := NewStateTracker()
 
 	// Buffer size of 3 → only 3 jobs can be enqueued, remaining are dropped.
-	d := NewDispatcher(DispatcherConfig{Workers: 1, BufferSize: 3}, nil, nil, m, st)
+	d := NewDispatcher(DispatcherConfig{Workers: 1, BufferSize: 3}, nil, nil, m, st, nil)
 
 	monitorID := uuid.New()
 
@@ -119,7 +119,7 @@ func TestEvaluateAndDispatch_OnlyMatchingBindingsReceiveJobs(t *testing.T) {
 	m := newTestMetrics(t)
 	st := NewStateTracker()
 
-	d := NewDispatcher(DispatcherConfig{Workers: 1, BufferSize: 256}, nil, nil, m, st)
+	d := NewDispatcher(DispatcherConfig{Workers: 1, BufferSize: 256}, nil, nil, m, st, nil)
 
 	monitorID := uuid.New()
 
@@ -183,7 +183,7 @@ func TestEvaluateAndDispatch_NoBindings(t *testing.T) {
 	m := newTestMetrics(t)
 	st := NewStateTracker()
 
-	d := NewDispatcher(DispatcherConfig{Workers: 1, BufferSize: 256}, nil, nil, m, st)
+	d := NewDispatcher(DispatcherConfig{Workers: 1, BufferSize: 256}, nil, nil, m, st, nil)
 
 	monitorID := uuid.New()
 
@@ -204,7 +204,7 @@ func TestEvaluateAndDispatch_NoTriggersFired(t *testing.T) {
 	m := newTestMetrics(t)
 	st := NewStateTracker()
 
-	d := NewDispatcher(DispatcherConfig{Workers: 1, BufferSize: 256}, nil, nil, m, st)
+	d := NewDispatcher(DispatcherConfig{Workers: 1, BufferSize: 256}, nil, nil, m, st, nil)
 
 	monitorID := uuid.New()
 
@@ -236,7 +236,7 @@ func TestEvaluateAndDispatch_MultipleTriggerTypes(t *testing.T) {
 	m := newTestMetrics(t)
 	st := NewStateTracker()
 
-	d := NewDispatcher(DispatcherConfig{Workers: 1, BufferSize: 256}, nil, nil, m, st)
+	d := NewDispatcher(DispatcherConfig{Workers: 1, BufferSize: 256}, nil, nil, m, st, nil)
 
 	monitorID := uuid.New()
 	thresholdMs := 100
@@ -276,7 +276,7 @@ func TestEvaluateAndDispatch_IndependentDeliveryWithDispatchFn(t *testing.T) {
 	m := newTestMetrics(t)
 	st := NewStateTracker()
 
-	d := NewDispatcher(DispatcherConfig{Workers: 4, BufferSize: 256}, nil, nil, m, st)
+	d := NewDispatcher(DispatcherConfig{Workers: 4, BufferSize: 256}, nil, nil, m, st, nil)
 
 	// Track which bindings were dispatched.
 	var mu sync.Mutex

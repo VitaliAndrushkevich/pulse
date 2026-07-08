@@ -179,7 +179,8 @@
       "backToMonitors": "Да маніторaў",
       "tabs": {
         "overview": "Агляд",
-        "history": "Гісторыя"
+        "history": "Гісторыя",
+        "notifications": "Апавяшчэнні"
       },
       "checkInterval": "Праверка кожныя {seconds} с",
       "stats": {
@@ -617,12 +618,15 @@
       "description": "Паўтараць апавяшчэнні, пакуль умова захоўваецца.",
       "interval": "Інтэрвал нагадвання",
       "disabled": "Адключана",
-      "minutes": "{count} хвілін"
+      "minutes": "{count} хвілін",
+      "hours": "{count} гадзін",
+      "minutesLabel": "хвілін",
+      "custom": "Свой..."
     },
     "bindings": {
       "title": "Прывязкі апавяшчэнняў",
       "description": "Наладзьце, якія каналы і ўмовы дзейнічаюць для гэтага манітора.",
-      "createDescription": "Optionally configure notifications for this monitor. Bindings will be created after the monitor is saved.",
+      "createDescription": "Неабавязковая наладка апавяшчэнняў для гэтага манітора. Прывязкі будуць створаны пасля захавання манітора.",
       "add": "Дадаць прывязку",
       "remove": "Прыбраць прывязку",
       "channel": "Канал",
@@ -630,7 +634,7 @@
       "empty": {
         "title": "Прывязак апавяшчэнняў няма",
         "description": "Дадайце прывязку, каб атрымліваць абвесткі для гэтага манітора.",
-        "createHint": "No notifications configured. Add a binding to receive alerts when this monitor triggers."
+        "createHint": "Апавяшчэнні не наладжаны. Дадайце прывязку, каб атрымліваць абвесткі пры спрацоўванні манітора."
       },
       "noChannels": {
         "title": "Каналы недаступны",
@@ -737,6 +741,18 @@
       "smtpPortRange": "Порт павінен быць ад 1 да 65535.",
       "smtpFromRequired": "Адрас адпраўшчыка абавязковы.",
       "smtpFromInvalid": "Няправільны фармат адрасу электроннай пошты."
+    },
+    "deliveryLogs": {
+      "title": "Delivery History",
+      "empty": "No delivery logs yet. Notifications will appear here once triggered.",
+      "status": "Status",
+      "trigger": "Trigger",
+      "attempt": "Attempt",
+      "error": "Error",
+      "time": "Time",
+      "statusSuccess": "Sent",
+      "statusFailure": "Failed",
+      "total": "{count} total deliveries"
     }
   }
 }

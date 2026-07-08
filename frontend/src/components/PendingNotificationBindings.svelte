@@ -42,11 +42,13 @@
 
   const reminderOptions: { value: number | null; label: string }[] = [
     { value: null, label: t('notifications.reminders.disabled') },
-    { value: 5, label: t('notifications.reminders.minutes', { count: 5 }) },
-    { value: 10, label: t('notifications.reminders.minutes', { count: 10 }) },
-    { value: 15, label: t('notifications.reminders.minutes', { count: 15 }) },
     { value: 30, label: t('notifications.reminders.minutes', { count: 30 }) },
-    { value: 60, label: t('notifications.reminders.minutes', { count: 60 }) },
+    { value: 60, label: t('notifications.reminders.hours', { count: 1 }) },
+    { value: 120, label: t('notifications.reminders.hours', { count: 2 }) },
+    { value: 240, label: t('notifications.reminders.hours', { count: 4 }) },
+    { value: 480, label: t('notifications.reminders.hours', { count: 8 }) },
+    { value: 720, label: t('notifications.reminders.hours', { count: 12 }) },
+    { value: 1440, label: t('notifications.reminders.hours', { count: 24 }) },
   ];
 
   function availableChannels(): NotificationChannel[] {

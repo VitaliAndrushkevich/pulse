@@ -39,6 +39,8 @@ type Deps struct {
 	DevMode        bool
 	OpenAPIDir     string // directory containing openapi.yaml, used for swagger in dev mode
 	BaseURL        string // public base URL for notification links
+	MetricsUser    string // Basic Auth username for /metrics (empty = no auth)
+	MetricsPassword string // Basic Auth password for /metrics (empty = no auth)
 }
 
 func NewRouter(deps Deps) *gin.Engine {
@@ -58,9 +60,10 @@ func NewRouter(deps Deps) *gin.Engine {
 		handlers.RegisterSwaggerRoutes(r, deps.OpenAPIDir)
 	}
 
-	// Prometheus metrics endpoint (TASK-026) — no auth required for scraping.
+	// Prometheus metrics endpoint (TASK-026).
+	// Protected by Basic Auth when PULSE_METRICS_USER and PULSE_METRICS_PASSWORD are set.
 	if deps.PromRegistry != nil {
-		handlers.RegisterMetricsRoute(r, deps.PromRegistry)
+		handlers.RegisterMetricsRoute(r, deps.PromRegistry, deps.MetricsUser, deps.MetricsPassword)
 	}
 
 	// Authenticated WebSocket endpoint (TASK-030).

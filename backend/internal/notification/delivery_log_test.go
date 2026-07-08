@@ -95,7 +95,7 @@ func TestMaxErrorDetailLength_Is1024(t *testing.T) {
 func TestLogDelivery_WithNilQueries(t *testing.T) {
 	m := newTestMetrics(t)
 	st := NewStateTracker()
-	d := NewDispatcher(DispatcherConfig{Workers: 1, BufferSize: 10}, nil, nil, m, st)
+	d := NewDispatcher(DispatcherConfig{Workers: 1, BufferSize: 10}, nil, nil, m, st, nil)
 
 	// Should not panic even though queries is nil.
 	// LogDelivery will try to call InsertDeliveryLog and get a nil pointer,
@@ -116,7 +116,7 @@ func TestProcessJob_PanicRecovery(t *testing.T) {
 	reg := prometheus.NewRegistry()
 	m := NewMetrics(reg)
 	st := NewStateTracker()
-	d := NewDispatcher(DispatcherConfig{Workers: 1, BufferSize: 10}, nil, nil, m, st)
+	d := NewDispatcher(DispatcherConfig{Workers: 1, BufferSize: 10}, nil, nil, m, st, nil)
 
 	// Override dispatch to panic on the first call.
 	var mu sync.Mutex

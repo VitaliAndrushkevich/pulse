@@ -2498,10 +2498,11 @@ components:
           description: At least one trigger condition is required
         reminder_interval_minutes:
           type: integer
-          enum: [5, 10, 15, 30, 60]
+          minimum: 30
+          maximum: 1440
           nullable: true
           description: >
-            Reminder interval in minutes. When set, recurring reminders are sent
+            Reminder interval in minutes (30–1440). When set, recurring reminders are sent
             at this interval while the triggering condition persists. Null means disabled.
         created_at:
           type: string
@@ -2526,9 +2527,10 @@ components:
           description: At least one trigger condition is required
         reminder_interval_minutes:
           type: integer
-          enum: [5, 10, 15, 30, 60]
+          minimum: 30
+          maximum: 1440
           nullable: true
-          description: Reminder interval in minutes (null to disable)
+          description: Reminder interval in minutes (30–1440). Null to disable.
 
     UpdateNotificationBindingRequest:
       type: object
@@ -2542,9 +2544,10 @@ components:
           description: At least one trigger condition is required
         reminder_interval_minutes:
           type: integer
-          enum: [5, 10, 15, 30, 60]
+          minimum: 30
+          maximum: 1440
           nullable: true
-          description: Reminder interval in minutes (null to disable)
+          description: Reminder interval in minutes (30–1440). Null to disable.
 
     TriggerCondition:
       type: object

@@ -13,7 +13,7 @@ Pulse is a self-hosted uptime monitoring platform. It ships as a single binary w
 - **API-first** — full REST API with OpenAPI 3.0.3 spec
 - **Dashboard widgets** — StatusRing, HealthScore, UptimeHeatmap, ResponseSparklines, SSLWarnings, IncidentsPanel, EventsFeed
 - **Internationalization** — 13 languages with RTL support (Arabic), lazy-loaded locale bundles
-- **Prometheus metrics** — built-in `/metrics` endpoint
+- **Prometheus metrics** — built-in `/metrics` endpoint with optional Basic Auth protection
 - **Security** — AES-256-GCM secret encryption, JWT + API token auth, per-monitor credentials
 - **Scalable** — bounded worker pools, designed for 500+ concurrent monitors
 - **Light/Dark/System theming** — CSS custom properties with tri-state cycling, OS preference tracking, WCAG AA contrast
@@ -106,6 +106,9 @@ On first launch you'll be guided through initial setup to create your admin acco
 | `PULSE_BASE_URL` | Public URL for links in email notifications (e.g. `https://pulse.example.com`) | *(empty — links omitted)* |
 | `PULSE_NOTIFICATION_WORKERS` | Number of concurrent notification delivery workers | `50` |
 | `PULSE_NOTIFICATION_DRAIN_TIMEOUT` | Max time to drain in-flight notifications on shutdown (Go duration) | `30s` |
+| `PULSE_LOG_LEVEL` | Log verbosity for notification delivery (`warn`, `info`, `debug`) | `warn` |
+| `PULSE_METRICS_USER` | Basic Auth username for `/metrics` endpoint (empty = no auth) | *(empty)* |
+| `PULSE_METRICS_PASSWORD` | Basic Auth password for `/metrics` endpoint (empty = no auth) | *(empty)* |
 | `DATABASE_URL` | PostgreSQL connection string | `postgres://pulse:pulse@postgres:5432/pulse?sslmode=disable` |
 
 Generate secrets:
@@ -232,9 +235,25 @@ Messages follow the envelope format:
 | `PUT` | `/api/v1/monitors/{id}/notification-bindings/{bindingId}` | Update binding |
 | `DELETE` | `/api/v1/monitors/{id}/notification-bindings/{bindingId}` | Delete binding |
 | `GET` | `/healthz` | Health check |
-| `GET` | `/metrics` | Prometheus metrics |
+| `GET` | `/metrics` | Prometheus metrics (optional Basic Auth) |
 
 Full API reference: [`backend/api/openapi.yaml`](backend/api/openapi.yaml)
+
+### Metrics Authentication
+
+The `/metrics` endpoint can be protected with HTTP Basic Auth by setting `PULSE_METRICS_USER` and `PULSE_METRICS_PASSWORD`. When both variables are set, Prometheus must include credentials in its scrape config:
+
+```yaml
+scrape_configs:
+  - job_name: pulse
+    basic_auth:
+      username: prometheus
+      password: your-secret
+    static_configs:
+      - targets: ['localhost:8080']
+```
+
+When either variable is empty, `/metrics` is served without authentication.
 
 ## Notifications
 
@@ -261,7 +280,7 @@ Notifications are deduplicated — a trigger fires once per state transition, no
 
 ### Reminders
 
-Bindings support optional reminders (`reminder_interval_minutes`: 5, 10, 15, 30, or 60) that re-send notifications at regular intervals while a condition persists.
+Bindings support optional reminders (`reminder_interval_minutes`: 30–1440) that re-send notifications at configurable intervals while a condition persists.
 
 ### Retry & Delivery Logs
 
@@ -313,7 +332,7 @@ curl -X POST http://localhost:8080/api/v1/monitors/<monitor-id>/notification-bin
       {"type": "monitor_down"},
       {"type": "monitor_up"}
     ],
-    "reminder_interval_minutes": 15
+    "reminder_interval_minutes": 30
   }'
 ```
 

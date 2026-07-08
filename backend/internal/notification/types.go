@@ -15,6 +15,7 @@ type DispatcherConfig struct {
 	Workers      int           // PULSE_NOTIFICATION_WORKERS
 	BufferSize   int           // 256
 	DrainTimeout time.Duration // PULSE_NOTIFICATION_DRAIN_TIMEOUT
+	BaseURL      string        // Public base URL for notification links (e.g. "https://pulse.example.com")
 }
 
 // DeliveryJob represents a single notification to deliver.

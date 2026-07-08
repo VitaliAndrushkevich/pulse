@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/VitaliAndrushkevich/pulse/internal/notification"
+	"github.com/google/uuid"
 )
 
 // FormatSubject constructs the email subject line in the format:
@@ -44,6 +45,7 @@ type emailTemplateData struct {
 	Status         string
 	PreviousStatus string
 	ResponseTime   int32
+	HasIncident    bool   // true when incident data is present (non-zero UUID)
 	IncidentID     string
 	StartedAt      string
 	Duration       string
@@ -64,6 +66,8 @@ func RenderEmail(data notification.TemplateData) (string, error) {
 		monitorURL = data.BaseURL + "/monitors/" + data.Monitor.ID.String()
 	}
 
+	hasIncident := data.Incident.ID != uuid.Nil
+
 	td := emailTemplateData{
 		MonitorName:    data.Monitor.Name,
 		MonitorTarget:  data.Monitor.Target,
@@ -71,6 +75,7 @@ func RenderEmail(data notification.TemplateData) (string, error) {
 		Status:         data.Status,
 		PreviousStatus: data.PreviousStatus,
 		ResponseTime:   data.ResponseTime,
+		HasIncident:    hasIncident,
 		IncidentID:     data.Incident.ID.String(),
 		StartedAt:      data.Incident.StartedAt.Format(time.RFC3339),
 		Duration:       formatDuration(data.Incident.Duration),
@@ -225,6 +230,7 @@ const emailHTMLTemplate = `<!DOCTYPE html>
 </td>
 </tr>
 <!-- Incident Details Section -->
+{{if .HasIncident}}
 <tr>
 <td style="padding-bottom:24px;">
 <h2 style="margin:0 0 16px;font-size:16px;font-weight:600;color:#1e293b;">Incident Details</h2>
@@ -256,6 +262,7 @@ const emailHTMLTemplate = `<!DOCTYPE html>
 </table>
 </td>
 </tr>
+{{end}}
 <!-- View Monitor Button (only when BaseURL is configured) -->
 {{if .MonitorURL}}
 <tr>

@@ -179,7 +179,8 @@
       "backToMonitors": "Voltar aos monitores",
       "tabs": {
         "overview": "Visão geral",
-        "history": "Histórico"
+        "history": "Histórico",
+        "notifications": "Notificações"
       },
       "checkInterval": "Verificando a cada {seconds}s",
       "stats": {
@@ -617,12 +618,15 @@
       "description": "Repetir notificações enquanto a condição persistir.",
       "interval": "Intervalo de lembrete",
       "disabled": "Desativado",
-      "minutes": "{count} minutos"
+      "minutes": "{count} minutos",
+      "hours": "{count} horas",
+      "minutesLabel": "minutos",
+      "custom": "Personalizado..."
     },
     "bindings": {
       "title": "Vinculações de notificação",
       "description": "Configure quais canais e gatilhos se aplicam a este monitor.",
-      "createDescription": "Optionally configure notifications for this monitor. Bindings will be created after the monitor is saved.",
+      "createDescription": "Opcionalmente configure notificações para este monitor. As vinculações serão criadas após salvar o monitor.",
       "add": "Adicionar vinculação",
       "remove": "Remover vinculação",
       "channel": "Canal",
@@ -630,7 +634,7 @@
       "empty": {
         "title": "Nenhuma vinculação de notificação",
         "description": "Adicione uma vinculação para receber alertas deste monitor.",
-        "createHint": "No notifications configured. Add a binding to receive alerts when this monitor triggers."
+        "createHint": "Nenhuma notificação configurada. Adicione uma vinculação para receber alertas quando este monitor disparar."
       },
       "noChannels": {
         "title": "Nenhum canal disponível",
@@ -658,6 +662,18 @@
       "bindingDeleted": "Vinculação de notificação removida.",
       "testSuccess": "Notificação de teste entregue com sucesso.",
       "testFailure": "Falha na notificação de teste: {error}"
+    },
+    "deliveryLogs": {
+      "title": "Histórico de entregas",
+      "empty": "Nenhum registro de entrega ainda. As notificações aparecerão aqui quando acionadas.",
+      "status": "Status",
+      "trigger": "Gatilho",
+      "attempt": "Tentativa",
+      "error": "Erro",
+      "time": "Hora",
+      "statusSuccess": "Enviado",
+      "statusFailure": "Falhou",
+      "total": "{count} entregas no total"
     },
     "templateVariables": {
       "title": "Variáveis de template",

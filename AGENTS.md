@@ -143,7 +143,7 @@ The project is at MVP completion. Full milestone breakdown: [docs/MILESTONES.md]
 - Exponential backoff retry queue (30s → 60s → 120s, max 4 attempts total)
 - Retryable vs non-retryable error classification (`DeliveryError` type)
 - Delivery logging: all attempts recorded in `delivery_logs` table (success/failure + error detail, max 1024 chars)
-- Reminder scheduler: periodic re-notification (5/10/15/30/60 min) while condition persists, auto-deactivates on recovery
+- Reminder scheduler: periodic re-notification (30–1440 min) while condition persists, auto-deactivates on recovery
 - Notification channel CRUD API (`/api/v1/notifications/channels`)
 - Notification binding CRUD API (`/api/v1/monitors/{id}/notification-bindings`)
 - SMTP settings management API (GET/PUT/DELETE + test connection)
@@ -218,7 +218,7 @@ Primary commands:
 - Backend port: 8080
 - Frontend dev container: service `frontend`, base image `node:22-alpine`, port 5173, runs Vite dev server with HMR for local frontend development
 - Postgres: `pulse:pulse@localhost:5432/pulse`
-- Environment variables: `PULSE_PORT`, `PULSE_DEV`, `PULSE_SECRET_KEY`, `PULSE_JWT_SECRET`, `DATABASE_URL`, `PULSE_SCHEDULER_WORKERS`, `PULSE_BASE_URL`
+- Environment variables: `PULSE_PORT`, `PULSE_DEV`, `PULSE_SECRET_KEY`, `PULSE_JWT_SECRET`, `DATABASE_URL`, `PULSE_SCHEDULER_WORKERS`, `PULSE_BASE_URL`, `PULSE_METRICS_USER`, `PULSE_METRICS_PASSWORD`
 - ICMP monitoring requires `CAP_NET_RAW` (granted via `cap_add: [NET_RAW]` in docker-compose). Falls back to unprivileged UDP ICMP on Linux 3.0+ when available.
 
 ## Delivery Constraints
@@ -277,7 +277,7 @@ State deduplication prevents repeated notifications for the same ongoing conditi
 7. Non-retryable errors (template parse, oversized body, decryption) → immediate permanent failure
 
 ### Reminders
-The `ReminderScheduler` re-enqueues notifications at configurable intervals (5/10/15/30/60 min) while a triggering condition persists. Deactivates automatically on recovery.
+The `ReminderScheduler` re-enqueues notifications at configurable intervals (30–1440 min) while a triggering condition persists. Deactivates automatically on recovery.
 
 ### Template Variables (Webhook)
 Available in webhook body templates via Go `text/template` syntax:
@@ -311,6 +311,7 @@ Available in webhook body templates via Go `text/template` syntax:
 |----------|-------------|---------|
 | `PULSE_NOTIFICATION_WORKERS` | Concurrent notification delivery workers | `50` |
 | `PULSE_NOTIFICATION_DRAIN_TIMEOUT` | Graceful shutdown drain timeout (Go duration) | `30s` |
+| `PULSE_LOG_LEVEL` | Log verbosity for notification delivery (`warn`, `info`, `debug`) | `warn` |
 | `PULSE_BASE_URL` | Public URL for links in email notifications | *(empty — links omitted)* |
 
 ### Prometheus Metrics

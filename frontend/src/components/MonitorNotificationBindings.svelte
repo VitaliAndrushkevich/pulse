@@ -61,12 +61,18 @@
 
   const reminderOptions: { value: number | null; label: string }[] = [
     { value: null, label: t('notifications.reminders.disabled') },
-    { value: 5, label: t('notifications.reminders.minutes', { count: 5 }) },
-    { value: 10, label: t('notifications.reminders.minutes', { count: 10 }) },
-    { value: 15, label: t('notifications.reminders.minutes', { count: 15 }) },
     { value: 30, label: t('notifications.reminders.minutes', { count: 30 }) },
-    { value: 60, label: t('notifications.reminders.minutes', { count: 60 }) },
+    { value: 60, label: t('notifications.reminders.hours', { count: 1 }) },
+    { value: 120, label: t('notifications.reminders.hours', { count: 2 }) },
+    { value: 240, label: t('notifications.reminders.hours', { count: 4 }) },
+    { value: 480, label: t('notifications.reminders.hours', { count: 8 }) },
+    { value: 720, label: t('notifications.reminders.hours', { count: 12 }) },
+    { value: 1440, label: t('notifications.reminders.hours', { count: 24 }) },
+    { value: -1, label: t('notifications.reminders.custom') },
   ];
+
+  let customReminderValue = $state(60);
+  let editCustomReminderValue = $state(60);
 
   function getChannelName(channelId: string): string {
     const channel = channels.find((c) => c.id === channelId);
@@ -146,10 +152,11 @@
 
     saving = true;
     try {
+      const resolvedInterval = addReminderInterval === -1 ? customReminderValue : addReminderInterval;
       const data: CreateBindingRequest = {
         channel_id: selectedChannelId,
         triggers: buildTriggers(addTriggers, addDegradedThreshold, addSslDays, addFailureCount),
-        reminder_interval_minutes: addReminderInterval,
+        reminder_interval_minutes: resolvedInterval,
       };
       const created = await createNotificationBinding(monitorId, data);
       bindings = [...bindings, created];
@@ -177,7 +184,15 @@
     editSslDays = sslTrigger?.days_before ?? 14;
     const failureTrigger = binding.triggers.find((t) => t.type === 'n_failures_in_row');
     editFailureCount = failureTrigger?.count ?? 5;
-    editReminderInterval = binding.reminder_interval_minutes;
+    // If the stored interval matches a preset, use it directly; otherwise switch to custom.
+    const presetValues = reminderOptions.map(o => o.value).filter(v => v !== -1);
+    const storedInterval = binding.reminder_interval_minutes;
+    if (storedInterval != null && !presetValues.includes(storedInterval)) {
+      editReminderInterval = -1;
+      editCustomReminderValue = storedInterval;
+    } else {
+      editReminderInterval = storedInterval;
+    }
     validationError = null;
   }
 
@@ -195,9 +210,10 @@
 
     saving = true;
     try {
+      const resolvedInterval = editReminderInterval === -1 ? editCustomReminderValue : editReminderInterval;
       const data: UpdateBindingRequest = {
         triggers: buildTriggers(editTriggers, editDegradedThreshold, editSslDays, editFailureCount),
-        reminder_interval_minutes: editReminderInterval,
+        reminder_interval_minutes: resolvedInterval,
       };
       const updated = await updateNotificationBinding(monitorId, bindingId, data);
       bindings = bindings.map((b) => (b.id === bindingId ? updated : b));
@@ -436,6 +452,18 @@
                     <option value={opt.value}>{opt.label}</option>
                   {/each}
                 </select>
+                {#if editReminderInterval === -1}
+                  <div class="mt-2 flex items-center gap-2">
+                    <input
+                      type="number"
+                      bind:value={editCustomReminderValue}
+                      min="30"
+                      max="1440"
+                      class="block w-24 rounded-md border border-[var(--color-border)] bg-page px-2 py-1.5 text-sm text-primary"
+                    />
+                    <span class="text-xs text-secondary">{t('notifications.reminders.minutesLabel')}</span>
+                  </div>
+                {/if}
               </div>
 
               <!-- Validation error -->
@@ -566,6 +594,19 @@
                 <option value={opt.value}>{opt.label}</option>
               {/each}
             </select>
+            {#if addReminderInterval === -1}
+              <div class="mt-2 flex items-center gap-2">
+                <input
+                  type="number"
+                  bind:value={customReminderValue}
+                  min="30"
+                  max="1440"
+                  class="block w-24 rounded-md border border-[var(--color-border)] bg-page px-2 py-1.5 text-sm text-primary"
+                  data-testid="custom-reminder-input"
+                />
+                <span class="text-xs text-secondary">{t('notifications.reminders.minutesLabel')}</span>
+              </div>
+            {/if}
           </div>
 
           <!-- Validation error -->

@@ -179,7 +179,8 @@
       "backToMonitors": "العودة إلى المراقبات",
       "tabs": {
         "overview": "نظرة عامة",
-        "history": "السجل"
+        "history": "السجل",
+        "notifications": "الإشعارات"
       },
       "checkInterval": "فحص كل {seconds} ثانية",
       "stats": {
@@ -562,14 +563,14 @@
     },
     "form": {
       "name": "اسم القناة",
-      "namePlaceholder": "e.g. Ops Team Email, Slack Webhook",
+      "namePlaceholder": "مثال: بريد فريق العمليات، Slack Webhook",
       "type": "نوع القناة",
       "typePlaceholder": "اختر نوع القناة",
       "submitCreate": "إنشاء القناة",
       "submitUpdate": "تحديث القناة",
       "email": {
         "recipients": "المستلمون",
-        "recipientsPlaceholder": "Enter email address",
+        "recipientsPlaceholder": "أدخل عنوان البريد الإلكتروني",
         "recipientsHelp": "أضف حتى 50 عنوان بريد إلكتروني للمستلمين.",
         "addRecipient": "إضافة مستلم",
         "removeRecipient": "إزالة المستلم"
@@ -584,8 +585,8 @@
         "headersHelp": "ترويسات اختيارية تُرسل مع كل طلب Webhook (حتى 20).",
         "addHeader": "إضافة ترويسة",
         "removeHeader": "إزالة الترويسة",
-        "headerNamePlaceholder": "Header name",
-        "headerValuePlaceholder": "Header value",
+        "headerNamePlaceholder": "اسم الترويسة",
+        "headerValuePlaceholder": "قيمة الترويسة",
         "bodyTemplate": "قالب المحتوى",
         "bodyTemplatePlaceholder": "{ \"text\": \"{{.Monitor.Name}} is {{.Status}}\" }",
         "bodyTemplateHelp": "قالب Go لجسم طلب Webhook. استخدم متغيرات القالب أدناه."
@@ -617,12 +618,15 @@
       "description": "تكرار الإشعارات طالما استمرت الحالة.",
       "interval": "فترة التذكير",
       "disabled": "معطل",
-      "minutes": "{count} دقيقة"
+      "minutes": "{count} دقيقة",
+      "hours": "{count} ساعات",
+      "minutesLabel": "دقائق",
+      "custom": "مخصص..."
     },
     "bindings": {
       "title": "ربطات الإشعارات",
       "description": "تكوين القنوات والشروط المطبقة على هذه المراقبة.",
-      "createDescription": "Optionally configure notifications for this monitor. Bindings will be created after the monitor is saved.",
+      "createDescription": "إعداد اختياري للإشعارات لهذه المراقبة. سيتم إنشاء الربطات بعد حفظ المراقبة.",
       "add": "إضافة ربطة",
       "remove": "إزالة الربطة",
       "channel": "القناة",
@@ -630,7 +634,7 @@
       "empty": {
         "title": "لا توجد ربطات إشعارات",
         "description": "أضف ربطة لتلقي التنبيهات لهذه المراقبة.",
-        "createHint": "No notifications configured. Add a binding to receive alerts when this monitor triggers."
+        "createHint": "لم يتم تكوين إشعارات. أضف ربطة لتلقي التنبيهات عند تشغيل هذه المراقبة."
       },
       "noChannels": {
         "title": "لا توجد قنوات متاحة",
@@ -737,6 +741,18 @@
       "smtpPortRange": "يجب أن يكون المنفذ بين 1 و 65535.",
       "smtpFromRequired": "عنوان المرسل مطلوب.",
       "smtpFromInvalid": "صيغة عنوان البريد الإلكتروني غير صالحة."
+    },
+    "deliveryLogs": {
+      "title": "سجل التسليم",
+      "empty": "لا توجد سجلات تسليم بعد. ستظهر الإشعارات هنا بمجرد تشغيلها.",
+      "status": "الحالة",
+      "trigger": "المشغّل",
+      "attempt": "المحاولة",
+      "error": "خطأ",
+      "time": "الوقت",
+      "statusSuccess": "تم الإرسال",
+      "statusFailure": "فشل",
+      "total": "{count} تسليمات إجمالاً"
     }
   }
 }

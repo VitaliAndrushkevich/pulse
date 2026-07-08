@@ -20,7 +20,7 @@ func TestNewDispatcher_Defaults(t *testing.T) {
 	m := newTestMetrics(t)
 	st := NewStateTracker()
 
-	d := NewDispatcher(DispatcherConfig{}, nil, nil, m, st)
+	d := NewDispatcher(DispatcherConfig{}, nil, nil, m, st, nil)
 
 	if d.cfg.BufferSize != 256 {
 		t.Errorf("expected default BufferSize=256, got %d", d.cfg.BufferSize)
@@ -38,7 +38,7 @@ func TestNewDispatcher_CustomConfig(t *testing.T) {
 	st := NewStateTracker()
 
 	cfg := DispatcherConfig{Workers: 5, BufferSize: 128, DrainTimeout: 10 * time.Second}
-	d := NewDispatcher(cfg, nil, nil, m, st)
+	d := NewDispatcher(cfg, nil, nil, m, st, nil)
 
 	if d.cfg.BufferSize != 128 {
 		t.Errorf("expected BufferSize=128, got %d", d.cfg.BufferSize)
@@ -55,7 +55,7 @@ func TestEnqueue_Success(t *testing.T) {
 	m := newTestMetrics(t)
 	st := NewStateTracker()
 
-	d := NewDispatcher(DispatcherConfig{Workers: 1, BufferSize: 10}, nil, nil, m, st)
+	d := NewDispatcher(DispatcherConfig{Workers: 1, BufferSize: 10}, nil, nil, m, st, nil)
 
 	job := DeliveryJob{
 		ID:          uuid.New(),
@@ -76,7 +76,7 @@ func TestEnqueue_DropWhenBufferFull(t *testing.T) {
 	st := NewStateTracker()
 
 	// Buffer size of 2 — fill it up, then enqueue one more.
-	d := NewDispatcher(DispatcherConfig{Workers: 1, BufferSize: 2}, nil, nil, m, st)
+	d := NewDispatcher(DispatcherConfig{Workers: 1, BufferSize: 2}, nil, nil, m, st, nil)
 
 	job := DeliveryJob{
 		ID:          uuid.New(),
@@ -112,7 +112,7 @@ func TestEnqueue_NonBlocking(t *testing.T) {
 	st := NewStateTracker()
 
 	// Small buffer to test non-blocking behavior.
-	d := NewDispatcher(DispatcherConfig{Workers: 1, BufferSize: 1}, nil, nil, m, st)
+	d := NewDispatcher(DispatcherConfig{Workers: 1, BufferSize: 1}, nil, nil, m, st, nil)
 
 	// Fill the buffer.
 	d.Enqueue(DeliveryJob{ID: uuid.New(), MonitorID: uuid.New(), TriggerType: "monitor_down"})
@@ -136,7 +136,7 @@ func TestDispatcher_StartAndStop(t *testing.T) {
 	m := newTestMetrics(t)
 	st := NewStateTracker()
 
-	d := NewDispatcher(DispatcherConfig{Workers: 3, BufferSize: 10}, nil, nil, m, st)
+	d := NewDispatcher(DispatcherConfig{Workers: 3, BufferSize: 10}, nil, nil, m, st, nil)
 	d.Start()
 
 	// Enqueue a job and give workers time to process it.
@@ -169,7 +169,7 @@ func TestDispatcher_WorkerProcessesJobs(t *testing.T) {
 	m := newTestMetrics(t)
 	st := NewStateTracker()
 
-	d := NewDispatcher(DispatcherConfig{Workers: 2, BufferSize: 10}, nil, nil, m, st)
+	d := NewDispatcher(DispatcherConfig{Workers: 2, BufferSize: 10}, nil, nil, m, st, nil)
 	d.Start()
 
 	// Enqueue several jobs.
@@ -204,7 +204,7 @@ func TestDispatcher_WorkersContinueAfterJobs(t *testing.T) {
 	m := newTestMetrics(t)
 	st := NewStateTracker()
 
-	d := NewDispatcher(DispatcherConfig{Workers: 1, BufferSize: 10}, nil, nil, m, st)
+	d := NewDispatcher(DispatcherConfig{Workers: 1, BufferSize: 10}, nil, nil, m, st, nil)
 	d.Start()
 
 	// Enqueue jobs — the default dispatch is a no-op, so all succeed.
@@ -230,7 +230,7 @@ func TestDispatcher_ConcurrentEnqueue(t *testing.T) {
 	m := newTestMetrics(t)
 	st := NewStateTracker()
 
-	d := NewDispatcher(DispatcherConfig{Workers: 4, BufferSize: 100}, nil, nil, m, st)
+	d := NewDispatcher(DispatcherConfig{Workers: 4, BufferSize: 100}, nil, nil, m, st, nil)
 	d.Start()
 
 	// Concurrently enqueue many jobs.

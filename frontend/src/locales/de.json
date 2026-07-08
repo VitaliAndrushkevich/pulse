@@ -179,7 +179,8 @@
       "backToMonitors": "Zurück zu Monitoren",
       "tabs": {
         "overview": "Übersicht",
-        "history": "Verlauf"
+        "history": "Verlauf",
+        "notifications": "Benachrichtigungen"
       },
       "checkInterval": "Prüfung alle {seconds}s",
       "stats": {
@@ -617,12 +618,15 @@
       "description": "Benachrichtigungen wiederholen, solange die Bedingung besteht.",
       "interval": "Erinnerungsintervall",
       "disabled": "Deaktiviert",
-      "minutes": "{count} Minuten"
+      "minutes": "{count} Minuten",
+      "hours": "{count} Stunden",
+      "minutesLabel": "Minuten",
+      "custom": "Benutzerdefiniert..."
     },
     "bindings": {
       "title": "Benachrichtigungsverknüpfungen",
       "description": "Konfigurieren Sie, welche Kanäle und Auslöser für diesen Monitor gelten.",
-      "createDescription": "Optionally configure notifications for this monitor. Bindings will be created after the monitor is saved.",
+      "createDescription": "Optional Benachrichtigungen für diesen Monitor konfigurieren. Verknüpfungen werden nach dem Speichern erstellt.",
       "add": "Verknüpfung hinzufügen",
       "remove": "Verknüpfung entfernen",
       "channel": "Kanal",
@@ -630,7 +634,7 @@
       "empty": {
         "title": "Keine Benachrichtigungsverknüpfungen",
         "description": "Fügen Sie eine Verknüpfung hinzu, um Alarme für diesen Monitor zu erhalten.",
-        "createHint": "No notifications configured. Add a binding to receive alerts when this monitor triggers."
+        "createHint": "Keine Benachrichtigungen konfiguriert. Fügen Sie eine Verknüpfung hinzu, um Alarme zu erhalten, wenn dieser Monitor auslöst."
       },
       "noChannels": {
         "title": "Keine Kanäle verfügbar",
@@ -658,6 +662,18 @@
       "bindingDeleted": "Benachrichtigungsverknüpfung entfernt.",
       "testSuccess": "Testbenachrichtigung erfolgreich zugestellt.",
       "testFailure": "Testbenachrichtigung fehlgeschlagen: {error}"
+    },
+    "deliveryLogs": {
+      "title": "Zustellverlauf",
+      "empty": "Noch keine Zustellprotokolle. Benachrichtigungen erscheinen hier, sobald sie ausgelöst werden.",
+      "status": "Status",
+      "trigger": "Auslöser",
+      "attempt": "Versuch",
+      "error": "Fehler",
+      "time": "Zeit",
+      "statusSuccess": "Gesendet",
+      "statusFailure": "Fehlgeschlagen",
+      "total": "{count} Zustellungen insgesamt"
     },
     "templateVariables": {
       "title": "Template-Variablen",

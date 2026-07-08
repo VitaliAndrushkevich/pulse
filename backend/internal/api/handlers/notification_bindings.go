@@ -31,12 +31,14 @@ func (h *NotificationBindingHandler) Register(rg *gin.RouterGroup) {
 	rg.GET("/monitors/:id/notification-bindings", h.List)
 	rg.PUT("/monitors/:id/notification-bindings/:bindingId", h.Update)
 	rg.DELETE("/monitors/:id/notification-bindings/:bindingId", h.Delete)
+	rg.GET("/monitors/:id/delivery-logs", h.ListDeliveryLogs)
 }
 
-// validReminderIntervals is the set of allowed reminder interval values.
-var validReminderIntervals = map[int]bool{
-	5: true, 10: true, 15: true, 30: true, 60: true,
-}
+// minReminderInterval is the minimum allowed reminder interval in minutes.
+const minReminderInterval = 30
+
+// maxReminderInterval is the maximum allowed reminder interval in minutes (24 hours).
+const maxReminderInterval = 1440
 
 type createBindingRequest struct {
 	ChannelID               uuid.UUID                      `json:"channel_id"`
@@ -96,11 +98,14 @@ func (h *NotificationBindingHandler) Create(c *gin.Context) {
 	}
 
 	// Validate reminder_interval_minutes.
-	if req.ReminderIntervalMinutes != nil && !validReminderIntervals[*req.ReminderIntervalMinutes] {
-		apiErrorWithDetails(c, http.StatusBadRequest, "VALIDATION_ERROR", "invalid reminder interval", []notification.FieldError{
-			{Field: "reminder_interval_minutes", Message: "must be one of: 5, 10, 15, 30, 60"},
-		})
-		return
+	if req.ReminderIntervalMinutes != nil {
+		v := *req.ReminderIntervalMinutes
+		if v < minReminderInterval || v > maxReminderInterval {
+			apiErrorWithDetails(c, http.StatusBadRequest, "VALIDATION_ERROR", "invalid reminder interval", []notification.FieldError{
+				{Field: "reminder_interval_minutes", Message: "must be between 30 and 1440"},
+			})
+			return
+		}
 	}
 
 	ctx := c.Request.Context()
@@ -245,11 +250,14 @@ func (h *NotificationBindingHandler) Update(c *gin.Context) {
 	}
 
 	// Validate reminder_interval_minutes.
-	if req.ReminderIntervalMinutes != nil && !validReminderIntervals[*req.ReminderIntervalMinutes] {
-		apiErrorWithDetails(c, http.StatusBadRequest, "VALIDATION_ERROR", "invalid reminder interval", []notification.FieldError{
-			{Field: "reminder_interval_minutes", Message: "must be one of: 5, 10, 15, 30, 60"},
-		})
-		return
+	if req.ReminderIntervalMinutes != nil {
+		v := *req.ReminderIntervalMinutes
+		if v < minReminderInterval || v > maxReminderInterval {
+			apiErrorWithDetails(c, http.StatusBadRequest, "VALIDATION_ERROR", "invalid reminder interval", []notification.FieldError{
+				{Field: "reminder_interval_minutes", Message: "must be between 30 and 1440"},
+			})
+			return
+		}
 	}
 
 	ctx := c.Request.Context()
@@ -372,4 +380,92 @@ func toBindingResponse(b db.ChannelBinding) bindingResponse {
 		CreatedAt:               b.CreatedAt,
 		UpdatedAt:               b.UpdatedAt,
 	}
+}
+
+// ListDeliveryLogs handles GET /monitors/:id/delivery-logs.
+// Returns a paginated list of delivery log entries for a given monitor.
+func (h *NotificationBindingHandler) ListDeliveryLogs(c *gin.Context) {
+	monitorID, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		apiError(c, http.StatusBadRequest, "INVALID_ID", "monitor id must be a valid UUID")
+		return
+	}
+
+	ctx := c.Request.Context()
+
+	// Verify monitor exists.
+	if _, err := h.queries.GetMonitor(ctx, monitorID); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			apiError(c, http.StatusNotFound, "NOT_FOUND", "monitor not found")
+			return
+		}
+		apiError(c, http.StatusInternalServerError, "DB_ERROR", "failed to verify monitor")
+		return
+	}
+
+	page, limit := parsePagination(c)
+	offset := int32((page - 1) * limit)
+
+	logs, err := h.queries.ListDeliveryLogsByMonitor(ctx, db.ListDeliveryLogsByMonitorParams{
+		MonitorID: monitorID,
+		Limit:     int32(limit),
+		Offset:    offset,
+	})
+	if err != nil {
+		apiError(c, http.StatusInternalServerError, "DB_ERROR", "failed to list delivery logs")
+		return
+	}
+
+	total, err := h.queries.CountDeliveryLogsByMonitor(ctx, monitorID)
+	if err != nil {
+		apiError(c, http.StatusInternalServerError, "DB_ERROR", "failed to count delivery logs")
+		return
+	}
+
+	type deliveryLogEntry struct {
+		ID          uuid.UUID  `json:"id"`
+		ChannelID   uuid.UUID  `json:"channel_id"`
+		MonitorID   uuid.UUID  `json:"monitor_id"`
+		BindingID   *uuid.UUID `json:"binding_id,omitempty"`
+		TriggerType string     `json:"trigger_type"`
+		Attempt     int32      `json:"attempt"`
+		Status      string     `json:"status"`
+		ErrorDetail *string    `json:"error_detail,omitempty"`
+		CreatedAt   time.Time  `json:"created_at"`
+	}
+
+	data := make([]deliveryLogEntry, 0, len(logs))
+	for _, l := range logs {
+		entry := deliveryLogEntry{
+			ID:          l.ID,
+			ChannelID:   l.ChannelID,
+			MonitorID:   l.MonitorID,
+			TriggerType: l.TriggerType,
+			Attempt:     l.Attempt,
+			Status:      l.Status,
+			ErrorDetail: l.ErrorDetail,
+			CreatedAt:   l.CreatedAt,
+		}
+		if l.BindingID.Valid {
+			id := uuid.UUID(l.BindingID.Bytes)
+			entry.BindingID = &id
+		}
+		data = append(data, entry)
+	}
+
+	totalPages := int(total) / limit
+	if int(total)%limit != 0 {
+		totalPages++
+	}
+	if total == 0 {
+		totalPages = 0
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"data":        data,
+		"total":       total,
+		"page":        page,
+		"limit":       limit,
+		"total_pages": totalPages,
+	})
 }

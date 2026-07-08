@@ -179,7 +179,8 @@
       "backToMonitors": "返回监控器列表",
       "tabs": {
         "overview": "概览",
-        "history": "历史"
+        "history": "历史",
+        "notifications": "通知"
       },
       "checkInterval": "每 {seconds} 秒检查一次",
       "stats": {
@@ -617,12 +618,15 @@
       "description": "在条件持续期间重复发送通知。",
       "interval": "提醒间隔",
       "disabled": "已禁用",
-      "minutes": "{count} 分钟"
+      "minutes": "{count} 分钟",
+      "hours": "{count} 小时",
+      "minutesLabel": "分钟",
+      "custom": "自定义..."
     },
     "bindings": {
       "title": "通知绑定",
       "description": "配置适用于此监控器的渠道和触发条件。",
-      "createDescription": "Optionally configure notifications for this monitor. Bindings will be created after the monitor is saved.",
+      "createDescription": "可选择为此监控器配置通知。绑定将在监控器保存后创建。",
       "add": "添加绑定",
       "remove": "移除绑定",
       "channel": "渠道",
@@ -630,7 +634,7 @@
       "empty": {
         "title": "暂无通知绑定",
         "description": "添加绑定以接收此监控器的告警。",
-        "createHint": "No notifications configured. Add a binding to receive alerts when this monitor triggers."
+        "createHint": "未配置通知。添加绑定以在此监控器触发时接收告警。"
       },
       "noChannels": {
         "title": "无可用渠道",
@@ -658,6 +662,18 @@
       "bindingDeleted": "通知绑定已移除。",
       "testSuccess": "测试通知发送成功。",
       "testFailure": "测试通知发送失败：{error}"
+    },
+    "deliveryLogs": {
+      "title": "投递历史",
+      "empty": "暂无投递记录。通知触发后将显示在此处。",
+      "status": "状态",
+      "trigger": "触发条件",
+      "attempt": "尝试",
+      "error": "错误",
+      "time": "时间",
+      "statusSuccess": "已发送",
+      "statusFailure": "失败",
+      "total": "共 {count} 次投递"
     },
     "templateVariables": {
       "title": "模板变量",

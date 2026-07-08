@@ -24,6 +24,8 @@ type App struct {
 	DevMode          bool
 	OpenAPIDir       string
 	BaseURL          string // Public base URL for links in notifications (e.g. "https://pulse.example.com")
+	MetricsUser      string // Basic Auth username for /metrics (empty = no auth)
+	MetricsPassword  string // Basic Auth password for /metrics (empty = no auth)
 }
 
 // Migrate stores runtime configuration for the migration command.
@@ -43,6 +45,8 @@ func LoadApp() App {
 		DevMode:          getEnv("PULSE_DEV", "") == "true",
 		OpenAPIDir:       getEnv("PULSE_OPENAPI_DIR", "api"),
 		BaseURL:          strings.TrimRight(getEnv("PULSE_BASE_URL", ""), "/"),
+		MetricsUser:      getEnv("PULSE_METRICS_USER", ""),
+		MetricsPassword:  getEnv("PULSE_METRICS_PASSWORD", ""),
 	}
 }
 

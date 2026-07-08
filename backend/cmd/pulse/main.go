@@ -18,6 +18,7 @@ import (
 	"github.com/VitaliAndrushkevich/pulse/internal/monitor"
 	"github.com/VitaliAndrushkevich/pulse/internal/notification"
 	smtpclient "github.com/VitaliAndrushkevich/pulse/internal/notification/smtp"
+	"github.com/VitaliAndrushkevich/pulse/internal/notification/webhook"
 	"github.com/VitaliAndrushkevich/pulse/internal/retention"
 	db "github.com/VitaliAndrushkevich/pulse/internal/store/postgres"
 	"github.com/VitaliAndrushkevich/pulse/internal/store/timescale"
@@ -123,20 +124,29 @@ func main() {
 		Workers:      notifWorkers,
 		BufferSize:   256,
 		DrainTimeout: notifDrainTimeout,
+		BaseURL:      cfg.BaseURL,
 	}
 	notifMetrics := notification.NewMetrics(promRegistry)
 	stateTracker := notification.NewStateTracker()
-	dispatcher := notification.NewDispatcher(notifCfg, queries, pool, notifMetrics, stateTracker)
+	dispatcher := notification.NewDispatcher(notifCfg, queries, pool, notifMetrics, stateTracker, secretKey)
+
+	// SMTP startup validation: load settings from DB, validate connectivity.
+	// Returns nil if SMTP is not configured or validation fails — app continues either way.
+	smtpClient := smtpclient.ValidateOnStartup(startupCtx, queries, secretKey)
+
+	// Wire delivery clients into the dispatcher.
+	if smtpClient != nil {
+		dispatcher.SetSMTPClient(smtpClient)
+		log.Printf("startup: SMTP client configured for notification dispatcher")
+	}
+	dispatcher.SetWebhookDeliverFn(webhook.DeliverFromRaw)
+
 	dispatcher.Start()
 	log.Printf("startup: notification dispatcher started (%d workers, drain timeout %s)", notifWorkers, notifDrainTimeout)
 
 	// Start reminder scheduler for recurring notifications.
 	reminderScheduler := notification.NewReminderScheduler(dispatcher, stateTracker, time.Minute)
 	reminderScheduler.Start()
-
-	// SMTP startup validation: load settings from DB, validate connectivity.
-	// Returns nil if SMTP is not configured or validation fails — app continues either way.
-	smtpClient := smtpclient.ValidateOnStartup(startupCtx, queries, secretKey)
 
 	// Initialize monitor engine (TASK-014 through TASK-020).
 	registry := monitor.DefaultRegistry(queries)
@@ -174,10 +184,17 @@ func main() {
 		DevMode:        cfg.DevMode,
 		OpenAPIDir:     cfg.OpenAPIDir,
 		BaseURL:        cfg.BaseURL,
+		MetricsUser:    cfg.MetricsUser,
+		MetricsPassword: cfg.MetricsPassword,
 	})
 	addr := ":" + cfg.Port
 	if cfg.DevMode {
 		log.Printf("startup: dev mode enabled — Swagger UI at http://localhost%s/swagger", addr)
+	}
+	if cfg.MetricsUser != "" && cfg.MetricsPassword != "" {
+		log.Printf("startup: /metrics endpoint protected by Basic Auth")
+	} else {
+		log.Printf("startup: /metrics endpoint open (no auth — set PULSE_METRICS_USER and PULSE_METRICS_PASSWORD to protect)")
 	}
 	log.Printf("pulse listening on %s", addr)
 

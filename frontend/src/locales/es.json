@@ -179,7 +179,8 @@
       "backToMonitors": "Volver a monitores",
       "tabs": {
         "overview": "Resumen",
-        "history": "Historial"
+        "history": "Historial",
+        "notifications": "Notificaciones"
       },
       "checkInterval": "Verificando cada {seconds}s",
       "stats": {
@@ -617,12 +618,15 @@
       "description": "Repetir notificaciones mientras la condición persista.",
       "interval": "Intervalo de recordatorio",
       "disabled": "Deshabilitado",
-      "minutes": "{count} minutos"
+      "minutes": "{count} minutos",
+      "hours": "{count} horas",
+      "minutesLabel": "minutos",
+      "custom": "Personalizado..."
     },
     "bindings": {
       "title": "Vinculaciones de notificación",
       "description": "Configure qué canales y activadores aplican a este monitor.",
-      "createDescription": "Optionally configure notifications for this monitor. Bindings will be created after the monitor is saved.",
+      "createDescription": "Opcionalmente configure notificaciones para este monitor. Las vinculaciones se crearán después de guardar el monitor.",
       "add": "Agregar vinculación",
       "remove": "Quitar vinculación",
       "channel": "Canal",
@@ -630,7 +634,7 @@
       "empty": {
         "title": "No hay vinculaciones de notificación",
         "description": "Agregue una vinculación para recibir alertas de este monitor.",
-        "createHint": "No notifications configured. Add a binding to receive alerts when this monitor triggers."
+        "createHint": "Sin notificaciones configuradas. Agregue una vinculación para recibir alertas cuando este monitor se active."
       },
       "noChannels": {
         "title": "No hay canales disponibles",
@@ -658,6 +662,18 @@
       "bindingDeleted": "Vinculación de notificación eliminada.",
       "testSuccess": "Notificación de prueba entregada correctamente.",
       "testFailure": "La notificación de prueba falló: {error}"
+    },
+    "deliveryLogs": {
+      "title": "Historial de entregas",
+      "empty": "Aún no hay registros de entrega. Las notificaciones aparecerán aquí una vez activadas.",
+      "status": "Estado",
+      "trigger": "Disparador",
+      "attempt": "Intento",
+      "error": "Error",
+      "time": "Hora",
+      "statusSuccess": "Enviado",
+      "statusFailure": "Fallido",
+      "total": "{count} entregas en total"
     },
     "templateVariables": {
       "title": "Variables de plantilla",

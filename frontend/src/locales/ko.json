@@ -179,7 +179,8 @@
       "backToMonitors": "모니터 목록으로",
       "tabs": {
         "overview": "개요",
-        "history": "이력"
+        "history": "이력",
+        "notifications": "알림"
       },
       "checkInterval": "{seconds}초마다 확인",
       "stats": {
@@ -617,12 +618,15 @@
       "description": "조건이 지속되는 동안 알림을 반복합니다.",
       "interval": "리마인더 간격",
       "disabled": "비활성화",
-      "minutes": "{count}분"
+      "minutes": "{count}분",
+      "hours": "{count}시간",
+      "minutesLabel": "분",
+      "custom": "사용자 지정..."
     },
     "bindings": {
       "title": "알림 바인딩",
       "description": "이 모니터에 적용할 채널과 트리거를 구성합니다.",
-      "createDescription": "Optionally configure notifications for this monitor. Bindings will be created after the monitor is saved.",
+      "createDescription": "이 모니터에 대한 알림을 선택적으로 구성합니다. 바인딩은 모니터 저장 후에 생성됩니다.",
       "add": "바인딩 추가",
       "remove": "바인딩 제거",
       "channel": "채널",
@@ -630,7 +634,7 @@
       "empty": {
         "title": "알림 바인딩이 없습니다",
         "description": "이 모니터의 경고를 수신하려면 바인딩을 추가하세요.",
-        "createHint": "No notifications configured. Add a binding to receive alerts when this monitor triggers."
+        "createHint": "알림이 구성되지 않았습니다. 이 모니터가 트리거될 때 경고를 수신하려면 바인딩을 추가하세요."
       },
       "noChannels": {
         "title": "사용 가능한 채널이 없습니다",
@@ -658,6 +662,18 @@
       "bindingDeleted": "알림 바인딩이 제거되었습니다.",
       "testSuccess": "테스트 알림이 성공적으로 전달되었습니다.",
       "testFailure": "테스트 알림 실패: {error}"
+    },
+    "deliveryLogs": {
+      "title": "전달 이력",
+      "empty": "아직 전달 기록이 없습니다. 알림이 트리거되면 여기에 표시됩니다.",
+      "status": "상태",
+      "trigger": "트리거",
+      "attempt": "시도",
+      "error": "오류",
+      "time": "시간",
+      "statusSuccess": "전송됨",
+      "statusFailure": "실패",
+      "total": "총 {count}건 전달"
     },
     "templateVariables": {
       "title": "템플릿 변수",

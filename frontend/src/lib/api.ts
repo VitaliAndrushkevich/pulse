@@ -828,3 +828,31 @@ export async function deleteSMTPSettings(): Promise<void> {
 export async function testSMTPSettings(data?: SMTPSettingsRequest): Promise<TestSMTPResult> {
   return apiRequest<TestSMTPResult>('POST', '/notifications/smtp-settings/test', data);
 }
+
+// ---------------------------------------------------------------------------
+// Delivery Logs (per-monitor)
+// ---------------------------------------------------------------------------
+
+export interface DeliveryLogEntry {
+  id: string;
+  channel_id: string;
+  monitor_id: string;
+  binding_id?: string;
+  trigger_type: string;
+  attempt: number;
+  status: 'success' | 'failure';
+  error_detail?: string;
+  created_at: string;
+}
+
+/** GET /api/v1/monitors/:id/delivery-logs?page=&limit= */
+export async function listMonitorDeliveryLogs(
+  monitorId: string,
+  page: number = 1,
+  limit: number = 20
+): Promise<PaginatedList<DeliveryLogEntry>> {
+  return apiRequest<PaginatedList<DeliveryLogEntry>>(
+    'GET',
+    `/monitors/${monitorId}/delivery-logs?page=${page}&limit=${limit}`
+  );
+}

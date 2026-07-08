@@ -16,7 +16,7 @@ func TestShutdown_DrainsBufferedJobs(t *testing.T) {
 	st := NewStateTracker()
 
 	cfg := DispatcherConfig{Workers: 2, BufferSize: 50, DrainTimeout: 5 * time.Second}
-	d := NewDispatcher(cfg, nil, nil, m, st)
+	d := NewDispatcher(cfg, nil, nil, m, st, nil)
 
 	// Track processed jobs.
 	var processed atomic.Int32
@@ -56,7 +56,7 @@ func TestShutdown_RejectsNewJobsDuringShutdown(t *testing.T) {
 	st := NewStateTracker()
 
 	cfg := DispatcherConfig{Workers: 1, BufferSize: 10, DrainTimeout: 2 * time.Second}
-	d := NewDispatcher(cfg, nil, nil, m, st)
+	d := NewDispatcher(cfg, nil, nil, m, st, nil)
 	d.dispatchFn = func(job DeliveryJob) error { return nil }
 
 	d.Start()
@@ -93,7 +93,7 @@ func TestShutdown_TimeoutCancelsRemaining(t *testing.T) {
 
 	// Very short drain timeout to force expiration.
 	cfg := DispatcherConfig{Workers: 1, BufferSize: 50, DrainTimeout: 50 * time.Millisecond}
-	d := NewDispatcher(cfg, nil, nil, m, st)
+	d := NewDispatcher(cfg, nil, nil, m, st, nil)
 
 	// Simulate slow dispatch — each job takes longer than the drain timeout.
 	d.dispatchFn = func(job DeliveryJob) error {
@@ -135,7 +135,7 @@ func TestShutdown_DefaultDrainTimeout(t *testing.T) {
 
 	// No DrainTimeout specified — should default to 30s.
 	cfg := DispatcherConfig{Workers: 1, BufferSize: 10}
-	d := NewDispatcher(cfg, nil, nil, m, st)
+	d := NewDispatcher(cfg, nil, nil, m, st, nil)
 
 	if d.cfg.DrainTimeout != 30*time.Second {
 		t.Errorf("expected default DrainTimeout=30s, got %v", d.cfg.DrainTimeout)
@@ -148,7 +148,7 @@ func TestShutdown_EmptyBufferCompletesQuickly(t *testing.T) {
 	st := NewStateTracker()
 
 	cfg := DispatcherConfig{Workers: 2, BufferSize: 10, DrainTimeout: 5 * time.Second}
-	d := NewDispatcher(cfg, nil, nil, m, st)
+	d := NewDispatcher(cfg, nil, nil, m, st, nil)
 	d.dispatchFn = func(job DeliveryJob) error { return nil }
 
 	d.Start()
@@ -169,7 +169,7 @@ func TestShutdown_InFlightJobsCompleteBeforeTimeout(t *testing.T) {
 	st := NewStateTracker()
 
 	cfg := DispatcherConfig{Workers: 2, BufferSize: 10, DrainTimeout: 2 * time.Second}
-	d := NewDispatcher(cfg, nil, nil, m, st)
+	d := NewDispatcher(cfg, nil, nil, m, st, nil)
 
 	var processed atomic.Int32
 	// Jobs take 50ms each — well within the 2s timeout.

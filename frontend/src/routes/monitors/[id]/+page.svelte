@@ -9,11 +9,13 @@
   import HistoryChart from '../../../components/HistoryChart.svelte';
   import StatusTimeline from '../../../components/StatusTimeline.svelte';
   import HistoryExplorer from '../../../components/HistoryExplorer.svelte';
+  import MonitorNotificationBindings from '../../../components/MonitorNotificationBindings.svelte';
+  import MonitorDeliveryLogs from '../../../components/MonitorDeliveryLogs.svelte';
 
   import type { Monitor, HistoryPoint, Incident, MonitorPatch, MonitorStats } from '$lib/types';
   import { t } from '$lib/i18n';
 
-  type Tab = 'overview' | 'history';
+  type Tab = 'overview' | 'history' | 'notifications';
   let activeTab = $state<Tab>('overview');
 
   let history = $state<HistoryPoint[]>([]);
@@ -342,6 +344,16 @@
         >
           {t('monitors.detail.tabs.history')}
         </button>
+        <button
+          type="button"
+          onclick={() => activeTab = 'notifications'}
+          class="whitespace-nowrap border-b-2 px-1 py-3 text-sm font-medium transition-colors {activeTab === 'notifications' ? 'border-[var(--color-brand-primary)] text-[var(--color-brand-primary)]' : 'border-transparent text-secondary hover:border-[var(--color-border)] hover:text-primary'}"
+          aria-selected={activeTab === 'notifications'}
+          role="tab"
+          data-testid="tab-notifications"
+        >
+          {t('monitors.detail.tabs.notifications')}
+        </button>
       </nav>
     </div>
 
@@ -549,6 +561,15 @@
     <!-- Tab content: History -->
     <div hidden={activeTab !== 'history'} role="tabpanel" data-testid="tab-panel-history">
       <HistoryExplorer monitorId={monitor.id} retentionDays={monitor.history_retention_days ?? 30} />
+    </div>
+
+    <!-- Tab content: Notifications -->
+    <div hidden={activeTab !== 'notifications'} role="tabpanel" data-testid="tab-panel-notifications" class="space-y-6">
+      <MonitorNotificationBindings monitorId={monitor.id} />
+      <div>
+        <h3 class="text-base font-semibold text-primary mb-3">{t('notifications.deliveryLogs.title')}</h3>
+        <MonitorDeliveryLogs monitorId={monitor.id} />
+      </div>
     </div>
 
   </section>

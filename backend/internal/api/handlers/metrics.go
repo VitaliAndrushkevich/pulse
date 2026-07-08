@@ -1,6 +1,9 @@
 package handlers
 
 import (
+	"crypto/subtle"
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -46,8 +49,42 @@ func NewMetrics(reg prometheus.Registerer) *Metrics {
 }
 
 // RegisterMetricsRoute adds the /metrics endpoint to the router using the
-// given Prometheus gatherer.
-func RegisterMetricsRoute(r *gin.Engine, gatherer prometheus.Gatherer) {
+// given Prometheus gatherer. When user and password are both non-empty,
+// the endpoint is protected by HTTP Basic Auth (constant-time comparison).
+// When either is empty, the endpoint remains open for unauthenticated scraping.
+func RegisterMetricsRoute(r *gin.Engine, gatherer prometheus.Gatherer, user, password string) {
 	handler := promhttp.HandlerFor(gatherer, promhttp.HandlerOpts{})
-	r.GET("/metrics", gin.WrapH(handler))
+
+	if user != "" && password != "" {
+		r.GET("/metrics", metricsBasicAuth(user, password), gin.WrapH(handler))
+	} else {
+		r.GET("/metrics", gin.WrapH(handler))
+	}
+}
+
+// metricsBasicAuth returns a gin middleware that validates HTTP Basic Auth
+// credentials using constant-time comparison to prevent timing attacks.
+func metricsBasicAuth(expectedUser, expectedPassword string) gin.HandlerFunc {
+	expectedUserBytes := []byte(expectedUser)
+	expectedPassBytes := []byte(expectedPassword)
+
+	return func(c *gin.Context) {
+		user, pass, hasAuth := c.Request.BasicAuth()
+		if !hasAuth {
+			c.Header("WWW-Authenticate", `Basic realm="metrics"`)
+			c.AbortWithStatus(http.StatusUnauthorized)
+			return
+		}
+
+		userMatch := subtle.ConstantTimeCompare([]byte(user), expectedUserBytes) == 1
+		passMatch := subtle.ConstantTimeCompare([]byte(pass), expectedPassBytes) == 1
+
+		if !userMatch || !passMatch {
+			c.Header("WWW-Authenticate", `Basic realm="metrics"`)
+			c.AbortWithStatus(http.StatusUnauthorized)
+			return
+		}
+
+		c.Next()
+	}
 }

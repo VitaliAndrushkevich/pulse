@@ -179,7 +179,8 @@
       "backToMonitors": "Back to monitors",
       "tabs": {
         "overview": "Overview",
-        "history": "History"
+        "history": "History",
+        "notifications": "Notifications"
       },
       "checkInterval": "Checking every {seconds}s",
       "stats": {
@@ -611,7 +612,10 @@
       "description": "Repeat notifications while the condition persists.",
       "interval": "Reminder Interval",
       "disabled": "Disabled",
-      "minutes": "{count} minutes"
+      "minutes": "{count} minutes",
+      "hours": "{count} hours",
+      "minutesLabel": "minutes",
+      "custom": "Custom..."
     },
     "bindings": {
       "title": "Notification Bindings",
@@ -652,6 +656,18 @@
       "bindingDeleted": "Notification binding removed.",
       "testSuccess": "Test notification delivered successfully.",
       "testFailure": "Test notification failed: {error}"
+    },
+    "deliveryLogs": {
+      "title": "Delivery History",
+      "empty": "No delivery logs yet. Notifications will appear here once triggered.",
+      "status": "Status",
+      "trigger": "Trigger",
+      "attempt": "Attempt",
+      "error": "Error",
+      "time": "Time",
+      "statusSuccess": "Sent",
+      "statusFailure": "Failed",
+      "total": "{count} total deliveries"
     },
     "templateVariables": {
       "title": "Template Variables",

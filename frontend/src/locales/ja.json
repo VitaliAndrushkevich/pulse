@@ -179,7 +179,8 @@
       "backToMonitors": "モニター一覧に戻る",
       "tabs": {
         "overview": "概要",
-        "history": "履歴"
+        "history": "履歴",
+        "notifications": "通知"
       },
       "checkInterval": "{seconds}秒ごとに確認",
       "stats": {
@@ -617,12 +618,15 @@
       "description": "条件が継続している間、通知を繰り返します。",
       "interval": "リマインダー間隔",
       "disabled": "無効",
-      "minutes": "{count}分"
+      "minutes": "{count}分",
+      "hours": "{count}時間",
+      "minutesLabel": "分",
+      "custom": "カスタム..."
     },
     "bindings": {
       "title": "通知バインディング",
       "description": "このモニターに適用するチャンネルとトリガーを設定します。",
-      "createDescription": "Optionally configure notifications for this monitor. Bindings will be created after the monitor is saved.",
+      "createDescription": "このモニターの通知を任意で設定できます。バインディングはモニター保存後に作成されます。",
       "add": "バインディングを追加",
       "remove": "バインディングを削除",
       "channel": "チャンネル",
@@ -630,7 +634,7 @@
       "empty": {
         "title": "通知バインディングがありません",
         "description": "このモニターのアラートを受信するにはバインディングを追加してください。",
-        "createHint": "No notifications configured. Add a binding to receive alerts when this monitor triggers."
+        "createHint": "通知が設定されていません。このモニターのトリガー時にアラートを受信するにはバインディングを追加してください。"
       },
       "noChannels": {
         "title": "利用可能なチャンネルがありません",
@@ -658,6 +662,18 @@
       "bindingDeleted": "通知バインディングを削除しました。",
       "testSuccess": "テスト通知を正常に配信しました。",
       "testFailure": "テスト通知に失敗しました：{error}"
+    },
+    "deliveryLogs": {
+      "title": "配信履歴",
+      "empty": "配信ログはまだありません。通知がトリガーされるとここに表示されます。",
+      "status": "ステータス",
+      "trigger": "トリガー",
+      "attempt": "試行",
+      "error": "エラー",
+      "time": "時刻",
+      "statusSuccess": "送信済み",
+      "statusFailure": "失敗",
+      "total": "合計 {count} 件の配信"
     },
     "templateVariables": {
       "title": "テンプレート変数",

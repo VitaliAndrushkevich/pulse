@@ -179,7 +179,9 @@
       "backToMonitors": "К мониторам",
       "tabs": {
         "overview": "Обзор",
-        "history": "История"
+        "history": "История",
+        "notifications": "Уведомления",
+        "notifications": "Уведомления"
       },
       "checkInterval": "Проверка каждые {seconds} с",
       "stats": {
@@ -617,7 +619,10 @@
       "description": "Повторная отправка уведомлений, пока условие сохраняется.",
       "interval": "Интервал напоминаний",
       "disabled": "Отключено",
-      "minutes": "{count} мин."
+      "minutes": "{count} мин.",
+      "hours": "{count} ч.",
+      "minutesLabel": "мин.",
+      "custom": "Свой..."
     },
     "bindings": {
       "title": "Привязки уведомлений",
@@ -658,6 +663,18 @@
       "bindingDeleted": "Привязка уведомления удалена.",
       "testSuccess": "Тестовое уведомление успешно доставлено.",
       "testFailure": "Тестовое уведомление не удалось: {error}"
+    },
+    "deliveryLogs": {
+      "title": "История доставки",
+      "empty": "Логов доставки пока нет. Уведомления появятся здесь после срабатывания.",
+      "status": "Статус",
+      "trigger": "Триггер",
+      "attempt": "Попытка",
+      "error": "Ошибка",
+      "time": "Время",
+      "statusSuccess": "Отправлено",
+      "statusFailure": "Ошибка",
+      "total": "{count} доставок всего"
     },
     "templateVariables": {
       "title": "Переменные шаблона",

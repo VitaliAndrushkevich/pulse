@@ -22,7 +22,7 @@ func newTestDispatcher(t *testing.T) (*Dispatcher, func() []DeliveryJob) {
 	d := NewDispatcher(DispatcherConfig{
 		Workers:    1,
 		BufferSize: 256,
-	}, nil, nil, metrics, state)
+	}, nil, nil, metrics, state, nil)
 
 	drain := func() []DeliveryJob {
 		var jobs []DeliveryJob

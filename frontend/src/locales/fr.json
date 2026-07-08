@@ -179,7 +179,8 @@
       "backToMonitors": "Retour aux moniteurs",
       "tabs": {
         "overview": "Aperçu",
-        "history": "Historique"
+        "history": "Historique",
+        "notifications": "Notifications"
       },
       "checkInterval": "Vérification toutes les {seconds}s",
       "stats": {
@@ -617,12 +618,15 @@
       "description": "Répéter les notifications tant que la condition persiste.",
       "interval": "Intervalle de rappel",
       "disabled": "Désactivé",
-      "minutes": "{count} minutes"
+      "minutes": "{count} minutes",
+      "hours": "{count} heures",
+      "minutesLabel": "minutes",
+      "custom": "Personnalisé..."
     },
     "bindings": {
       "title": "Liaisons de notification",
       "description": "Configurez les canaux et déclencheurs associés à ce moniteur.",
-      "createDescription": "Optionally configure notifications for this monitor. Bindings will be created after the monitor is saved.",
+      "createDescription": "Configurez optionnellement les notifications pour ce moniteur. Les liaisons seront créées après l'enregistrement.",
       "add": "Ajouter une liaison",
       "remove": "Retirer la liaison",
       "channel": "Canal",
@@ -630,7 +634,7 @@
       "empty": {
         "title": "Aucune liaison de notification",
         "description": "Ajoutez une liaison pour recevoir les alertes de ce moniteur.",
-        "createHint": "No notifications configured. Add a binding to receive alerts when this monitor triggers."
+        "createHint": "Aucune notification configurée. Ajoutez une liaison pour recevoir des alertes lorsque ce moniteur se déclenche."
       },
       "noChannels": {
         "title": "Aucun canal disponible",
@@ -658,6 +662,18 @@
       "bindingDeleted": "Liaison de notification retirée.",
       "testSuccess": "Notification de test envoyée avec succès.",
       "testFailure": "Échec de la notification de test : {error}"
+    },
+    "deliveryLogs": {
+      "title": "Historique des livraisons",
+      "empty": "Aucun journal de livraison. Les notifications apparaîtront ici une fois déclenchées.",
+      "status": "Statut",
+      "trigger": "Déclencheur",
+      "attempt": "Tentative",
+      "error": "Erreur",
+      "time": "Heure",
+      "statusSuccess": "Envoyé",
+      "statusFailure": "Échoué",
+      "total": "{count} livraisons au total"
     },
     "templateVariables": {
       "title": "Variables de modèle",

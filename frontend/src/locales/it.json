@@ -179,7 +179,8 @@
       "backToMonitors": "Torna ai monitor",
       "tabs": {
         "overview": "Panoramica",
-        "history": "Cronologia"
+        "history": "Cronologia",
+        "notifications": "Notifiche"
       },
       "checkInterval": "Verifica ogni {seconds}s",
       "stats": {
@@ -611,12 +612,15 @@
       "description": "Ripeti le notifiche finché la condizione persiste.",
       "interval": "Intervallo promemoria",
       "disabled": "Disabilitato",
-      "minutes": "{count} minuti"
+      "minutes": "{count} minuti",
+      "hours": "{count} ore",
+      "minutesLabel": "minuti",
+      "custom": "Personalizzato..."
     },
     "bindings": {
       "title": "Binding di notifica",
       "description": "Configura quali canali e condizioni si applicano a questo monitor.",
-      "createDescription": "Optionally configure notifications for this monitor. Bindings will be created after the monitor is saved.",
+      "createDescription": "Configura opzionalmente le notifiche per questo monitor. I binding verranno creati dopo il salvataggio.",
       "add": "Aggiungi binding",
       "remove": "Rimuovi binding",
       "channel": "Canale",
@@ -624,7 +628,7 @@
       "empty": {
         "title": "Nessun binding di notifica",
         "description": "Aggiungi un binding per ricevere avvisi per questo monitor.",
-        "createHint": "No notifications configured. Add a binding to receive alerts when this monitor triggers."
+        "createHint": "Nessuna notifica configurata. Aggiungi un binding per ricevere avvisi quando questo monitor si attiva."
       },
       "noChannels": {
         "title": "Nessun canale disponibile",
@@ -652,6 +656,18 @@
       "bindingDeleted": "Binding di notifica rimosso.",
       "testSuccess": "Notifica di test consegnata con successo.",
       "testFailure": "Notifica di test fallita: {error}"
+    },
+    "deliveryLogs": {
+      "title": "Cronologia consegne",
+      "empty": "Nessun registro di consegna. Le notifiche appariranno qui una volta attivate.",
+      "status": "Stato",
+      "trigger": "Trigger",
+      "attempt": "Tentativo",
+      "error": "Errore",
+      "time": "Ora",
+      "statusSuccess": "Inviato",
+      "statusFailure": "Fallito",
+      "total": "{count} consegne totali"
     },
     "templateVariables": {
       "title": "Variabili template",
