@@ -126,7 +126,8 @@
       "title": "SSL-Ablaufwarnungen",
       "daysRemaining": "{count} Tage",
       "expired": "Abgelaufen",
-      "expiresOn": "Läuft ab am {date}"
+      "expiresOn": "Läuft ab am {date}",
+      "allClear": "Alle Zertifikate gültig"
     },
     "freshness": {
       "label": "Zuletzt aktualisiert:",

@@ -39,19 +39,20 @@ func statusToEventType(status string) string {
 
 // emailTemplateData extends TemplateData with computed fields for rendering.
 type emailTemplateData struct {
-	MonitorName    string
-	MonitorTarget  string
-	MonitorURL     string // link to monitor in Pulse UI
-	Status         string
-	PreviousStatus string
-	ResponseTime   int32
-	HasIncident    bool   // true when incident data is present (non-zero UUID)
-	IncidentID     string
-	StartedAt      string
-	Duration       string
-	Timestamp      string
-	StatusColor    string
-	StatusIcon     string
+	MonitorName      string
+	MonitorTarget    string
+	MonitorURL       string // link to monitor in Pulse UI
+	Status           string
+	PreviousStatus   string
+	ResponseTime     int32
+	ShowResponseTime bool   // false when status is "down" (response time is meaningless)
+	HasIncident      bool   // true when incident data is present (non-zero UUID)
+	IncidentID       string
+	StartedAt        string
+	Duration         string
+	Timestamp        string
+	StatusColor      string
+	StatusIcon       string
 }
 
 // RenderEmail renders the Pulse-branded HTML email template with the given data.
@@ -69,19 +70,20 @@ func RenderEmail(data notification.TemplateData) (string, error) {
 	hasIncident := data.Incident.ID != uuid.Nil
 
 	td := emailTemplateData{
-		MonitorName:    data.Monitor.Name,
-		MonitorTarget:  data.Monitor.Target,
-		MonitorURL:     monitorURL,
-		Status:         data.Status,
-		PreviousStatus: data.PreviousStatus,
-		ResponseTime:   data.ResponseTime,
-		HasIncident:    hasIncident,
-		IncidentID:     data.Incident.ID.String(),
-		StartedAt:      data.Incident.StartedAt.Format(time.RFC3339),
-		Duration:       formatDuration(data.Incident.Duration),
-		Timestamp:      data.Timestamp.Format(time.RFC3339),
-		StatusColor:    statusColor(data.Status),
-		StatusIcon:     statusIcon(data.Status),
+		MonitorName:      data.Monitor.Name,
+		MonitorTarget:    data.Monitor.Target,
+		MonitorURL:       monitorURL,
+		Status:           data.Status,
+		PreviousStatus:   data.PreviousStatus,
+		ResponseTime:     data.ResponseTime,
+		ShowResponseTime: strings.ToLower(data.Status) != "down",
+		HasIncident:      hasIncident,
+		IncidentID:       data.Incident.ID.String(),
+		StartedAt:        data.Incident.StartedAt.Format(time.RFC3339),
+		Duration:         formatDuration(data.Incident.Duration),
+		Timestamp:        data.Timestamp.Format(time.RFC3339),
+		StatusColor:      statusColor(data.Status),
+		StatusIcon:       statusIcon(data.Status),
 	}
 
 	var buf bytes.Buffer
@@ -218,6 +220,7 @@ const emailHTMLTemplate = `<!DOCTYPE html>
 {{if .PreviousStatus}}<span style="font-size:13px;color:#64748b;"> (was {{.PreviousStatus}})</span>{{end}}
 </td>
 </tr>
+{{if .ShowResponseTime}}
 <tr>
 <td style="padding:12px 16px;background-color:#f8fafc;width:140px;">
 <span style="font-size:13px;font-weight:500;color:#64748b;">Response Time</span>
@@ -226,6 +229,7 @@ const emailHTMLTemplate = `<!DOCTYPE html>
 <span style="font-size:14px;color:#1e293b;">{{.ResponseTime}}ms</span>
 </td>
 </tr>
+{{end}}
 </table>
 </td>
 </tr>

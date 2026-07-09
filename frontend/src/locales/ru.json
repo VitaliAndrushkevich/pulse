@@ -126,7 +126,8 @@
       "title": "SSL: предупреждения об истечении",
       "daysRemaining": "{count} дн.",
       "expired": "Истёк",
-      "expiresOn": "Истекает {date}"
+      "expiresOn": "Истекает {date}",
+      "allClear": "Все сертификаты действительны"
     },
     "freshness": {
       "label": "Обновлено:",

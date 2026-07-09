@@ -126,7 +126,8 @@
       "title": "Avvisi scadenza SSL",
       "daysRemaining": "{count} giorni",
       "expired": "Scaduto",
-      "expiresOn": "Scade il {date}"
+      "expiresOn": "Scade il {date}",
+      "allClear": "Tutti i certificati validi"
     },
     "freshness": {
       "label": "Ultimo aggiornamento:",

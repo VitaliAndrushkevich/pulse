@@ -126,7 +126,8 @@
       "title": "Папярэджанні пра заканчэнне SSL",
       "daysRemaining": "{count} дзён",
       "expired": "Скончыўся",
-      "expiresOn": "Сканчаецца {date}"
+      "expiresOn": "Сканчаецца {date}",
+      "allClear": "Усе сертыфікаты сапраўдныя"
     },
     "freshness": {
       "label": "Апошняе абнаўленне:",

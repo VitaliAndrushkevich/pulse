@@ -126,7 +126,8 @@
       "title": "SSL到期警告",
       "daysRemaining": "{count} 天",
       "expired": "已过期",
-      "expiresOn": "{date} 到期"
+      "expiresOn": "{date} 到期",
+      "allClear": "所有证书有效"
     },
     "freshness": {
       "label": "最后更新：",

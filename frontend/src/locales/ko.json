@@ -126,7 +126,8 @@
       "title": "SSL 만료 경고",
       "daysRemaining": "{count}일",
       "expired": "만료됨",
-      "expiresOn": "{date}에 만료"
+      "expiresOn": "{date}에 만료",
+      "allClear": "모든 인증서 유효"
     },
     "freshness": {
       "label": "마지막 업데이트:",

@@ -29,6 +29,7 @@
 
   // --- Track previous connection status for reconnect detection ---
   let previousConnectionStatus = $state(connectionStore.status);
+  let initialLoadDone = $state(false);
 
   function resetStalenessTimer(): void {
     if (stalenessTimer !== null) {
@@ -51,7 +52,7 @@
   // --- Watch connection status for reconnection (Req 9.2) ---
   $effect(() => {
     const currentStatus = connectionStore.status;
-    if (previousConnectionStatus !== 'connected' && currentStatus === 'connected') {
+    if (initialLoadDone && previousConnectionStatus !== 'connected' && currentStatus === 'connected') {
       // WS reconnected — re-fetch all data
       dashboardStore.load();
       dashboardStore.clearStale();
@@ -63,6 +64,7 @@
   onMount(() => {
     // Load dashboard data on mount (Req 8.3)
     dashboardStore.load();
+    initialLoadDone = true;
 
     // Subscribe to patchBus for monitor_status messages (Req 9.1)
     const unsubscribe = patchBus.subscribe(handlePatch);
@@ -95,7 +97,17 @@
 
   <!-- Responsive grid: 3 columns at >= 768px, single-column below (Req 8.1, 8.7) -->
   <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
-    <!-- HealthScore — first in DOM order (Req 8.2) -->
+    <!-- UptimeHeatmap — full width at top for at-a-glance history -->
+    <div class="rounded-xl border border-[var(--color-border)] bg-surface shadow-sm md:col-span-3">
+      <UptimeHeatmap
+        data={dashboardStore.heatmap}
+        loading={dashboardStore.widgetLoading.get('heatmap') ?? false}
+        error={dashboardStore.widgetErrors.get('heatmap') ?? null}
+        onRetry={retryWidget('heatmap')}
+      />
+    </div>
+
+    <!-- HealthScore -->
     <div class="rounded-xl border border-[var(--color-border)] bg-surface shadow-sm">
       <HealthScore
         data={dashboardStore.healthScore}
@@ -105,7 +117,7 @@
       />
     </div>
 
-    <!-- IncidentsPanel — second in DOM order (Req 8.2) -->
+    <!-- IncidentsPanel -->
     <div class="rounded-xl border border-[var(--color-border)] bg-surface shadow-sm md:col-span-2">
       <IncidentsPanel
         incidents={dashboardStore.activeIncidents}
@@ -132,16 +144,6 @@
         loading={dashboardStore.widgetLoading.get('sparklines') ?? false}
         error={dashboardStore.widgetErrors.get('sparklines') ?? null}
         onRetry={retryWidget('sparklines')}
-      />
-    </div>
-
-    <!-- UptimeHeatmap -->
-    <div class="rounded-xl border border-[var(--color-border)] bg-surface shadow-sm md:col-span-3">
-      <UptimeHeatmap
-        data={dashboardStore.heatmap}
-        loading={dashboardStore.widgetLoading.get('heatmap') ?? false}
-        error={dashboardStore.widgetErrors.get('heatmap') ?? null}
-        onRetry={retryWidget('heatmap')}
       />
     </div>
 

@@ -126,7 +126,8 @@
       "title": "Alertas de expiração SSL",
       "daysRemaining": "{count} dias",
       "expired": "Expirado",
-      "expiresOn": "Expira em {date}"
+      "expiresOn": "Expira em {date}",
+      "allClear": "Todos os certificados válidos"
     },
     "freshness": {
       "label": "Última atualização:",

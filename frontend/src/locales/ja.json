@@ -126,7 +126,8 @@
       "title": "SSL有効期限警告",
       "daysRemaining": "{count}日",
       "expired": "期限切れ",
-      "expiresOn": "{date}に期限切れ"
+      "expiresOn": "{date}に期限切れ",
+      "allClear": "全ての証明書が有効です"
     },
     "freshness": {
       "label": "最終更新：",

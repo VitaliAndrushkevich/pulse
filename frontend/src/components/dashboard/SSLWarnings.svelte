@@ -102,42 +102,48 @@
   }
 </script>
 
-{#if loading || error || !isEmpty}
-  <WidgetShell {loading} {error} {onRetry}>
-    {#if !isEmpty}
-      <div class="flex flex-col gap-2 p-4" data-testid="ssl-warnings">
-        <h3 class="text-sm font-medium" style="color: var(--color-text-secondary)">
-          {t('dashboard.ssl.title')}
-        </h3>
+<WidgetShell {loading} {error} {onRetry}>
+  <div class="flex flex-col gap-2 p-4" data-testid="ssl-warnings">
+    <h3 class="text-sm font-medium" style="color: var(--color-text-secondary)">
+      {t('dashboard.ssl.title')}
+    </h3>
 
-        <ul class="flex flex-col gap-1" role="list" data-testid="ssl-list">
-          {#each sorted as entry (entry.monitor_id)}
-            {@const tier = getUrgencyTier(entry.days_remaining)}
-            {@const color = getUrgencyColor(tier)}
-            <li
-              class="flex items-center justify-between gap-2 rounded-md px-3 py-2"
-              style="background-color: var(--color-bg-secondary)"
-            >
-              <span class="truncate text-sm font-medium" style="color: var(--color-text-primary)">
-                {entry.monitor_name}
+    {#if isEmpty}
+      <p
+        class="py-4 text-center text-sm"
+        style="color: var(--color-text-secondary)"
+        data-testid="ssl-empty"
+      >
+        {t('dashboard.ssl.allClear')}
+      </p>
+    {:else}
+      <ul class="flex flex-col gap-1" role="list" data-testid="ssl-list">
+        {#each sorted as entry (entry.monitor_id)}
+          {@const tier = getUrgencyTier(entry.days_remaining)}
+          {@const color = getUrgencyColor(tier)}
+          <li
+            class="flex items-center justify-between gap-2 rounded-md px-3 py-2"
+            style="background-color: var(--color-bg-secondary)"
+          >
+            <span class="truncate text-sm font-medium" style="color: var(--color-text-primary)">
+              {entry.monitor_name}
+            </span>
+            <div class="flex shrink-0 items-center gap-2">
+              <span
+                class="text-xs font-medium tabular-nums"
+                style="color: {color}"
+                data-testid="ssl-days-remaining"
+                data-urgency={tier}
+              >
+                {formatDaysRemaining(entry.days_remaining)}
               </span>
-              <div class="flex shrink-0 items-center gap-2">
-                <span
-                  class="text-xs font-medium tabular-nums"
-                  style="color: {color}"
-                  data-testid="ssl-days-remaining"
-                  data-urgency={tier}
-                >
-                  {formatDaysRemaining(entry.days_remaining)}
-                </span>
-                <span class="text-xs" style="color: var(--color-text-secondary)">
-                  {formatExpiryDate(entry.expires_at)}
-                </span>
-              </div>
-            </li>
-          {/each}
-        </ul>
-      </div>
+              <span class="text-xs" style="color: var(--color-text-secondary)">
+                {formatExpiryDate(entry.expires_at)}
+              </span>
+            </div>
+          </li>
+        {/each}
+      </ul>
     {/if}
-  </WidgetShell>
-{/if}
+  </div>
+</WidgetShell>

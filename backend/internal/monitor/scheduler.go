@@ -333,6 +333,9 @@ func (s *Scheduler) executeCheck(ctx context.Context, m db.Monitor, tags map[str
 		log.Printf("scheduler: monitor %s: create check result: %v", m.ID, err)
 	}
 
+	// Manage incident lifecycle on state transitions.
+	s.manageIncidentLifecycle(ctx, m, result)
+
 	// Update monitor state and schedule next check.
 	nextCheck := time.Now().Add(time.Duration(m.IntervalSeconds) * time.Second)
 	if _, err := s.queries.UpdateMonitorState(ctx, db.UpdateMonitorStateParams{
@@ -475,6 +478,17 @@ func (s *Scheduler) recordFailure(ctx context.Context, m db.Monitor, errMsg stri
 		log.Printf("scheduler: monitor %s: record failure: %v", m.ID, err)
 	}
 
+	// Create incident on state transition to "down".
+	if m.State != "down" {
+		if _, err := s.queries.CreateIncident(ctx, db.CreateIncidentParams{
+			MonitorID: m.ID,
+			StartedAt: now,
+			Cause:     &errMsg,
+		}); err != nil {
+			log.Printf("scheduler: monitor %s: create incident on failure: %v", m.ID, err)
+		}
+	}
+
 	if _, err := s.queries.UpdateMonitorState(ctx, db.UpdateMonitorStateParams{
 		ID:    m.ID,
 		State: "down",
@@ -488,6 +502,68 @@ func (s *Scheduler) recordFailure(ctx context.Context, m db.Monitor, errMsg stri
 		},
 	}); err != nil {
 		log.Printf("scheduler: monitor %s: update state after failure: %v", m.ID, err)
+	}
+}
+
+// manageIncidentLifecycle creates or resolves incidents based on state transitions.
+// m.State holds the previous state (before the current check), result.State is the new state.
+func (s *Scheduler) manageIncidentLifecycle(ctx context.Context, m db.Monitor, result Result) {
+	prevState := m.State
+	newState := result.State
+
+	// Transition to "down" — open a new incident (if none already open).
+	if newState == "down" && prevState != "down" {
+		cause := strPtr(result.Error)
+		if _, err := s.queries.CreateIncident(ctx, db.CreateIncidentParams{
+			MonitorID: m.ID,
+			StartedAt: result.CheckedAt,
+			Cause:     cause,
+		}); err != nil {
+			log.Printf("scheduler: monitor %s: create incident: %v", m.ID, err)
+		}
+		return
+	}
+
+	// Monitor remains "down" — ensure an open incident exists (reconciliation).
+	// Covers the case where the monitor was already down before this code was deployed,
+	// or after a DB reset where incident rows were lost.
+	if newState == "down" && prevState == "down" {
+		_, err := s.queries.GetOpenIncidentByMonitor(ctx, m.ID)
+		if err != nil {
+			// No open incident exists — create one backdated to last_checked_at or now.
+			startedAt := result.CheckedAt
+			if m.LastCheckedAt.Valid {
+				startedAt = m.LastCheckedAt.Time
+			}
+			cause := strPtr(result.Error)
+			if _, err := s.queries.CreateIncident(ctx, db.CreateIncidentParams{
+				MonitorID: m.ID,
+				StartedAt: startedAt,
+				Cause:     cause,
+			}); err != nil {
+				log.Printf("scheduler: monitor %s: reconcile incident: %v", m.ID, err)
+			}
+		}
+		return
+	}
+
+	// Recovery from "down" — resolve the open incident.
+	if prevState == "down" && newState != "down" {
+		incident, err := s.queries.GetOpenIncidentByMonitor(ctx, m.ID)
+		if err != nil {
+			// No open incident found or DB error — nothing to resolve.
+			log.Printf("scheduler: monitor %s: get open incident for resolve: %v", m.ID, err)
+			return
+		}
+		if _, err := s.queries.ResolveIncident(ctx, db.ResolveIncidentParams{
+			ID: incident.ID,
+			ResolvedAt: pgtype.Timestamptz{
+				Time:  result.CheckedAt,
+				Valid: true,
+			},
+		}); err != nil {
+			log.Printf("scheduler: monitor %s: resolve incident: %v", m.ID, err)
+		}
 	}
 }
 

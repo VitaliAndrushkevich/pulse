@@ -106,7 +106,6 @@ func TestRenderEmail(t *testing.T) {
 		{"target URL", data.Monitor.Target},
 		{"status", data.Status},
 		{"previous status", data.PreviousStatus},
-		{"response time", "1250ms"},
 		{"incident ID", data.Incident.ID.String()},
 		{"started at", data.Incident.StartedAt.Format(time.RFC3339)},
 		{"duration", "5m 30s"},
@@ -117,6 +116,11 @@ func TestRenderEmail(t *testing.T) {
 		if !strings.Contains(html, rc.value) {
 			t.Errorf("rendered email missing %s: expected to contain %q", rc.label, rc.value)
 		}
+	}
+
+	// Response time should be hidden when status is "down".
+	if strings.Contains(html, "1250ms") {
+		t.Error("rendered email should NOT contain response time when status is down")
 	}
 
 	// Verify it's valid HTML with basic structure.
@@ -192,6 +196,44 @@ func TestFormatDuration(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestRenderEmail_ResponseTimeVisibility(t *testing.T) {
+	t.Run("hidden when status is down", func(t *testing.T) {
+		data := sampleTemplateData()
+		data.Status = "down"
+		html, err := RenderEmail(data)
+		if err != nil {
+			t.Fatalf("RenderEmail() error: %v", err)
+		}
+		if strings.Contains(html, "Response Time") {
+			t.Error("response time row should be hidden when monitor is down")
+		}
+	})
+
+	t.Run("visible when status is up", func(t *testing.T) {
+		data := sampleTemplateData()
+		data.Status = "up"
+		html, err := RenderEmail(data)
+		if err != nil {
+			t.Fatalf("RenderEmail() error: %v", err)
+		}
+		if !strings.Contains(html, "1250ms") {
+			t.Error("response time should be visible when monitor is up")
+		}
+	})
+
+	t.Run("visible when status is degraded", func(t *testing.T) {
+		data := sampleTemplateData()
+		data.Status = "degraded"
+		html, err := RenderEmail(data)
+		if err != nil {
+			t.Fatalf("RenderEmail() error: %v", err)
+		}
+		if !strings.Contains(html, "1250ms") {
+			t.Error("response time should be visible when monitor is degraded")
+		}
+	})
 }
 
 func TestRenderEmail_ViewMonitorButton(t *testing.T) {

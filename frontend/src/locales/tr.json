@@ -126,7 +126,8 @@
       "title": "SSL Sona Erme Uyarıları",
       "daysRemaining": "{count} gün",
       "expired": "Süresi dolmuş",
-      "expiresOn": "{date} tarihinde sona eriyor"
+      "expiresOn": "{date} tarihinde sona eriyor",
+      "allClear": "Tüm sertifikalar geçerli"
     },
     "freshness": {
       "label": "Son güncelleme:",

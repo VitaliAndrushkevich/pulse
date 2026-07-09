@@ -126,7 +126,8 @@
       "title": "SSL Expiry Warnings",
       "daysRemaining": "{count} days",
       "expired": "Expired",
-      "expiresOn": "Expires {date}"
+      "expiresOn": "Expires {date}",
+      "allClear": "All certificates valid"
     },
     "freshness": {
       "label": "Last updated:",

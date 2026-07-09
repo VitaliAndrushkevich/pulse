@@ -66,8 +66,8 @@ func (l *Listener) listen(ctx context.Context) {
 			return
 		}
 
-		log.Printf("notify: received on channel=%s payload=%s",
-			notification.Channel, notification.Payload)
+		log.Printf("notify: monitor config changed id=%s, waking scheduler",
+			notification.Payload)
 		l.scheduler.Wakeup()
 	}
 }

@@ -126,7 +126,8 @@
       "title": "تحذيرات انتهاء شهادة SSL",
       "daysRemaining": "{count} يوم",
       "expired": "منتهية الصلاحية",
-      "expiresOn": "تنتهي في {date}"
+      "expiresOn": "تنتهي في {date}",
+      "allClear": "جميع الشهادات صالحة"
     },
     "freshness": {
       "label": "آخر تحديث:",

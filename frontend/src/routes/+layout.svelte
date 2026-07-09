@@ -1,5 +1,6 @@
 <script lang="ts">
   import '../app.css';
+  import type { Snippet } from 'svelte';
   import { isAuthenticated, clearToken } from '$lib/stores/auth.svelte';
   import Toast from '../components/Toast.svelte';
   import ConnectionBadge from '../components/ConnectionBadge.svelte';
@@ -12,6 +13,8 @@
   import { monitorStore } from '$lib/stores/monitors.svelte';
   import { onDestroy } from 'svelte';
   import { initLocale, t } from '$lib/i18n';
+
+  let { children }: { children: Snippet } = $props();
 
   // Initialize locale from localStorage before first render
   initLocale();
@@ -75,7 +78,7 @@
 <div class="min-h-screen bg-[var(--color-bg-page)]">
   {#if isPublicRoute}
     <main class="mx-auto max-w-6xl px-6 py-8">
-      <slot />
+      {@render children()}
     </main>
   {:else if authed}
     <header class="border-b border-[var(--color-border)] backdrop-blur" style="background-color: color-mix(in srgb, var(--color-bg-surface) 80%, transparent)">
@@ -112,7 +115,7 @@
     </header>
 
     <main class="mx-auto max-w-6xl px-6 py-8">
-      <slot />
+      {@render children()}
     </main>
   {/if}
 </div>
