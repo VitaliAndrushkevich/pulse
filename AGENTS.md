@@ -32,6 +32,7 @@ Core outcomes:
 - Message envelope: `{ "type": "<message_type>", "payload": { ... } }`.
 - Message types: `connected` (sent once after upgrade), `monitor_status` (diff/patch after each check).
 - `monitor_status` payloads are patches — clients must merge into local state, not replace entire objects.
+- Origin validation: in production, the `Origin` header must match `PULSE_BASE_URL` (scheme+host). In dev mode (`PULSE_DEV=true`) or when `PULSE_BASE_URL` is empty, all origins are allowed.
 - Hub drops slow consumers (buffer full) rather than blocking broadcasts.
 
 ## Security Requirements
@@ -228,7 +229,7 @@ Primary commands:
 | `PULSE_JWT_SECRET` | HMAC secret for JWT token signing | *(required)* |
 | `DATABASE_URL` | PostgreSQL connection string | *(required)* |
 | `PULSE_SCHEDULER_WORKERS` | Bounded worker pool size for monitor checks | `50` |
-| `PULSE_BASE_URL` | Public URL for email links and webhooks | *(empty)* |
+| `PULSE_BASE_URL` | Public URL for email links, webhooks, and WebSocket origin validation | *(empty)* |
 | `PULSE_METRICS_USER` | Basic auth username for `/metrics` endpoint | *(empty — no auth)* |
 | `PULSE_METRICS_PASSWORD` | Basic auth password for `/metrics` endpoint | *(empty — no auth)* |
 | `PULSE_RESET_ADMIN` | Re-enables setup flow for admin credential reset | *(empty — disabled)* |
@@ -326,7 +327,7 @@ Available in webhook body templates via Go `text/template` syntax:
 | `PULSE_NOTIFICATION_WORKERS` | Concurrent notification delivery workers | `50` |
 | `PULSE_NOTIFICATION_DRAIN_TIMEOUT` | Graceful shutdown drain timeout (Go duration) | `30s` |
 | `PULSE_LOG_LEVEL` | Log verbosity for notification delivery (`warn`, `info`, `debug`) | `warn` |
-| `PULSE_BASE_URL` | Public URL for links in email notifications | *(empty — links omitted)* |
+| `PULSE_BASE_URL` | Public URL for links in email notifications and WebSocket origin validation | *(empty — links omitted)* |
 
 ### Prometheus Metrics
 - `pulse_notification_deliveries_total{channel_type, outcome}` — delivery attempts by channel and result

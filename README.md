@@ -103,7 +103,7 @@ On first launch you'll be guided through initial setup to create your admin acco
 | `PULSE_SECRET_KEY` | AES-256-GCM key for secrets at rest (base64, 32 bytes) | **required** |
 | `PULSE_JWT_SECRET` | Secret for signing JWT tokens | **required** |
 | `PULSE_JWT_EXPIRY` | JWT token expiry duration (Go duration) | `24h` |
-| `PULSE_BASE_URL` | Public URL for links in email notifications (e.g. `https://pulse.example.com`) | *(empty — links omitted)* |
+| `PULSE_BASE_URL` | Public URL for email links and WebSocket origin validation (e.g. `https://pulse.example.com`) | *(empty — links omitted, WS allows all origins)* |
 | `PULSE_NOTIFICATION_WORKERS` | Number of concurrent notification delivery workers | `50` |
 | `PULSE_NOTIFICATION_DRAIN_TIMEOUT` | Max time to drain in-flight notifications on shutdown (Go duration) | `30s` |
 | `PULSE_LOG_LEVEL` | Log verbosity for notification delivery (`warn`, `info`, `debug`) | `warn` |

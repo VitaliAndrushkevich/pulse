@@ -70,7 +70,7 @@ func NewRouter(deps Deps) *gin.Engine {
 	// Authenticated WebSocket endpoint (TASK-030).
 	// Auth is validated via ?token= query parameter before HTTP upgrade.
 	if deps.Hub != nil {
-		wsHandler := handlers.NewWSHandler(deps.Hub, deps.Queries, deps.JWTSecret)
+		wsHandler := handlers.NewWSHandler(deps.Hub, deps.Queries, deps.JWTSecret, deps.BaseURL, deps.DevMode)
 		r.GET("/ws", wsHandler.Handle)
 	}
 

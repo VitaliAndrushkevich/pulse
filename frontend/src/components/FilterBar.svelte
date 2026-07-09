@@ -126,7 +126,8 @@
     grpc: 'gRPC',
     dns: 'DNS',
     icmp: 'ICMP',
-    smtp: 'SMTP'
+    smtp: 'SMTP',
+    quic: 'QUIC'
   };
 
   // Active pill colors per type
@@ -139,7 +140,8 @@
     grpc: 'bg-indigo-600 text-white',
     dns: 'bg-teal-600 text-white',
     icmp: 'bg-orange-600 text-white',
-    smtp: 'bg-rose-600 text-white'
+    smtp: 'bg-rose-600 text-white',
+    quic: 'bg-emerald-600 text-white'
   };
 </script>
 

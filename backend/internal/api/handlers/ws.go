@@ -18,29 +18,55 @@ import (
 	"github.com/VitaliAndrushkevich/pulse/internal/token"
 )
 
-var upgrader = websocket.Upgrader{
-	ReadBufferSize:  1024,
-	WriteBufferSize: 1024,
-	CheckOrigin: func(r *http.Request) bool {
-		// In production, restrict to known origins.
-		// For now, allow all origins for development.
-		return true
-	},
-}
-
 // WSHandler handles the authenticated WebSocket endpoint.
 type WSHandler struct {
 	hub       *hub.Hub
 	queries   *db.Queries
 	jwtSecret []byte
+	upgrader  websocket.Upgrader
 }
 
 // NewWSHandler creates a new WebSocket handler.
-func NewWSHandler(h *hub.Hub, queries *db.Queries, jwtSecret []byte) *WSHandler {
-	return &WSHandler{
+// In dev mode, all origins are allowed. In production, the Origin header
+// must match the configured baseURL (PULSE_BASE_URL).
+func NewWSHandler(h *hub.Hub, queries *db.Queries, jwtSecret []byte, baseURL string, devMode bool) *WSHandler {
+	wh := &WSHandler{
 		hub:       h,
 		queries:   queries,
 		jwtSecret: jwtSecret,
+	}
+	wh.upgrader = websocket.Upgrader{
+		ReadBufferSize:  1024,
+		WriteBufferSize: 1024,
+		CheckOrigin:     wh.makeCheckOrigin(baseURL, devMode),
+	}
+	return wh
+}
+
+// makeCheckOrigin returns an origin checker. In dev mode all origins pass.
+// In production, the request Origin must match the scheme+host of baseURL.
+func (wh *WSHandler) makeCheckOrigin(baseURL string, devMode bool) func(r *http.Request) bool {
+	if devMode || baseURL == "" {
+		return func(r *http.Request) bool { return true }
+	}
+
+	// Normalize: extract scheme+host from baseURL for comparison.
+	allowed := strings.TrimRight(baseURL, "/")
+	// Strip path if any (e.g. "https://pulse.example.com/app" → "https://pulse.example.com")
+	if idx := strings.Index(allowed, "://"); idx != -1 {
+		rest := allowed[idx+3:]
+		if slashIdx := strings.Index(rest, "/"); slashIdx != -1 {
+			allowed = allowed[:idx+3+slashIdx]
+		}
+	}
+
+	return func(r *http.Request) bool {
+		origin := r.Header.Get("Origin")
+		if origin == "" {
+			// No Origin header — allow (non-browser clients, curl, etc.)
+			return true
+		}
+		return strings.EqualFold(origin, allowed)
 	}
 }
 
@@ -52,10 +78,12 @@ func (wh *WSHandler) Handle(c *gin.Context) {
 	// Extract token from query parameter.
 	rawToken := c.Query("token")
 	if rawToken == "" {
+		// Perform dummy bcrypt to maintain uniform response timing (SEC-008).
+		_ = bcrypt.CompareHashAndPassword(wsDummyHash, []byte("not-a-real-token"))
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"error": gin.H{
 				"code":    "UNAUTHORIZED",
-				"message": "missing token query parameter",
+				"message": "invalid or expired token",
 			},
 		})
 		return
@@ -73,7 +101,7 @@ func (wh *WSHandler) Handle(c *gin.Context) {
 	}
 
 	// Upgrade HTTP connection to WebSocket.
-	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
+	conn, err := wh.upgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
 		log.Printf("ws: upgrade failed: %v", err)
 		return

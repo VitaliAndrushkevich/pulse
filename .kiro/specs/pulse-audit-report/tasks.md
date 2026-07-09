@@ -6,21 +6,21 @@ This plan follows the 6-phase pipeline defined in the design: Inventory → Secu
 
 ## Tasks
 
-- [ ] 1. Phase 1: Inventory and Scoping
-  - [-] 1.1 Map frontend auditable surfaces
+- [x] 1. Phase 1: Inventory and Scoping
+  - [x] 1.1 Map frontend auditable surfaces
     - Traverse `frontend/src/` directory structure (components, routes, lib, stores, locales)
     - List all Svelte components, route files, API client, WS client, and store modules
     - Identify input-accepting components (forms, text fields, user-controlled data flows)
     - Document the full file inventory for subsequent analysis phases
     - _Requirements: 13.4_
 
-  - [-] 1.2 Map backend auditable surfaces
+  - [x] 1.2 Map backend auditable surfaces
     - Traverse `backend/internal/` packages (api, crypto, hub, monitor, notification, store, token)
     - Identify auth middleware, handlers, scheduler, dispatcher, and data access layers
     - Document exported symbols, interfaces, and package boundaries
     - _Requirements: 13.4_
 
-  - [-] 1.3 Audit dependencies and configuration
+  - [x] 1.3 Audit dependencies and configuration
     - Read `frontend/package.json` for frontend dependencies and versions
     - Read `backend/go.mod` for Go module dependencies and versions
     - Read `docker-compose*.yml`, `.env.example`, and `Dockerfile` for infrastructure config
@@ -28,8 +28,8 @@ This plan follows the 6-phase pipeline defined in the design: Inventory → Secu
     - Check for known CVEs via dependency version analysis
     - _Requirements: 11.5, 13.4_
 
-- [ ] 2. Phase 2: Security Analysis — Frontend
-  - [~] 2.1 Audit frontend authentication and token handling
+- [x] 2. Phase 2: Security Analysis — Frontend
+  - [x] 2.1 Audit frontend authentication and token handling
     - Read `frontend/src/lib/api.ts` and `frontend/src/lib/ws.ts` for token usage
     - Read auth store (`frontend/src/lib/stores/`) for JWT storage mechanism
     - Trace token lifecycle: storage, transmission (Bearer header, WS query param), clearing on 401/4401
@@ -38,7 +38,7 @@ This plan follows the 6-phase pipeline defined in the design: Inventory → Secu
     - Document findings with SEC-NNN IDs following the finding template
     - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7_
 
-  - [~] 2.2 Audit frontend input handling and XSS prevention
+  - [x] 2.2 Audit frontend input handling and XSS prevention
     - Search all Svelte components for `{@html}` directives and classify each as safe/unsafe
     - Examine MonitorForm, login form, settings forms, notification channel forms for input sanitization
     - Verify WebSocket message handler rejects invalid JSON without DOM propagation
@@ -47,7 +47,7 @@ This plan follows the 6-phase pipeline defined in the design: Inventory → Secu
     - Document findings with SEC-NNN IDs
     - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6_
 
-  - [~] 2.3 Audit frontend data exposure and privacy
+  - [x] 2.3 Audit frontend data exposure and privacy
     - Verify secret values are not persisted in stores, localStorage, or sessionStorage beyond creation
     - Check production build output for `console.log`/`console.debug` referencing secrets
     - Verify source maps are absent from static adapter build output or access-controlled
@@ -55,7 +55,7 @@ This plan follows the 6-phase pipeline defined in the design: Inventory → Secu
     - Document findings with SEC-NNN IDs
     - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6_
 
-  - [~] 2.4 Audit backend authentication and authorization
+  - [x] 2.4 Audit backend authentication and authorization
     - Read `backend/internal/api/router.go` for auth middleware coverage on all endpoints
     - Verify JWT algorithm restriction (HMAC-only, reject `alg: "none"`)
     - Check bcrypt cost factor and timing-safe comparison with dummy hash on failure
@@ -66,7 +66,7 @@ This plan follows the 6-phase pipeline defined in the design: Inventory → Secu
     - Document findings with SEC-NNN IDs
     - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7_
 
-  - [~] 2.5 Audit backend data protection
+  - [x] 2.5 Audit backend data protection
     - Read crypto module for AES-256-GCM implementation (nonce generation, key validation)
     - Verify write-only semantics across all secret-bearing API endpoints
     - Check log sanitization in request handlers, scheduler, and notification delivery
@@ -76,11 +76,11 @@ This plan follows the 6-phase pipeline defined in the design: Inventory → Secu
     - Document findings with SEC-NNN IDs
     - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 5.6_
 
-- [~] 3. Checkpoint — Security analysis complete
+- [x] 3. Checkpoint — Security analysis complete
   - Ensure all security findings are documented with SEC-NNN IDs, ask the user if questions arise.
 
-- [ ] 4. Phase 3: Performance Analysis — Frontend
-  - [~] 4.1 Audit frontend rendering and bundle performance
+- [x] 4. Phase 3: Performance Analysis — Frontend
+  - [x] 4.1 Audit frontend rendering and bundle performance
     - Read VirtualList implementation and verify DOM node cap (max 60)
     - Assess bundle size from build output or configuration (initial JS < 200 KB gzipped target)
     - Identify code-splitting gaps (dependencies > 50 KB, non-lazy-loaded route modules > 20 KB)
@@ -91,7 +91,7 @@ This plan follows the 6-phase pipeline defined in the design: Inventory → Secu
     - Document findings with PERF-NNN IDs
     - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 6.6_
 
-  - [~] 4.2 Audit frontend network and real-time performance
+  - [x] 4.2 Audit frontend network and real-time performance
     - Evaluate WebSocket reconnection strategy for thundering herd prevention
     - Assess patch-merge update pattern efficiency (O(1) lookup, field-level merge, unknown ID handling)
     - Check API request patterns for unnecessary refetches and missing deduplication
@@ -101,7 +101,7 @@ This plan follows the 6-phase pipeline defined in the design: Inventory → Secu
     - Document findings with PERF-NNN IDs
     - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5, 7.6_
 
-  - [~] 4.3 Audit backend scheduler and concurrency performance
+  - [x] 4.3 Audit backend scheduler and concurrency performance
     - Read scheduler implementation for bounded worker pool enforcement
     - Assess WebSocket hub broadcast fan-out and slow-consumer eviction
     - Evaluate database connection pool sizing relative to worker count
@@ -111,11 +111,11 @@ This plan follows the 6-phase pipeline defined in the design: Inventory → Secu
     - Document findings with PERF-NNN IDs
     - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.5, 8.6_
 
-- [~] 5. Checkpoint — Performance analysis complete
+- [x] 5. Checkpoint — Performance analysis complete
   - Ensure all performance findings are documented with PERF-NNN IDs, ask the user if questions arise.
 
-- [ ] 6. Phase 4: Code Quality Analysis
-  - [~] 6.1 Audit TypeScript and frontend patterns
+- [x] 6. Phase 4: Code Quality Analysis
+  - [x] 6.1 Audit TypeScript and frontend patterns
     - Search for explicit `any` types, missing return-type annotations on exports, unchecked nullable access
     - Assess error handling (uncaught promise rejections, missing error boundaries, silent failures)
     - Evaluate component architecture (mixed concerns, prop drilling, local vs store state)
@@ -125,7 +125,7 @@ This plan follows the 6-phase pipeline defined in the design: Inventory → Secu
     - Document findings with QUAL-NNN IDs
     - _Requirements: 9.1, 9.2, 9.3, 9.4, 9.5, 9.6, 9.7_
 
-  - [~] 6.2 Audit Go backend patterns
+  - [x] 6.2 Audit Go backend patterns
     - Evaluate error handling (missing `%w`, sentinel vs custom types, double-handling)
     - Assess package structure (unexported symbols, oversized interfaces, import cycles)
     - Check context propagation (Background/TODO in handlers, missing ctx.Done, missing timeouts)
@@ -135,24 +135,24 @@ This plan follows the 6-phase pipeline defined in the design: Inventory → Secu
     - Document findings with QUAL-NNN IDs
     - _Requirements: 10.1, 10.2, 10.3, 10.4, 10.5, 10.6, 10.7_
 
-- [~] 7. Checkpoint — Code quality analysis complete
+- [x] 7. Checkpoint — Code quality analysis complete
   - Ensure all code quality findings are documented with QUAL-NNN IDs, ask the user if questions arise.
 
-- [ ] 8. Phase 5: Synthesis and Classification
-  - [~] 8.1 Score and prioritize all findings
+- [x] 8. Phase 5: Synthesis and Classification
+  - [x] 8.1 Score and prioritize all findings
     - Apply the 4×4 risk matrix (severity × likelihood) to assign priority scores 1-16 to each finding
     - Assign effort estimates (Small/Medium/Large) to each finding
     - Order findings within each domain section by severity (Critical → Informational), then by ID
     - _Requirements: 11.3, 13.7_
 
-  - [~] 8.2 Build the improvements catalog
+  - [x] 8.2 Build the improvements catalog
     - Consolidate findings into remediation items with title, description, component, effort, impact, priority
     - Identify quick wins (Security/Reliability impact + Small effort) for dedicated subsection
     - Identify strategic improvements (Security/Reliability impact + Large effort) for dedicated subsection
     - Add dependency upgrade recommendations for CVEs or major-version-behind packages
     - _Requirements: 11.1, 11.2, 11.3, 11.4, 11.5_
 
-  - [~] 8.3 Build the future roadmap
+  - [x] 8.3 Build the future roadmap
     - Define short-term (1-3 months), medium-term (3-6 months), long-term (6-12 months) recommendations
     - Address architectural improvements beyond point fixes (CSP, E2E tests, CI/CD)
     - Identify scalability investments for growth beyond 500-monitor target
@@ -161,15 +161,15 @@ This plan follows the 6-phase pipeline defined in the design: Inventory → Secu
     - Recommend developer experience improvements (documentation, onboarding, workflow)
     - _Requirements: 12.1, 12.2, 12.3, 12.4, 12.5, 12.6_
 
-- [ ] 9. Phase 6: Report Assembly
-  - [~] 9.1 Write the executive summary and methodology
+- [x] 9. Phase 6: Report Assembly
+  - [x] 9.1 Write the executive summary and methodology
     - Compile total finding counts by severity
     - Determine overall risk posture assessment (Critical/High/Medium/Low)
     - Identify top-3 priority items requiring immediate attention
     - Write methodology section (what was examined, techniques used, scope limitations, exclusions)
     - _Requirements: 13.2, 13.4_
 
-  - [~] 9.2 Assemble the full `docs/AUDIT.md` document
+  - [x] 9.2 Assemble the full `docs/AUDIT.md` document
     - Create `docs/AUDIT.md` with all sections in order: Executive Summary, Methodology, Security Findings, Performance Findings, Code Quality Findings, Improvements Catalog, Future Roadmap, Appendices
     - Generate table of contents after the document title
     - Ensure all findings use the consistent template (ID, Severity, Category, Title, Description, Evidence, Impact, Remediation, Effort)
@@ -178,7 +178,7 @@ This plan follows the 6-phase pipeline defined in the design: Inventory → Secu
     - Include requirements coverage matrix in appendices
     - _Requirements: 13.1, 13.2, 13.3, 13.5, 13.6, 13.7, 13.8_
 
-- [~] 10. Final checkpoint — Report validation
+- [x] 10. Final checkpoint — Report validation
   - Verify structural completeness: all 8 required sections present in correct order
   - Verify every finding has all template fields populated (no placeholders)
   - Verify cross-reference consistency (Improvements reference existing findings)
