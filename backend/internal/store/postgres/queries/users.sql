@@ -20,5 +20,17 @@ SET
 WHERE id = $1
 RETURNING *;
 
+-- name: UpdateUserEmailAndPassword :one
+UPDATE users
+SET
+    email         = $2,
+    password_hash = $3,
+    updated_at    = now()
+WHERE id = $1
+RETURNING *;
+
+-- name: GetFirstUser :one
+SELECT * FROM users LIMIT 1;
+
 -- name: DeleteUser :exec
 DELETE FROM users WHERE id = $1;

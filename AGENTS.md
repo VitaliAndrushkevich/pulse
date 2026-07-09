@@ -218,7 +218,21 @@ Primary commands:
 - Backend port: 8080
 - Frontend dev container: service `frontend`, base image `node:22-alpine`, port 5173, runs Vite dev server with HMR for local frontend development
 - Postgres: `pulse:pulse@localhost:5432/pulse`
-- Environment variables: `PULSE_PORT`, `PULSE_DEV`, `PULSE_SECRET_KEY`, `PULSE_JWT_SECRET`, `DATABASE_URL`, `PULSE_SCHEDULER_WORKERS`, `PULSE_BASE_URL`, `PULSE_METRICS_USER`, `PULSE_METRICS_PASSWORD`
+- Environment variables:
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `PULSE_PORT` | HTTP server listen port | `8080` |
+| `PULSE_DEV` | Enable development mode (Swagger UI, verbose logs) | *(empty — disabled)* |
+| `PULSE_SECRET_KEY` | AES-256-GCM encryption key for secrets at rest | *(required)* |
+| `PULSE_JWT_SECRET` | HMAC secret for JWT token signing | *(required)* |
+| `DATABASE_URL` | PostgreSQL connection string | *(required)* |
+| `PULSE_SCHEDULER_WORKERS` | Bounded worker pool size for monitor checks | `50` |
+| `PULSE_BASE_URL` | Public URL for email links and webhooks | *(empty)* |
+| `PULSE_METRICS_USER` | Basic auth username for `/metrics` endpoint | *(empty — no auth)* |
+| `PULSE_METRICS_PASSWORD` | Basic auth password for `/metrics` endpoint | *(empty — no auth)* |
+| `PULSE_RESET_ADMIN` | Re-enables setup flow for admin credential reset | *(empty — disabled)* |
+
 - ICMP monitoring requires `CAP_NET_RAW` (granted via `cap_add: [NET_RAW]` in docker-compose). Falls back to unprivileged UDP ICMP on Linux 3.0+ when available.
 
 ## Delivery Constraints

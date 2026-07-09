@@ -332,6 +332,27 @@
       "title": "Idioma",
       "label": "Idioma de exibição"
     },
+    "password": {
+      "title": "Change Password",
+      "description": "Update your account password.",
+      "currentPassword": "Current Password",
+      "currentPasswordPlaceholder": "Enter current password",
+      "newPassword": "New Password",
+      "newPasswordPlaceholder": "Enter new password",
+      "confirmPassword": "Confirm New Password",
+      "confirmPasswordPlaceholder": "Confirm new password",
+      "submit": "Change Password",
+      "submitting": "Changing…",
+      "success": "Password changed successfully.",
+      "validation": {
+        "minLength": "Password must be at least 8 characters",
+        "mismatch": "Passwords do not match"
+      },
+      "errors": {
+        "incorrectCurrent": "Current password is incorrect.",
+        "failed": "Failed to change password. Please try again."
+      }
+    },
     "tokens": {
       "title": "Tokens API",
       "description": "Tokens API fornecem acesso programático à API do Pulse. Use-os para pipelines CI/CD, scripts de automação e integrações externas.",

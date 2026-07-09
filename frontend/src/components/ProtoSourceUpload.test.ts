@@ -28,6 +28,7 @@ vi.mock('$lib/i18n', () => ({
 vi.mock('$lib/api', () => ({
   uploadProtoSource: vi.fn(),
   triggerReflection: vi.fn(),
+  adHocReflect: vi.fn(),
   deleteProtoSource: vi.fn(),
   getProtoSource: vi.fn(),
   ApiRequestError: class extends Error {
@@ -44,10 +45,11 @@ vi.mock('$lib/api', () => ({
 }));
 
 import ProtoSourceUpload from './ProtoSourceUpload.svelte';
-import { uploadProtoSource, triggerReflection, deleteProtoSource } from '$lib/api';
+import { uploadProtoSource, triggerReflection, adHocReflect, deleteProtoSource } from '$lib/api';
 
 const mockUpload = vi.mocked(uploadProtoSource);
 const mockReflection = vi.mocked(triggerReflection);
+const mockAdHocReflect = vi.mocked(adHocReflect);
 const mockDelete = vi.mocked(deleteProtoSource);
 
 function createMockSource(overrides: Partial<ProtoSourceMeta> = {}): ProtoSourceMeta {
@@ -249,7 +251,7 @@ describe('ProtoSourceUpload', () => {
 
     it('calls triggerReflection on click', async () => {
       const mockSource = createMockSource({ source_type: 'reflection' });
-      mockReflection.mockResolvedValue(mockSource);
+      mockAdHocReflect.mockResolvedValue(mockSource);
       const onSourceChanged = vi.fn();
 
       render(ProtoSourceUpload, {
@@ -259,13 +261,13 @@ describe('ProtoSourceUpload', () => {
       await fireEvent.click(screen.getByTestId('proto-reflection-btn'));
 
       await waitFor(() => {
-        expect(mockReflection).toHaveBeenCalledWith('test-monitor-id');
+        expect(mockAdHocReflect).toHaveBeenCalledWith('localhost:50051', 'tls');
         expect(onSourceChanged).toHaveBeenCalledWith(mockSource);
       });
     });
 
     it('shows error on reflection failure', async () => {
-      mockReflection.mockRejectedValue(new Error('Server does not support reflection'));
+      mockAdHocReflect.mockRejectedValue(new Error('Server does not support reflection'));
 
       render(ProtoSourceUpload, {
         props: defaultProps(),

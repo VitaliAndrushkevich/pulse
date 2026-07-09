@@ -272,6 +272,16 @@ export async function setupAdmin(credentials: LoginRequest): Promise<LoginRespon
   });
 }
 
+export interface ChangePasswordRequest {
+  current_password: string;
+  new_password: string;
+}
+
+/** PUT /api/v1/auth/password — change current user password */
+export async function changePassword(data: ChangePasswordRequest): Promise<{ message: string }> {
+  return apiRequest<{ message: string }>('PUT', '/auth/password', data, { skipToast: true });
+}
+
 /** GET /api/v1/monitors?page=&limit=&type=&tag=key:value */
 export async function getMonitors(
   page: number = 1,

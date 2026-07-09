@@ -35,6 +35,10 @@ func main() {
 
 	cfg := config.LoadApp()
 
+	if cfg.ResetAdmin {
+		log.Printf("WARNING: Admin reset mode is active. Remove PULSE_RESET_ADMIN after completing setup.")
+	}
+
 	// Load encryption key for secrets (TASK-009/010).
 	secretKey, err := crypto.LoadKey("PULSE_SECRET_KEY")
 	if err != nil {
@@ -171,21 +175,22 @@ func main() {
 	go retentionSvc.Start(appCtx)
 
 	r := api.NewRouter(api.Deps{
-		Queries:        queries,
-		Pool:           pool,
-		SecretKey:      secretKey,
-		JWTSecret:      jwtSecret,
-		JWTExpiry:      jwtExpiry,
-		TimescaleStore: timescaleStore,
-		Metrics:        nil,
-		PromRegistry:   promRegistry,
-		Hub:            wsHub,
-		SMTPClient:     smtpClient,
-		DevMode:        cfg.DevMode,
-		OpenAPIDir:     cfg.OpenAPIDir,
-		BaseURL:        cfg.BaseURL,
-		MetricsUser:    cfg.MetricsUser,
+		Queries:         queries,
+		Pool:            pool,
+		SecretKey:       secretKey,
+		JWTSecret:       jwtSecret,
+		JWTExpiry:       jwtExpiry,
+		TimescaleStore:  timescaleStore,
+		Metrics:         nil,
+		PromRegistry:    promRegistry,
+		Hub:             wsHub,
+		SMTPClient:      smtpClient,
+		DevMode:         cfg.DevMode,
+		OpenAPIDir:      cfg.OpenAPIDir,
+		BaseURL:         cfg.BaseURL,
+		MetricsUser:     cfg.MetricsUser,
 		MetricsPassword: cfg.MetricsPassword,
+		ResetAdmin:      cfg.ResetAdmin,
 	})
 	addr := ":" + cfg.Port
 	if cfg.DevMode {

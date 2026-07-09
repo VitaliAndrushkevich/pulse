@@ -55,6 +55,23 @@ func (q *Queries) DeleteUser(ctx context.Context, id uuid.UUID) error {
 	return err
 }
 
+const getFirstUser = `-- name: GetFirstUser :one
+SELECT id, email, password_hash, created_at, updated_at FROM users LIMIT 1
+`
+
+func (q *Queries) GetFirstUser(ctx context.Context) (User, error) {
+	row := q.db.QueryRow(ctx, getFirstUser)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Email,
+		&i.PasswordHash,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const getUser = `-- name: GetUser :one
 SELECT id, email, password_hash, created_at, updated_at FROM users WHERE id = $1
 `
@@ -78,6 +95,35 @@ SELECT id, email, password_hash, created_at, updated_at FROM users WHERE email =
 
 func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error) {
 	row := q.db.QueryRow(ctx, getUserByEmail, email)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Email,
+		&i.PasswordHash,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const updateUserEmailAndPassword = `-- name: UpdateUserEmailAndPassword :one
+UPDATE users
+SET
+    email         = $2,
+    password_hash = $3,
+    updated_at    = now()
+WHERE id = $1
+RETURNING id, email, password_hash, created_at, updated_at
+`
+
+type UpdateUserEmailAndPasswordParams struct {
+	ID           uuid.UUID `db:"id" json:"id"`
+	Email        string    `db:"email" json:"email"`
+	PasswordHash string    `db:"password_hash" json:"password_hash"`
+}
+
+func (q *Queries) UpdateUserEmailAndPassword(ctx context.Context, arg UpdateUserEmailAndPasswordParams) (User, error) {
+	row := q.db.QueryRow(ctx, updateUserEmailAndPassword, arg.ID, arg.Email, arg.PasswordHash)
 	var i User
 	err := row.Scan(
 		&i.ID,

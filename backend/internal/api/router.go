@@ -39,8 +39,9 @@ type Deps struct {
 	DevMode        bool
 	OpenAPIDir     string // directory containing openapi.yaml, used for swagger in dev mode
 	BaseURL        string // public base URL for notification links
-	MetricsUser    string // Basic Auth username for /metrics (empty = no auth)
+	MetricsUser     string // Basic Auth username for /metrics (empty = no auth)
 	MetricsPassword string // Basic Auth password for /metrics (empty = no auth)
+	ResetAdmin      bool   // PULSE_RESET_ADMIN — re-enables setup flow for credential reset
 }
 
 func NewRouter(deps Deps) *gin.Engine {
@@ -86,12 +87,16 @@ func NewRouter(deps Deps) *gin.Engine {
 	authHandler.Register(v1)
 
 	// Initial setup endpoint — create first admin user (no auth required).
-	setupHandler := handlers.NewSetupHandler(deps.Queries, deps.JWTSecret, deps.JWTExpiry)
+	// When ResetAdmin is true, the setup flow is re-enabled for credential reset.
+	setupHandler := handlers.NewSetupHandler(deps.Queries, deps.JWTSecret, deps.JWTExpiry, deps.ResetAdmin)
 	setupHandler.Register(v1)
 
 	// Protected group — requires valid JWT or Bearer API token.
 	protected := v1.Group("")
 	protected.Use(combinedAuth(deps.Queries, deps.JWTSecret))
+
+	// Authenticated password change (password-reset spec, Req 4.1).
+	protected.PUT("/auth/password", authHandler.ChangePassword)
 
 	// Token management endpoints (TASK-011).
 	tokenHandler := handlers.NewTokenHandler(deps.Queries)

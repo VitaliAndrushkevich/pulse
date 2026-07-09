@@ -97,6 +97,16 @@
     },
     "loading": "Loading monitors…",
     "error": "Failed to load monitors",
+    "fleetHealth": {
+      "title": "Fleet Health",
+      "downSummary": "{down}/{total} down",
+      "allUp": "All monitors up"
+    },
+    "insights": {
+      "tabLatency": "Response Time",
+      "tabSSL": "SSL Expiry",
+      "tabEvents": "Recent Events"
+    },
     "healthScore": {
       "title": "Health Score",
       "noData": "No data available",
@@ -331,6 +341,27 @@
     "language": {
       "title": "Language",
       "label": "Display language"
+    },
+    "password": {
+      "title": "Change Password",
+      "description": "Update your account password.",
+      "currentPassword": "Current Password",
+      "currentPasswordPlaceholder": "Enter current password",
+      "newPassword": "New Password",
+      "newPasswordPlaceholder": "Enter new password",
+      "confirmPassword": "Confirm New Password",
+      "confirmPasswordPlaceholder": "Confirm new password",
+      "submit": "Change Password",
+      "submitting": "Changing…",
+      "success": "Password changed successfully.",
+      "validation": {
+        "minLength": "Password must be at least 8 characters",
+        "mismatch": "Passwords do not match"
+      },
+      "errors": {
+        "incorrectCurrent": "Current password is incorrect.",
+        "failed": "Failed to change password. Please try again."
+      }
     },
     "tokens": {
       "title": "API Tokens",

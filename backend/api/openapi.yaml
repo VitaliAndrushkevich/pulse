@@ -36,6 +36,115 @@ paths:
         "401":
           $ref: "#/components/responses/Unauthorized"
 
+  /auth/password:
+    put:
+      operationId: changePassword
+      summary: Change the authenticated user's password
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChangePasswordRequest"
+      responses:
+        "200":
+          description: Password updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChangePasswordResponse"
+        "400":
+          description: >
+            Validation error. Possible error codes: VALIDATION_ERROR (missing fields,
+            password too short < 8 characters, or too long > 72 bytes).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: >
+            Authentication failed or current password is incorrect.
+            Error code: UNAUTHORIZED.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/setup:
+    get:
+      operationId: getSetupStatus
+      summary: Check if initial setup is required
+      description: >
+        Returns whether the initial admin user setup is required.
+        Normally returns setup_required: true only when no user exists.
+        When Admin Reset Mode is active (PULSE_RESET_ADMIN=true), always
+        returns setup_required: true regardless of existing user count,
+        allowing the operator to re-run the setup flow to overwrite credentials.
+      tags: [Auth]
+      security: []
+      responses:
+        "200":
+          description: Setup status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SetupStatusResponse"
+    post:
+      operationId: setupAdmin
+      summary: Create or overwrite the admin user
+      description: >
+        Creates the initial admin user during first-time setup.
+        When Admin Reset Mode is active (PULSE_RESET_ADMIN=true) and a user
+        already exists, this endpoint overwrites the existing admin credentials
+        (email and password) in-place, preserving the user UUID and all foreign
+        key references (API tokens, notification bindings, etc.). Returns HTTP 200
+        for an overwrite and HTTP 201 for a new user creation.
+        When Admin Reset Mode is not active and a user already exists, returns
+        HTTP 409 (SETUP_ALREADY_COMPLETE).
+      tags: [Auth]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SetupRequest"
+      responses:
+        "200":
+          description: >
+            Admin credentials overwritten successfully (Admin Reset Mode active,
+            existing user updated). Returns a JWT token for the updated user.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginResponse"
+        "201":
+          description: >
+            New admin user created successfully. Returns a JWT token for the
+            new user.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginResponse"
+        "400":
+          description: >
+            Validation error. Error code: VALIDATION_ERROR.
+            Returned when email or password is missing, or when the password
+            is shorter than 8 characters.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: >
+            Setup already completed. Error code: SETUP_ALREADY_COMPLETE.
+            Returned when a user already exists and Admin Reset Mode is not active.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   /monitors:
     get:
       operationId: listMonitors
@@ -1324,6 +1433,50 @@ components:
         expires_at:
           type: string
           format: date-time
+
+    ChangePasswordRequest:
+      type: object
+      required: [current_password, new_password]
+      properties:
+        current_password:
+          type: string
+          description: The user's current password for verification
+        new_password:
+          type: string
+          minLength: 8
+          description: >
+            New password (minimum 8 characters, maximum 72 bytes due to bcrypt limit)
+
+    ChangePasswordResponse:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string
+          example: "password updated successfully"
+
+    SetupRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+          description: Admin user email address
+        password:
+          type: string
+          minLength: 8
+          description: Admin user password (minimum 8 characters)
+
+    SetupStatusResponse:
+      type: object
+      required: [setup_required]
+      properties:
+        setup_required:
+          type: boolean
+          description: >
+            Whether initial setup is needed. True when no user exists, or when
+            Admin Reset Mode is active (PULSE_RESET_ADMIN=true).
 
     Monitor:
       type: object

@@ -332,6 +332,27 @@
       "title": "Мова",
       "label": "Мова адлюстравання"
     },
+    "password": {
+      "title": "Change Password",
+      "description": "Update your account password.",
+      "currentPassword": "Current Password",
+      "currentPasswordPlaceholder": "Enter current password",
+      "newPassword": "New Password",
+      "newPasswordPlaceholder": "Enter new password",
+      "confirmPassword": "Confirm New Password",
+      "confirmPasswordPlaceholder": "Confirm new password",
+      "submit": "Change Password",
+      "submitting": "Changing…",
+      "success": "Password changed successfully.",
+      "validation": {
+        "minLength": "Password must be at least 8 characters",
+        "mismatch": "Passwords do not match"
+      },
+      "errors": {
+        "incorrectCurrent": "Current password is incorrect.",
+        "failed": "Failed to change password. Please try again."
+      }
+    },
     "tokens": {
       "title": "API-токены",
       "description": "API-токены забяспечваюць праграмны доступ да Pulse API. Выкарыстоўвайце іх для CI/CD, скрыптоў аўтаматызацыі і знешніх інтэграцый.",

@@ -26,6 +26,7 @@ type App struct {
 	BaseURL          string // Public base URL for links in notifications (e.g. "https://pulse.example.com")
 	MetricsUser      string // Basic Auth username for /metrics (empty = no auth)
 	MetricsPassword  string // Basic Auth password for /metrics (empty = no auth)
+	ResetAdmin       bool   // PULSE_RESET_ADMIN — re-enables setup flow for credential reset
 }
 
 // Migrate stores runtime configuration for the migration command.
@@ -47,6 +48,7 @@ func LoadApp() App {
 		BaseURL:          strings.TrimRight(getEnv("PULSE_BASE_URL", ""), "/"),
 		MetricsUser:      getEnv("PULSE_METRICS_USER", ""),
 		MetricsPassword:  getEnv("PULSE_METRICS_PASSWORD", ""),
+		ResetAdmin:       strings.EqualFold(getEnv("PULSE_RESET_ADMIN", ""), "true"),
 	}
 }
 

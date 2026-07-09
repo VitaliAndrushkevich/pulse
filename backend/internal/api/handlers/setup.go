@@ -12,19 +12,22 @@ import (
 )
 
 // SetupHandler provides the initial admin user creation endpoint.
-// Only works when no users exist in the database.
+// Only works when no users exist in the database, unless resetAdmin mode is active.
 type SetupHandler struct {
-	queries   *db.Queries
-	jwtSecret []byte
-	jwtExpiry time.Duration
+	queries    *db.Queries
+	jwtSecret  []byte
+	jwtExpiry  time.Duration
+	resetAdmin bool
 }
 
 // NewSetupHandler creates a setup handler with the given dependencies.
-func NewSetupHandler(queries *db.Queries, jwtSecret []byte, jwtExpiry time.Duration) *SetupHandler {
+// When resetAdmin is true, the handler re-enables the setup flow regardless of existing users.
+func NewSetupHandler(queries *db.Queries, jwtSecret []byte, jwtExpiry time.Duration, resetAdmin bool) *SetupHandler {
 	return &SetupHandler{
-		queries:   queries,
-		jwtSecret: jwtSecret,
-		jwtExpiry: jwtExpiry,
+		queries:    queries,
+		jwtSecret:  jwtSecret,
+		jwtExpiry:  jwtExpiry,
+		resetAdmin: resetAdmin,
 	}
 }
 
@@ -44,7 +47,13 @@ func (h *SetupHandler) Register(rg *gin.RouterGroup) {
 }
 
 // Status returns whether initial setup is required (no users exist).
+// When resetAdmin mode is active, always reports setup_required: true.
 func (h *SetupHandler) Status(c *gin.Context) {
+	if h.resetAdmin {
+		c.JSON(http.StatusOK, setupStatusResponse{SetupRequired: true})
+		return
+	}
+
 	count, err := h.queries.CountUsers(c.Request.Context())
 	if err != nil {
 		apiError(c, http.StatusInternalServerError, "INTERNAL_ERROR", "failed to check setup status")
@@ -56,19 +65,24 @@ func (h *SetupHandler) Status(c *gin.Context) {
 	})
 }
 
-// Setup creates the initial admin user. Returns 409 if any user already exists.
+// Setup creates the initial admin user or overwrites existing credentials in admin reset mode.
+// Returns 409 if a user already exists and reset mode is not active.
 func (h *SetupHandler) Setup(c *gin.Context) {
-	count, err := h.queries.CountUsers(c.Request.Context())
+	ctx := c.Request.Context()
+
+	count, err := h.queries.CountUsers(ctx)
 	if err != nil {
 		apiError(c, http.StatusInternalServerError, "INTERNAL_ERROR", "failed to check setup status")
 		return
 	}
 
-	if count > 0 {
+	// Reject if user exists and reset mode is off.
+	if count > 0 && !h.resetAdmin {
 		apiError(c, http.StatusConflict, "SETUP_ALREADY_COMPLETE", "initial setup has already been completed")
 		return
 	}
 
+	// Validate request body.
 	var req setupRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		apiError(c, http.StatusBadRequest, "VALIDATION_ERROR", "email and password are required")
@@ -86,7 +100,39 @@ func (h *SetupHandler) Setup(c *gin.Context) {
 		return
 	}
 
-	user, err := h.queries.CreateUser(c.Request.Context(), db.CreateUserParams{
+	if count > 0 && h.resetAdmin {
+		// Overwrite existing user credentials, preserving UUID for FK integrity.
+		existingUser, err := h.queries.GetFirstUser(ctx)
+		if err != nil {
+			apiError(c, http.StatusInternalServerError, "INTERNAL_ERROR", "failed to retrieve existing user")
+			return
+		}
+
+		updatedUser, err := h.queries.UpdateUserEmailAndPassword(ctx, db.UpdateUserEmailAndPasswordParams{
+			ID:           existingUser.ID,
+			Email:        req.Email,
+			PasswordHash: string(hash),
+		})
+		if err != nil {
+			apiError(c, http.StatusInternalServerError, "INTERNAL_ERROR", "failed to update user")
+			return
+		}
+
+		token, expiresAt, err := middleware.GenerateJWT(h.jwtSecret, updatedUser.ID, updatedUser.Email, h.jwtExpiry)
+		if err != nil {
+			apiError(c, http.StatusInternalServerError, "INTERNAL_ERROR", "user updated but failed to generate token")
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"token":      token,
+			"expires_at": expiresAt,
+		})
+		return
+	}
+
+	// Create new user (no existing user, or reset mode with no user).
+	user, err := h.queries.CreateUser(ctx, db.CreateUserParams{
 		Email:        req.Email,
 		PasswordHash: string(hash),
 	})
@@ -95,7 +141,6 @@ func (h *SetupHandler) Setup(c *gin.Context) {
 		return
 	}
 
-	// Auto-login: return a JWT so the user is immediately authenticated.
 	token, expiresAt, err := middleware.GenerateJWT(h.jwtSecret, user.ID, user.Email, h.jwtExpiry)
 	if err != nil {
 		apiError(c, http.StatusInternalServerError, "INTERNAL_ERROR", "user created but failed to generate token")

@@ -332,6 +332,27 @@
       "title": "언어",
       "label": "표시 언어"
     },
+    "password": {
+      "title": "Change Password",
+      "description": "Update your account password.",
+      "currentPassword": "Current Password",
+      "currentPasswordPlaceholder": "Enter current password",
+      "newPassword": "New Password",
+      "newPasswordPlaceholder": "Enter new password",
+      "confirmPassword": "Confirm New Password",
+      "confirmPasswordPlaceholder": "Confirm new password",
+      "submit": "Change Password",
+      "submitting": "Changing…",
+      "success": "Password changed successfully.",
+      "validation": {
+        "minLength": "Password must be at least 8 characters",
+        "mismatch": "Passwords do not match"
+      },
+      "errors": {
+        "incorrectCurrent": "Current password is incorrect.",
+        "failed": "Failed to change password. Please try again."
+      }
+    },
     "tokens": {
       "title": "API 토큰",
       "description": "API 토큰은 Pulse API에 대한 프로그래밍 방식 액세스를 제공합니다. CI/CD 파이프라인, 자동화 스크립트 및 외부 통합에 사용하세요.",

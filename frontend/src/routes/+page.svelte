@@ -14,13 +14,10 @@
   import { t } from '$lib/i18n';
   import type { MonitorPatch } from '$lib/types';
 
-  import HealthScore from '../components/dashboard/HealthScore.svelte';
-  import StatusRing from '../components/dashboard/StatusRing.svelte';
+  import FleetHealth from '../components/dashboard/FleetHealth.svelte';
   import IncidentsPanel from '../components/dashboard/IncidentsPanel.svelte';
-  import ResponseSparklines from '../components/dashboard/ResponseSparklines.svelte';
-  import SSLWarnings from '../components/dashboard/SSLWarnings.svelte';
+  import InsightsPanel from '../components/dashboard/InsightsPanel.svelte';
   import UptimeHeatmap from '../components/dashboard/UptimeHeatmap.svelte';
-  import EventsFeed from '../components/dashboard/EventsFeed.svelte';
   import DataFreshness from '../components/dashboard/DataFreshness.svelte';
 
   // --- Staleness timer state ---
@@ -107,10 +104,11 @@
       />
     </div>
 
-    <!-- HealthScore -->
+    <!-- FleetHealth — combined health score + status distribution -->
     <div class="rounded-xl border border-[var(--color-border)] bg-surface shadow-sm">
-      <HealthScore
-        data={dashboardStore.healthScore}
+      <FleetHealth
+        healthData={dashboardStore.healthScore}
+        distributionData={dashboardStore.statusDistribution}
         loading={dashboardStore.widgetLoading.get('health-score') ?? false}
         error={dashboardStore.widgetErrors.get('health-score') ?? null}
         onRetry={retryWidget('health-score')}
@@ -127,43 +125,15 @@
       />
     </div>
 
-    <!-- StatusRing -->
-    <div class="rounded-xl border border-[var(--color-border)] bg-surface shadow-sm">
-      <StatusRing
-        data={dashboardStore.statusDistribution}
-        loading={dashboardStore.widgetLoading.get('status-ring') ?? false}
-        error={dashboardStore.widgetErrors.get('status-ring') ?? null}
-        onRetry={retryWidget('status-ring')}
-      />
-    </div>
-
-    <!-- ResponseSparklines -->
-    <div class="rounded-xl border border-[var(--color-border)] bg-surface shadow-sm md:col-span-2">
-      <ResponseSparklines
+    <!-- InsightsPanel — tabbed: Response Time, SSL, Events -->
+    <div class="rounded-xl border border-[var(--color-border)] bg-surface shadow-sm md:col-span-3">
+      <InsightsPanel
         monitors={dashboardStore.topLatencyMonitors}
+        sslEntries={dashboardStore.sslExpiry}
+        events={dashboardStore.recentEvents}
         loading={dashboardStore.widgetLoading.get('sparklines') ?? false}
         error={dashboardStore.widgetErrors.get('sparklines') ?? null}
         onRetry={retryWidget('sparklines')}
-      />
-    </div>
-
-    <!-- SSLWarnings -->
-    <div class="rounded-xl border border-[var(--color-border)] bg-surface shadow-sm md:col-span-2">
-      <SSLWarnings
-        entries={dashboardStore.sslExpiry}
-        loading={dashboardStore.widgetLoading.get('ssl-expiry') ?? false}
-        error={dashboardStore.widgetErrors.get('ssl-expiry') ?? null}
-        onRetry={retryWidget('ssl-expiry')}
-      />
-    </div>
-
-    <!-- EventsFeed -->
-    <div class="rounded-xl border border-[var(--color-border)] bg-surface shadow-sm">
-      <EventsFeed
-        events={dashboardStore.recentEvents}
-        loading={dashboardStore.widgetLoading.get('events-feed') ?? false}
-        error={dashboardStore.widgetErrors.get('events-feed') ?? null}
-        onRetry={retryWidget('events-feed')}
       />
     </div>
   </div>
