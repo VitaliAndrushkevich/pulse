@@ -2,7 +2,7 @@
 
 # Default target
 build:
-	go build -o bin/pulse-mcp ./cmd/pulse-mcp
+	go build -o bin/pulse-mcp ./main.go
 
 test:
 	go test ./...
