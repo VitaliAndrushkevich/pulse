@@ -185,7 +185,7 @@ func (h *MonitorHandler) Create(c *gin.Context) {
 		if errors.As(err, &pgErr) && pgErr.Code == "23514" {
 			// CHECK constraint violated: commonly caused by DB enum/check not
 			// including the new type (e.g., http3) because migrations weren't applied.
-			apiError(c, http.StatusBadRequest, "VALIDATION_ERROR", "type must be one of: http, http3, tcp, udp, websocket, grpc, dns, icmp, smtp (ensure database migrations are applied)")
+			apiError(c, http.StatusBadRequest, "VALIDATION_ERROR", "type must be one of: http, http3, tcp, udp, websocket, grpc, dns, icmp, smtp, quic (ensure database migrations are applied)")
 			return
 		}
 		apiError(c, http.StatusInternalServerError, "DB_ERROR", "failed to create monitor")
@@ -423,7 +423,7 @@ func (h *MonitorHandler) Put(c *gin.Context) {
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) && pgErr.Code == "23514" {
-			apiError(c, http.StatusBadRequest, "VALIDATION_ERROR", "type must be one of: http, http3, tcp, udp, websocket, grpc, dns, icmp, smtp (ensure database migrations are applied)")
+			apiError(c, http.StatusBadRequest, "VALIDATION_ERROR", "type must be one of: http, http3, tcp, udp, websocket, grpc, dns, icmp, smtp, quic (ensure database migrations are applied)")
 			return
 		}
 		apiError(c, http.StatusInternalServerError, "DB_ERROR", "failed to create or update monitor")

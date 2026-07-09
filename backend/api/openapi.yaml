@@ -2182,6 +2182,32 @@ components:
           default: "pulse.local"
           description: "Domain name to use in EHLO greeting"
 
+    QUICSettings:
+      type: object
+      description: >
+        Settings for QUIC monitors (type=quic). Performs a raw QUIC/UDP handshake
+        (TLS + QUIC) to verify that the target is reachable. Unlike HTTP/3 monitors,
+        no HTTP request is issued — only transport-level connectivity is checked.
+      properties:
+        skip_tls_verify:
+          type: boolean
+          default: false
+          description: "Disable TLS certificate chain and hostname verification"
+        ssl_expiry_threshold:
+          type: integer
+          minimum: 0
+          description: "Minimum acceptable days until certificate expiry (0 = disabled)"
+        validate_cert_chain:
+          type: boolean
+          default: true
+          description: "Explicitly validate the full certificate chain against system root CAs"
+        next_protos:
+          type: array
+          items:
+            type: string
+          default: ["h3"]
+          description: "ALPN protocols to advertise during the TLS handshake. Defaults to [\"h3\"] if empty."
+
     Tag:
       type: object
       description: A key-value tag pair associated with a monitor

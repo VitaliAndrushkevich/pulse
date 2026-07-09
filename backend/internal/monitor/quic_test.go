@@ -11,20 +11,18 @@ import (
 	"encoding/json"
 	"math/big"
 	"net"
-	"net/http"
 	"strings"
 	"testing"
 	"time"
 
-	"github.com/quic-go/quic-go/http3"
-	"pgregory.net/rapid"
+	"github.com/quic-go/quic-go"
 )
 
 // --- Helpers ---
 
-// startQUICTestServer starts an HTTP/3 server with a self-signed cert for testing.
-// Returns the server URL (https://host:port) and a cleanup function.
-func startQUICTestServer(t *testing.T, handler http.Handler, certNotAfter time.Time) (string, func()) {
+// startQUICTestServer starts a raw QUIC listener with a self-signed cert for testing.
+// Returns the address (host:port) and a cleanup function.
+func startQUICTestServer(t *testing.T, certNotAfter time.Time) (string, func()) {
 	t.Helper()
 
 	cert := generateQUICTLSCert(t, certNotAfter)
@@ -34,37 +32,34 @@ func startQUICTestServer(t *testing.T, handler http.Handler, certNotAfter time.T
 		NextProtos:   []string{"h3"},
 	}
 
-	// Bind a UDP socket on a random port.
-	udpConn, err := net.ListenPacket("udp", "127.0.0.1:0")
+	listener, err := quic.ListenAddr("127.0.0.1:0", tlsCfg, nil)
 	if err != nil {
-		t.Fatalf("failed to listen UDP: %v", err)
+		t.Fatalf("failed to listen QUIC: %v", err)
 	}
-	addr := udpConn.LocalAddr().String()
+	addr := listener.Addr().String()
 
-	srv := &http3.Server{
-		Handler:   handler,
-		TLSConfig: tlsCfg,
-	}
-
-	errCh := make(chan error, 1)
+	// Accept connections in the background (just accept and hold them open).
+	done := make(chan struct{})
 	go func() {
-		errCh <- srv.Serve(udpConn)
+		defer close(done)
+		for {
+			conn, err := listener.Accept(context.Background())
+			if err != nil {
+				return
+			}
+			// Hold connection open until cleanup.
+			go func(c *quic.Conn) {
+				<-c.Context().Done()
+			}(conn)
+		}
 	}()
 
-	// Give server a moment to start accepting connections.
-	time.Sleep(20 * time.Millisecond)
-
-	url := "https://" + addr
 	cleanup := func() {
-		_ = srv.Close()
-		// Drain error channel.
-		select {
-		case <-errCh:
-		case <-time.After(time.Second):
-		}
+		_ = listener.Close()
+		<-done
 	}
 
-	return url, cleanup
+	return addr, cleanup
 }
 
 func generateQUICTLSCert(t *testing.T, notAfter time.Time) tls.Certificate {
@@ -104,20 +99,18 @@ func generateQUICTLSCert(t *testing.T, notAfter time.Time) tls.Certificate {
 // --- Unit Tests ---
 
 func TestQUICChecker_Success_DefaultSettings(t *testing.T) {
-	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-	})
-
-	url, cleanup := startQUICTestServer(t, handler, time.Now().Add(90*24*time.Hour))
+	addr, cleanup := startQUICTestServer(t, time.Now().Add(90*24*time.Hour))
 	defer cleanup()
 
 	checker := &QUICChecker{}
-	settings, _ := json.Marshal(HTTPSettings{
-		Method:        "GET",
+	settings, _ := json.Marshal(QUICSettings{
 		SkipTLSVerify: true,
 	})
 
-	result := checker.Check(context.Background(), url, settings)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	result := checker.Check(ctx, addr, settings)
 
 	if result.State != "up" {
 		t.Fatalf("expected state 'up', got %q (error: %s)", result.State, result.Error)
@@ -125,26 +118,21 @@ func TestQUICChecker_Success_DefaultSettings(t *testing.T) {
 	if result.LatencyMs < 0 {
 		t.Fatalf("expected non-negative latency, got %d", result.LatencyMs)
 	}
-	if result.StatusCode == nil || *result.StatusCode != 200 {
-		t.Fatalf("expected status code 200, got %v", result.StatusCode)
-	}
 }
 
 func TestQUICChecker_Success_SSLDaysRemaining(t *testing.T) {
-	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-	})
-
-	url, cleanup := startQUICTestServer(t, handler, time.Now().Add(45*24*time.Hour))
+	addr, cleanup := startQUICTestServer(t, time.Now().Add(45*24*time.Hour))
 	defer cleanup()
 
 	checker := &QUICChecker{}
-	settings, _ := json.Marshal(HTTPSettings{
-		Method:        "GET",
+	settings, _ := json.Marshal(QUICSettings{
 		SkipTLSVerify: true,
 	})
 
-	result := checker.Check(context.Background(), url, settings)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	result := checker.Check(ctx, addr, settings)
 
 	if result.State != "up" {
 		t.Fatalf("expected state 'up', got %q (error: %s)", result.State, result.Error)
@@ -158,22 +146,20 @@ func TestQUICChecker_Success_SSLDaysRemaining(t *testing.T) {
 }
 
 func TestQUICChecker_SSLExpiryThreshold_Down(t *testing.T) {
-	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-	})
-
 	// Cert expires in 5 days, threshold is 10.
-	url, cleanup := startQUICTestServer(t, handler, time.Now().Add(5*24*time.Hour))
+	addr, cleanup := startQUICTestServer(t, time.Now().Add(5*24*time.Hour))
 	defer cleanup()
 
 	checker := &QUICChecker{}
-	settings, _ := json.Marshal(HTTPSettings{
-		Method:             "GET",
+	settings, _ := json.Marshal(QUICSettings{
 		SkipTLSVerify:      true,
 		SSLExpiryThreshold: 10,
 	})
 
-	result := checker.Check(context.Background(), url, settings)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	result := checker.Check(ctx, addr, settings)
 
 	if result.State != "down" {
 		t.Fatalf("expected state 'down' on SSL expiry threshold, got %q", result.State)
@@ -183,167 +169,47 @@ func TestQUICChecker_SSLExpiryThreshold_Down(t *testing.T) {
 	}
 }
 
-func TestQUICChecker_UnexpectedStatusCode(t *testing.T) {
-	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusServiceUnavailable)
-	})
-
-	url, cleanup := startQUICTestServer(t, handler, time.Now().Add(90*24*time.Hour))
-	defer cleanup()
-
-	checker := &QUICChecker{}
-	settings, _ := json.Marshal(HTTPSettings{
-		Method:        "GET",
-		SkipTLSVerify: true,
-	})
-
-	result := checker.Check(context.Background(), url, settings)
-
-	if result.State != "down" {
-		t.Fatalf("expected state 'down' on 503, got %q", result.State)
-	}
-	if result.StatusCode == nil || *result.StatusCode != 503 {
-		t.Fatalf("expected status code 503, got %v", result.StatusCode)
-	}
-}
-
-func TestQUICChecker_ExpectedStatuses_Custom(t *testing.T) {
-	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusAccepted) // 202
-	})
-
-	url, cleanup := startQUICTestServer(t, handler, time.Now().Add(90*24*time.Hour))
-	defer cleanup()
-
-	checker := &QUICChecker{}
-	settings, _ := json.Marshal(HTTPSettings{
-		Method:           "GET",
-		SkipTLSVerify:    true,
-		ExpectedStatuses: []int{200, 202, 204},
-	})
-
-	result := checker.Check(context.Background(), url, settings)
-
-	if result.State != "up" {
-		t.Fatalf("expected state 'up' with custom expected statuses, got %q (error: %s)", result.State, result.Error)
-	}
-}
-
-func TestQUICChecker_CustomHeaders(t *testing.T) {
-	var capturedHeaders http.Header
-
-	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		capturedHeaders = r.Header.Clone()
-		w.WriteHeader(http.StatusOK)
-	})
-
-	url, cleanup := startQUICTestServer(t, handler, time.Now().Add(90*24*time.Hour))
-	defer cleanup()
-
-	checker := &QUICChecker{}
-	settings, _ := json.Marshal(HTTPSettings{
-		Method:        "GET",
-		SkipTLSVerify: true,
-		Headers: map[string]string{
-			"X-Custom-Test": "quic-value",
-			"Accept":        "application/json",
-		},
-	})
-
-	result := checker.Check(context.Background(), url, settings)
-
-	if result.State != "up" {
-		t.Fatalf("expected state 'up', got %q (error: %s)", result.State, result.Error)
-	}
-	if capturedHeaders.Get("X-Custom-Test") != "quic-value" {
-		t.Fatalf("expected custom header X-Custom-Test=quic-value, got %q", capturedHeaders.Get("X-Custom-Test"))
-	}
-	if capturedHeaders.Get("Accept") != "application/json" {
-		t.Fatalf("expected Accept=application/json, got %q", capturedHeaders.Get("Accept"))
-	}
-}
-
-func TestQUICChecker_UserAgentSet(t *testing.T) {
-	var capturedUA string
-
-	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		capturedUA = r.Header.Get("User-Agent")
-		w.WriteHeader(http.StatusOK)
-	})
-
-	url, cleanup := startQUICTestServer(t, handler, time.Now().Add(90*24*time.Hour))
-	defer cleanup()
-
-	checker := &QUICChecker{}
-	settings, _ := json.Marshal(HTTPSettings{
-		Method:        "GET",
-		SkipTLSVerify: true,
-	})
-
-	result := checker.Check(context.Background(), url, settings)
-
-	if result.State != "up" {
-		t.Fatalf("expected state 'up', got %q (error: %s)", result.State, result.Error)
-	}
-	if capturedUA == "" {
-		t.Fatal("expected User-Agent header to be set")
-	}
-	if !strings.Contains(capturedUA, "Pulse") {
-		t.Fatalf("expected User-Agent to contain 'Pulse', got %q", capturedUA)
-	}
-}
-
 func TestQUICChecker_ContextTimeout(t *testing.T) {
-	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		time.Sleep(2 * time.Second)
-		w.WriteHeader(http.StatusOK)
-	})
-
-	url, cleanup := startQUICTestServer(t, handler, time.Now().Add(90*24*time.Hour))
-	defer cleanup()
-
 	checker := &QUICChecker{}
-	settings, _ := json.Marshal(HTTPSettings{
-		Method:        "GET",
+	settings, _ := json.Marshal(QUICSettings{
 		SkipTLSVerify: true,
 	})
 
-	ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
+	// Use a non-routable address to force timeout.
+	ctx, cancel := context.WithTimeout(context.Background(), 300*time.Millisecond)
 	defer cancel()
 
-	result := checker.Check(ctx, url, settings)
+	result := checker.Check(ctx, "192.0.2.1:443", settings)
 
 	if result.State != "down" {
 		t.Fatalf("expected state 'down' on timeout, got %q", result.State)
 	}
 }
 
-func TestQUICChecker_InvalidURL(t *testing.T) {
+func TestQUICChecker_InvalidTarget(t *testing.T) {
 	checker := &QUICChecker{}
-	settings, _ := json.Marshal(HTTPSettings{Method: "GET"})
+	settings, _ := json.Marshal(QUICSettings{})
 
-	result := checker.Check(context.Background(), "://invalid-url", settings)
+	result := checker.Check(context.Background(), "", settings)
 
 	if result.State != "down" {
-		t.Fatalf("expected state 'down' on invalid URL, got %q", result.State)
+		t.Fatalf("expected state 'down' on empty target, got %q", result.State)
 	}
-	if !strings.Contains(result.Error, "request build") {
-		t.Fatalf("expected 'request build' error, got: %s", result.Error)
+	if !strings.Contains(result.Error, "invalid target") {
+		t.Fatalf("expected 'invalid target' error, got: %s", result.Error)
 	}
 }
 
 func TestQUICChecker_UnreachableHost(t *testing.T) {
 	checker := &QUICChecker{}
-	settings, _ := json.Marshal(HTTPSettings{
-		Method:        "GET",
+	settings, _ := json.Marshal(QUICSettings{
 		SkipTLSVerify: true,
 	})
 
-	// Use a non-routable address to trigger connection failure.
 	ctx, cancel := context.WithTimeout(context.Background(), 500*time.Millisecond)
 	defer cancel()
 
-	result := checker.Check(ctx, "https://192.0.2.1:443/", settings)
+	result := checker.Check(ctx, "192.0.2.1:443", settings)
 
 	if result.State != "down" {
 		t.Fatalf("expected state 'down' on unreachable host, got %q", result.State)
@@ -354,18 +220,17 @@ func TestQUICChecker_UnreachableHost(t *testing.T) {
 }
 
 func TestQUICChecker_NilSettings_NoPanic(t *testing.T) {
-	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-	})
-
-	url, cleanup := startQUICTestServer(t, handler, time.Now().Add(90*24*time.Hour))
+	addr, cleanup := startQUICTestServer(t, time.Now().Add(90*24*time.Hour))
 	defer cleanup()
 
 	checker := &QUICChecker{}
-	// nil settings — should use defaults, no panic.
-	result := checker.Check(context.Background(), url+"?skip_tls=1", nil)
 
-	// Might be "down" because TLS verify fails with self-signed cert when no skip_tls,
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	// nil settings — should use defaults (NextProtos=["h3"]), no panic.
+	result := checker.Check(ctx, addr, nil)
+	// Might be "down" because TLS verify fails with self-signed cert,
 	// but should not panic.
 	_ = result
 }
@@ -373,29 +238,30 @@ func TestQUICChecker_NilSettings_NoPanic(t *testing.T) {
 func TestQUICChecker_MalformedSettings_NoPanic(t *testing.T) {
 	checker := &QUICChecker{}
 
+	ctx, cancel := context.WithTimeout(context.Background(), 500*time.Millisecond)
+	defer cancel()
+
 	// Invalid JSON — should not panic.
-	result := checker.Check(context.Background(), "https://127.0.0.1:1/test", json.RawMessage(`{invalid`))
+	result := checker.Check(ctx, "127.0.0.1:1", json.RawMessage(`{invalid`))
 
 	// Will be "down" (can't connect), but must not panic.
 	_ = result
 }
 
 func TestQUICChecker_CheckedAtIsSet(t *testing.T) {
-	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-	})
-
-	url, cleanup := startQUICTestServer(t, handler, time.Now().Add(90*24*time.Hour))
+	addr, cleanup := startQUICTestServer(t, time.Now().Add(90*24*time.Hour))
 	defer cleanup()
 
 	checker := &QUICChecker{}
-	settings, _ := json.Marshal(HTTPSettings{
-		Method:        "GET",
+	settings, _ := json.Marshal(QUICSettings{
 		SkipTLSVerify: true,
 	})
 
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
 	before := time.Now().UTC()
-	result := checker.Check(context.Background(), url, settings)
+	result := checker.Check(ctx, addr, settings)
 	after := time.Now().UTC()
 
 	if result.CheckedAt.Before(before) || result.CheckedAt.After(after) {
@@ -403,20 +269,13 @@ func TestQUICChecker_CheckedAtIsSet(t *testing.T) {
 	}
 }
 
-func TestQUICChecker_CheckWithAuth_BearerToken(t *testing.T) {
-	var capturedAuth string
-
-	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		capturedAuth = r.Header.Get("Authorization")
-		w.WriteHeader(http.StatusOK)
-	})
-
-	url, cleanup := startQUICTestServer(t, handler, time.Now().Add(90*24*time.Hour))
+func TestQUICChecker_CheckWithAuth_Ignored(t *testing.T) {
+	// Auth credentials are not applicable to raw QUIC; verify they don't cause errors.
+	addr, cleanup := startQUICTestServer(t, time.Now().Add(90*24*time.Hour))
 	defer cleanup()
 
 	checker := &QUICChecker{}
-	settings, _ := json.Marshal(HTTPSettings{
-		Method:        "GET",
+	settings, _ := json.Marshal(QUICSettings{
 		SkipTLSVerify: true,
 	})
 
@@ -424,201 +283,119 @@ func TestQUICChecker_CheckWithAuth_BearerToken(t *testing.T) {
 		{AuthType: "bearer", Token: "test-token-123"},
 	}
 
-	result := checker.CheckWithAuth(context.Background(), url, settings, creds)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	result := checker.CheckWithAuth(ctx, addr, settings, creds)
 
 	if result.State != "up" {
 		t.Fatalf("expected state 'up', got %q (error: %s)", result.State, result.Error)
-	}
-	if capturedAuth != "Bearer test-token-123" {
-		t.Fatalf("expected 'Bearer test-token-123', got %q", capturedAuth)
 	}
 }
 
-func TestQUICChecker_CheckWithAuth_BasicAuth(t *testing.T) {
-	var capturedAuth string
-
-	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		capturedAuth = r.Header.Get("Authorization")
-		w.WriteHeader(http.StatusOK)
-	})
-
-	url, cleanup := startQUICTestServer(t, handler, time.Now().Add(90*24*time.Hour))
+func TestQUICChecker_URLTarget(t *testing.T) {
+	// Verify that https://host:port URL format is correctly parsed.
+	addr, cleanup := startQUICTestServer(t, time.Now().Add(90*24*time.Hour))
 	defer cleanup()
 
 	checker := &QUICChecker{}
-	settings, _ := json.Marshal(HTTPSettings{
-		Method:        "GET",
+	settings, _ := json.Marshal(QUICSettings{
 		SkipTLSVerify: true,
 	})
 
-	creds := []AuthCredential{
-		{AuthType: "basic", Username: "admin", Password: "secret"},
-	}
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
 
-	result := checker.CheckWithAuth(context.Background(), url, settings, creds)
+	// Pass as URL instead of bare host:port.
+	result := checker.Check(ctx, "https://"+addr, settings)
 
 	if result.State != "up" {
-		t.Fatalf("expected state 'up', got %q (error: %s)", result.State, result.Error)
-	}
-	if !strings.HasPrefix(capturedAuth, "Basic ") {
-		t.Fatalf("expected Basic auth prefix, got %q", capturedAuth)
+		t.Fatalf("expected state 'up' with URL target, got %q (error: %s)", result.State, result.Error)
 	}
 }
 
-func TestQUICChecker_CheckWithAuth_CustomHeader(t *testing.T) {
-	var capturedAPIKey string
+func TestQUICChecker_CustomALPN(t *testing.T) {
+	// Server advertises custom ALPN.
+	cert := generateQUICTLSCert(t, time.Now().Add(90*24*time.Hour))
+	tlsCfg := &tls.Config{
+		Certificates: []tls.Certificate{cert},
+		NextProtos:   []string{"custom-proto"},
+	}
 
-	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		capturedAPIKey = r.Header.Get("X-Api-Key")
-		w.WriteHeader(http.StatusOK)
-	})
+	listener, err := quic.ListenAddr("127.0.0.1:0", tlsCfg, nil)
+	if err != nil {
+		t.Fatalf("failed to listen QUIC: %v", err)
+	}
+	defer listener.Close()
 
-	url, cleanup := startQUICTestServer(t, handler, time.Now().Add(90*24*time.Hour))
-	defer cleanup()
+	go func() {
+		for {
+			conn, err := listener.Accept(context.Background())
+			if err != nil {
+				return
+			}
+			go func(c *quic.Conn) { <-c.Context().Done() }(conn)
+		}
+	}()
+
+	addr := listener.Addr().String()
 
 	checker := &QUICChecker{}
-	settings, _ := json.Marshal(HTTPSettings{
-		Method:        "GET",
+	settings, _ := json.Marshal(QUICSettings{
 		SkipTLSVerify: true,
+		NextProtos:    []string{"custom-proto"},
 	})
 
-	creds := []AuthCredential{
-		{AuthType: "header", HeaderName: "X-Api-Key", HeaderValue: "key-abc-123"},
-	}
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
 
-	result := checker.CheckWithAuth(context.Background(), url, settings, creds)
+	result := checker.Check(ctx, addr, settings)
 
 	if result.State != "up" {
-		t.Fatalf("expected state 'up', got %q (error: %s)", result.State, result.Error)
-	}
-	if capturedAPIKey != "key-abc-123" {
-		t.Fatalf("expected X-Api-Key='key-abc-123', got %q", capturedAPIKey)
-	}
-}
-
-func TestQUICChecker_MethodHonored(t *testing.T) {
-	var capturedMethod string
-
-	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		capturedMethod = r.Method
-		w.WriteHeader(http.StatusOK)
-	})
-
-	url, cleanup := startQUICTestServer(t, handler, time.Now().Add(90*24*time.Hour))
-	defer cleanup()
-
-	checker := &QUICChecker{}
-	settings, _ := json.Marshal(HTTPSettings{
-		Method:        "HEAD",
-		SkipTLSVerify: true,
-	})
-
-	result := checker.Check(context.Background(), url, settings)
-
-	if result.State != "up" {
-		t.Fatalf("expected state 'up', got %q (error: %s)", result.State, result.Error)
-	}
-	if capturedMethod != "HEAD" {
-		t.Fatalf("expected method HEAD, got %q", capturedMethod)
+		t.Fatalf("expected state 'up' with custom ALPN, got %q (error: %s)", result.State, result.Error)
 	}
 }
 
 // --- Property Tests ---
 
-// P-QUIC-1: Successful response with expected status always reports "up".
+// P-QUIC-1: Successful QUIC dial always reports "up" with non-negative latency.
 func TestProperty_QUIC_SuccessInvariants(t *testing.T) {
-	rapid.Check(t, func(rt *rapid.T) {
-		statusCode := rapid.SampledFrom([]int{200, 201, 202, 204, 301, 302}).Draw(rt, "statusCode")
-
-		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			w.WriteHeader(statusCode)
-		})
-
-		url, cleanup := startQUICTestServer(t, handler, time.Now().Add(90*24*time.Hour))
-		defer cleanup()
-
-		checker := &QUICChecker{}
-		settings, _ := json.Marshal(HTTPSettings{
-			Method:            "GET",
-			SkipTLSVerify:     true,
-			ExpectedStatusMin: 200,
-			ExpectedStatusMax: 399,
-		})
-
-		result := checker.Check(context.Background(), url, settings)
-
-		if result.State != "up" {
-			rt.Fatalf("expected 'up' for status %d, got %q (error: %s)", statusCode, result.State, result.Error)
-		}
-		if result.LatencyMs < 0 {
-			rt.Fatalf("expected non-negative latency, got %d", result.LatencyMs)
-		}
-		if result.StatusCode == nil {
-			rt.Fatal("expected StatusCode to be set")
-		}
-		if *result.StatusCode != int32(statusCode) {
-			rt.Fatalf("expected status %d, got %d", statusCode, *result.StatusCode)
-		}
-		if result.Error != "" {
-			rt.Fatalf("expected empty error on success, got: %s", result.Error)
-		}
-	})
-}
-
-// P-QUIC-2: Error status codes outside expected range always report "down".
-func TestProperty_QUIC_UnexpectedStatus_Down(t *testing.T) {
-	rapid.Check(t, func(rt *rapid.T) {
-		statusCode := rapid.SampledFrom([]int{400, 401, 403, 404, 500, 502, 503}).Draw(rt, "statusCode")
-
-		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			w.WriteHeader(statusCode)
-		})
-
-		url, cleanup := startQUICTestServer(t, handler, time.Now().Add(90*24*time.Hour))
-		defer cleanup()
-
-		checker := &QUICChecker{}
-		settings, _ := json.Marshal(HTTPSettings{
-			Method:        "GET",
-			SkipTLSVerify: true,
-			// Default range: 200-399
-		})
-
-		result := checker.Check(context.Background(), url, settings)
-
-		if result.State != "down" {
-			rt.Fatalf("expected 'down' for status %d, got %q", statusCode, result.State)
-		}
-		if result.StatusCode == nil || *result.StatusCode != int32(statusCode) {
-			rt.Fatalf("expected status %d in result", statusCode)
-		}
-		if result.Error == "" {
-			rt.Fatal("expected non-empty error for unexpected status")
-		}
-	})
-}
-
-// P-QUIC-3: Context deadline is always respected.
-func TestProperty_QUIC_DeadlineRespected(t *testing.T) {
-	// This property is expensive (real QUIC handshake + timeout per iteration).
-	// Test with a few targeted timeout values instead of full property-based sweep.
-	timeouts := []time.Duration{
-		150 * time.Millisecond,
-		250 * time.Millisecond,
-		400 * time.Millisecond,
-	}
-
-	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		time.Sleep(5 * time.Second)
-		w.WriteHeader(http.StatusOK)
-	})
-
-	url, cleanup := startQUICTestServer(t, handler, time.Now().Add(90*24*time.Hour))
+	addr, cleanup := startQUICTestServer(t, time.Now().Add(90*24*time.Hour))
 	defer cleanup()
 
 	checker := &QUICChecker{}
-	settings, _ := json.Marshal(HTTPSettings{
-		Method:        "GET",
+	settings, _ := json.Marshal(QUICSettings{
+		SkipTLSVerify: true,
+	})
+
+	// Run multiple iterations to confirm invariants hold.
+	for i := 0; i < 10; i++ {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		result := checker.Check(ctx, addr, settings)
+		cancel()
+
+		if result.State != "up" {
+			t.Fatalf("iteration %d: expected 'up', got %q (error: %s)", i, result.State, result.Error)
+		}
+		if result.LatencyMs < 0 {
+			t.Fatalf("iteration %d: expected non-negative latency, got %d", i, result.LatencyMs)
+		}
+		if result.Error != "" {
+			t.Fatalf("iteration %d: expected empty error on success, got: %s", i, result.Error)
+		}
+	}
+}
+
+// P-QUIC-2: Context deadline is always respected.
+func TestProperty_QUIC_DeadlineRespected(t *testing.T) {
+	timeouts := []time.Duration{
+		200 * time.Millisecond,
+		300 * time.Millisecond,
+		500 * time.Millisecond,
+	}
+
+	checker := &QUICChecker{}
+	settings, _ := json.Marshal(QUICSettings{
 		SkipTLSVerify: true,
 	})
 
@@ -628,14 +405,15 @@ func TestProperty_QUIC_DeadlineRespected(t *testing.T) {
 			defer cancel()
 
 			start := time.Now()
-			result := checker.Check(ctx, url, settings)
+			// Non-routable address ensures we always hit the deadline.
+			result := checker.Check(ctx, "192.0.2.1:443", settings)
 			elapsed := time.Since(start)
 
 			if result.State != "down" {
 				t.Fatalf("expected 'down' on timeout, got %q", result.State)
 			}
 
-			// Allow 500ms grace for QUIC handshake overhead + scheduling.
+			// Allow 500ms grace for scheduling jitter.
 			if elapsed > timeout+500*time.Millisecond {
 				t.Fatalf("check took %v, deadline was %v (exceeded by >500ms)", elapsed, timeout)
 			}
