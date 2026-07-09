@@ -173,7 +173,7 @@
           </p>
         {:else}
           <ul class="flex flex-col gap-1" role="list" data-testid="insights-events-list">
-            {#each events as event (event.monitor_id + event.occurred_at)}
+            {#each events as event, idx (event.monitor_id + event.occurred_at + '-' + idx)}
               {@const colorStyle = getEventColor(event.to_state)}
               {@const relative = formatRelativeTime(event.occurred_at, now)}
               <li

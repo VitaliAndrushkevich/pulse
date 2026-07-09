@@ -2295,7 +2295,9 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/DashboardActiveIncident"
-          description: Monitors currently in the down state with incident context (max 10)
+          description: >
+            Monitors currently in the down state with incident context (max 10).
+            Each monitor appears at most once (earliest unresolved incident).
         top_latency_monitors:
           type: array
           items:
@@ -2366,7 +2368,9 @@ components:
 
     DashboardActiveIncident:
       type: object
-      description: A monitor currently in the down state with incident context
+      description: >
+        A monitor currently in the down state with incident context.
+        At most one entry per monitor (the earliest unresolved incident is selected).
       required: [monitor_id, monitor_name, started_at, state]
       properties:
         monitor_id:

@@ -128,7 +128,7 @@
       </p>
     {:else}
       <ul class="flex flex-col gap-1" role="list" data-testid="incidents-list">
-        {#each visible as incident (incident.monitor_id)}
+        {#each visible as incident, idx (incident.monitor_id + '-' + incident.started_at)}
           <li
             class="flex flex-col gap-0.5 rounded-md px-3 py-2"
             style="background-color: var(--color-bg-secondary)"

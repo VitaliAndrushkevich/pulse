@@ -105,6 +105,9 @@ function setAllWidgetsLoading(loading: boolean): void {
 	}
 }
 
+// --- Internal loading guard ---
+let loadInFlight = false;
+
 // --- Actions ---
 
 /**
@@ -114,8 +117,13 @@ function setAllWidgetsLoading(loading: boolean): void {
  * a parsing or assignment error in one widget does not affect others.
  *
  * On WS reconnect, this should be called to replace local state (Requirement 9.2).
+ * Concurrent calls are deduplicated — if a load is already in-flight, subsequent
+ * calls are no-ops.
  */
 async function load(): Promise<void> {
+	if (loadInFlight) return;
+	loadInFlight = true;
+
 	setAllWidgetsLoading(true);
 	clearAllErrors();
 
@@ -178,6 +186,7 @@ async function load(): Promise<void> {
 		}
 	} finally {
 		setAllWidgetsLoading(false);
+		loadInFlight = false;
 	}
 }
 
@@ -309,6 +318,24 @@ function reset(): void {
 	monitorStateCache = new Map();
 }
 
+// --- Per-widget accessor helpers (reactivity-safe) ---
+
+/**
+ * Returns true if the given widget is currently loading.
+ * Using a function call ensures Svelte 5 tracks the $state read properly,
+ * avoiding stale Map.get() results in template expressions.
+ */
+function isWidgetLoading(widgetId: WidgetId): boolean {
+	return widgetLoading.get(widgetId) ?? false;
+}
+
+/**
+ * Returns the error string for the given widget, or null if none.
+ */
+function getWidgetError(widgetId: WidgetId): string | null {
+	return widgetErrors.get(widgetId) ?? null;
+}
+
 // --- Exported singleton store ---
 
 export const dashboardStore = {
@@ -362,5 +389,9 @@ export const dashboardStore = {
 
 	// Per-widget error/loading management (exposed for retry patterns)
 	setWidgetLoading,
-	setWidgetError
+	setWidgetError,
+
+	// Per-widget accessors (reactivity-safe alternatives to Map.get() in templates)
+	isWidgetLoading,
+	getWidgetError
 };

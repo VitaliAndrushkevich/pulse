@@ -307,13 +307,23 @@ func (h *DashboardHandler) queryHealthAndDistribution(ctx context.Context) (Heal
 }
 
 // queryActiveIncidents fetches currently unresolved incidents with monitor names.
+// Returns at most one incident per monitor (the earliest unresolved one),
+// ordered by started_at ascending, capped at 10.
 func (h *DashboardHandler) queryActiveIncidents(ctx context.Context) ([]ActiveIncident, error) {
 	rows, err := h.pool.Query(ctx,
-		`SELECT m.id, m.name, i.started_at, i.cause
-		 FROM incidents i
-		 JOIN monitors m ON m.id = i.monitor_id
-		 WHERE i.resolved_at IS NULL
-		 ORDER BY i.started_at ASC
+		`SELECT sub.monitor_id, sub.monitor_name, sub.started_at, sub.cause
+		 FROM (
+		   SELECT DISTINCT ON (m.id)
+		     m.id AS monitor_id,
+		     m.name AS monitor_name,
+		     i.started_at,
+		     i.cause
+		   FROM incidents i
+		   JOIN monitors m ON m.id = i.monitor_id
+		   WHERE i.resolved_at IS NULL
+		   ORDER BY m.id, i.started_at ASC
+		 ) sub
+		 ORDER BY sub.started_at ASC
 		 LIMIT 10`)
 	if err != nil {
 		return nil, fmt.Errorf("active incidents query: %w", err)
@@ -498,15 +508,16 @@ func (h *DashboardHandler) queryHeatmap(ctx context.Context) ([]HeatmapHour, err
 	return hours, nil
 }
 
-// queryRecentEvents fetches the 10 most recent incidents (state transitions)
-// as events.
+// queryRecentEvents fetches the 20 most recent incidents and derives state
+// transition events (down + optional recovery). After deduplication, the
+// result is sorted and trimmed to 10 events.
 func (h *DashboardHandler) queryRecentEvents(ctx context.Context) ([]RecentEvent, error) {
 	rows, err := h.pool.Query(ctx,
 		`SELECT m.id, m.name, i.started_at, i.resolved_at, i.cause
 		 FROM incidents i
 		 JOIN monitors m ON m.id = i.monitor_id
 		 ORDER BY i.started_at DESC
-		 LIMIT 10`)
+		 LIMIT 20`)
 	if err != nil {
 		return nil, fmt.Errorf("recent events query: %w", err)
 	}
@@ -550,6 +561,10 @@ func (h *DashboardHandler) queryRecentEvents(ctx context.Context) ([]RecentEvent
 		return nil, fmt.Errorf("recent events rows: %w", err)
 	}
 
+	// Deduplicate events by (monitor_id, to_state, occurred_at) to prevent
+	// duplicate keys on the frontend from multiple incident rows with same timestamp.
+	events = deduplicateEvents(events)
+
 	// Sort all events by occurred_at descending and take top 10.
 	sortEventsDesc(events)
 	if len(events) > 10 {
@@ -566,4 +581,24 @@ func sortEventsDesc(events []RecentEvent) {
 			events[j], events[j-1] = events[j-1], events[j]
 		}
 	}
+}
+
+// deduplicateEvents removes events with duplicate (monitor_id, to_state, occurred_at) keys.
+// Keeps the first occurrence of each unique combination.
+func deduplicateEvents(events []RecentEvent) []RecentEvent {
+	type eventKey struct {
+		MonitorID  string
+		ToState    string
+		OccurredAt string
+	}
+	seen := make(map[eventKey]bool)
+	result := make([]RecentEvent, 0, len(events))
+	for _, e := range events {
+		key := eventKey{MonitorID: e.MonitorID, ToState: e.ToState, OccurredAt: e.OccurredAt}
+		if !seen[key] {
+			seen[key] = true
+			result = append(result, e)
+		}
+	}
+	return result
 }

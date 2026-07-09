@@ -98,8 +98,8 @@
     <div class="rounded-xl border border-[var(--color-border)] bg-surface shadow-sm md:col-span-3">
       <UptimeHeatmap
         data={dashboardStore.heatmap}
-        loading={dashboardStore.widgetLoading.get('heatmap') ?? false}
-        error={dashboardStore.widgetErrors.get('heatmap') ?? null}
+        loading={dashboardStore.isWidgetLoading('heatmap')}
+        error={dashboardStore.getWidgetError('heatmap')}
         onRetry={retryWidget('heatmap')}
       />
     </div>
@@ -109,8 +109,8 @@
       <FleetHealth
         healthData={dashboardStore.healthScore}
         distributionData={dashboardStore.statusDistribution}
-        loading={dashboardStore.widgetLoading.get('health-score') ?? false}
-        error={dashboardStore.widgetErrors.get('health-score') ?? null}
+        loading={dashboardStore.isWidgetLoading('health-score')}
+        error={dashboardStore.getWidgetError('health-score')}
         onRetry={retryWidget('health-score')}
       />
     </div>
@@ -119,8 +119,8 @@
     <div class="rounded-xl border border-[var(--color-border)] bg-surface shadow-sm md:col-span-2">
       <IncidentsPanel
         incidents={dashboardStore.activeIncidents}
-        loading={dashboardStore.widgetLoading.get('incidents') ?? false}
-        error={dashboardStore.widgetErrors.get('incidents') ?? null}
+        loading={dashboardStore.isWidgetLoading('incidents')}
+        error={dashboardStore.getWidgetError('incidents')}
         onRetry={retryWidget('incidents')}
       />
     </div>
@@ -131,8 +131,8 @@
         monitors={dashboardStore.topLatencyMonitors}
         sslEntries={dashboardStore.sslExpiry}
         events={dashboardStore.recentEvents}
-        loading={dashboardStore.widgetLoading.get('sparklines') ?? false}
-        error={dashboardStore.widgetErrors.get('sparklines') ?? null}
+        loading={dashboardStore.isWidgetLoading('sparklines')}
+        error={dashboardStore.getWidgetError('sparklines')}
         onRetry={retryWidget('sparklines')}
       />
     </div>
