@@ -217,7 +217,7 @@ Primary commands:
 - `make openapi` — validate OpenAPI spec
 
 ## Infrastructure
-- `docker-compose.dev.yml`: Go 1.26 container (hot-reload via `go run`) + TimescaleDB 2.17.2-pg16 + frontend dev server
+- `docker-compose.dev.yml`: Go 1.26 container (hot-reload via `go run`) + TimescaleDB 2.28.3-pg17 + frontend dev server
 - Backend port: 8080
 - Frontend dev container: service `frontend`, base image `node:lts-alpine`, port 5173, runs Vite dev server with HMR for local frontend development
 - Postgres: `pulse:pulse@localhost:5432/pulse`
