@@ -424,7 +424,7 @@ cd frontend && pnpm test
 
 ### CI Pipeline
 
-Pull requests to `master` trigger automated checks via GitHub Actions (`.github/workflows/pull_request_opened.yml`):
+Pull requests to `main` trigger automated checks via GitHub Actions (`.github/workflows/pull_request_opened.yml`):
 
 - **Backend**: Go tests with race detector against a real TimescaleDB service, plus binary build verification
 - **Frontend**: TypeScript type check, locale validation, Vitest unit tests, production build
