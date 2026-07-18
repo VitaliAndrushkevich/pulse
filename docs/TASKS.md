@@ -584,7 +584,7 @@ This task board converts [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.
 - Done when:
   - Final image starts and serves app successfully
 - Notes:
-  - 3-stage Dockerfile: `node:22-alpine` (frontend build) → `golang:1.25-alpine` (Go build with embedded assets) → `gcr.io/distroless/static-debian12` (runtime).
+  - 3-stage Dockerfile: `node:lts-alpine` (frontend build) → `golang:1.25-alpine` (Go build with embedded assets) → `gcr.io/distroless/static-debian12` (runtime).
   - Frontend build output copied into `internal/frontend/dist/` before Go build.
   - Binary compiled with `-ldflags="-s -w"` for stripped debug symbols.
   - `.dockerignore` excludes `.git/`, `node_modules/`, docs, test files, IDE configs — keeps build context minimal.

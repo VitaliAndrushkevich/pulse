@@ -1,6 +1,6 @@
 services:
   backend:
-    image: golang:1.25
+    image: golang:1.26
     container_name: pulse-backend-dev
     working_dir: /workspace/backend
     cap_add:

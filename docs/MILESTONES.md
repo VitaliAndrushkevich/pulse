@@ -8,7 +8,7 @@ Pulse is a self-hosted uptime monitoring platform (API-first, single-container d
 
 ## Current Stage: MVP Complete + Branding 🎉
 
-All milestones (A–I) are done. The project is a fully packaged, single-container deployment with embedded frontend, production Docker Compose, cohesive brand identity, and comprehensive documentation. CI pipeline is deferred.
+All milestones (A–J) are done. The project is a fully packaged, single-container deployment with embedded frontend, production Docker Compose, cohesive brand identity, comprehensive documentation, and CI pipeline.
 
 ```
 [████████████████████████████████████] 100%
@@ -137,13 +137,13 @@ Delivered:
 
 Delivered:
 - ✅ Static frontend embedded via `//go:embed` with SPA catch-all routing and immutable cache headers
-- ✅ Multi-stage Dockerfile (node:22-alpine → golang:1.25-alpine → distroless)
+- ✅ Multi-stage Dockerfile (node:lts-alpine → golang:1.26-alpine → distroless)
 - ✅ `.dockerignore` for minimal build context
 - ✅ Production docker-compose with health checks, restart policies, `env_file`
 - ✅ `.env.example` with all variables documented and generation commands
 - ✅ Makefile targets: `build-frontend`, `build-all` (production build with embedded assets)
 - ✅ Complete README with quick start, architecture, API examples, development docs
-- 🔲 CI workflow (GitHub Actions) — deferred to future iteration
+- ✅ CI workflow (GitHub Actions) — PR checks with backend tests (race detector, TimescaleDB service) and frontend checks (typecheck, locale validation, tests, build), concurrency groups
 
 ---
 
@@ -153,7 +153,7 @@ Delivered:
 
 Delivered:
 - ✅ Replaced npm with pnpm as the frontend package manager — faster installs, stricter dependency resolution, `pnpm-lock.yaml` committed, `package-lock.json` removed
-- ✅ Added frontend dev container with HMR to `docker-compose.dev.yml` — `node:22-alpine` service running `pnpm dev --host` (Vite) on port 5173 with bind-mounted sources and named volume for `node_modules`
+- ✅ Added frontend dev container with HMR to `docker-compose.dev.yml` — `node:lts-alpine` service running `pnpm dev --host` (Vite) on port 5173 with bind-mounted sources and named volume for `node_modules`
 - ✅ Updated Dockerfile frontend stage to use corepack + pnpm (`pnpm install --frozen-lockfile`, `pnpm run build`)
 - ✅ Updated Makefile `build-frontend` target with pnpm guard and pnpm commands
 - ✅ All project documentation updated (README, AGENTS.md, copilot-instructions, MILESTONES)
@@ -204,15 +204,15 @@ Delivered:
 | Frontend | ✅ Complete | Full SvelteKit app with stores, WS client, all pages, 218 tests |
 | Branding & Theming | ✅ Complete | Logo, theme system, light/dark switch, brand assets, property tests |
 | Frontend embedding | ✅ Complete | go:embed with SPA catch-all, cache headers |
-| CI pipeline | 🔲 Deferred | Not required for MVP |
+| CI pipeline | ✅ Complete | PR checks: backend tests + frontend tests/build |
 
 ---
 
 ## Recommended Next Steps (Priority Order)
 
-1. **CI Pipeline** — GitHub Actions for lint, test, build, OpenAPI drift check
-2. **End-to-end verification** — Run through the verification checklist below on a clean machine
-3. **User seeding** — Add a `make seed` command or initial setup flow for first user creation
+1. **End-to-end verification** — Run through the verification checklist below on a clean machine
+2. **User seeding** — Add a `make seed` command or initial setup flow for first user creation
+3. **CI enhancements** — Lint step (golangci-lint), OpenAPI drift check, Docker build verification
 
 ---
 

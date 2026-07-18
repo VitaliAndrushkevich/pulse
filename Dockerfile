@@ -1,7 +1,7 @@
 # =============================================================================
 # Stage 1: Build Frontend
 # =============================================================================
-FROM node:22-alpine AS node-builder
+FROM node:lts-alpine AS node-builder
 
 WORKDIR /src/frontend
 ENV CI=true
@@ -15,7 +15,7 @@ RUN pnpm run build
 # =============================================================================
 # Stage 2: Build Go Binary (with embedded frontend assets)
 # =============================================================================
-FROM golang:1.25-alpine AS go-builder
+FROM golang:1.26-alpine AS go-builder
 
 WORKDIR /src/backend
 COPY backend/go.mod backend/go.sum ./

@@ -55,7 +55,7 @@ Core outcomes:
 - Prefer explicit interfaces and small packages over global shared state.
 - Use `sqlc` generated queries instead of ORM abstractions.
 - Fail fast during startup when dependencies are not reachable.
-- Go 1.25, `gin` v1.12, `pgx/v5`, `gorilla/websocket`, `golang-jwt/jwt/v5`.
+- Go 1.26, `gin` v1.12, `pgx/v5`, `gorilla/websocket`, `golang-jwt/jwt/v5`.
 - Prometheus metrics via `prometheus/client_golang`.
 - Migrations via `golang-migrate/v4`.
 
@@ -85,7 +85,7 @@ The project is at MVP completion. Full milestone breakdown: [docs/MILESTONES.md]
 | E: API Surface | ✅ Done |
 | F: WebSocket Realtime | ✅ Done |
 | G: Frontend Product | ✅ Done |
-| H: Packaging & Release | ✅ Done (CI deferred) |
+| H: Packaging & Release | ✅ Done |
 | I: Branding & Theming | ✅ Done |
 | J: Notifications | ✅ Done |
 
@@ -117,7 +117,7 @@ The project is at MVP completion. Full milestone breakdown: [docs/MILESTONES.md]
 - Real-time updates: WS patches update dashboard rows and detail view in-place
 - 218 frontend tests passing (Vitest + fast-check + @testing-library/svelte) — unit + property-based
 - Static frontend embedded via `go:embed` with SPA catch-all routing and cache headers
-- Multi-stage Dockerfile (node:22-alpine → golang:1.25-alpine → distroless)
+- Multi-stage Dockerfile (node:lts-alpine → golang:1.26-alpine → distroless)
 - Production docker-compose with health checks, restart policies, env_file
 - `.env.example` with all variables documented
 - Complete README with quick start, API examples, architecture docs
@@ -155,12 +155,14 @@ The project is at MVP completion. Full milestone breakdown: [docs/MILESTONES.md]
 - Panic recovery in workers (never crashes the dispatcher)
 - Scheduler → Dispatcher integration: non-blocking enqueue after each check result
 
-### Deferred:
-- CI quality gates (GitHub Actions) — not required for MVP
+### Completed (CI):
+- GitHub Actions PR workflow (`.github/workflows/pull_request_opened.yml`): backend tests (Go race detector, TimescaleDB service), frontend checks (type check, locale validation, unit tests, build), concurrency group per PR
 
 ## Key Files Reference
 | Purpose | Path |
 |---------|------|
+| CI PR checks | `.github/workflows/pull_request_opened.yml` |
+| Release drafter | `.github/workflows/release-drafter.yml` |
 | Go entrypoint | `backend/cmd/pulse/main.go` |
 | API router | `backend/internal/api/router.go` |
 | WS hub | `backend/internal/hub/hub.go` |
@@ -215,9 +217,9 @@ Primary commands:
 - `make openapi` — validate OpenAPI spec
 
 ## Infrastructure
-- `docker-compose.dev.yml`: Go 1.25 container (hot-reload via `go run`) + TimescaleDB 2.17.2-pg16 + frontend dev server
+- `docker-compose.dev.yml`: Go 1.26 container (hot-reload via `go run`) + TimescaleDB 2.17.2-pg16 + frontend dev server
 - Backend port: 8080
-- Frontend dev container: service `frontend`, base image `node:22-alpine`, port 5173, runs Vite dev server with HMR for local frontend development
+- Frontend dev container: service `frontend`, base image `node:lts-alpine`, port 5173, runs Vite dev server with HMR for local frontend development
 - Postgres: `pulse:pulse@localhost:5432/pulse`
 - Environment variables:
 

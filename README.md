@@ -2,11 +2,13 @@
 
 Pulse is a self-hosted uptime monitoring platform. It ships as a single binary with an embedded web UI, backed by PostgreSQL and TimescaleDB for time-series storage. Designed for reliability at 500+ monitors with bounded worker pools, real-time WebSocket updates, and an API-first architecture.
 
-> **Vibecoded with [Kiro](https://kiro.dev)** — an AI-powered IDE that turns ideas into working software through structured specs, steering files, and iterative development.
+*It's an experiment project and should be considered as a possible alternative to another uptime monitoring solution, with its own view on some processes and implementation. In case of any questions, requests, or comments, feel free to create an issue or contact us. We are happy to make it better and more stable. Any kind of contributions and feedback are very welcome."*
+
+> **Vibecoded with [Kiro](https://kiro.dev)** — an AI-powered IDE that turns ideas into working software through structured specs, steering files, and iterative development. Also there were some steps which were implemented with Copilot.
 
 ## Key Features
 
-- **Multi-protocol monitoring** — HTTP/HTTPS, HTTP/3, TCP, UDP, WebSocket, gRPC, DNS, ICMP, SMTP
+- **Multi-protocol monitoring** — HTTP/HTTPS, HTTP/3, QUIC, TCP, UDP, WebSocket, gRPC, DNS, ICMP, SMTP
 - **Notifications** — Email (SMTP) and webhook channels with trigger-based rules, deduplication, retry with exponential backoff, and reminders
 - **Single deployable container** — Go binary with embedded SvelteKit frontend
 - **Real-time updates** — WebSocket diff/patch messages for instant UI sync
@@ -362,7 +364,7 @@ Non-English locales are lazy-loaded on demand. Fallback chain: active locale →
 
 ### Prerequisites (Development)
 
-- Go 1.25+
+- Go 1.26+
 - Node.js 22+
 - pnpm 9+ (install via `corepack enable` or [pnpm.io/installation](https://pnpm.io/installation))
 - PostgreSQL 16 with TimescaleDB 2.17+
@@ -420,6 +422,15 @@ make test
 cd frontend && pnpm test
 ```
 
+### CI Pipeline
+
+Pull requests to `master` trigger automated checks via GitHub Actions (`.github/workflows/pull_request_opened.yml`):
+
+- **Backend**: Go tests with race detector against a real TimescaleDB service, plus binary build verification
+- **Frontend**: TypeScript type check, locale validation, Vitest unit tests, production build
+
+PRs in the same concurrency group cancel previous runs automatically.
+
 ### Brand Assets
 
 Logo files and brand guidelines are in `frontend/static/brand/`. To regenerate PNG exports from the SVG source:
@@ -463,7 +474,7 @@ Docker Compose automatically merges this with the base file.
 
 | Layer | Technology |
 |-------|-----------|
-| Backend | Go 1.25, Gin, pgx/v5, sqlc, gorilla/websocket, golang-jwt/jwt/v5 |
+| Backend | Go 1.26, Gin, pgx/v5, sqlc, gorilla/websocket, golang-jwt/jwt/v5 |
 | Frontend | Svelte 5, SvelteKit, TypeScript strict, Tailwind CSS 3.4, uPlot |
 | Database | PostgreSQL 16 + TimescaleDB 2.17 |
 | Protocols | HTTP/HTTPS, HTTP/3 (QUIC), TCP, UDP, WebSocket, gRPC, DNS, ICMP (raw sockets), SMTP |

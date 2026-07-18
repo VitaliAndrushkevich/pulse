@@ -1,0 +1,88 @@
+name: PR Checks
+
+on:
+  pull_request:
+    branches: [master]
+
+concurrency:
+  group: pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend Tests
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: timescale/timescaledb:latest-pg16
+        env:
+          POSTGRES_USER: pulse
+          POSTGRES_PASSWORD: pulse
+          POSTGRES_DB: pulse
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U pulse"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: backend/go.mod
+          cache-dependency-path: backend/go.sum
+
+      - name: Download dependencies
+        working-directory: backend
+        run: go mod download
+
+      - name: Run tests
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://pulse:pulse@localhost:5432/pulse?sslmode=disable
+          PULSE_SECRET_KEY: test-secret-key-for-ci-32bytes!
+          PULSE_JWT_SECRET: test-jwt-secret-for-ci
+        run: go test -race -count=1 ./...
+
+      - name: Build binary
+        working-directory: backend
+        run: CGO_ENABLED=0 go build -o /dev/null ./cmd/pulse
+
+  frontend:
+    name: Frontend Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: latest
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: pnpm install --frozen-lockfile
+
+      - name: Type check
+        working-directory: frontend
+        run: pnpm check
+
+      - name: Validate locales
+        working-directory: frontend
+        run: pnpm validate-locales
+
+      - name: Run tests
+        working-directory: frontend
+        run: pnpm test
+
+      - name: Build
+        working-directory: frontend
+        run: pnpm build
