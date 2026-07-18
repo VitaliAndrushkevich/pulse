@@ -1,3 +1,8 @@
+# =============================================================================
+# LOCAL DEVELOPMENT ONLY — DO NOT use these credentials in production.
+# Generate real secrets with: openssl rand -base64 32
+# =============================================================================
+
 services:
   backend:
     image: golang:1.26
@@ -12,6 +17,9 @@ services:
       PULSE_SCHEDULER_WORKERS: "50"
       PULSE_OPENAPI_DIR: "/workspace/backend/api"
       DATABASE_URL: "postgres://pulse:pulse@postgres:5432/pulse?sslmode=disable"
+      # DEV/LOCAL ONLY — do not use in production. Generate real keys with:
+      #   openssl rand -base64 32 (secret key)
+      #   openssl rand -hex 32 (jwt secret)
       PULSE_SECRET_KEY: "cHVsc2UtZGV2LXNlY3JldC1rZXktMDEyMzQ1Njc4OTA="
       PULSE_JWT_SECRET: "pulse-dev-jwt-secret-change-in-production"
       PULSE_JWT_EXPIRY: "24h"

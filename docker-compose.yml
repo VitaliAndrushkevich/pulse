@@ -18,8 +18,11 @@ services:
       PULSE_DEV: "true"
       PULSE_SCHEDULER_WORKERS: "50"
       PULSE_OPENAPI_DIR: "/app/api"
-      PULSE_SECRET_KEY: "cHVsc2UtZGV2LXNlY3JldC1rZXktMDEyMzQ1Njc4OTA="
-      PULSE_JWT_SECRET: "pulse-dev-jwt-secret-change-in-production"
+      # DEV/LOCAL ONLY — do not use in production. Generate real keys with:
+      #   openssl rand -base64 32 (secret key)
+      #   openssl rand -hex 32 (jwt secret)
+      PULSE_SECRET_KEY: "pulse-secret-key-change-in-production"
+      PULSE_JWT_SECRET: "pulse-jwt-secret-change-in-production"
       PULSE_JWT_EXPIRY: "24h"
       DATABASE_URL: "postgres://pulse:pulse@postgres:5432/pulse?sslmode=disable"
     ports:
