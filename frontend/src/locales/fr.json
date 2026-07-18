@@ -333,24 +333,24 @@
       "label": "Langue d'affichage"
     },
     "password": {
-      "title": "Change Password",
-      "description": "Update your account password.",
-      "currentPassword": "Current Password",
-      "currentPasswordPlaceholder": "Enter current password",
-      "newPassword": "New Password",
-      "newPasswordPlaceholder": "Enter new password",
-      "confirmPassword": "Confirm New Password",
-      "confirmPasswordPlaceholder": "Confirm new password",
-      "submit": "Change Password",
-      "submitting": "Changing…",
-      "success": "Password changed successfully.",
+      "title": "Changer le mot de passe",
+      "description": "Mettez à jour le mot de passe de votre compte.",
+      "currentPassword": "Mot de passe actuel",
+      "currentPasswordPlaceholder": "Entrez le mot de passe actuel",
+      "newPassword": "Nouveau mot de passe",
+      "newPasswordPlaceholder": "Entrez le nouveau mot de passe",
+      "confirmPassword": "Confirmer le nouveau mot de passe",
+      "confirmPasswordPlaceholder": "Confirmez le nouveau mot de passe",
+      "submit": "Changer le mot de passe",
+      "submitting": "Modification…",
+      "success": "Mot de passe modifié avec succès.",
       "validation": {
-        "minLength": "Password must be at least 8 characters",
-        "mismatch": "Passwords do not match"
+        "minLength": "Le mot de passe doit contenir au moins 8 caractères",
+        "mismatch": "Les mots de passe ne correspondent pas"
       },
       "errors": {
-        "incorrectCurrent": "Current password is incorrect.",
-        "failed": "Failed to change password. Please try again."
+        "incorrectCurrent": "Le mot de passe actuel est incorrect.",
+        "failed": "Échec du changement de mot de passe. Veuillez réessayer."
       }
     },
     "tokens": {

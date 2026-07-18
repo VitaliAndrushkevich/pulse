@@ -75,7 +75,6 @@
    * Requirements 3.6: Cap at 10 entries with overflow indicator
    * Requirements 3.7: Auto-refresh durations every 60 seconds
    */
-  import type { ActiveIncident } from '$lib/types';
   import { t } from '$lib/i18n';
   import WidgetShell from './WidgetShell.svelte';
 

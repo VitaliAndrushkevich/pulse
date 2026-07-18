@@ -42,12 +42,12 @@ const availableTypes: MonitorType[] = ['http', 'http3', 'tcp', 'udp', 'websocket
 
 function defaultProps(overrides: Partial<{
   availableTypes: MonitorType[];
-  activeFilters: { types: MonitorType[]; tags: Tag[] };
-  onFilterChange: (filters: { types: MonitorType[]; tags: Tag[] }) => void;
+  activeFilters: { types: MonitorType[]; tags: Tag[]; showPaused: boolean };
+  onFilterChange: (filters: { types: MonitorType[]; tags: Tag[]; showPaused: boolean }) => void;
 }> = {}) {
   return {
     availableTypes,
-    activeFilters: { types: [], tags: [] },
+    activeFilters: { types: [], tags: [], showPaused: false },
     onFilterChange: vi.fn(),
     ...overrides,
   };
@@ -62,7 +62,7 @@ describe('FilterBar', () => {
   it('renders type pills for available types when expanded', async () => {
     // Start with an active filter so the bar is expanded
     const props = defaultProps({
-      activeFilters: { types: ['http'], tags: [] },
+      activeFilters: { types: ['http'], tags: [], showPaused: false },
     });
     render(FilterBar, { props });
 
@@ -80,7 +80,7 @@ describe('FilterBar', () => {
     const onFilterChange = vi.fn();
     // Start expanded by having an active filter
     const props = defaultProps({
-      activeFilters: { types: ['http'], tags: [] },
+      activeFilters: { types: ['http'], tags: [], showPaused: false },
       onFilterChange,
     });
     render(FilterBar, { props });
@@ -94,6 +94,7 @@ describe('FilterBar', () => {
     expect(onFilterChange).toHaveBeenCalledWith({
       types: ['http', 'tcp'],
       tags: [],
+      showPaused: false,
     });
   });
 
@@ -101,7 +102,7 @@ describe('FilterBar', () => {
   it('clicking an active type pill deselects it', async () => {
     const onFilterChange = vi.fn();
     const props = defaultProps({
-      activeFilters: { types: ['http', 'tcp'], tags: [] },
+      activeFilters: { types: ['http', 'tcp'], tags: [], showPaused: false },
       onFilterChange,
     });
     render(FilterBar, { props });
@@ -115,6 +116,7 @@ describe('FilterBar', () => {
     expect(onFilterChange).toHaveBeenCalledWith({
       types: ['tcp'],
       tags: [],
+      showPaused: false,
     });
   });
 
@@ -127,6 +129,7 @@ describe('FilterBar', () => {
           { key: 'env', value: 'production' },
           { key: 'team', value: 'platform' },
         ],
+        showPaused: false,
       },
     });
     render(FilterBar, { props });
@@ -147,6 +150,7 @@ describe('FilterBar', () => {
           { key: 'env', value: 'production' },
           { key: 'team', value: 'platform' },
         ],
+        showPaused: false,
       },
       onFilterChange,
     });
@@ -160,13 +164,14 @@ describe('FilterBar', () => {
     expect(onFilterChange).toHaveBeenCalledWith({
       types: [],
       tags: [{ key: 'team', value: 'platform' }],
+      showPaused: false,
     });
   });
 
   // Requirement 7.3 — When no filters active and not expanded, shows collapsed "Filter" button
   it('shows collapsed Filter button when no filters active', () => {
     const props = defaultProps({
-      activeFilters: { types: [], tags: [] },
+      activeFilters: { types: [], tags: [], showPaused: false },
     });
     render(FilterBar, { props });
 
@@ -177,7 +182,7 @@ describe('FilterBar', () => {
   // Requirement 7.3 — Clicking "Filter" button expands the bar
   it('clicking Filter button expands the bar', async () => {
     const props = defaultProps({
-      activeFilters: { types: [], tags: [] },
+      activeFilters: { types: [], tags: [], showPaused: false },
     });
     render(FilterBar, { props });
 

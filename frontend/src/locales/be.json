@@ -333,24 +333,24 @@
       "label": "Мова адлюстравання"
     },
     "password": {
-      "title": "Change Password",
-      "description": "Update your account password.",
-      "currentPassword": "Current Password",
-      "currentPasswordPlaceholder": "Enter current password",
-      "newPassword": "New Password",
-      "newPasswordPlaceholder": "Enter new password",
-      "confirmPassword": "Confirm New Password",
-      "confirmPasswordPlaceholder": "Confirm new password",
-      "submit": "Change Password",
-      "submitting": "Changing…",
-      "success": "Password changed successfully.",
+      "title": "Змена пароля",
+      "description": "Абнавіце пароль вашага ўліковага запісу.",
+      "currentPassword": "Бягучы пароль",
+      "currentPasswordPlaceholder": "Увядзіце бягучы пароль",
+      "newPassword": "Новы пароль",
+      "newPasswordPlaceholder": "Увядзіце новы пароль",
+      "confirmPassword": "Пацвярджэнне новага пароля",
+      "confirmPasswordPlaceholder": "Пацвердзіце новы пароль",
+      "submit": "Змяніць пароль",
+      "submitting": "Захаванне…",
+      "success": "Пароль паспяхова зменены.",
       "validation": {
-        "minLength": "Password must be at least 8 characters",
-        "mismatch": "Passwords do not match"
+        "minLength": "Пароль павінен змяшчаць не менш за 8 сімвалаў",
+        "mismatch": "Паролі не супадаюць"
       },
       "errors": {
-        "incorrectCurrent": "Current password is incorrect.",
-        "failed": "Failed to change password. Please try again."
+        "incorrectCurrent": "Бягучы пароль няправільны.",
+        "failed": "Не ўдалося змяніць пароль. Паспрабуйце яшчэ раз."
       }
     },
     "tokens": {

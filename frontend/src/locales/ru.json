@@ -334,24 +334,24 @@
       "label": "Язык отображения"
     },
     "password": {
-      "title": "Change Password",
-      "description": "Update your account password.",
-      "currentPassword": "Current Password",
-      "currentPasswordPlaceholder": "Enter current password",
-      "newPassword": "New Password",
-      "newPasswordPlaceholder": "Enter new password",
-      "confirmPassword": "Confirm New Password",
-      "confirmPasswordPlaceholder": "Confirm new password",
-      "submit": "Change Password",
-      "submitting": "Changing…",
-      "success": "Password changed successfully.",
+      "title": "Смена пароля",
+      "description": "Обновите пароль вашей учётной записи.",
+      "currentPassword": "Текущий пароль",
+      "currentPasswordPlaceholder": "Введите текущий пароль",
+      "newPassword": "Новый пароль",
+      "newPasswordPlaceholder": "Введите новый пароль",
+      "confirmPassword": "Подтверждение нового пароля",
+      "confirmPasswordPlaceholder": "Подтвердите новый пароль",
+      "submit": "Сменить пароль",
+      "submitting": "Сохранение…",
+      "success": "Пароль успешно изменён.",
       "validation": {
-        "minLength": "Password must be at least 8 characters",
-        "mismatch": "Passwords do not match"
+        "minLength": "Пароль должен содержать не менее 8 символов",
+        "mismatch": "Пароли не совпадают"
       },
       "errors": {
-        "incorrectCurrent": "Current password is incorrect.",
-        "failed": "Failed to change password. Please try again."
+        "incorrectCurrent": "Неверный текущий пароль.",
+        "failed": "Не удалось сменить пароль. Попробуйте ещё раз."
       }
     },
     "tokens": {

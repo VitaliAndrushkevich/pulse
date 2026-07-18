@@ -333,24 +333,24 @@
       "label": "Görüntüleme dili"
     },
     "password": {
-      "title": "Change Password",
-      "description": "Update your account password.",
-      "currentPassword": "Current Password",
-      "currentPasswordPlaceholder": "Enter current password",
-      "newPassword": "New Password",
-      "newPasswordPlaceholder": "Enter new password",
-      "confirmPassword": "Confirm New Password",
-      "confirmPasswordPlaceholder": "Confirm new password",
-      "submit": "Change Password",
-      "submitting": "Changing…",
-      "success": "Password changed successfully.",
+      "title": "Şifre Değiştir",
+      "description": "Hesap şifrenizi güncelleyin.",
+      "currentPassword": "Mevcut Şifre",
+      "currentPasswordPlaceholder": "Mevcut şifrenizi girin",
+      "newPassword": "Yeni Şifre",
+      "newPasswordPlaceholder": "Yeni şifrenizi girin",
+      "confirmPassword": "Yeni Şifreyi Onayla",
+      "confirmPasswordPlaceholder": "Yeni şifrenizi tekrar girin",
+      "submit": "Şifreyi Değiştir",
+      "submitting": "Değiştiriliyor…",
+      "success": "Şifre başarıyla değiştirildi.",
       "validation": {
-        "minLength": "Password must be at least 8 characters",
-        "mismatch": "Passwords do not match"
+        "minLength": "Şifre en az 8 karakter olmalıdır",
+        "mismatch": "Şifreler eşleşmiyor"
       },
       "errors": {
-        "incorrectCurrent": "Current password is incorrect.",
-        "failed": "Failed to change password. Please try again."
+        "incorrectCurrent": "Mevcut şifre yanlış.",
+        "failed": "Şifre değiştirilemedi. Lütfen tekrar deneyin."
       }
     },
     "tokens": {

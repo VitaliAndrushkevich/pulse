@@ -83,6 +83,7 @@ function makeMonitorWithTags(id: string, tags: Tag[]): Monitor {
 		next_check_at: '2024-01-01T00:01:00Z',
 		settings: {},
 		tags,
+		history_retention_days: 30,
 		created_at: '2024-01-01T00:00:00Z',
 		updated_at: '2024-01-01T00:00:00Z'
 	};

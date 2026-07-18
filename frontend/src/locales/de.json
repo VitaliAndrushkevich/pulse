@@ -333,24 +333,24 @@
       "label": "Anzeigesprache"
     },
     "password": {
-      "title": "Change Password",
-      "description": "Update your account password.",
-      "currentPassword": "Current Password",
-      "currentPasswordPlaceholder": "Enter current password",
-      "newPassword": "New Password",
-      "newPasswordPlaceholder": "Enter new password",
-      "confirmPassword": "Confirm New Password",
-      "confirmPasswordPlaceholder": "Confirm new password",
-      "submit": "Change Password",
-      "submitting": "Changing…",
-      "success": "Password changed successfully.",
+      "title": "Passwort ändern",
+      "description": "Aktualisieren Sie Ihr Kontopasswort.",
+      "currentPassword": "Aktuelles Passwort",
+      "currentPasswordPlaceholder": "Aktuelles Passwort eingeben",
+      "newPassword": "Neues Passwort",
+      "newPasswordPlaceholder": "Neues Passwort eingeben",
+      "confirmPassword": "Neues Passwort bestätigen",
+      "confirmPasswordPlaceholder": "Neues Passwort bestätigen",
+      "submit": "Passwort ändern",
+      "submitting": "Wird geändert…",
+      "success": "Passwort erfolgreich geändert.",
       "validation": {
-        "minLength": "Password must be at least 8 characters",
-        "mismatch": "Passwords do not match"
+        "minLength": "Das Passwort muss mindestens 8 Zeichen lang sein",
+        "mismatch": "Die Passwörter stimmen nicht überein"
       },
       "errors": {
-        "incorrectCurrent": "Current password is incorrect.",
-        "failed": "Failed to change password. Please try again."
+        "incorrectCurrent": "Das aktuelle Passwort ist falsch.",
+        "failed": "Passwort konnte nicht geändert werden. Bitte erneut versuchen."
       }
     },
     "tokens": {
