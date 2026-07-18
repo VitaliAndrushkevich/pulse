@@ -82,7 +82,10 @@ const arbitrarySupportedLocale = fc.constantFrom(
 /** Arbitrary that generates strings NOT in the supported locales list */
 const arbitraryUnsupportedLocale = fc
   .string({ minLength: 1, maxLength: 20 })
-  .filter((s: string) => !isSupportedLocale(s) && s.trim().length > 0);
+  .filter((s): boolean => {
+    const isSupported: boolean = isSupportedLocale(s);
+    return !isSupported && s.trim().length > 0;
+  });
 
 // Feature: i18n-localization, Property 5: Locale persistence round-trip
 describe('Property 5: Locale persistence round-trip', () => {

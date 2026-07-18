@@ -13,7 +13,7 @@ const mockClearToken = vi.fn(() => {
 
 vi.mock('$lib/stores/auth.svelte', () => ({
 	getToken: () => mockToken,
-	clearToken: (...args: unknown[]) => mockClearToken(...args)
+	clearToken: () => mockClearToken()
 }));
 
 const mockApplyPatch = vi.fn();

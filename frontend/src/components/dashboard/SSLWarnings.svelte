@@ -52,7 +52,6 @@
    * Requirements 5.4: Hide section entirely when no entries
    * Requirements 5.5: Urgency styling (expired/critical red, warning amber)
    */
-  import type { SSLExpiryEntry } from '$lib/types';
   import { t } from '$lib/i18n';
   import WidgetShell from './WidgetShell.svelte';
 
