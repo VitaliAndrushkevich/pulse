@@ -11,7 +11,6 @@ permissions:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
   verify-mcp:
@@ -35,7 +34,7 @@ jobs:
 
       - name: Run MCP tests
         working-directory: mcp
-        run: go test ./...
+        run: go test -race ./...
 
   docker-latest:
     name: Docker Latest
@@ -53,12 +52,16 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Lowercase image name
+        id: repo
+        run: echo "image_name=${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
+
       - name: Build and push latest
         uses: docker/build-push-action@v7
         with:
           context: .
           push: true
           platforms: linux/amd64,linux/arm64
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          tags: ${{ env.REGISTRY }}/${{ steps.repo.outputs.image_name }}:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
