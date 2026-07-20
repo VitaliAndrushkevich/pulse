@@ -102,7 +102,7 @@ func TestHandleListMonitors_InvalidType(t *testing.T) {
 	}
 
 	deps := Deps{Client: client, AccessMode: config.ReadOnly}
-	_, err := HandleListMonitors(context.Background(), deps, ListMonitorsInput{Type: "QUIC"})
+	_, err := HandleListMonitors(context.Background(), deps, ListMonitorsInput{Type: "FTP"})
 	if err == nil {
 		t.Fatal("expected error for unrecognized type")
 	}

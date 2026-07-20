@@ -48,7 +48,7 @@ func TestHandleCreateMonitor_ReadOnlyMode(t *testing.T) {
 }
 
 func TestHandleCreateMonitor_InvalidType(t *testing.T) {
-	cases := []string{"gRPC", "DNS", "SMTP", "QUIC", "websocket", ""}
+	cases := []string{"gRPC", "DNS", "SMTP", "websocket", "FTP", ""}
 
 	for _, typ := range cases {
 		t.Run(typ, func(t *testing.T) {

@@ -6,6 +6,7 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"sync/atomic"
 	"testing"
 	"time"
 )
@@ -510,11 +511,11 @@ func TestHTTPClient_CreateMonitor_Success(t *testing.T) {
 
 func TestHTTPClient_PerRequestTimeout(t *testing.T) {
 	// Verify that context.WithTimeout is applied per-request.
-	callCount := 0
+	var callCount atomic.Int32
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		callCount++
+		n := callCount.Add(1)
 		// Simulate slow response only for the first call.
-		if callCount == 1 {
+		if n == 1 {
 			time.Sleep(300 * time.Millisecond)
 		}
 		w.Header().Set("X-Request-ID", "req-timeout")
