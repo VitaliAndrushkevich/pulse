@@ -156,12 +156,14 @@ The project is at MVP completion. Full milestone breakdown: [docs/MILESTONES.md]
 - Scheduler → Dispatcher integration: non-blocking enqueue after each check result
 
 ### Completed (CI):
-- GitHub Actions PR workflow (`.github/workflows/pull_request_opened.yml`): backend tests (Go race detector, TimescaleDB service), frontend checks (type check, locale validation, unit tests, build), concurrency group per PR
+- GitHub Actions PR workflow (`.github/workflows/pull_request_opened.yml`): backend tests (Go race detector, TimescaleDB service), MCP server checks (tests + build, path-filtered to `mcp/**`), frontend checks (type check, locale validation, unit tests, build), concurrency group per PR
+- GitHub Actions Release workflow (`.github/workflows/release.yml`): triggered on `v*` tag push, cross-compiles pulse + pulse-mcp for linux/darwin (amd64/arm64), builds and pushes multi-arch Docker image to GHCR with semver tags, attaches binaries + SHA-256 checksums to GitHub Release
 
 ## Key Files Reference
 | Purpose | Path |
 |---------|------|
 | CI PR checks | `.github/workflows/pull_request_opened.yml` |
+| Release workflow | `.github/workflows/release.yml` |
 | Release drafter | `.github/workflows/release-drafter.yml` |
 | Go entrypoint | `backend/cmd/pulse/main.go` |
 | API router | `backend/internal/api/router.go` |
