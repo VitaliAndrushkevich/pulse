@@ -15,6 +15,7 @@ Pulse is a self-hosted uptime monitoring platform. It ships as a single binary w
 - **API-first** — full REST API with OpenAPI 3.0.3 spec
 - **Dashboard widgets** — StatusRing, HealthScore, UptimeHeatmap, ResponseSparklines, SSLWarnings, IncidentsPanel, EventsFeed
 - **Internationalization** — 13 languages with RTL support (Arabic), lazy-loaded locale bundles
+- **MCP server** — manage monitors and get the status via AI assistants (Kiro, Copilot, Claude, Cursor) through the Model Context Protocol
 - **Prometheus metrics** — built-in `/metrics` endpoint with optional Basic Auth protection
 - **Security** — AES-256-GCM secret encryption, JWT + API token auth, per-monitor credentials
 - **Scalable** — bounded worker pools, designed for 500+ concurrent monitors
@@ -59,6 +60,7 @@ Pulse runs as a single Go process serving both the API and the frontend:
 | `frontend/static/brand/` | Logo SVGs, PNG exports, usage guidelines |
 | `backend/api/openapi.yaml` | OpenAPI 3.0.3 specification |
 | `backend/migrations/` | SQL migration files |
+| `mcp/` | MCP server binary — AI integration via Model Context Protocol |
 
 ### Data Flow
 
@@ -338,6 +340,52 @@ curl -X POST http://localhost:8080/api/v1/monitors/<monitor-id>/notification-bin
   }'
 ```
 
+## MCP Server (AI Integration)
+
+Pulse ships with an [MCP](https://modelcontextprotocol.io/) (Model Context Protocol) server that exposes monitoring capabilities to AI clients — Claude Desktop, Kiro, Cursor, and any MCP-compatible tool. This lets you manage and query monitors through natural language via your AI assistant.
+
+The MCP server runs as a separate binary (`mcp/bin/pulse-mcp`) and communicates with Pulse exclusively through the REST API. It's stateless and supports both `stdio` (local) and `http` (networked) transports.
+
+### Available Tools
+
+| Tool | Mode | Description |
+|------|------|-------------|
+| `list-monitors` | read | List monitors with type/tag filters and pagination |
+| `get-monitor` | read | Get monitor config and current status by ID or name |
+| `monitor-stats` | read | Uptime percentage, last error, SSL expiry |
+| `monitor-history` | read | Check history over a time range |
+| `downtime-summary` | read | Downtime periods within a rolling window |
+| `list-incidents` | read | Incidents globally or per monitor |
+| `create-monitor` | write | Create a health-check monitor (HTTP, TCP, UDP, ICMP) |
+
+### Quick Setup
+
+```bash
+# Build the MCP server
+cd mcp && make build
+```
+
+Add to your AI client's MCP config (Claude Desktop, Kiro, Cursor):
+
+```json
+{
+  "mcpServers": {
+    "pulse": {
+      "command": "/path/to/pulse-mcp",
+      "env": {
+        "PULSE_MCP_API_TOKEN": "your-pulse-api-token",
+        "PULSE_MCP_API_BASE_URL": "http://localhost:8080/api/v1",
+        "PULSE_MCP_ACCESS_MODE": "read-write"
+      }
+    }
+  }
+}
+```
+
+Generate an API token in Pulse (Settings → API Tokens) and replace the placeholder values.
+
+See [`mcp/README.md`](mcp/README.md) for full configuration reference and per-client setup instructions.
+
 ## Supported Languages
 
 Pulse ships with 13 locale bundles. The UI language is selectable per-user from Settings.
@@ -430,6 +478,21 @@ Pull requests to `main` trigger automated checks via GitHub Actions (`.github/wo
 - **Frontend**: TypeScript type check, locale validation, Vitest unit tests, production build
 
 PRs in the same concurrency group cancel previous runs automatically.
+
+### Release Pipeline
+
+Pushing a semver tag (`v*`) triggers the release workflow (`.github/workflows/release.yml`):
+
+1. **Build binaries** — Cross-compiles `pulse` and `pulse-mcp` for linux/amd64, linux/arm64, darwin/amd64, darwin/arm64 (CGO disabled, stripped)
+2. **Docker image** — Builds and pushes a multi-arch image (linux/amd64 + arm64) to `ghcr.io` with semver tags (`v1.2.3`, `v1.2`, `v1`)
+3. **GitHub Release** — Attaches all binaries and a SHA-256 checksums file to the release
+
+To create a release:
+
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
 
 ### Brand Assets
 

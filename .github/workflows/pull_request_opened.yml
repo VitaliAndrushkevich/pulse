@@ -28,9 +28,9 @@ jobs:
           --health-retries 5
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v7
         with:
           go-version-file: backend/go.mod
           cache-dependency-path: backend/go.sum
@@ -51,17 +51,51 @@ jobs:
         working-directory: backend
         run: CGO_ENABLED=0 go build -o /dev/null ./cmd/pulse
 
+  mcp:
+    name: MCP Server
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: dorny/paths-filter@v4
+        id: changes
+        with:
+          filters: |
+            mcp:
+              - 'mcp/**'
+
+      - uses: actions/setup-go@v7
+        if: steps.changes.outputs.mcp == 'true'
+        with:
+          go-version-file: mcp/go.mod
+          cache-dependency-path: mcp/go.sum
+
+      - name: Download dependencies
+        if: steps.changes.outputs.mcp == 'true'
+        working-directory: mcp
+        run: go mod download
+
+      - name: Run tests
+        if: steps.changes.outputs.mcp == 'true'
+        working-directory: mcp
+        run: go test -race -count=1 ./...
+
+      - name: Build binary
+        if: steps.changes.outputs.mcp == 'true'
+        working-directory: mcp
+        run: CGO_ENABLED=0 go build -o /dev/null ./main.go
+
   frontend:
     name: Frontend Tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
         with:
           version: latest
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: lts/*
           cache: pnpm

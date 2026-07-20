@@ -47,3 +47,16 @@ template: |
   ## Changes
 
   $CHANGES
+
+  ## Installation
+
+  ### Binary
+  Download the appropriate binary for your platform from the assets below.
+
+  ### Docker
+  ```bash
+  docker pull ghcr.io/$REPOSITORY:$RESOLVED_VERSION
+  ```
+
+  ### MCP Server
+  Download `pulse-mcp-<os>-<arch>` from the assets below. See [MCP README](mcp/README.md) for configuration.
