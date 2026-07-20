@@ -55,7 +55,7 @@ template: |
 
   ### Docker
   ```bash
-  docker pull ghcr.io/$REPOSITORY:$RESOLVED_VERSION
+  docker pull ghcr.io/vitaliandrushkevich/pulse:$RESOLVED_VERSION
   ```
 
   ### MCP Server
