@@ -28,7 +28,8 @@ const arbitrarySSLEntry: fc.Arbitrary<SSLExpiryEntry> = fc.record({
 	expires_at: fc
 		.date({
 			min: new Date('2024-01-01T00:00:00Z'),
-			max: new Date('2026-12-31T00:00:00Z')
+			max: new Date('2026-12-31T00:00:00Z'),
+			noInvalidDate: true
 		})
 		.map((d) => d.toISOString())
 });
@@ -43,7 +44,8 @@ const arbitrarySSLEntryWithinThreshold: fc.Arbitrary<SSLExpiryEntry> = fc.record
 	expires_at: fc
 		.date({
 			min: new Date('2024-01-01T00:00:00Z'),
-			max: new Date('2026-12-31T00:00:00Z')
+			max: new Date('2026-12-31T00:00:00Z'),
+			noInvalidDate: true
 		})
 		.map((d) => d.toISOString())
 });
@@ -58,7 +60,8 @@ const arbitrarySSLEntryBeyondThreshold: fc.Arbitrary<SSLExpiryEntry> = fc.record
 	expires_at: fc
 		.date({
 			min: new Date('2024-01-01T00:00:00Z'),
-			max: new Date('2026-12-31T00:00:00Z')
+			max: new Date('2026-12-31T00:00:00Z'),
+			noInvalidDate: true
 		})
 		.map((d) => d.toISOString())
 });

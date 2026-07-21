@@ -61,10 +61,10 @@ const arbitraryOtherMonitorPatch: fc.Arbitrary<MonitorPatch> = fc.record({
   error: fc.option(fc.constantFrom('connection refused', 'timeout exceeded', 'DNS error'), {
     nil: undefined
   }),
-  checked_at: fc.date({ min: new Date('2024-01-01'), max: new Date('2024-12-31') }).map((d) =>
+  checked_at: fc.date({ min: new Date('2024-01-01'), max: new Date('2024-12-31'), noInvalidDate: true }).map((d) =>
     d.toISOString()
   ),
-  timestamp: fc.date({ min: new Date('2024-01-01'), max: new Date('2024-12-31') }).map((d) =>
+  timestamp: fc.date({ min: new Date('2024-01-01'), max: new Date('2024-12-31'), noInvalidDate: true }).map((d) =>
     d.toISOString()
   )
 });
@@ -78,10 +78,10 @@ const arbitraryCurrentMonitorPatch: fc.Arbitrary<MonitorPatch> = fc.record({
   latency_ms: fc.integer({ min: 1, max: 10000 }),
   status_code: fc.option(fc.integer({ min: 100, max: 599 }), { nil: undefined }),
   error: fc.option(fc.constantFrom('connection refused', 'timeout exceeded'), { nil: undefined }),
-  checked_at: fc.date({ min: new Date('2024-01-01'), max: new Date('2024-12-31') }).map((d) =>
+  checked_at: fc.date({ min: new Date('2024-01-01'), max: new Date('2024-12-31'), noInvalidDate: true }).map((d) =>
     d.toISOString()
   ),
-  timestamp: fc.date({ min: new Date('2024-01-01'), max: new Date('2024-12-31') }).map((d) =>
+  timestamp: fc.date({ min: new Date('2024-01-01'), max: new Date('2024-12-31'), noInvalidDate: true }).map((d) =>
     d.toISOString()
   )
 });

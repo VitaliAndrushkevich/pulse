@@ -35,7 +35,8 @@ const downHistoryPointWithError = fc.record({
   ssl_days_remaining: fc.option(fc.integer({ min: 0, max: 365 }), { nil: null }),
   checked_at: fc.date({
     min: new Date('2024-01-01T00:00:00Z'),
-    max: new Date('2024-01-01T23:59:59Z')
+    max: new Date('2024-01-01T23:59:59Z'),
+    noInvalidDate: true
   }).map((d) => d.toISOString())
 });
 

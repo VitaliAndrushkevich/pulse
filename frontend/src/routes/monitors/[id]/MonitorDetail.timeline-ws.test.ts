@@ -232,7 +232,7 @@ const arbMonitorPatch: fc.Arbitrary<MonitorPatch> = fc.record({
       fc.constant('timeout after 10s'),
       fc.constant('DNS resolution failed'),
       fc.constant('TLS handshake error'),
-      fc.stringOf(fc.char(), { minLength: 1, maxLength: 50 })
+      fc.string({ minLength: 1, maxLength: 50 })
     ),
     { nil: undefined }
   ),

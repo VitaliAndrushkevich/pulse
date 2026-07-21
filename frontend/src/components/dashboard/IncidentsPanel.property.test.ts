@@ -38,7 +38,8 @@ const arbitraryIncident: fc.Arbitrary<ActiveIncident> = fc.record({
 	started_at: fc
 		.date({
 			min: new Date('2020-01-01T00:00:00Z'),
-			max: new Date()
+			max: new Date(),
+			noInvalidDate: true
 		})
 		.map((d) => d.toISOString()),
 	cause: fc.oneof(fc.constant(null), fc.string({ minLength: 0, maxLength: 200 })),
