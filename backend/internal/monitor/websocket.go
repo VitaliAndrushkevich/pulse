@@ -2,6 +2,7 @@ package monitor
 
 import (
 	"context"
+	"crypto/tls"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -19,6 +20,8 @@ type WebSocketSettings struct {
 	HandshakeMessage string `json:"handshake_message,omitempty"`
 	// ExpectedResponse is the expected reply after sending the handshake message.
 	ExpectedResponse string `json:"expected_response,omitempty"`
+	// SkipTLSVerify disables certificate chain and hostname verification (default: false).
+	SkipTLSVerify bool `json:"skip_tls_verify,omitempty"`
 }
 
 // WebSocketChecker implements the Checker and AuthenticatedChecker interfaces
@@ -67,6 +70,10 @@ func (w *WebSocketChecker) check(ctx context.Context, target string, settings js
 
 	dialer := &websocket.Dialer{
 		HandshakeTimeout: time.Until(deadlineFromContext(ctx)),
+	}
+
+	if s.SkipTLSVerify {
+		dialer.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 	}
 
 	start := time.Now()

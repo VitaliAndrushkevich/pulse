@@ -1523,7 +1523,7 @@ components:
           nullable: true
         settings:
           type: object
-          description: "Type-specific settings. For type=http/http3/quic, see HTTPSettings. For type=grpc, see GRPCSettings. For type=dns, see DNSSettings. For type=icmp, see ICMPSettings. For type=smtp, see SMTPSettings."
+          description: "Type-specific settings. For type=http/http3/quic, see HTTPSettings. For type=websocket, see WebSocketSettings. For type=grpc, see GRPCSettings. For type=dns, see DNSSettings. For type=icmp, see ICMPSettings. For type=smtp, see SMTPSettings."
         history_retention_days:
           type: integer
           minimum: 1
@@ -1577,7 +1577,7 @@ components:
           default: active
         settings:
           type: object
-          description: "Type-specific settings. For type=http/http3/quic, see HTTPSettings. For type=grpc, see GRPCSettings. For type=dns, see DNSSettings. For type=icmp, see ICMPSettings. For type=smtp, see SMTPSettings."
+          description: "Type-specific settings. For type=http/http3/quic, see HTTPSettings. For type=websocket, see WebSocketSettings. For type=grpc, see GRPCSettings. For type=dns, see DNSSettings. For type=icmp, see ICMPSettings. For type=smtp, see SMTPSettings."
         history_retention_days:
           type: integer
           minimum: 1
@@ -1626,7 +1626,7 @@ components:
           default: active
         settings:
           type: object
-          description: "Type-specific settings. For type=http/http3/quic, see HTTPSettings. For type=grpc, see GRPCSettings. For type=dns, see DNSSettings. For type=icmp, see ICMPSettings. For type=smtp, see SMTPSettings."
+          description: "Type-specific settings. For type=http/http3/quic, see HTTPSettings. For type=websocket, see WebSocketSettings. For type=grpc, see GRPCSettings. For type=dns, see DNSSettings. For type=icmp, see ICMPSettings. For type=smtp, see SMTPSettings."
         history_retention_days:
           type: integer
           minimum: 1
@@ -2121,6 +2121,30 @@ components:
           type: boolean
           default: true
           description: "Explicitly validate the full certificate chain against system root CAs"
+
+    WebSocketSettings:
+      type: object
+      description: >
+        Settings for WebSocket monitors (type=websocket).
+        All fields are optional with sensible defaults.
+      properties:
+        headers:
+          type: object
+          additionalProperties:
+            type: string
+            maxLength: 4096
+          maxProperties: 5
+          description: "Additional request headers for the WebSocket upgrade handshake"
+        handshake_message:
+          type: string
+          description: "Optional message to send immediately after connecting"
+        expected_response:
+          type: string
+          description: "Expected reply after sending the handshake message"
+        skip_tls_verify:
+          type: boolean
+          default: false
+          description: "Disable TLS certificate chain and hostname verification for wss:// connections"
 
     DNSSettings:
       type: object
