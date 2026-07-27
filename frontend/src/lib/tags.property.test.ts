@@ -25,10 +25,11 @@ import { monitorStore } from '$lib/stores/monitors.svelte';
 const arbitraryTagKey: fc.Arbitrary<string> = fc
 	.tuple(
 		fc.constantFrom(...'abcdefghijklmnopqrstuvwxyz'.split('')),
-		fc.stringOf(
-			fc.constantFrom(...'abcdefghijklmnopqrstuvwxyz0123456789_-'.split('')),
-			{ minLength: 0, maxLength: 62 }
-		)
+		fc.string({
+			unit: fc.constantFrom(...'abcdefghijklmnopqrstuvwxyz0123456789_-'.split('')),
+			minLength: 0,
+			maxLength: 62
+		})
 	)
 	.map(([first, rest]) => first + rest)
 	.filter((key) => !key.startsWith('__'));
@@ -37,10 +38,11 @@ const arbitraryTagKey: fc.Arbitrary<string> = fc
  * Generate a valid tag value: 1-256 printable characters (no control chars).
  * Uses printable ASCII subset for simplicity — covers core round-trip semantics.
  */
-const arbitraryTagValue: fc.Arbitrary<string> = fc.stringOf(
-	fc.integer({ min: 32, max: 126 }).map((cp) => String.fromCharCode(cp)),
-	{ minLength: 1, maxLength: 256 }
-);
+const arbitraryTagValue: fc.Arbitrary<string> = fc.string({
+	unit: fc.integer({ min: 32, max: 126 }).map((cp) => String.fromCharCode(cp)),
+	minLength: 1,
+	maxLength: 256
+});
 
 /**
  * Generate a single valid Tag.

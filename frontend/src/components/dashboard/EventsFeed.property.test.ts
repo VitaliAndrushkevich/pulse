@@ -52,7 +52,8 @@ function arbitraryEventAt(dateArb: fc.Arbitrary<Date>): fc.Arbitrary<RecentEvent
 const arbitraryRecentEvent: fc.Arbitrary<RecentEvent> = arbitraryEventAt(
 	fc.date({
 		min: new Date(Date.now() - TWENTY_FOUR_HOURS_MS + 1000),
-		max: new Date()
+		max: new Date(),
+		noInvalidDate: true
 	})
 );
 
@@ -62,7 +63,8 @@ const arbitraryRecentEvent: fc.Arbitrary<RecentEvent> = arbitraryEventAt(
 const arbitraryOldEvent: fc.Arbitrary<RecentEvent> = arbitraryEventAt(
 	fc.date({
 		min: new Date('2020-01-01T00:00:00Z'),
-		max: new Date(Date.now() - TWENTY_FOUR_HOURS_MS - 1000)
+		max: new Date(Date.now() - TWENTY_FOUR_HOURS_MS - 1000),
+		noInvalidDate: true
 	})
 );
 
@@ -100,7 +102,8 @@ const arbitraryPastOffsetMs: fc.Arbitrary<number> = fc.integer({
 const arbitraryNow: fc.Arbitrary<number> = fc
 	.date({
 		min: new Date('2024-01-01T00:00:00Z'),
-		max: new Date('2025-12-31T23:59:59Z')
+		max: new Date('2025-12-31T23:59:59Z'),
+		noInvalidDate: true
 	})
 	.map((d) => d.getTime());
 
