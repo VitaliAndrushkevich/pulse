@@ -240,7 +240,7 @@
     }
 
     // include skip_tls_verify for HTTP-family monitors (disable certificate verification)
-    if ((type === 'http' || type === 'http3' || type === 'quic') && skipTLSVerify) {
+    if ((type === 'http' || type === 'http3' || type === 'quic' || type === 'websocket') && skipTLSVerify) {
       settings.skip_tls_verify = true;
     }
 
@@ -558,6 +558,13 @@
         data-testid="input-handshake-message"
       />
       <p class="mt-1 text-xs text-secondary">{t('monitors.form.handshakeMessageHelp')}</p>
+    </div>
+    <div class="mt-2">
+      <label class="inline-flex items-center gap-2 text-sm text-slate-700">
+        <input id="ws-skip-tls-verify" type="checkbox" bind:checked={skipTLSVerify} class="h-4 w-4" data-testid="input-ws-skip-tls-verify" />
+        <span>{t('monitors.form.skipTlsVerify')}</span>
+      </label>
+      <p class="mt-1 text-xs text-slate-500">{t('monitors.form.skipTlsVerifyHelp')}</p>
     </div>
   {/if}
 
