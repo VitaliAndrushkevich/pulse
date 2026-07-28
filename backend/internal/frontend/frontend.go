@@ -9,7 +9,7 @@ import (
 	"io/fs"
 )
 
-//go:embed dist/*
+//go:embed all:dist
 var FS embed.FS
 
 // HasAssets reports whether the embedded filesystem contains actual frontend
