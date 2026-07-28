@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -53,6 +54,13 @@ func (w *WebSocketChecker) check(ctx context.Context, target string, settings js
 		header.Set(key, value)
 	}
 
+	// Auto-set Origin header if not explicitly provided (browsers always send it).
+	if header.Get("Origin") == "" {
+		if origin := websocketOrigin(target); origin != "" {
+			header.Set("Origin", origin)
+		}
+	}
+
 	// Inject auth credential headers into the upgrade request.
 	for _, cred := range creds {
 		switch cred.AuthType {
@@ -77,13 +85,21 @@ func (w *WebSocketChecker) check(ctx context.Context, target string, settings js
 	}
 
 	start := time.Now()
-	conn, _, err := dialer.DialContext(ctx, target, header)
+	conn, resp, err := dialer.DialContext(ctx, target, header)
 	latency := time.Since(start)
 	result.LatencyMs = int32(latency.Milliseconds())
 
+	if resp != nil && resp.Body != nil {
+		resp.Body.Close()
+	}
+
 	if err != nil {
 		result.State = "down"
-		result.Error = fmt.Sprintf("websocket dial: %v", err)
+		if resp != nil {
+			result.Error = fmt.Sprintf("websocket dial: %v (HTTP %d)", err, resp.StatusCode)
+		} else {
+			result.Error = fmt.Sprintf("websocket dial: %v", err)
+		}
 		return result
 	}
 	defer conn.Close()
@@ -136,4 +152,17 @@ func deadlineFromContext(ctx context.Context) time.Time {
 		return deadline
 	}
 	return time.Now().Add(30 * time.Second)
+}
+
+// websocketOrigin derives an Origin header value from a ws:// or wss:// target URL.
+// Browsers always send Origin on WebSocket upgrades; many servers require it.
+func websocketOrigin(target string) string {
+	switch {
+	case len(target) > 6 && strings.EqualFold(target[:6], "wss://"):
+		return "https://" + strings.SplitN(target[6:], "/", 2)[0]
+	case len(target) > 5 && strings.EqualFold(target[:5], "ws://"):
+		return "http://" + strings.SplitN(target[5:], "/", 2)[0]
+	default:
+		return ""
+	}
 }
