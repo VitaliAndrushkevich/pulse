@@ -10,14 +10,46 @@
   let chartContainer: HTMLElement;
   let chart: uPlot | null = null;
 
-  function buildChartData(points: HistoryPoint[]): uPlot.AlignedData {
-    // Filter out points with null latency and sort by time ascending
-    const valid = points
-      .filter((p): p is HistoryPoint & { latency_ms: number } => p.latency_ms !== null)
-      .sort((a, b) => new Date(a.checked_at).getTime() - new Date(b.checked_at).getTime());
+  function computeGapThreshold(timestamps: number[]): number {
+    if (timestamps.length < 2) return Infinity;
+    const intervals: number[] = [];
+    for (let i = 1; i < timestamps.length; i++) {
+      intervals.push(timestamps[i] - timestamps[i - 1]);
+    }
+    intervals.sort((a, b) => a - b);
+    const median = intervals[Math.floor(intervals.length / 2)];
+    return median * 3;
+  }
 
-    const timestamps = valid.map((p) => Math.floor(new Date(p.checked_at).getTime() / 1000));
-    const latencies = valid.map((p) => p.latency_ms);
+  function buildChartData(points: HistoryPoint[]): uPlot.AlignedData {
+    // Sort by time ascending
+    const sorted = [...points].sort(
+      (a, b) => new Date(a.checked_at).getTime() - new Date(b.checked_at).getTime()
+    );
+
+    // First pass: collect raw timestamps for gap detection
+    const rawTimestamps = sorted.map((p) => Math.floor(new Date(p.checked_at).getTime() / 1000));
+    const gapThreshold = computeGapThreshold(rawTimestamps);
+
+    const timestamps: number[] = [];
+    const latencies: (number | null)[] = [];
+
+    for (let i = 0; i < sorted.length; i++) {
+      const p = sorted[i];
+
+      // Insert a null gap-breaker if there's a large time gap
+      if (i > 0) {
+        const gap = rawTimestamps[i] - rawTimestamps[i - 1];
+        if (gap > gapThreshold) {
+          timestamps.push(rawTimestamps[i - 1] + 1);
+          latencies.push(null);
+        }
+      }
+
+      timestamps.push(rawTimestamps[i]);
+      // Don't show latency for failed checks — it's just the timeout value
+      latencies.push(p.state === 'up' ? p.latency_ms : null);
+    }
 
     return [timestamps, latencies];
   }
@@ -27,8 +59,11 @@
 
     const chartData = buildChartData(data);
 
-    // Don't render if all points had null latency
+    // Don't render if there are no data points at all
     if (chartData[0].length === 0) return;
+
+    // If all latency values are null (all checks failed), still render
+    // the chart with axes — it provides temporal context
 
     const width = chartContainer.clientWidth || 600;
 
@@ -47,6 +82,7 @@
           stroke: '#3b82f6',
           width: 2,
           fill: 'rgba(59, 130, 246, 0.1)',
+          spanGaps: false,
           value: (_u: uPlot, val: number | null) => val == null ? '--' : formatLatency(val)
         }
       ],

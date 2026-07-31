@@ -51,19 +51,52 @@
   // Chart data builders
   // ---------------------------------------------------------------------------
 
+  /**
+   * Compute the gap threshold: if the interval between two consecutive points
+   * exceeds 3x the median interval, we treat it as a gap (monitor paused, etc.)
+   */
+  function computeGapThreshold(timestamps: number[]): number {
+    if (timestamps.length < 2) return Infinity;
+    const intervals: number[] = [];
+    for (let i = 1; i < timestamps.length; i++) {
+      intervals.push(timestamps[i] - timestamps[i - 1]);
+    }
+    intervals.sort((a, b) => a - b);
+    const median = intervals[Math.floor(intervals.length / 2)];
+    return median * 3;
+  }
+
   function buildRawData(pts: HistoryPoint[]): uPlot.AlignedData {
     const sorted = [...pts].sort(
       (a, b) => new Date(a.checked_at).getTime() - new Date(b.checked_at).getTime()
     );
+
+    // First pass: collect raw timestamps for gap detection
+    const rawTimestamps = sorted.map((p) => Math.floor(new Date(p.checked_at).getTime() / 1000));
+    const gapThreshold = computeGapThreshold(rawTimestamps);
 
     const timestamps: number[] = [];
     const latencies: (number | null)[] = [];
     // State encoded: 1=up, 0=down, 0.5=unknown
     const states: (number | null)[] = [];
 
-    for (const p of sorted) {
-      timestamps.push(Math.floor(new Date(p.checked_at).getTime() / 1000));
-      latencies.push(p.latency_ms);
+    for (let i = 0; i < sorted.length; i++) {
+      const p = sorted[i];
+
+      // Insert a null gap-breaker point if there's a large time gap
+      if (i > 0) {
+        const gap = rawTimestamps[i] - rawTimestamps[i - 1];
+        if (gap > gapThreshold) {
+          // Insert a synthetic null point 1s after the previous point to break the line
+          timestamps.push(rawTimestamps[i - 1] + 1);
+          latencies.push(null);
+          states.push(null);
+        }
+      }
+
+      timestamps.push(rawTimestamps[i]);
+      // Don't show latency for failed checks — it's just the timeout duration
+      latencies.push(p.state === 'up' ? p.latency_ms : null);
       states.push(p.state === 'up' ? 1 : p.state === 'down' ? 0 : 0.5);
     }
 
@@ -75,6 +108,10 @@
       (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
     );
 
+    // First pass: collect raw timestamps for gap detection
+    const rawTimestamps = sorted.map((p) => Math.floor(new Date(p.timestamp).getTime() / 1000));
+    const gapThreshold = computeGapThreshold(rawTimestamps);
+
     const timestamps: number[] = [];
     const avgLatencies: (number | null)[] = [];
     const minLatencies: (number | null)[] = [];
@@ -82,11 +119,25 @@
     // State from uptime_ratio: >= 0.5 = up, < 0.5 = down
     const states: (number | null)[] = [];
 
-    for (const p of sorted) {
-      timestamps.push(Math.floor(new Date(p.timestamp).getTime() / 1000));
-      avgLatencies.push(p.avg_latency_ms);
+    for (let i = 0; i < sorted.length; i++) {
+      const p = sorted[i];
+
+      // Insert a null gap-breaker point if there's a large time gap
+      if (i > 0) {
+        const gap = rawTimestamps[i] - rawTimestamps[i - 1];
+        if (gap > gapThreshold) {
+          timestamps.push(rawTimestamps[i - 1] + 1);
+          minLatencies.push(null);
+          maxLatencies.push(null);
+          avgLatencies.push(null);
+          states.push(null);
+        }
+      }
+
+      timestamps.push(rawTimestamps[i]);
       minLatencies.push(p.min_latency_ms);
       maxLatencies.push(p.max_latency_ms);
+      avgLatencies.push(p.avg_latency_ms);
       states.push(p.uptime_ratio >= 0.5 ? 1 : 0);
     }
 
@@ -131,13 +182,19 @@
             ctx.save();
 
             for (let i = 0; i < xData.length - 1; i++) {
-              const x0 = u.valToPos(xData[i], 'x', true);
-              const x1 = u.valToPos(xData[i + 1], 'x', true);
               const val = data[i];
 
-              if (val === null || val === undefined) {
-                ctx.fillStyle = '#9ca3af'; // gray
-              } else if (val >= 0.9) {
+              // Skip gap-breaker null points — don't paint the band during gaps
+              if (val === null || val === undefined) continue;
+
+              const nextVal = data[i + 1];
+              // If the next point is a gap-breaker, don't extend the band into the gap
+              if (nextVal === null || nextVal === undefined) continue;
+
+              const x0 = u.valToPos(xData[i], 'x', true);
+              const x1 = u.valToPos(xData[i + 1], 'x', true);
+
+              if (val >= 0.9) {
                 ctx.fillStyle = '#10b981'; // green (up)
               } else if (val <= 0.1) {
                 ctx.fillStyle = '#ef4444'; // red (down)
@@ -230,6 +287,7 @@
           stroke: 'rgba(59, 130, 246, 0.3)',
           width: 1,
           fill: 'rgba(59, 130, 246, 0.05)',
+          spanGaps: false,
           value: (_u: uPlot, val: number | null) => val == null ? '--' : formatLatency(val)
         },
         {
@@ -237,12 +295,14 @@
           stroke: 'rgba(59, 130, 246, 0.3)',
           width: 1,
           fill: 'rgba(59, 130, 246, 0.05)',
+          spanGaps: false,
           value: (_u: uPlot, val: number | null) => val == null ? '--' : formatLatency(val)
         },
         {
           label: 'Avg',
           stroke: '#3b82f6',
           width: 2,
+          spanGaps: false,
           value: (_u: uPlot, val: number | null) => val == null ? '--' : formatLatency(val)
         },
         {
@@ -260,6 +320,7 @@
           stroke: '#3b82f6',
           width: 2,
           fill: 'rgba(59, 130, 246, 0.1)',
+          spanGaps: false,
           value: (_u: uPlot, val: number | null) => val == null ? '--' : formatLatency(val)
         },
         {
