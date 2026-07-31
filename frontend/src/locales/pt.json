@@ -97,6 +97,16 @@
     },
     "loading": "Carregando monitores…",
     "error": "Falha ao carregar monitores",
+    "fleetHealth": {
+      "title": "Estado da frota",
+      "downSummary": "{down}/{total} inativos",
+      "allUp": "Todos os monitores ativos"
+    },
+    "insights": {
+      "tabLatency": "Tempo de resposta",
+      "tabSSL": "Expiração SSL",
+      "tabEvents": "Eventos recentes"
+    },
     "healthScore": {
       "title": "Pontuação de saúde",
       "noData": "Sem dados disponíveis",
@@ -131,7 +141,12 @@
     },
     "freshness": {
       "label": "Última atualização:",
-      "stale": "Os dados podem estar desatualizados"
+      "stale": "Os dados podem estar desatualizados",
+      "justNow": "agora mesmo",
+      "secondsAgo": "há {count}s",
+      "minutesAgo": "há {count}m",
+      "hoursAgo": "há {count}h",
+      "daysAgo": "há {count}d"
     },
     "events": {
       "title": "Eventos recentes",

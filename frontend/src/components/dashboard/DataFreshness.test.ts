@@ -3,13 +3,24 @@ import { render, screen } from '@testing-library/svelte';
 import DataFreshness, { formatRelativeTime } from './DataFreshness.svelte';
 
 vi.mock('$lib/i18n', () => ({
-  t: (key: string) => {
+  t: (key: string, params?: Record<string, string>) => {
     const translations: Record<string, string> = {
       'dashboard.freshness.label': 'Last updated:',
       'dashboard.freshness.stale': 'Data may be stale',
+      'dashboard.freshness.justNow': 'just now',
+      'dashboard.freshness.secondsAgo': '{count}s ago',
+      'dashboard.freshness.minutesAgo': '{count}m ago',
+      'dashboard.freshness.hoursAgo': '{count}h ago',
+      'dashboard.freshness.daysAgo': '{count}d ago',
       'common.never': 'Never',
     };
-    return translations[key] ?? key;
+    let value = translations[key] ?? key;
+    if (params) {
+      for (const [k, v] of Object.entries(params)) {
+        value = value.replace(`{${k}}`, v);
+      }
+    }
+    return value;
   },
 }));
 

@@ -97,6 +97,16 @@
     },
     "loading": "Chargement des moniteurs…",
     "error": "Échec du chargement des moniteurs",
+    "fleetHealth": {
+      "title": "Santé de la flotte",
+      "downSummary": "{down}/{total} en panne",
+      "allUp": "Tous les moniteurs opérationnels"
+    },
+    "insights": {
+      "tabLatency": "Temps de réponse",
+      "tabSSL": "Expiration SSL",
+      "tabEvents": "Événements récents"
+    },
     "healthScore": {
       "title": "Score de santé",
       "noData": "Aucune donnée disponible",
@@ -131,7 +141,12 @@
     },
     "freshness": {
       "label": "Dernière mise à jour :",
-      "stale": "Les données peuvent être obsolètes"
+      "stale": "Les données peuvent être obsolètes",
+      "justNow": "à l'instant",
+      "secondsAgo": "il y a {count}s",
+      "minutesAgo": "il y a {count}m",
+      "hoursAgo": "il y a {count}h",
+      "daysAgo": "il y a {count}j"
     },
     "events": {
       "title": "Événements récents",

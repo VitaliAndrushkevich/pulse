@@ -97,6 +97,16 @@
     },
     "loading": "Загрузка мониторов…",
     "error": "Не удалось загрузить мониторы",
+    "fleetHealth": {
+      "title": "Состояние парка",
+      "downSummary": "{down}/{total} недоступно",
+      "allUp": "Все мониторы работают"
+    },
+    "insights": {
+      "tabLatency": "Время отклика",
+      "tabSSL": "Истечение SSL",
+      "tabEvents": "Последние события"
+    },
     "healthScore": {
       "title": "Здоровье",
       "noData": "Нет данных",
@@ -131,7 +141,12 @@
     },
     "freshness": {
       "label": "Обновлено:",
-      "stale": "Данные могут быть устаревшими"
+      "stale": "Данные могут быть устаревшими",
+      "justNow": "только что",
+      "secondsAgo": "{count} с назад",
+      "minutesAgo": "{count} мин назад",
+      "hoursAgo": "{count} ч назад",
+      "daysAgo": "{count} дн назад"
     },
     "events": {
       "title": "Последние события",

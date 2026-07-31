@@ -97,6 +97,16 @@
     },
     "loading": "加载监控器…",
     "error": "监控器加载失败",
+    "fleetHealth": {
+      "title": "整体状态",
+      "downSummary": "{down}/{total} 已宕机",
+      "allUp": "所有监控正常"
+    },
+    "insights": {
+      "tabLatency": "响应时间",
+      "tabSSL": "SSL到期",
+      "tabEvents": "最近事件"
+    },
     "healthScore": {
       "title": "健康分数",
       "noData": "暂无数据",
@@ -131,7 +141,12 @@
     },
     "freshness": {
       "label": "最后更新：",
-      "stale": "数据可能已过期"
+      "stale": "数据可能已过期",
+      "justNow": "刚刚",
+      "secondsAgo": "{count}秒前",
+      "minutesAgo": "{count}分钟前",
+      "hoursAgo": "{count}小时前",
+      "daysAgo": "{count}天前"
     },
     "events": {
       "title": "最近事件",

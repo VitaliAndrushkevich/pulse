@@ -97,6 +97,16 @@
     },
     "loading": "Monitörler yükleniyor…",
     "error": "Monitörler yüklenemedi",
+    "fleetHealth": {
+      "title": "Filo Durumu",
+      "downSummary": "{down}/{total} çalışmıyor",
+      "allUp": "Tüm monitörler çalışıyor"
+    },
+    "insights": {
+      "tabLatency": "Yanıt Süresi",
+      "tabSSL": "SSL Sona Erme",
+      "tabEvents": "Son Olaylar"
+    },
     "healthScore": {
       "title": "Sağlık Puanı",
       "noData": "Veri yok",
@@ -131,7 +141,12 @@
     },
     "freshness": {
       "label": "Son güncelleme:",
-      "stale": "Veriler güncel olmayabilir"
+      "stale": "Veriler güncel olmayabilir",
+      "justNow": "az önce",
+      "secondsAgo": "{count}sn önce",
+      "minutesAgo": "{count}dk önce",
+      "hoursAgo": "{count}sa önce",
+      "daysAgo": "{count}g önce"
     },
     "events": {
       "title": "Son Olaylar",

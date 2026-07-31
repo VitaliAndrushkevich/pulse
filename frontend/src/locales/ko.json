@@ -97,6 +97,16 @@
     },
     "loading": "모니터 로딩 중…",
     "error": "모니터 로딩 실패",
+    "fleetHealth": {
+      "title": "전체 상태",
+      "downSummary": "{down}/{total} 다운",
+      "allUp": "모든 모니터 정상"
+    },
+    "insights": {
+      "tabLatency": "응답 시간",
+      "tabSSL": "SSL 만료",
+      "tabEvents": "최근 이벤트"
+    },
     "healthScore": {
       "title": "건강 점수",
       "noData": "데이터 없음",
@@ -131,7 +141,12 @@
     },
     "freshness": {
       "label": "마지막 업데이트:",
-      "stale": "데이터가 오래되었을 수 있습니다"
+      "stale": "데이터가 오래되었을 수 있습니다",
+      "justNow": "방금",
+      "secondsAgo": "{count}초 전",
+      "minutesAgo": "{count}분 전",
+      "hoursAgo": "{count}시간 전",
+      "daysAgo": "{count}일 전"
     },
     "events": {
       "title": "최근 이벤트",

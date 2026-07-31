@@ -97,6 +97,16 @@
     },
     "loading": "モニターを読み込み中…",
     "error": "モニターの読み込みに失敗しました",
+    "fleetHealth": {
+      "title": "フリート状態",
+      "downSummary": "{down}/{total} ダウン",
+      "allUp": "全モニター稼働中"
+    },
+    "insights": {
+      "tabLatency": "応答時間",
+      "tabSSL": "SSL有効期限",
+      "tabEvents": "最近のイベント"
+    },
     "healthScore": {
       "title": "ヘルススコア",
       "noData": "データなし",
@@ -131,7 +141,12 @@
     },
     "freshness": {
       "label": "最終更新：",
-      "stale": "データが古い可能性があります"
+      "stale": "データが古い可能性があります",
+      "justNow": "たった今",
+      "secondsAgo": "{count}秒前",
+      "minutesAgo": "{count}分前",
+      "hoursAgo": "{count}時間前",
+      "daysAgo": "{count}日前"
     },
     "events": {
       "title": "最近のイベント",

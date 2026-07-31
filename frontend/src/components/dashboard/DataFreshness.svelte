@@ -1,10 +1,37 @@
 <script lang="ts" module>
   /**
-   * Formats a Date as a human-readable relative time string.
+   * Computes a relative time descriptor for a given Date.
    *
+   * Returns a key/params pair suitable for the `t()` function.
    * Exported for property-based testing (Property 18).
    *
    * Validates: Requirements 9.3
+   */
+  export interface RelativeTimeResult {
+    key: string;
+    params?: Record<string, string>;
+  }
+
+  export function computeRelativeTime(date: Date, now: Date = new Date()): RelativeTimeResult {
+    const diffMs = now.getTime() - date.getTime();
+    const diffSec = Math.max(0, Math.floor(diffMs / 1000));
+
+    if (diffSec < 5) return { key: 'dashboard.freshness.justNow' };
+    if (diffSec < 60) return { key: 'dashboard.freshness.secondsAgo', params: { count: String(diffSec) } };
+
+    const diffMin = Math.floor(diffSec / 60);
+    if (diffMin < 60) return { key: 'dashboard.freshness.minutesAgo', params: { count: String(diffMin) } };
+
+    const diffHour = Math.floor(diffMin / 60);
+    if (diffHour < 24) return { key: 'dashboard.freshness.hoursAgo', params: { count: String(diffHour) } };
+
+    const diffDay = Math.floor(diffHour / 24);
+    return { key: 'dashboard.freshness.daysAgo', params: { count: String(diffDay) } };
+  }
+
+  /**
+   * Legacy helper — returns a formatted string for backwards compatibility with tests.
+   * @deprecated Use computeRelativeTime + t() for localized output.
    */
   export function formatRelativeTime(date: Date, now: Date = new Date()): string {
     const diffMs = now.getTime() - date.getTime();
@@ -44,7 +71,8 @@
 
   function updateRelativeTime(): void {
     if (lastUpdated) {
-      relativeTime = formatRelativeTime(lastUpdated);
+      const result = computeRelativeTime(lastUpdated);
+      relativeTime = t(result.key, result.params);
     }
   }
 

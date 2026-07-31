@@ -97,6 +97,16 @@
     },
     "loading": "Загрузка маніторaў…",
     "error": "Не ўдалося загрузіць маніторы",
+    "fleetHealth": {
+      "title": "Стан парку",
+      "downSummary": "{down}/{total} недаступна",
+      "allUp": "Усе маніторы працуюць"
+    },
+    "insights": {
+      "tabLatency": "Час адказу",
+      "tabSSL": "Заканчэнне SSL",
+      "tabEvents": "Апошнія падзеі"
+    },
     "healthScore": {
       "title": "Паказчык здароўя",
       "noData": "Няма дадзеных",
@@ -131,7 +141,12 @@
     },
     "freshness": {
       "label": "Апошняе абнаўленне:",
-      "stale": "Дадзеныя могуць быць састарэлымі"
+      "stale": "Дадзеныя могуць быць састарэлымі",
+      "justNow": "толькі што",
+      "secondsAgo": "{count} с таму",
+      "minutesAgo": "{count} хв таму",
+      "hoursAgo": "{count} г таму",
+      "daysAgo": "{count} дн таму"
     },
     "events": {
       "title": "Апошнія падзеі",

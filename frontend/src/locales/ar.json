@@ -97,6 +97,16 @@
     },
     "loading": "جارٍ تحميل المراقبات…",
     "error": "فشل تحميل المراقبات",
+    "fleetHealth": {
+      "title": "صحة الأسطول",
+      "downSummary": "{down}/{total} معطل",
+      "allUp": "جميع المراقبات تعمل"
+    },
+    "insights": {
+      "tabLatency": "وقت الاستجابة",
+      "tabSSL": "انتهاء SSL",
+      "tabEvents": "الأحداث الأخيرة"
+    },
     "healthScore": {
       "title": "مؤشر السلامة",
       "noData": "لا تتوفر بيانات",
@@ -131,7 +141,12 @@
     },
     "freshness": {
       "label": "آخر تحديث:",
-      "stale": "قد تكون البيانات قديمة"
+      "stale": "قد تكون البيانات قديمة",
+      "justNow": "الآن",
+      "secondsAgo": "منذ {count} ث",
+      "minutesAgo": "منذ {count} د",
+      "hoursAgo": "منذ {count} س",
+      "daysAgo": "منذ {count} ي"
     },
     "events": {
       "title": "الأحداث الأخيرة",
