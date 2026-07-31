@@ -181,7 +181,6 @@
       "tabs": {
         "overview": "Обзор",
         "history": "История",
-        "notifications": "Уведомления",
         "notifications": "Уведомления"
       },
       "checkInterval": "Проверка каждые {seconds} с",
@@ -361,6 +360,16 @@
       "createLabel": "Имя токена",
       "createPlaceholder": "например ci-deploy, grafana-read",
       "createButton": "Создать токен",
+      "expirationLabel": "Expires",
+      "expiration": {
+        "7days": "7 days",
+        "30days": "30 days",
+        "60days": "60 days",
+        "90days": "90 days",
+        "1year": "1 year",
+        "custom": "Custom...",
+        "customLabel": "Expiration date and time"
+      },
       "existingTitle": "Существующие токены",
       "existingDescription": "Значения токенов не отображаются после создания. Показаны только метаданные.",
       "loadingTokens": "Загрузка токенов…",
@@ -375,11 +384,15 @@
       "revoke": "Отозвать",
       "revoked": "Отозван",
       "expired": "Истёк",
+      "delete": "Delete",
+      "deleteConfirm": "Are you sure? This permanently removes the token.",
       "errors": {
         "networkList": "Не удалось подключиться к серверу. Проверьте сетевое соединение.",
         "unexpectedList": "Произошла непредвиденная ошибка при загрузке токенов.",
         "networkCreate": "Не удалось подключиться к серверу. Попробуйте ещё раз.",
-        "unexpectedCreate": "Произошла непредвиденная ошибка. Попробуйте ещё раз."
+        "unexpectedCreate": "Произошла непредвиденная ошибка. Попробуйте ещё раз.",
+        "customDateRequired": "Please select an expiration date.",
+        "dateMustBeFuture": "Expiration date must be in the future."
       }
     }
   },

@@ -528,6 +528,11 @@ export async function revokeApiToken(id: string): Promise<ApiToken> {
   return apiRequest<ApiToken>('DELETE', `/tokens/${id}`);
 }
 
+/** DELETE /api/v1/tokens/:id?permanent=true (permanent deletion) */
+export async function deleteApiToken(id: string): Promise<{ deleted: boolean; id: string }> {
+  return apiRequest<{ deleted: boolean; id: string }>('DELETE', `/tokens/${id}?permanent=true`);
+}
+
 // ---------------------------------------------------------------------------
 // Proto Source Management
 // ---------------------------------------------------------------------------

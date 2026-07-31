@@ -34,6 +34,11 @@ WHERE id = $1
   AND user_id = $2
 RETURNING *;
 
+-- name: DeleteAPIToken :exec
+DELETE FROM api_tokens
+WHERE id = $1
+  AND user_id = $2;
+
 -- name: TouchAPIToken :exec
 UPDATE api_tokens
 SET last_used_at = now()

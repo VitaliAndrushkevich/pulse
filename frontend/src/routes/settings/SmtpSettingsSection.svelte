@@ -195,15 +195,7 @@
   });
 </script>
 
-<section class="space-y-6">
-  <!-- Section header -->
-  <div>
-    <h2 class="text-lg font-medium text-[var(--color-text-primary)]">{t('notifications.smtpSettings.title')}</h2>
-    <p class="mt-1 text-sm text-[var(--color-text-secondary)]">
-      {t('notifications.smtpSettings.description')}
-    </p>
-  </div>
-
+<div class="space-y-6">
   {#if loading}
     <div class="flex items-center gap-2 text-sm text-[var(--color-text-secondary)]">
       <svg class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
@@ -230,8 +222,7 @@
       </div>
     {/if}
 
-    <!-- SMTP Form -->
-    <form onsubmit={handleSave} class="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-surface)] p-6 shadow-sm">
+    <form onsubmit={handleSave} class="space-y-4">
       <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <!-- Host -->
         <div class="sm:col-span-2">
@@ -433,4 +424,4 @@
       </div>
     {/if}
   {/if}
-</section>
+</div>

@@ -73,20 +73,12 @@
   }
 </script>
 
-<section class="space-y-6">
-  <!-- Section header -->
-  <div>
-    <h2 class="text-lg font-medium text-[var(--color-text-primary)]">{t('settings.password.title')}</h2>
-    <p class="mt-1 text-sm text-[var(--color-text-secondary)]">
-      {t('settings.password.description')}
-    </p>
-  </div>
-
-  <form onsubmit={handleSubmit} class="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-surface)] p-6 shadow-sm">
+<div class="space-y-6">
+  <form onsubmit={handleSubmit} class="space-y-4">
     <!-- Inline error above form -->
     {#if error}
       <div
-        class="mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+        class="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
         role="alert"
       >
         {error}
@@ -164,4 +156,4 @@
       </button>
     </div>
   </form>
-</section>
+</div>

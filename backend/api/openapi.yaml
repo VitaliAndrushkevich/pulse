@@ -841,17 +841,30 @@ paths:
   /tokens/{id}:
     delete:
       operationId: revokeToken
-      summary: Revoke an API token
+      summary: Revoke or permanently delete an API token
+      description: >
+        By default, sets `revoked_at` on the token (soft revoke, idempotent).
+        With `?permanent=true`, permanently deletes the token row from the database.
+        Permanent deletion cannot be undone.
       tags: [Tokens]
       parameters:
         - $ref: "#/components/parameters/TokenID"
+        - name: permanent
+          in: query
+          required: false
+          description: When "true", permanently deletes the token instead of revoking it.
+          schema:
+            type: string
+            enum: ["true"]
       responses:
         "200":
-          description: Token revoked
+          description: Token revoked or deleted
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Token"
+                oneOf:
+                  - $ref: "#/components/schemas/Token"
+                  - $ref: "#/components/schemas/TokenDeletedResponse"
         "404":
           $ref: "#/components/responses/NotFound"
 
@@ -1915,6 +1928,17 @@ components:
         created_at:
           type: string
           format: date-time
+
+    TokenDeletedResponse:
+      type: object
+      required: [deleted, id]
+      properties:
+        deleted:
+          type: boolean
+          description: Always true when token was permanently deleted
+        id:
+          type: string
+          format: uuid
 
     CreateTokenRequest:
       type: object

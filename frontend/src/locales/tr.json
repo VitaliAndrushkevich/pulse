@@ -360,6 +360,16 @@
       "createLabel": "Token adı",
       "createPlaceholder": "ör. ci-deploy, grafana-read",
       "createButton": "Token Oluştur",
+      "expirationLabel": "Expires",
+      "expiration": {
+        "7days": "7 days",
+        "30days": "30 days",
+        "60days": "60 days",
+        "90days": "90 days",
+        "1year": "1 year",
+        "custom": "Custom...",
+        "customLabel": "Expiration date and time"
+      },
       "existingTitle": "Mevcut Token'lar",
       "existingDescription": "Token değerleri oluşturulduktan sonra gösterilmez. Yalnızca meta veriler görüntülenir.",
       "loadingTokens": "Token'lar yükleniyor…",
@@ -374,11 +384,15 @@
       "revoke": "İptal Et",
       "revoked": "İptal Edildi",
       "expired": "Süresi Doldu",
+      "delete": "Delete",
+      "deleteConfirm": "Are you sure? This permanently removes the token.",
       "errors": {
         "networkList": "Sunucuya bağlanılamıyor. Ağ bağlantınızı kontrol edin.",
         "unexpectedList": "Token'lar yüklenirken beklenmeyen bir hata oluştu.",
         "networkCreate": "Sunucuya bağlanılamıyor. Lütfen tekrar deneyin.",
-        "unexpectedCreate": "Beklenmeyen bir hata oluştu. Lütfen tekrar deneyin."
+        "unexpectedCreate": "Beklenmeyen bir hata oluştu. Lütfen tekrar deneyin.",
+        "customDateRequired": "Please select an expiration date.",
+        "dateMustBeFuture": "Expiration date must be in the future."
       }
     }
   },

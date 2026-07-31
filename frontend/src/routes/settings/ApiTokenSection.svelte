@@ -4,6 +4,7 @@
     listApiTokens,
     createApiToken,
     revokeApiToken,
+    deleteApiToken,
     ApiRequestError,
     NetworkError,
   } from '$lib/api';
@@ -18,6 +19,8 @@
 
   // Create form state
   let tokenName = $state('');
+  let tokenExpiration = $state('never');
+  let customExpiration = $state('');
   let creating = $state(false);
   let createError = $state<string | null>(null);
 
@@ -27,6 +30,10 @@
 
   // Revoke state
   let revokingId = $state<string | null>(null);
+
+  // Delete state
+  let deletingId = $state<string | null>(null);
+  let confirmDeleteId = $state<string | null>(null);
 
   async function fetchTokens() {
     loading = true;
@@ -55,11 +62,35 @@
     createError = null;
 
     try {
-      const result = await createApiToken({ name: tokenName.trim() });
+      const payload: { name: string; expires_at?: string } = { name: tokenName.trim() };
+
+      if (tokenExpiration === 'custom') {
+        if (!customExpiration) {
+          createError = t('settings.tokens.errors.customDateRequired');
+          creating = false;
+          return;
+        }
+        const customDate = new Date(customExpiration);
+        if (customDate <= new Date()) {
+          createError = t('settings.tokens.errors.dateMustBeFuture');
+          creating = false;
+          return;
+        }
+        payload.expires_at = customDate.toISOString();
+      } else if (tokenExpiration !== 'never') {
+        const days = parseInt(tokenExpiration, 10);
+        const expiresAt = new Date();
+        expiresAt.setDate(expiresAt.getDate() + days);
+        payload.expires_at = expiresAt.toISOString();
+      }
+
+      const result = await createApiToken(payload);
       // Store the raw token for one-time display
       createdTokenValue = result.token;
       showModal = true;
       tokenName = '';
+      tokenExpiration = 'never';
+      customExpiration = '';
       // Refresh the tokens list
       await fetchTokens();
     } catch (err: unknown) {
@@ -92,6 +123,29 @@
       // Error toasts are handled by the API client
     } finally {
       revokingId = null;
+    }
+  }
+
+  function requestDelete(tokenId: string) {
+    confirmDeleteId = tokenId;
+  }
+
+  function cancelDelete() {
+    confirmDeleteId = null;
+  }
+
+  async function handleDelete(tokenId: string) {
+    if (deletingId) return;
+    deletingId = tokenId;
+    confirmDeleteId = null;
+
+    try {
+      await deleteApiToken(tokenId);
+      await fetchTokens();
+    } catch (err: unknown) {
+      // Error toasts are handled by the API client
+    } finally {
+      deletingId = null;
     }
   }
 
@@ -139,29 +193,61 @@
       </div>
     {/if}
 
-    <form onsubmit={handleCreateToken} class="mt-3 flex items-end gap-3">
-      <div class="flex-1">
-        <label for="token-name" class="block text-sm font-medium text-[var(--color-text-secondary)]">{t('settings.tokens.createLabel')}</label>
-        <input
-          id="token-name"
-          type="text"
-          maxlength={128}
-          bind:value={tokenName}
-          placeholder={t('settings.tokens.createPlaceholder')}
-          class="mt-1 block w-full rounded-md border border-[var(--color-border)] bg-[var(--color-bg-surface)] px-3 py-2 text-sm text-[var(--color-text-primary)] shadow-sm placeholder:text-[var(--color-text-muted)] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
-        />
+    <form onsubmit={handleCreateToken} class="mt-3 space-y-3">
+      <div class="flex items-end gap-3">
+        <div class="flex-1">
+          <label for="token-name" class="block text-sm font-medium text-[var(--color-text-secondary)]">{t('settings.tokens.createLabel')}</label>
+          <input
+            id="token-name"
+            type="text"
+            maxlength={128}
+            bind:value={tokenName}
+            placeholder={t('settings.tokens.createPlaceholder')}
+            class="mt-1 block w-full rounded-md border border-[var(--color-border)] bg-[var(--color-bg-surface)] px-3 py-2 text-sm text-[var(--color-text-primary)] shadow-sm placeholder:text-[var(--color-text-muted)] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+          />
+        </div>
+        <div class="w-40">
+          <label for="token-expiration" class="block text-sm font-medium text-[var(--color-text-secondary)]">{t('settings.tokens.expirationLabel')}</label>
+          <select
+            id="token-expiration"
+            bind:value={tokenExpiration}
+            class="mt-1 block w-full rounded-md border border-[var(--color-border)] bg-[var(--color-bg-surface)] px-3 py-2 text-sm text-[var(--color-text-primary)] shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+          >
+            <option value="never">{t('common.never')}</option>
+            <option value="7">{t('settings.tokens.expiration.7days')}</option>
+            <option value="30">{t('settings.tokens.expiration.30days')}</option>
+            <option value="60">{t('settings.tokens.expiration.60days')}</option>
+            <option value="90">{t('settings.tokens.expiration.90days')}</option>
+            <option value="365">{t('settings.tokens.expiration.1year')}</option>
+            <option value="custom">{t('settings.tokens.expiration.custom')}</option>
+          </select>
+        </div>
+        <button
+          type="submit"
+          disabled={creating || !tokenName.trim()}
+          class="rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {#if creating}
+            {t('common.creating')}
+          {:else}
+            {t('settings.tokens.createButton')}
+          {/if}
+        </button>
       </div>
-      <button
-        type="submit"
-        disabled={creating || !tokenName.trim()}
-        class="rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-      >
-        {#if creating}
-          {t('common.creating')}
-        {:else}
-          {t('settings.tokens.createButton')}
-        {/if}
-      </button>
+      {#if tokenExpiration === 'custom'}
+        <div class="flex items-end gap-3">
+          <div class="w-64">
+            <label for="token-custom-date" class="block text-sm font-medium text-[var(--color-text-secondary)]">{t('settings.tokens.expiration.customLabel')}</label>
+            <input
+              id="token-custom-date"
+              type="datetime-local"
+              bind:value={customExpiration}
+              min={new Date().toISOString().slice(0, 16)}
+              class="mt-1 block w-full rounded-md border border-[var(--color-border)] bg-[var(--color-bg-surface)] px-3 py-2 text-sm text-[var(--color-text-primary)] shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+            />
+          </div>
+        </div>
+      {/if}
     </form>
   </div>
 
@@ -238,6 +324,39 @@
                         {t('settings.tokens.revoke')}
                       {/if}
                     </button>
+                  {:else}
+                    {#if confirmDeleteId === token.id}
+                      <span class="inline-flex items-center gap-2">
+                        <button
+                          type="button"
+                          onclick={() => handleDelete(token.id)}
+                          disabled={deletingId === token.id}
+                          class="text-sm font-medium text-red-600 transition hover:text-red-800 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          {#if deletingId === token.id}
+                            {t('common.deleting')}
+                          {:else}
+                            {t('common.confirm')}
+                          {/if}
+                        </button>
+                        <button
+                          type="button"
+                          onclick={cancelDelete}
+                          class="text-sm font-medium text-[var(--color-text-secondary)] transition hover:text-[var(--color-text-primary)]"
+                        >
+                          {t('common.cancel')}
+                        </button>
+                      </span>
+                    {:else}
+                      <button
+                        type="button"
+                        onclick={() => requestDelete(token.id)}
+                        disabled={deletingId === token.id}
+                        class="text-sm font-medium text-red-600 transition hover:text-red-800 disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        {t('settings.tokens.delete')}
+                      </button>
+                    {/if}
                   {/if}
                 </td>
               </tr>

@@ -2,6 +2,7 @@
   import ApiTokenSection from './ApiTokenSection.svelte';
   import SmtpSettingsSection from './SmtpSettingsSection.svelte';
   import PasswordChangeSection from './PasswordChangeSection.svelte';
+  import CollapsibleSection from '../../components/CollapsibleSection.svelte';
   import LanguageSelector from '../../components/LanguageSelector.svelte';
   import { t } from '$lib/i18n/locale.svelte';
 </script>
@@ -23,7 +24,11 @@
 
   <ApiTokenSection />
 
-  <SmtpSettingsSection />
+  <CollapsibleSection title={t('notifications.smtpSettings.title')} description={t('notifications.smtpSettings.description')}>
+    <SmtpSettingsSection />
+  </CollapsibleSection>
 
-  <PasswordChangeSection />
+  <CollapsibleSection title={t('settings.password.title')} description={t('settings.password.description')}>
+    <PasswordChangeSection />
+  </CollapsibleSection>
 </div>

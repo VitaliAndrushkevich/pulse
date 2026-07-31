@@ -360,6 +360,16 @@
       "createLabel": "Nom du token",
       "createPlaceholder": "ex. ci-deploy, grafana-read",
       "createButton": "Créer le token",
+      "expirationLabel": "Expires",
+      "expiration": {
+        "7days": "7 days",
+        "30days": "30 days",
+        "60days": "60 days",
+        "90days": "90 days",
+        "1year": "1 year",
+        "custom": "Custom...",
+        "customLabel": "Expiration date and time"
+      },
       "existingTitle": "Tokens existants",
       "existingDescription": "Les valeurs des tokens ne sont plus affichées après la création. Seules les métadonnées sont visibles.",
       "loadingTokens": "Chargement des tokens…",
@@ -374,11 +384,15 @@
       "revoke": "Révoquer",
       "revoked": "Révoqué",
       "expired": "Expiré",
+      "delete": "Delete",
+      "deleteConfirm": "Are you sure? This permanently removes the token.",
       "errors": {
         "networkList": "Impossible de se connecter au serveur. Vérifiez votre connexion réseau.",
         "unexpectedList": "Une erreur inattendue s'est produite lors du chargement des tokens.",
         "networkCreate": "Impossible de se connecter au serveur. Veuillez réessayer.",
-        "unexpectedCreate": "Une erreur inattendue s'est produite. Veuillez réessayer."
+        "unexpectedCreate": "Une erreur inattendue s'est produite. Veuillez réessayer.",
+        "customDateRequired": "Please select an expiration date.",
+        "dateMustBeFuture": "Expiration date must be in the future."
       }
     }
   },

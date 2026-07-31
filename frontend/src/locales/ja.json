@@ -360,6 +360,16 @@
       "createLabel": "トークン名",
       "createPlaceholder": "例：ci-deploy, grafana-read",
       "createButton": "トークンを作成",
+      "expirationLabel": "Expires",
+      "expiration": {
+        "7days": "7 days",
+        "30days": "30 days",
+        "60days": "60 days",
+        "90days": "90 days",
+        "1year": "1 year",
+        "custom": "Custom...",
+        "customLabel": "Expiration date and time"
+      },
       "existingTitle": "既存のトークン",
       "existingDescription": "トークンの値は作成後に表示されません。メタデータのみが表示されます。",
       "loadingTokens": "トークンを読み込み中…",
@@ -374,11 +384,15 @@
       "revoke": "取り消し",
       "revoked": "取り消し済み",
       "expired": "期限切れ",
+      "delete": "Delete",
+      "deleteConfirm": "Are you sure? This permanently removes the token.",
       "errors": {
         "networkList": "サーバーに接続できません。ネットワーク接続を確認してください。",
         "unexpectedList": "トークンの読み込み中に予期しないエラーが発生しました。",
         "networkCreate": "サーバーに接続できません。もう一度お試しください。",
-        "unexpectedCreate": "予期しないエラーが発生しました。もう一度お試しください。"
+        "unexpectedCreate": "予期しないエラーが発生しました。もう一度お試しください。",
+        "customDateRequired": "Please select an expiration date.",
+        "dateMustBeFuture": "Expiration date must be in the future."
       }
     }
   },

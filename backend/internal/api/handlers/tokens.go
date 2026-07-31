@@ -202,6 +202,7 @@ func (h *TokenHandler) List(c *gin.Context) {
 }
 
 // Revoke handles DELETE /tokens/:id.
+// With ?permanent=true, the token row is permanently deleted instead of soft-revoked.
 func (h *TokenHandler) Revoke(c *gin.Context) {
 	// Validate UUID path param.
 	id, err := uuid.Parse(c.Param("id"))
@@ -215,6 +216,20 @@ func (h *TokenHandler) Revoke(c *gin.Context) {
 	userID, parseErr := uuid.Parse(userIDStr)
 	if parseErr != nil {
 		apiError(c, http.StatusUnauthorized, "UNAUTHORIZED", "invalid or missing user identity")
+		return
+	}
+
+	// Permanent deletion: DELETE FROM api_tokens WHERE id AND user_id.
+	if c.Query("permanent") == "true" {
+		dbErr := h.queries.DeleteAPIToken(c.Request.Context(), db.DeleteAPITokenParams{
+			ID:     id,
+			UserID: userID,
+		})
+		if dbErr != nil {
+			apiError(c, http.StatusNotFound, "NOT_FOUND", "token not found")
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"deleted": true, "id": id.String()})
 		return
 	}
 

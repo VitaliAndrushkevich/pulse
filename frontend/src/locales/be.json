@@ -360,6 +360,16 @@
       "createLabel": "Імя токена",
       "createPlaceholder": "напр. ci-deploy, grafana-read",
       "createButton": "Стварыць токен",
+      "expirationLabel": "Expires",
+      "expiration": {
+        "7days": "7 days",
+        "30days": "30 days",
+        "60days": "60 days",
+        "90days": "90 days",
+        "1year": "1 year",
+        "custom": "Custom...",
+        "customLabel": "Expiration date and time"
+      },
       "existingTitle": "Існуючыя токены",
       "existingDescription": "Значэнні токенаў не адлюстроўваюцца пасля стварэння. Паказаны толькі метададзеныя.",
       "loadingTokens": "Загрузка токенаў…",
@@ -374,11 +384,15 @@
       "revoke": "Адклікаць",
       "revoked": "Адкліканы",
       "expired": "Скончыўся",
+      "delete": "Delete",
+      "deleteConfirm": "Are you sure? This permanently removes the token.",
       "errors": {
         "networkList": "Не ўдалося падключыцца да сервера. Праверце сеткавае злучэнне.",
         "unexpectedList": "Адбылася нечаканая памылка пры загрузцы токенаў.",
         "networkCreate": "Не ўдалося падключыцца да сервера. Паспрабуйце яшчэ раз.",
-        "unexpectedCreate": "Адбылася нечаканая памылка. Паспрабуйце яшчэ раз."
+        "unexpectedCreate": "Адбылася нечаканая памылка. Паспрабуйце яшчэ раз.",
+        "customDateRequired": "Please select an expiration date.",
+        "dateMustBeFuture": "Expiration date must be in the future."
       }
     }
   },

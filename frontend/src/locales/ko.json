@@ -360,6 +360,16 @@
       "createLabel": "토큰 이름",
       "createPlaceholder": "예: ci-deploy, grafana-read",
       "createButton": "토큰 만들기",
+      "expirationLabel": "Expires",
+      "expiration": {
+        "7days": "7 days",
+        "30days": "30 days",
+        "60days": "60 days",
+        "90days": "90 days",
+        "1year": "1 year",
+        "custom": "Custom...",
+        "customLabel": "Expiration date and time"
+      },
       "existingTitle": "기존 토큰",
       "existingDescription": "토큰 값은 생성 후 표시되지 않습니다. 메타데이터만 표시됩니다.",
       "loadingTokens": "토큰 로딩 중…",
@@ -374,11 +384,15 @@
       "revoke": "취소",
       "revoked": "취소됨",
       "expired": "만료됨",
+      "delete": "Delete",
+      "deleteConfirm": "Are you sure? This permanently removes the token.",
       "errors": {
         "networkList": "서버에 연결할 수 없습니다. 네트워크 연결을 확인해 주세요.",
         "unexpectedList": "토큰 로딩 중 예기치 않은 오류가 발생했습니다.",
         "networkCreate": "서버에 연결할 수 없습니다. 다시 시도해 주세요.",
-        "unexpectedCreate": "예기치 않은 오류가 발생했습니다. 다시 시도해 주세요."
+        "unexpectedCreate": "예기치 않은 오류가 발생했습니다. 다시 시도해 주세요.",
+        "customDateRequired": "Please select an expiration date.",
+        "dateMustBeFuture": "Expiration date must be in the future."
       }
     }
   },

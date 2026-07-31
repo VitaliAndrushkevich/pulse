@@ -360,6 +360,16 @@
       "createLabel": "اسم الرمز",
       "createPlaceholder": "مثال: ci-deploy, grafana-read",
       "createButton": "إنشاء رمز",
+      "expirationLabel": "Expires",
+      "expiration": {
+        "7days": "7 days",
+        "30days": "30 days",
+        "60days": "60 days",
+        "90days": "90 days",
+        "1year": "1 year",
+        "custom": "Custom...",
+        "customLabel": "Expiration date and time"
+      },
       "existingTitle": "الرموز الموجودة",
       "existingDescription": "لا تُعرض قيم الرموز بعد الإنشاء. تُعرض البيانات الوصفية فقط.",
       "loadingTokens": "جارٍ تحميل الرموز…",
@@ -374,11 +384,15 @@
       "revoke": "إلغاء",
       "revoked": "ملغى",
       "expired": "منتهي الصلاحية",
+      "delete": "Delete",
+      "deleteConfirm": "Are you sure? This permanently removes the token.",
       "errors": {
         "networkList": "تعذر الاتصال بالخادم. يرجى التحقق من اتصال الشبكة.",
         "unexpectedList": "حدث خطأ غير متوقع أثناء تحميل الرموز.",
         "networkCreate": "تعذر الاتصال بالخادم. يرجى المحاولة مرة أخرى.",
-        "unexpectedCreate": "حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى."
+        "unexpectedCreate": "حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.",
+        "customDateRequired": "Please select an expiration date.",
+        "dateMustBeFuture": "Expiration date must be in the future."
       }
     }
   },
