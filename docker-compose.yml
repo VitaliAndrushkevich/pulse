@@ -1,29 +1,18 @@
-# =============================================================================
-# Pulse — Local Docker Compose
-# =============================================================================
-# Usage:
-#   docker compose up --build
-#
-# All values are hardcoded for local development — no .env file required.
-# For production, override secrets via real environment variables or a secrets
-# manager; do NOT use these placeholder values in production.
-# =============================================================================
-
 services:
   pulse:
     image: ghcr.io/vitaliandrushkevich/pulse:main
     container_name: pulse
     environment:
-      PULSE_PORT: "8080"
-      PULSE_DEV: "true"
-      PULSE_SCHEDULER_WORKERS: "50"
-      PULSE_OPENAPI_DIR: "/app/api"
-      # DEV/LOCAL ONLY — do not use in production. Generate real keys with:
+      # Generate production keys with:
       #   openssl rand -base64 32 (secret key)
       #   openssl rand -hex 32 (jwt secret)
       PULSE_SECRET_KEY: "pulse-secret-key-change-in-production"
       PULSE_JWT_SECRET: "pulse-jwt-secret-change-in-production"
-      PULSE_JWT_EXPIRY: "24h"
+      # Replace postgres credentials for production usage.
+      # Other parameters for Pulse can be found in .env.example or README.md.
+      # For storing secrets, consider using a .env file.
+      # In that case, the format can be kept like this:
+      # PULSE_SECRET_KEY: ${PULSE_SECRET_KEY:?required}
       DATABASE_URL: "postgres://pulse:pulse@postgres:5432/pulse?sslmode=disable"
     ports:
       - "8080:8080"
@@ -32,8 +21,6 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    # Distroless has no shell — cannot use CMD-SHELL healthcheck.
-    # Restart policy ensures the container recovers from crashes.
     restart: unless-stopped
 
   postgres:
@@ -42,13 +29,12 @@ services:
     environment:
       # Database name created on first start
       POSTGRES_DB: pulse
-      # Superuser credentials (override via .env for production)
       POSTGRES_USER: pulse
-      POSTGRES_PASSWORD: pulse
-    ports:
-      - "5432:5432"
+      POSTGRES_PASSWORD: pulse # Replace for production usage
+    # Ports are commented out to avoid exposing the database. Uncomment if needed.
+    # ports:
+    #   - "5432:5432"
     volumes:
-      # Named volume for persistent data across container restarts
       - pulse-postgres-data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U pulse -d pulse"]

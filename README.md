@@ -2,7 +2,7 @@
 
 Pulse is a self-hosted uptime monitoring platform. It ships as a single binary with an embedded web UI, backed by PostgreSQL and TimescaleDB for time-series storage. Designed for reliability at 500+ monitors with bounded worker pools, real-time WebSocket updates, and an API-first architecture.
 
-*It's an experiment project and should be considered as a possible alternative to another uptime monitoring solution, with its own view on some processes and implementation. In case of any questions, requests, or comments, feel free to create an issue or contact us. We are happy to make it better and more stable. Any kind of contributions and feedback are very welcome."*
+*Pulse is an independent take on uptime monitoring — built with its own perspective on architecture and workflows. If you have questions, feature requests, or feedback, feel free to open an issue or reach out. Contributions of any kind are very welcome.*
 
 > **Vibecoded with [Kiro](https://kiro.dev)** — an AI-powered IDE that turns ideas into working software through structured specs, steering files, and iterative development. Also there were some steps which were implemented with Copilot.
 
@@ -71,27 +71,24 @@ Pulse runs as a single Go process serving both the API and the frontend:
 5. **Frontend** merges patches into local state for real-time UI updates
 6. **Notification Dispatcher** evaluates trigger conditions and delivers alerts via email/webhook
 
-## Prerequisites
-
-- [Docker](https://docs.docker.com/get-docker/) (v20.10+)
-- [Docker Compose](https://docs.docker.com/compose/install/) v2
-
-That's it. The container image includes everything needed to run Pulse.
-
 ## Quick Start
 
-```bash
-# 1. Clone the repository
-git clone https://github.com/VitaliAndrushkevich/pulse.git
-cd pulse
+Grab the [`docker-compose.yml`](docker-compose.yml) and replace the placeholder secrets with real values:
 
-# 2. Configure environment
-cp .env.example .env
-# Edit .env — you MUST change PULSE_SECRET_KEY and PULSE_JWT_SECRET
+```bash
+# 1. Generate production secrets
+openssl rand -base64 32  # → use as PULSE_SECRET_KEY
+openssl rand -hex 32     # → use as PULSE_JWT_SECRET
+
+# 2. Replace placeholder values in docker-compose.yml with generated secrets
 
 # 3. Start Pulse
 docker compose up -d
 ```
+
+For a full list of available environment variables, see [`.env.example`](.env.example).
+
+> The examples use Docker Compose, but Pulse runs on any OCI-compatible runtime — Podman, nerdctl, Rancher Desktop, or Kubernetes. Adapting the compose file to these tools is straightforward; refer to their respective documentation for setup instructions.
 
 Pulse is now running at [http://localhost:8080](http://localhost:8080).
 
@@ -127,137 +124,7 @@ openssl rand -hex 32
 
 ## API Usage
 
-Pulse exposes a REST API under `/api/v1`. All endpoints return JSON with the error envelope `{ "error": { "code": "...", "message": "..." } }` on failure.
-
-### Login
-
-```bash
-curl -X POST http://localhost:8080/api/v1/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"email": "admin@example.com", "password": "your-password"}'
-```
-
-Response:
-
-```json
-{ "token": "eyJhbGciOi..." }
-```
-
-### Create a Monitor
-
-```bash
-curl -X POST http://localhost:8080/api/v1/monitors \
-  -H "Authorization: Bearer <token>" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "My API",
-    "type": "http",
-    "target": "https://api.example.com/health",
-    "interval_seconds": 60
-  }'
-```
-
-### Create a gRPC Monitor
-
-```bash
-curl -X POST http://localhost:8080/api/v1/monitors \
-  -H "Authorization: Bearer <token>" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "gRPC Health Check",
-    "type": "grpc",
-    "target": "grpc.example.com:443",
-    "interval_seconds": 30,
-    "timeout_seconds": 10,
-    "settings": {
-      "service_method": "grpc.health.v1.Health/Check",
-      "tls_mode": "tls",
-      "ssl_expiry_threshold": 30
-    }
-  }'
-```
-
-### List Monitors
-
-```bash
-curl http://localhost:8080/api/v1/monitors?page=1&limit=20 \
-  -H "Authorization: Bearer <token>"
-```
-
-### WebSocket (Real-time Updates)
-
-```bash
-# Connect with wscat or any WebSocket client
-wscat -c "ws://localhost:8080/ws?token=<jwt_token>"
-```
-
-Messages follow the envelope format:
-
-```json
-{ "type": "monitor_status", "payload": { "id": "uuid", "status": "up", "latency_ms": 42 } }
-```
-
-### Endpoints
-
-| Method | Path | Description |
-|--------|------|-------------|
-| `GET` | `/api/v1/monitors` | List monitors (paginated) |
-| `POST` | `/api/v1/monitors` | Create monitor |
-| `GET` | `/api/v1/monitors/{id}` | Get monitor details |
-| `PUT` | `/api/v1/monitors/{id}` | Create or update monitor (idempotent) |
-| `DELETE` | `/api/v1/monitors/{id}` | Delete monitor |
-| `GET` | `/api/v1/monitors/{id}/history` | Check history (TimescaleDB, 7-day window) |
-| `POST` | `/api/v1/monitors/{id}/credentials` | Create monitor credential |
-| `GET` | `/api/v1/monitors/{id}/credentials` | List monitor credentials (values redacted) |
-| `PUT` | `/api/v1/monitors/{id}/credentials/{credentialId}` | Update credential |
-| `DELETE` | `/api/v1/monitors/{id}/credentials/{credentialId}` | Delete credential |
-| `GET` | `/api/v1/incidents` | List incidents (paginated) |
-| `GET` | `/api/v1/monitors/{id}/incidents` | Per-monitor incidents |
-| `POST` | `/api/v1/secrets` | Create a secret |
-| `GET` | `/api/v1/secrets` | List secrets (values redacted) |
-| `POST` | `/api/v1/tokens` | Create API token |
-| `POST` | `/api/v1/monitors/{id}/proto-source` | Upload proto files for gRPC monitor |
-| `POST` | `/api/v1/monitors/{id}/proto-source/reflect` | Trigger Server Reflection for gRPC monitor |
-| `GET` | `/api/v1/monitors/{id}/proto-source` | Get proto source metadata |
-| `DELETE` | `/api/v1/monitors/{id}/proto-source` | Delete proto source |
-| `POST` | `/api/v1/grpc/reflect` | Ad-hoc Server Reflection (no monitor required) |
-| `POST` | `/api/v1/grpc/parse-proto` | Ad-hoc proto file parsing (no monitor required) |
-| `POST` | `/api/v1/notifications/channels` | Create notification channel |
-| `GET` | `/api/v1/notifications/channels` | List notification channels |
-| `GET` | `/api/v1/notifications/channels/{id}` | Get channel details |
-| `PUT` | `/api/v1/notifications/channels/{id}` | Update channel |
-| `DELETE` | `/api/v1/notifications/channels/{id}` | Delete channel |
-| `POST` | `/api/v1/notifications/channels/{id}/test` | Send test notification |
-| `GET` | `/api/v1/notifications/channels/{id}/delivery-logs` | Delivery log for channel |
-| `GET` | `/api/v1/notifications/template-variables` | Available template variables |
-| `GET` | `/api/v1/notifications/smtp-settings` | Get SMTP config |
-| `PUT` | `/api/v1/notifications/smtp-settings` | Create/update SMTP settings |
-| `DELETE` | `/api/v1/notifications/smtp-settings` | Remove SMTP settings |
-| `POST` | `/api/v1/notifications/smtp-settings/test` | Test SMTP connection |
-| `POST` | `/api/v1/monitors/{id}/notification-bindings` | Create notification binding |
-| `GET` | `/api/v1/monitors/{id}/notification-bindings` | List bindings for monitor |
-| `PUT` | `/api/v1/monitors/{id}/notification-bindings/{bindingId}` | Update binding |
-| `DELETE` | `/api/v1/monitors/{id}/notification-bindings/{bindingId}` | Delete binding |
-| `GET` | `/healthz` | Health check |
-| `GET` | `/metrics` | Prometheus metrics (optional Basic Auth) |
-
-Full API reference: [`backend/api/openapi.yaml`](backend/api/openapi.yaml)
-
-### Metrics Authentication
-
-The `/metrics` endpoint can be protected with HTTP Basic Auth by setting `PULSE_METRICS_USER` and `PULSE_METRICS_PASSWORD`. When both variables are set, Prometheus must include credentials in its scrape config:
-
-```yaml
-scrape_configs:
-  - job_name: pulse
-    basic_auth:
-      username: prometheus
-      password: your-secret
-    static_configs:
-      - targets: ['localhost:8080']
-```
-
-When either variable is empty, `/metrics` is served without authentication.
+For API examples, endpoint reference, and authentication details, see [`docs/API.md`](docs/API.md).
 
 ## Notifications
 
@@ -342,49 +209,7 @@ curl -X POST http://localhost:8080/api/v1/monitors/<monitor-id>/notification-bin
 
 ## MCP Server (AI Integration)
 
-Pulse ships with an [MCP](https://modelcontextprotocol.io/) (Model Context Protocol) server that exposes monitoring capabilities to AI clients — Claude Desktop, Kiro, Cursor, and any MCP-compatible tool. This lets you manage and query monitors through natural language via your AI assistant.
-
-The MCP server runs as a separate binary (`mcp/bin/pulse-mcp`) and communicates with Pulse exclusively through the REST API. It's stateless and supports both `stdio` (local) and `http` (networked) transports.
-
-### Available Tools
-
-| Tool | Mode | Description |
-|------|------|-------------|
-| `list-monitors` | read | List monitors with type/tag filters and pagination |
-| `get-monitor` | read | Get monitor config and current status by ID or name |
-| `monitor-stats` | read | Uptime percentage, last error, SSL expiry |
-| `monitor-history` | read | Check history over a time range |
-| `downtime-summary` | read | Downtime periods within a rolling window |
-| `list-incidents` | read | Incidents globally or per monitor |
-| `create-monitor` | write | Create a health-check monitor (HTTP, TCP, UDP, ICMP) |
-
-### Quick Setup
-
-```bash
-# Build the MCP server
-cd mcp && make build
-```
-
-Add to your AI client's MCP config (Claude Desktop, Kiro, Cursor):
-
-```json
-{
-  "mcpServers": {
-    "pulse": {
-      "command": "/path/to/pulse-mcp",
-      "env": {
-        "PULSE_MCP_API_TOKEN": "your-pulse-api-token",
-        "PULSE_MCP_API_BASE_URL": "http://localhost:8080/api/v1",
-        "PULSE_MCP_ACCESS_MODE": "read-write"
-      }
-    }
-  }
-}
-```
-
-Generate an API token in Pulse (Settings → API Tokens) and replace the placeholder values.
-
-See [`mcp/README.md`](mcp/README.md) for full configuration reference and per-client setup instructions.
+Pulse includes an MCP server for managing monitors through AI assistants (Kiro, Claude, Codex, Cursor). For setup instructions and available tools, see [`mcp/README.md`](mcp/README.md).
 
 ## Supported Languages
 
@@ -410,103 +235,7 @@ Non-English locales are lazy-loaded on demand. Fallback chain: active locale →
 
 ## Development
 
-### Prerequisites (Development)
-
-- Go 1.26+
-- Node.js 22+
-- pnpm 9+ (install via `corepack enable` or [pnpm.io/installation](https://pnpm.io/installation))
-- PostgreSQL 16 with TimescaleDB 2.17+
-- Make
-
-### Make Targets
-
-| Target | Description |
-|--------|-------------|
-| `make dev` | Full stack via Docker Compose (Pulse + TimescaleDB) |
-| `make dev-local` | Lightweight compose (backend + postgres only) |
-| `make run` | `go run ./cmd/pulse` (requires local postgres) |
-| `make build` | Build Go binary |
-| `make build-frontend` | Build frontend and copy to embed path |
-| `make build-all` | Production build: frontend + Go binary with embedded assets |
-| `make test` | Run Go tests (`go test ./...`) |
-| `make migrate` | Run database migrations up |
-| `make migrate-down` | Roll back last migration |
-| `make rotate-key` | AES key rotation with transactional re-encryption |
-| `make openapi` | Validate OpenAPI spec |
-
-### Local Setup
-
-```bash
-# Start database
-docker compose up postgres -d
-
-# Run migrations
-make migrate
-
-# Start backend (hot-reload with go run)
-make run
-
-# In a separate terminal — start frontend dev server
-cd frontend && pnpm install && pnpm dev
-```
-
-#### Frontend Dev Container
-
-For containerized frontend development with hot module replacement (HMR), use the `frontend` service in `docker-compose.dev.yml`:
-
-```bash
-docker compose -f docker-compose.dev.yml up frontend
-```
-
-This starts the Vite dev server on port **5173** with HMR enabled — source file changes are reflected in the browser instantly.
-
-### Running Tests
-
-```bash
-# Backend tests
-make test
-
-# Frontend tests (unit + property-based via fast-check)
-cd frontend && pnpm test
-```
-
-### CI Pipeline
-
-Pull requests to `main` trigger automated checks via GitHub Actions (`.github/workflows/pull_request_opened.yml`):
-
-- **Backend**: Go tests with race detector against a real TimescaleDB service, plus binary build verification
-- **Frontend**: TypeScript type check, locale validation, Vitest unit tests, production build
-
-PRs in the same concurrency group cancel previous runs automatically.
-
-### Release Pipeline
-
-Pushing a semver tag (`v*`) triggers the release workflow (`.github/workflows/release.yml`):
-
-1. **Build binaries** — Cross-compiles `pulse` and `pulse-mcp` for linux/amd64, linux/arm64, darwin/amd64, darwin/arm64 (CGO disabled, stripped)
-2. **Docker image** — Builds and pushes a multi-arch image (linux/amd64 + arm64) to `ghcr.io` with semver tags (`v1.2.3`, `v1.2`, `v1`)
-3. **GitHub Release** — Attaches all binaries and a SHA-256 checksums file to the release
-
-To create a release:
-
-```bash
-git tag v1.0.0
-git push origin v1.0.0
-```
-
-### Brand Assets
-
-Logo files and brand guidelines are in `frontend/static/brand/`. To regenerate PNG exports from the SVG source:
-
-```bash
-cd frontend && node scripts/generate-brand-pngs.mjs
-```
-
-To regenerate favicon and PWA icons:
-
-```bash
-cd frontend && node scripts/generate-icons.mjs
-```
+For local setup, make targets, testing, CI/CD pipelines, and brand asset generation, see [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md).
 
 ## ICMP Monitoring
 

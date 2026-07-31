@@ -118,7 +118,7 @@ The project is at MVP completion. Full milestone breakdown: [docs/MILESTONES.md]
 - 218 frontend tests passing (Vitest + fast-check + @testing-library/svelte) — unit + property-based
 - Static frontend embedded via `go:embed` with SPA catch-all routing and cache headers
 - Multi-stage Dockerfile (node:lts-alpine → golang:1.26-alpine → distroless)
-- Production docker-compose with health checks, restart policies, env_file
+- Production docker-compose with health checks, restart policies, inline environment with shell variable expansion
 - `.env.example` with all variables documented
 - Complete README with quick start, API examples, architecture docs
 
