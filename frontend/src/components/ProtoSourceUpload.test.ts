@@ -261,7 +261,7 @@ describe('ProtoSourceUpload', () => {
       await fireEvent.click(screen.getByTestId('proto-reflection-btn'));
 
       await waitFor(() => {
-        expect(mockAdHocReflect).toHaveBeenCalledWith('localhost:50051', 'tls', undefined);
+        expect(mockAdHocReflect).toHaveBeenCalledWith('localhost:50051', 'tls', undefined, false);
         expect(onSourceChanged).toHaveBeenCalledWith(mockSource);
       });
     });

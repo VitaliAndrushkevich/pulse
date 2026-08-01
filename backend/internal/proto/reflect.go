@@ -17,12 +17,13 @@ import (
 	"google.golang.org/protobuf/types/descriptorpb"
 )
 
-// reflectionServiceNames are the well-known reflection service names that should be
-// filtered out when discovering application services.
+// reflectionServiceNames are the well-known reflection/infrastructure service names
+// that are filtered out by default when discovering application services.
+// Users can opt in to include them via the includeSystem parameter.
 var reflectionServiceNames = map[string]bool{
-	"grpc.reflection.v1.ServerReflection":       true,
-	"grpc.reflection.v1alpha.ServerReflection":  true,
-	"grpc.health.v1.Health":                     true,
+	"grpc.reflection.v1.ServerReflection":      true,
+	"grpc.reflection.v1alpha.ServerReflection": true,
+	"grpc.health.v1.Health":                    true,
 }
 
 // defaultReflectTimeout is the maximum time allowed for a reflection operation
@@ -32,8 +33,10 @@ const defaultReflectTimeout = 10 * time.Second
 // ReflectServices connects to a gRPC server and discovers schemas via Server Reflection.
 // Uses the provided TLS config and respects the context deadline.
 // Optional metadata is sent as gRPC headers on the reflection stream.
+// When includeSystem is true, system services (e.g. grpc.health.v1.Health) are included
+// in the results instead of being filtered out.
 // Returns a complete FileDescriptorSet with all transitive dependencies.
-func ReflectServices(ctx context.Context, target string, tlsCfg *tls.Config, md map[string]string) (*descriptorpb.FileDescriptorSet, error) {
+func ReflectServices(ctx context.Context, target string, tlsCfg *tls.Config, md map[string]string, includeSystem bool) (*descriptorpb.FileDescriptorSet, error) {
 	// Enforce a 10-second timeout if the context doesn't already have a deadline.
 	if _, hasDeadline := ctx.Deadline(); !hasDeadline {
 		var cancel context.CancelFunc
@@ -97,11 +100,19 @@ func ReflectServices(ctx context.Context, target string, tlsCfg *tls.Config, md 
 		allServiceNames = append(allServiceNames, svc.GetName())
 	}
 
-	// Filter out well-known system services (reflection, health).
+	// Filter out well-known system services (reflection, health) unless includeSystem is set.
 	var serviceNames []string
 	for _, name := range allServiceNames {
-		if !reflectionServiceNames[name] {
+		if includeSystem {
+			// When includeSystem is true, only filter the reflection service itself.
+			if strings.Contains(name, "ServerReflection") {
+				continue
+			}
 			serviceNames = append(serviceNames, name)
+		} else {
+			if !reflectionServiceNames[name] {
+				serviceNames = append(serviceNames, name)
+			}
 		}
 	}
 

@@ -149,7 +149,7 @@ func TestReflectServices_FullDiscovery(t *testing.T) {
 	addr := startTestServerWithEchoService(t, true)
 
 	ctx := context.Background()
-	fds, err := ReflectServices(ctx, addr, nil, nil)
+	fds, err := ReflectServices(ctx, addr, nil, nil, false)
 	if err != nil {
 		t.Fatalf("ReflectServices failed: %v", err)
 	}
@@ -219,7 +219,7 @@ func TestReflectServices_NoReflection(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	_, err := ReflectServices(ctx, addr, nil, nil)
+	_, err := ReflectServices(ctx, addr, nil, nil, false)
 	if err == nil {
 		t.Fatal("expected error when server does not support reflection")
 	}
@@ -240,7 +240,7 @@ func TestReflectServices_Timeout(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Millisecond)
 	defer cancel()
 
-	_, err := ReflectServices(ctx, "10.255.255.1:50051", nil, nil)
+	_, err := ReflectServices(ctx, "10.255.255.1:50051", nil, nil, false)
 	if err == nil {
 		t.Fatal("expected timeout error")
 	}
@@ -261,7 +261,7 @@ func TestReflectServices_Unreachable(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	_, err := ReflectServices(ctx, "localhost:1", nil, nil)
+	_, err := ReflectServices(ctx, "localhost:1", nil, nil, false)
 	if err == nil {
 		t.Fatal("expected connection error for unreachable target")
 	}
@@ -298,7 +298,7 @@ func TestReflectServices_OnlyReflectionService(t *testing.T) {
 	defer cancel()
 
 	addr := lis.Addr().String()
-	_, err = ReflectServices(ctx, addr, nil, nil)
+	_, err = ReflectServices(ctx, addr, nil, nil, false)
 	if err == nil {
 		t.Fatal("expected error when server has only reflection service (no application services)")
 	}

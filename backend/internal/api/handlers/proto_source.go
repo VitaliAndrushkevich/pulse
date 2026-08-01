@@ -248,7 +248,7 @@ func (h *ProtoSourceHandler) Reflect(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 10*time.Second)
 	defer cancel()
 
-	fds, err := protolib.ReflectServices(ctx, target, tlsCfg, settings.Metadata)
+	fds, err := protolib.ReflectServices(ctx, target, tlsCfg, settings.Metadata, false)
 	if err != nil {
 		classifyAndRespondReflectionError(c, err)
 		return
@@ -421,9 +421,10 @@ func (h *ProtoSourceHandler) Delete(c *gin.Context) {
 
 // AdHocReflectRequest is the request body for the ad-hoc reflection endpoint.
 type AdHocReflectRequest struct {
-	Target   string            `json:"target" binding:"required"`
-	TLSMode  string            `json:"tls_mode,omitempty"`
-	Metadata map[string]string `json:"metadata,omitempty"`
+	Target        string            `json:"target" binding:"required"`
+	TLSMode       string            `json:"tls_mode,omitempty"`
+	Metadata      map[string]string `json:"metadata,omitempty"`
+	IncludeSystem bool              `json:"include_system,omitempty"`
 }
 
 // AdHocReflect handles POST /api/v1/grpc/reflect.
@@ -464,7 +465,7 @@ func (h *ProtoSourceHandler) AdHocReflect(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 10*time.Second)
 	defer cancel()
 
-	fds, err := protolib.ReflectServices(ctx, req.Target, tlsCfg, req.Metadata)
+	fds, err := protolib.ReflectServices(ctx, req.Target, tlsCfg, req.Metadata, req.IncludeSystem)
 	if err != nil {
 		classifyAndRespondReflectionError(c, err)
 		return

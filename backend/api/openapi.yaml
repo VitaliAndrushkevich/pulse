@@ -466,6 +466,7 @@ paths:
       description: >
         Connects to the monitor's gRPC target and discovers schemas via Server Reflection.
         Replaces any existing proto source on success. The operation has a 10-second timeout.
+        Infrastructure services (reflection and health) are automatically filtered from results.
       tags: [Proto Source]
       parameters:
         - $ref: "#/components/parameters/MonitorID"
@@ -486,7 +487,7 @@ paths:
           description: >
             Reflection error. Possible error codes:
             REFLECTION_UNAVAILABLE (target server doesn't support Server Reflection),
-            REFLECTION_NO_SERVICES (reflection found only the reflection service itself).
+            REFLECTION_NO_SERVICES (reflection found only infrastructure services, no application services).
           content:
             application/json:
               schema:
@@ -518,6 +519,8 @@ paths:
         Performs gRPC Server Reflection against an arbitrary target without requiring a saved monitor.
         Used during monitor creation to discover services before the monitor exists in the database.
         The operation has a 10-second timeout. Results are not persisted.
+        By default, infrastructure services (reflection and health) are filtered from results;
+        set include_system to true to include them.
       tags: [Proto Source]
       requestBody:
         required: true
@@ -544,6 +547,13 @@ paths:
                   description: "Optional gRPC metadata (headers) sent on the reflection stream"
                   example:
                     authorization: "Bearer token123"
+                include_system:
+                  type: boolean
+                  default: false
+                  description: >
+                    When true, include infrastructure services (grpc.health.v1.Health,
+                    grpc.reflection.v1.ServerReflection) in the discovered service list.
+                    By default these are filtered out to show only application services.
       responses:
         "200":
           description: Reflection succeeded

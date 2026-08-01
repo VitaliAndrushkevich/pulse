@@ -31,6 +31,9 @@
   let isLoading = $derived(isUploading || isReflecting);
   let reflectionEnabled = $derived(target.trim().length > 0);
 
+  // Include system/infrastructure services (e.g. grpc.health.v1.Health) in reflection results
+  let includeSystemServices = $state(false);
+
   // Track newly discovered source (shown after upload/reflection for method selection)
   let discoveredSource = $state<ProtoSourceMeta | null>(null);
 
@@ -144,7 +147,7 @@
     try {
       // Always use ad-hoc reflect with current form values (target + tlsMode + metadata)
       // so the user doesn't need to save the monitor first.
-      const result = await adHocReflect(target, tlsMode, metadata);
+      const result = await adHocReflect(target, tlsMode, metadata, includeSystemServices);
       discoveredSource = result;
       onSourceChanged?.(result);
     } catch (err: unknown) {
@@ -189,6 +192,29 @@
     // Clear existing source display and show upload area
     discoveredSource = null;
     onSourceChanged?.(null);
+  }
+
+  // --- Refresh via Server Reflection (re-discover methods on existing source) ---
+
+  async function handleRefreshReflection() {
+    if (!reflectionEnabled || isLoading) return;
+
+    isReflecting = true;
+    error = null;
+
+    try {
+      const result = await adHocReflect(target, tlsMode, metadata, includeSystemServices);
+      discoveredSource = result;
+      onSourceChanged?.(result);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        error = err.message;
+      } else {
+        error = t('proto.upload.unknownError');
+      }
+    } finally {
+      isReflecting = false;
+    }
   }
 
   // --- Method selection ---
@@ -236,6 +262,19 @@
           </p>
         </div>
         <div class="flex gap-2">
+          <button
+            type="button"
+            onclick={handleRefreshReflection}
+            disabled={!reflectionEnabled || isLoading}
+            class="rounded-md border border-[var(--color-border)] bg-surface px-3 py-1.5 text-xs font-medium text-primary transition hover:bg-[var(--color-bg-surface-hover)] disabled:cursor-not-allowed disabled:opacity-50"
+            data-testid="proto-refresh-reflection-btn"
+          >
+            {#if isReflecting}
+              {t('proto.upload.reflecting')}
+            {:else}
+              {t('proto.upload.discoverMethods')}
+            {/if}
+          </button>
           <button
             type="button"
             onclick={handleReplace}
@@ -388,6 +427,18 @@
           {t('proto.upload.reflectionButton')}
         {/if}
       </button>
+      <div class="mt-2">
+        <label class="inline-flex items-center gap-2 text-xs text-secondary cursor-pointer">
+          <input
+            type="checkbox"
+            bind:checked={includeSystemServices}
+            class="rounded border-[var(--color-border)] text-blue-600 focus:ring-blue-500"
+            data-testid="proto-include-system-checkbox"
+          />
+          {t('proto.upload.includeSystemServices')}
+        </label>
+        <p class="mt-0.5 text-xs text-secondary opacity-75 ml-5">{t('proto.upload.includeSystemServicesHelp')}</p>
+      </div>
       {#if !reflectionEnabled}
         <p class="mt-1 text-xs text-secondary" data-testid="proto-reflection-hint">
           {t('proto.upload.reflectionHint')}
