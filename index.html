@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pulse — Self-hosted uptime monitoring</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root, [data-theme="light"] {
+      color-scheme: light;
+      --color-brand-primary: #0ea5e9;
+      --color-brand-hover: #0284c7;
+      --color-bg-page: #f8fafc;
+      --color-bg-surface: #ffffff;
+      --color-bg-surface-hover: #f1f5f9;
+      --color-text-primary: #0f172a;
+      --color-text-secondary: #475569;
+      --color-text-muted: #94a3b8;
+      --color-border: #e2e8f0;
+      --color-success: #10b981;
+      --color-warning: #f59e0b;
+      --color-error: #ef4444;
+      --color-visual-bg: #0f172a;
+      --color-visual-border: rgba(255,255,255,0.06);
+      --color-visual-row: rgba(255,255,255,0.03);
+      --color-visual-row-hover: rgba(255,255,255,0.06);
+      --color-visual-text: #e2e8f0;
+      --color-visual-muted: #94a3b8;
+    }
+
+    [data-theme="dark"] {
+      color-scheme: dark;
+      --color-brand-primary: #22d3ee;
+      --color-brand-hover: #06b6d4;
+      --color-bg-page: #0f172a;
+      --color-bg-surface: #1e293b;
+      --color-bg-surface-hover: #334155;
+      --color-text-primary: #f1f5f9;
+      --color-text-secondary: #94a3b8;
+      --color-text-muted: #64748b;
+      --color-border: #334155;
+      --color-success: #34d399;
+      --color-warning: #fbbf24;
+      --color-error: #f87171;
+      --color-visual-bg: #1e293b;
+      --color-visual-border: rgba(255,255,255,0.08);
+      --color-visual-row: rgba(255,255,255,0.04);
+      --color-visual-row-hover: rgba(255,255,255,0.08);
+      --color-visual-text: #f1f5f9;
+      --color-visual-muted: #64748b;
+    }
+
+    [data-theme="light"] .visual {
+      background: var(--color-bg-surface);
+      border: 1px solid var(--color-border);
+      box-shadow: 0 20px 50px rgba(0,0,0,0.08);
+    }
+
+    [data-theme="light"] .visual-toolbar {
+      background: var(--color-bg-surface-hover);
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    [data-theme="light"] .visual-toolbar-title { color: var(--color-text-secondary); }
+    [data-theme="light"] .visual-badge { background: rgba(16,185,129,0.1); }
+
+    [data-theme="light"] .stat-card {
+      background: var(--color-bg-page);
+      border-color: var(--color-border);
+    }
+
+    [data-theme="light"] .stat-label { color: var(--color-text-muted); }
+    [data-theme="light"] .stat-value { color: var(--color-text-primary); }
+    [data-theme="light"] .stat-value.success { color: var(--color-success); }
+
+    [data-theme="light"] .service-row {
+      background: var(--color-bg-page);
+      border-color: var(--color-border);
+    }
+
+    [data-theme="light"] .service-row:hover { background: var(--color-bg-surface-hover); }
+    [data-theme="light"] .service-name { color: var(--color-text-primary); }
+    [data-theme="light"] .service-latency { color: var(--color-text-muted); }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      color: var(--color-text-primary);
+      background: var(--color-bg-page);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--color-border);
+      position: sticky;
+      top: 0;
+      background: var(--color-bg-surface);
+      backdrop-filter: blur(8px);
+      z-index: 50;
+      transition: background-color 0.3s ease, border-color 0.3s ease;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: var(--color-brand-primary);
+    }
+
+    .logo svg { color: var(--color-brand-primary); flex-shrink: 0; }
+    .logo-text {
+      font-size: 20px;
+      font-weight: 600;
+      letter-spacing: -0.025em;
+      color: var(--color-text-primary);
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .nav a {
+      text-decoration: none;
+      color: var(--color-text-secondary);
+      font-size: 14px;
+      font-weight: 500;
+      transition: color 0.2s ease;
+    }
+
+    .nav a:hover { color: var(--color-text-primary); }
+
+    .nav-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      transition: background 0.2s ease, color 0.2s ease;
+      color: var(--color-text-secondary);
+    }
+
+    .nav-icon:hover {
+      background: var(--color-bg-surface-hover);
+      color: var(--color-text-primary);
+    }
+
+    .theme-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      transition: background 0.2s ease, color 0.2s ease;
+      color: var(--color-text-secondary);
+    }
+
+    .theme-btn:hover {
+      background: var(--color-bg-surface-hover);
+      color: var(--color-text-primary);
+    }
+
+    /* Hero */
+    .hero {
+      padding: 80px 24px 100px;
+      max-width: 1100px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      align-items: center;
+    }
+
+    .hero-content h1 {
+      font-size: 48px;
+      font-weight: 700;
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+      margin-bottom: 16px;
+      color: var(--color-text-primary);
+    }
+
+    .hero-content h1 span { color: var(--color-brand-primary); }
+
+    .hero-subtitle {
+      font-size: 18px;
+      color: var(--color-text-secondary);
+      margin-bottom: 24px;
+      line-height: 1.6;
+      max-width: 480px;
+    }
+
+    .hero-desc {
+      font-size: 15px;
+      color: var(--color-text-muted);
+      margin-bottom: 32px;
+      line-height: 1.6;
+      max-width: 460px;
+    }
+
+    .hero-cta-group { display: flex; gap: 12px; align-items: center; }
+
+    .btn-primary {
+      background: var(--color-brand-primary);
+      color: #ffffff;
+      padding: 12px 28px;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 1px 3px rgba(14,165,233,0.2);
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .btn-primary:hover {
+      background: var(--color-brand-hover);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(14,165,233,0.25);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--color-text-secondary);
+      padding: 12px 24px;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 500;
+      border: 1px solid var(--color-border);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--color-text-primary);
+      color: var(--color-text-primary);
+    }
+
+    /* Dashboard Visual */
+    .visual {
+      background: var(--color-visual-bg);
+      border-radius: 12px;
+      padding: 0;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+      border: 1px solid var(--color-visual-border);
+      overflow: hidden;
+      transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .visual-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--color-visual-border);
+      background: rgba(0,0,0,0.1);
+    }
+
+    .visual-toolbar-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .visual-toolbar-dots {
+      display: flex;
+      gap: 6px;
+    }
+
+    .dot { width: 10px; height: 10px; border-radius: 50%; }
+    .dot-red { background: #ef4444; }
+    .dot-yellow { background: #f59e0b; }
+    .dot-green { background: #22c55e; }
+
+    .visual-toolbar-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--color-visual-muted);
+      margin-left: 8px;
+    }
+
+    .visual-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: 9999px;
+      background: rgba(16,185,129,0.15);
+      color: var(--color-success);
+      font-weight: 500;
+    }
+
+    .visual-body { padding: 16px; }
+
+    .visual-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .stat-card {
+      background: var(--color-visual-row);
+      border: 1px solid var(--color-visual-border);
+      border-radius: 8px;
+      padding: 12px;
+    }
+
+    .stat-label {
+      font-size: 11px;
+      color: var(--color-visual-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 4px;
+    }
+
+    .stat-value {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--color-visual-text);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .stat-value.success { color: var(--color-success); }
+    .stat-value.warn { color: var(--color-warning); }
+
+    .service-list { display: flex; flex-direction: column; gap: 6px; }
+
+    .service-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px;
+      background: var(--color-visual-row);
+      border-radius: 8px;
+      border: 1px solid var(--color-visual-border);
+      transition: background 0.3s ease;
+    }
+
+    .service-row:hover { background: var(--color-visual-row-hover); }
+
+    .service-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .service-protocol {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: rgba(14,165,233,0.12);
+      color: var(--color-brand-primary);
+      font-weight: 500;
+      text-transform: uppercase;
+    }
+
+    .service-name {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      color: var(--color-visual-text);
+    }
+
+    .service-meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .service-latency {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--color-visual-muted);
+    }
+
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      animation: pulse-dot 2s infinite;
+    }
+
+    .status-ok { color: var(--color-success); }
+    .status-ok .status-dot { background: var(--color-success); animation: dot-blink 3s infinite; }
+    .status-warn { color: var(--color-warning); }
+    .status-warn .status-dot { background: var(--color-warning); animation: dot-blink 2s infinite; }
+    .status-err { color: var(--color-error); }
+    .status-err .status-dot { background: var(--color-error); animation: dot-blink 1.5s infinite; }
+
+    .service-row:nth-child(1) .status-dot { animation-delay: 0s; }
+    .service-row:nth-child(2) .status-dot { animation-delay: 0.6s; }
+    .service-row:nth-child(3) .status-dot { animation-delay: 1.2s; }
+    .service-row:nth-child(4) .status-dot { animation-delay: 1.8s; }
+    .service-row:nth-child(5) .status-dot { animation-delay: 0.3s; }
+
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    @keyframes dot-blink {
+      0%, 70%, 100% { opacity: 1; transform: scale(1); }
+      80% { opacity: 0.3; transform: scale(0.8); }
+      90% { opacity: 1; transform: scale(1.1); }
+    }
+
+    /* Features Section */
+    .features {
+      padding: 80px 24px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .features-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--color-brand-primary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 12px;
+    }
+
+    .features-heading {
+      font-size: 32px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 48px;
+      color: var(--color-text-primary);
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+
+    .feature-card {
+      padding: 24px;
+      border-radius: 12px;
+      border: 1px solid var(--color-border);
+      background: var(--color-bg-surface);
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .feature-card:hover {
+      border-color: var(--color-brand-primary);
+      box-shadow: 0 4px 12px rgba(14,165,233,0.08);
+    }
+
+    .feature-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 16px;
+      background: rgba(14,165,233,0.08);
+      color: var(--color-brand-primary);
+    }
+
+    .feature-card h3 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--color-text-primary);
+    }
+
+    .feature-card p {
+      font-size: 14px;
+      color: var(--color-text-secondary);
+      line-height: 1.5;
+    }
+
+    /* Footer */
+    .footer {
+      border-top: 1px solid var(--color-border);
+      padding: 32px 24px;
+      max-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .footer-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--color-text-muted);
+      font-size: 13px;
+    }
+
+    .footer-left svg { color: var(--color-brand-primary); }
+
+    /* Responsive */
+    @media (max-width: 860px) {
+      .hero {
+        grid-template-columns: 1fr;
+        gap: 40px;
+        padding: 48px 20px 60px;
+      }
+      .hero-content h1 { font-size: 36px; }
+      .features-grid { grid-template-columns: 1fr; }
+      .visual-stats { grid-template-columns: 1fr; }
+      .footer { flex-direction: column; gap: 16px; text-align: center; }
+    }
+
+    @media (max-width: 640px) {
+      .nav a.nav-docs-text { display: none; }
+    }
+  </style>
+  <!-- FOUC prevention: apply theme before render -->
+  <script>
+    (function() {
+      var mode = 'system';
+      try {
+        var stored = localStorage.getItem('pulse-theme-mode');
+        if (stored === 'light' || stored === 'dark' || stored === 'system') mode = stored;
+        else {
+          var legacy = localStorage.getItem('pulse-theme');
+          if (legacy === 'light' || legacy === 'dark') mode = legacy;
+        }
+      } catch(e) {}
+      var resolved = mode === 'system'
+        ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+        : mode;
+      document.documentElement.setAttribute('data-theme', resolved);
+    })();
+  </script>
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="header">
+    <a href="#" class="logo">
+      <svg aria-hidden="true" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" width="28" height="28">
+        <path d="M2 20 L8 20 L11 24 L16 8 L21 24 L24 20 L30 20"></path>
+      </svg>
+      <span class="logo-text">Pulse</span>
+    </a>
+    <nav class="nav">
+      <a href="https://github.com/VitaliAndrushkevich/pulse/blob/main/README.md" class="nav-docs-text">Docs</a>
+      <a href="https://github.com/VitaliAndrushkevich/pulse" class="nav-icon" aria-label="GitHub repository" title="GitHub">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+      </a>
+      <button class="theme-btn" id="themeToggle" type="button" aria-label="Switch theme" title="Toggle theme">
+        <svg class="icon-sun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        <svg class="icon-moon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <svg class="icon-system" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+      </button>
+    </nav>
+  </header>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-content">
+      <h1>Self-hosted uptime<br>monitoring.<br>That's <span>Pulse</span>.</h1>
+      <p class="hero-subtitle">Multi-protocol health checks with real-time alerts. One binary, your infrastructure, full control.</p>
+      <p class="hero-desc">HTTP, TCP, UDP, gRPC, DNS, ICMP, WebSocket, SMTP — Pulse monitors all of them with a bounded worker pool, WebSocket-driven dashboard, and zero external dependencies. Deploy as a single container alongside PostgreSQL.</p>
+      <div class="hero-cta-group">
+        <a href="https://github.com/VitaliAndrushkevich/pulse#quick-start" class="btn-primary">Quick Start</a>
+        <a href="https://github.com/VitaliAndrushkevich/pulse" class="btn-secondary">View on GitHub</a>
+      </div>
+    </div>
+
+    <div class="visual">
+      <div class="visual-toolbar">
+        <div class="visual-toolbar-left">
+          <div class="visual-toolbar-dots">
+            <div class="dot dot-red"></div>
+            <div class="dot dot-yellow"></div>
+            <div class="dot dot-green"></div>
+          </div>
+          <span class="visual-toolbar-title">Pulse Dashboard</span>
+        </div>
+        <span class="visual-badge">All systems operational</span>
+      </div>
+      <div class="visual-body">
+        <div class="visual-stats">
+          <div class="stat-card">
+            <div class="stat-label">Uptime</div>
+            <div class="stat-value success">99.97%</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Monitors</div>
+            <div class="stat-value">12</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Avg Latency</div>
+            <div class="stat-value">38ms</div>
+          </div>
+        </div>
+        <div class="service-list">
+          <div class="service-row">
+            <div class="service-info">
+              <span class="service-protocol">HTTPS</span>
+              <span class="service-name">api.example.com</span>
+            </div>
+            <div class="service-meta">
+              <span class="service-latency">42ms</span>
+              <span class="status status-ok"><span class="status-dot"></span>UP</span>
+            </div>
+          </div>
+          <div class="service-row">
+            <div class="service-info">
+              <span class="service-protocol">gRPC</span>
+              <span class="service-name">auth-service:443</span>
+            </div>
+            <div class="service-meta">
+              <span class="service-latency">18ms</span>
+              <span class="status status-ok"><span class="status-dot"></span>UP</span>
+            </div>
+          </div>
+          <div class="service-row">
+            <div class="service-info">
+              <span class="service-protocol">TCP</span>
+              <span class="service-name">redis-primary:6379</span>
+            </div>
+            <div class="service-meta">
+              <span class="service-latency">3ms</span>
+              <span class="status status-ok"><span class="status-dot"></span>UP</span>
+            </div>
+          </div>
+          <div class="service-row">
+            <div class="service-info">
+              <span class="service-protocol">DNS</span>
+              <span class="service-name">ns1.internal</span>
+            </div>
+            <div class="service-meta">
+              <span class="service-latency">12ms</span>
+              <span class="status status-ok"><span class="status-dot"></span>UP</span>
+            </div>
+          </div>
+          <div class="service-row">
+            <div class="service-info">
+              <span class="service-protocol">SMTP</span>
+              <span class="service-name">mail.example.com:587</span>
+            </div>
+            <div class="service-meta">
+              <span class="service-latency">1.2s</span>
+              <span class="status status-warn"><span class="status-dot"></span>SLOW</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="features">
+    <p class="features-title">Built for production</p>
+    <h2 class="features-heading">Everything you need, nothing you don't</h2>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        </div>
+        <h3>10 Protocols</h3>
+        <p>HTTP/S, HTTP/3, TCP, UDP, WebSocket, gRPC, DNS, ICMP, SMTP, and QUIC — all from one engine.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+        </div>
+        <h3>Real-time WebSocket</h3>
+        <p>Live dashboard updates via diff/patch WebSocket messages. No polling, no stale data.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+        </div>
+        <h3>Self-hosted & Secure</h3>
+        <p>Single binary, your infrastructure. AES-256-GCM encrypted secrets, bcrypt-hashed tokens, zero cloud dependencies.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+        </div>
+        <h3>Smart Notifications</h3>
+        <p>Email and webhook alerts with state deduplication, exponential backoff retries, and configurable reminders.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        </div>
+        <h3>Prometheus Metrics</h3>
+        <p>Native /metrics endpoint. Track uptime, latency, and notification delivery with your existing Grafana stack.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+        </div>
+        <h3>Single Container</h3>
+        <p>Frontend embedded into the Go binary. Deploy with docker-compose and PostgreSQL — production ready in minutes.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-left">
+      <svg aria-hidden="true" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
+        <path d="M2 20 L8 20 L11 24 L16 8 L21 24 L24 20 L30 20"></path>
+      </svg>
+      <span>&copy; 2026 Pulse. Open source under Apache 2.0.</span>
+    </div>
+  </footer>
+
+  <script>
+    // Theme toggle
+    (function() {
+      var btn = document.getElementById('themeToggle');
+      var modes = ['light', 'dark', 'system'];
+      var current = 'system';
+
+      try {
+        var stored = localStorage.getItem('pulse-theme-mode');
+        if (stored === 'light' || stored === 'dark' || stored === 'system') current = stored;
+        else {
+          var legacy = localStorage.getItem('pulse-theme');
+          if (legacy === 'light' || legacy === 'dark') current = legacy;
+        }
+      } catch(e) {}
+
+      function getSystemTheme() {
+        return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      }
+
+      function apply(mode) {
+        var resolved = mode === 'system' ? getSystemTheme() : mode;
+        document.documentElement.setAttribute('data-theme', resolved);
+        updateIcon(mode);
+      }
+
+      function updateIcon(mode) {
+        btn.querySelector('.icon-sun').style.display = mode === 'light' ? '' : 'none';
+        btn.querySelector('.icon-moon').style.display = mode === 'dark' ? '' : 'none';
+        btn.querySelector('.icon-system').style.display = mode === 'system' ? '' : 'none';
+
+        var labels = { light: 'Switch to dark theme', dark: 'Switch to system theme', system: 'Switch to light theme' };
+        var titles = { light: 'Light', dark: 'Dark', system: 'System' };
+        btn.setAttribute('aria-label', labels[mode]);
+        btn.setAttribute('title', titles[mode]);
+      }
+
+      function persist(mode) {
+        try {
+          if (mode === 'system') {
+            localStorage.removeItem('pulse-theme');
+            localStorage.setItem('pulse-theme-mode', 'system');
+          } else {
+            localStorage.setItem('pulse-theme', mode);
+            localStorage.setItem('pulse-theme-mode', mode);
+          }
+        } catch(e) {}
+      }
+
+      btn.addEventListener('click', function() {
+        var idx = modes.indexOf(current);
+        current = modes[(idx + 1) % modes.length];
+        apply(current);
+        persist(current);
+      });
+
+      // Listen for system theme changes
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function() {
+        if (current === 'system') apply('system');
+      });
+
+      updateIcon(current);
+    })();
+
+    // Animate latency values
+    var latencies = document.querySelectorAll('.service-latency');
+    setInterval(function() {
+      latencies.forEach(function(el) {
+        var base = parseInt(el.textContent) || 30;
+        var jitter = Math.floor(Math.random() * 20) - 10;
+        var val = Math.max(1, base + jitter);
+        var unit = el.textContent.includes('s') && !el.textContent.includes('ms') ? 's' : 'ms';
+        if (unit === 's') {
+          val = (1.0 + Math.random() * 0.5).toFixed(1);
+          el.textContent = val + 's';
+        } else {
+          el.textContent = val + 'ms';
+        }
+      });
+    }, 2000);
+  </script>
+</body>
+</html>
