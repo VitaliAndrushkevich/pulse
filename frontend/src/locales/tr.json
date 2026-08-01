@@ -259,6 +259,8 @@
       "expectedStatusCodes": "Beklenen durum kodları",
       "expectedStatusCodesPlaceholder": "200, 201, 204",
       "expectedStatusCodesHelp": "Başarılı sayılan virgülle ayrılmış HTTP durum kodları",
+      "wsExpectedStatusCodesPlaceholder": "101, 401, 403",
+      "wsExpectedStatusCodesHelp": "WebSocket yükseltmesi bu HTTP durum kodlarından biriyle başarısız olursa, monitör yine de aktif kabul edilir. Kimlik doğrulama arkasındaki uç noktalar için kullanışlıdır.",
       "skipTlsVerify": "Sertifika doğrulamayı devre dışı bırak (TLS doğrulamasını atla)",
       "skipTlsVerifyHelp": "Etkinleştirildiğinde monitör TLS sertifika zinciri ve ana bilgisayar adı doğrulamasını atlayacaktır. Dikkatli kullanın.",
       "customHeaders": "Özel başlıklar",

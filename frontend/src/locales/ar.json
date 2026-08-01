@@ -259,6 +259,8 @@
       "expectedStatusCodes": "رموز الحالة المتوقعة",
       "expectedStatusCodesPlaceholder": "200, 201, 204",
       "expectedStatusCodesHelp": "رموز HTTP مفصولة بفواصل تُعتبر ناجحة",
+      "wsExpectedStatusCodesPlaceholder": "101, 401, 403",
+      "wsExpectedStatusCodesHelp": "إذا فشلت ترقية WebSocket بأحد رموز حالة HTTP هذه، يُعتبر المراقب لا يزال نشطًا. مفيد لنقاط النهاية خلف المصادقة.",
       "skipTlsVerify": "تعطيل التحقق من الشهادة (تخطي التحقق من TLS)",
       "skipTlsVerifyHelp": "عند التمكين، ستتخطى المراقبة التحقق من سلسلة شهادات TLS واسم المضيف. استخدم بحذر.",
       "customHeaders": "ترويسات مخصصة",

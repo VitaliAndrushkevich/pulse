@@ -259,6 +259,8 @@
       "expectedStatusCodes": "Erwartete Statuscodes",
       "expectedStatusCodesPlaceholder": "200, 201, 204",
       "expectedStatusCodesHelp": "Kommagetrennte HTTP-Statuscodes, die als erfolgreich gelten",
+      "wsExpectedStatusCodesPlaceholder": "101, 401, 403",
+      "wsExpectedStatusCodesHelp": "Wenn das WebSocket-Upgrade mit einem dieser HTTP-Statuscodes fehlschlägt, gilt der Monitor trotzdem als erreichbar. Nützlich für Endpunkte hinter einer Authentifizierung.",
       "skipTlsVerify": "Zertifikatsprüfung deaktivieren (TLS-Verifizierung überspringen)",
       "skipTlsVerifyHelp": "Bei Aktivierung überspringt der Monitor die TLS-Zertifikatsketten- und Hostnamen-Verifizierung. Mit Vorsicht verwenden.",
       "customHeaders": "Benutzerdefinierte Header",

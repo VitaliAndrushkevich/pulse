@@ -259,6 +259,8 @@
       "expectedStatusCodes": "예상 상태 코드",
       "expectedStatusCodesPlaceholder": "200, 201, 204",
       "expectedStatusCodesHelp": "성공으로 간주하는 쉼표 구분 HTTP 상태 코드",
+      "wsExpectedStatusCodesPlaceholder": "101, 401, 403",
+      "wsExpectedStatusCodesHelp": "WebSocket 업그레이드가 이 HTTP 상태 코드 중 하나로 실패해도 모니터는 정상으로 간주됩니다. 인증 뒤에 있는 엔드포인트에 유용합니다.",
       "skipTlsVerify": "인증서 검증 비활성화 (TLS 검증 건너뛰기)",
       "skipTlsVerifyHelp": "활성화하면 TLS 인증서 체인 및 호스트명 검증을 건너뜁니다. 주의하여 사용하세요.",
       "customHeaders": "사용자 정의 헤더",

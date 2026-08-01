@@ -259,6 +259,8 @@
       "expectedStatusCodes": "Ожидаемые коды статуса",
       "expectedStatusCodesPlaceholder": "200, 201, 204",
       "expectedStatusCodesHelp": "HTTP-коды через запятую, считающиеся успешными",
+      "wsExpectedStatusCodesPlaceholder": "101, 401, 403",
+      "wsExpectedStatusCodesHelp": "Если обновление WebSocket завершается с одним из этих HTTP-кодов, монитор всё равно считается активным. Полезно для эндпоинтов за аутентификацией.",
       "skipTlsVerify": "Отключить проверку сертификата (пропустить верификацию TLS)",
       "skipTlsVerifyHelp": "При включении монитор будет пропускать проверку цепочки TLS-сертификатов и имени хоста. Используйте с осторожностью.",
       "customHeaders": "Пользовательские заголовки",

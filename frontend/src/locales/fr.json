@@ -259,6 +259,8 @@
       "expectedStatusCodes": "Codes de statut attendus",
       "expectedStatusCodesPlaceholder": "200, 201, 204",
       "expectedStatusCodesHelp": "Codes HTTP séparés par des virgules considérés comme réussis",
+      "wsExpectedStatusCodesPlaceholder": "101, 401, 403",
+      "wsExpectedStatusCodesHelp": "Si la mise à niveau WebSocket échoue avec l'un de ces codes HTTP, le moniteur est toujours considéré comme actif. Utile pour les endpoints derrière une authentification.",
       "skipTlsVerify": "Désactiver la vérification du certificat (ignorer la vérification TLS)",
       "skipTlsVerifyHelp": "Lorsqu'activé, le moniteur ignorera la vérification de la chaîne de certificats TLS et du nom d'hôte. À utiliser avec précaution.",
       "customHeaders": "En-têtes personnalisés",

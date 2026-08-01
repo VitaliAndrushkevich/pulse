@@ -229,7 +229,7 @@
 
     const settings: Record<string, unknown> = {};
 
-    if ((type === 'http' || type === 'http3' || type === 'quic') && expectedStatusCodes.trim()) {
+    if ((type === 'http' || type === 'http3' || type === 'quic' || type === 'websocket') && expectedStatusCodes.trim()) {
       const codes = expectedStatusCodes
         .split(',')
         .map(s => parseInt(s.trim(), 10))
@@ -547,6 +547,20 @@
   {/if}
 
   {#if type === 'websocket'}
+    <div>
+      <label for="ws-expected-status-codes" class="block text-sm font-medium text-primary">
+        {t('monitors.form.expectedStatusCodes')}
+      </label>
+      <input
+        id="ws-expected-status-codes"
+        type="text"
+        bind:value={expectedStatusCodes}
+        placeholder={t('monitors.form.wsExpectedStatusCodesPlaceholder')}
+        class="mt-1 block w-full rounded-md border border-[var(--color-border)] bg-surface px-3 py-2 text-sm text-primary shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+        data-testid="input-ws-expected-status-codes"
+      />
+      <p class="mt-1 text-xs text-secondary">{t('monitors.form.wsExpectedStatusCodesHelp')}</p>
+    </div>
     <div>
       <label for="monitor-handshake" class="block text-sm font-medium text-primary">{t('monitors.form.handshakeMessage')}</label>
       <input

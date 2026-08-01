@@ -259,6 +259,8 @@
       "expectedStatusCodes": "预期状态码",
       "expectedStatusCodesPlaceholder": "200, 201, 204",
       "expectedStatusCodesHelp": "被视为成功的逗号分隔HTTP状态码",
+      "wsExpectedStatusCodesPlaceholder": "101, 401, 403",
+      "wsExpectedStatusCodesHelp": "如果WebSocket升级以这些HTTP状态码之一失败，监控仍被视为正常。适用于需要认证的端点。",
       "skipTlsVerify": "禁用证书验证（跳过TLS验证）",
       "skipTlsVerifyHelp": "启用后，监控器将跳过TLS证书链和主机名验证。请谨慎使用。",
       "customHeaders": "自定义头部",

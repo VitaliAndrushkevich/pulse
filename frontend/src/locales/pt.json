@@ -259,6 +259,8 @@
       "expectedStatusCodes": "Códigos de status esperados",
       "expectedStatusCodesPlaceholder": "200, 201, 204",
       "expectedStatusCodesHelp": "Códigos HTTP separados por vírgula considerados bem-sucedidos",
+      "wsExpectedStatusCodesPlaceholder": "101, 401, 403",
+      "wsExpectedStatusCodesHelp": "Se a atualização WebSocket falhar com um desses códigos HTTP, o monitor ainda é considerado ativo. Útil para endpoints protegidos por autenticação.",
       "skipTlsVerify": "Desativar verificação de certificado (pular verificação TLS)",
       "skipTlsVerifyHelp": "Quando ativado, o monitor pulará a verificação da cadeia de certificados TLS e do nome do host. Use com cautela.",
       "customHeaders": "Headers personalizados",

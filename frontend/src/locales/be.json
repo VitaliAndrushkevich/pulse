@@ -259,6 +259,8 @@
       "expectedStatusCodes": "Чаканыя коды статусу",
       "expectedStatusCodesPlaceholder": "200, 201, 204",
       "expectedStatusCodesHelp": "HTTP-коды праз коску, якія лічацца паспяховымі",
+      "wsExpectedStatusCodesPlaceholder": "101, 401, 403",
+      "wsExpectedStatusCodesHelp": "Калі абнаўленне WebSocket завяршаецца адным з гэтых HTTP-кодаў, манітор усё роўна лічыцца актыўным. Карысна для кропак доступу за аўтэнтыфікацыяй.",
       "skipTlsVerify": "Адключыць праверку сертыфіката (прапусціць верыфікацыю TLS)",
       "skipTlsVerifyHelp": "Пры ўключэнні манітор прапусціць праверку ланцужка TLS-сертыфікатаў і імя хаста. Выкарыстоўвайце з асцярожнасцю.",
       "customHeaders": "Карыстальніцкія загалоўкі",

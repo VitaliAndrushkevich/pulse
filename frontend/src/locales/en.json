@@ -259,6 +259,8 @@
       "expectedStatusCodes": "Expected Status Codes",
       "expectedStatusCodesPlaceholder": "200, 201, 204",
       "expectedStatusCodesHelp": "Comma-separated HTTP status codes considered successful",
+      "wsExpectedStatusCodesPlaceholder": "101, 401, 403",
+      "wsExpectedStatusCodesHelp": "If the WebSocket upgrade fails with one of these HTTP status codes, the monitor is still considered up. Useful for endpoints behind authentication.",
       "skipTlsVerify": "Disable certificate verification (skip TLS verification)",
       "skipTlsVerifyHelp": "When enabled, the monitor will skip TLS certificate chain and hostname verification. Use with caution.",
       "customHeaders": "Custom Headers",

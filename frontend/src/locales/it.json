@@ -259,6 +259,8 @@
       "expectedStatusCodes": "Codici di stato attesi",
       "expectedStatusCodesPlaceholder": "200, 201, 204",
       "expectedStatusCodesHelp": "Codici HTTP separati da virgola considerati come successo",
+      "wsExpectedStatusCodesPlaceholder": "101, 401, 403",
+      "wsExpectedStatusCodesHelp": "Se l'upgrade WebSocket fallisce con uno di questi codici HTTP, il monitor è comunque considerato attivo. Utile per endpoint protetti da autenticazione.",
       "skipTlsVerify": "Disabilita verifica certificato (salta verifica TLS)",
       "skipTlsVerifyHelp": "Se abilitato, il monitor salterà la verifica della catena di certificati TLS e del nome host. Usare con cautela.",
       "customHeaders": "Header personalizzati",

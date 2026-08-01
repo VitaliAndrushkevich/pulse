@@ -259,6 +259,8 @@
       "expectedStatusCodes": "期待するステータスコード",
       "expectedStatusCodesPlaceholder": "200, 201, 204",
       "expectedStatusCodesHelp": "成功とみなすカンマ区切りHTTPステータスコード",
+      "wsExpectedStatusCodesPlaceholder": "101, 401, 403",
+      "wsExpectedStatusCodesHelp": "WebSocketアップグレードがこれらのHTTPステータスコードで失敗しても、モニターは正常と見なされます。認証の背後にあるエンドポイントに便利です。",
       "skipTlsVerify": "証明書検証を無効化（TLS検証をスキップ）",
       "skipTlsVerifyHelp": "有効にすると、TLS証明書チェーンとホスト名の検証をスキップします。注意して使用してください。",
       "customHeaders": "カスタムヘッダー",
