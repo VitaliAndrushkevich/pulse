@@ -5,50 +5,50 @@
   import type { HeatmapHour } from '$lib/types';
 
   /**
-   * Ensures exactly 24 hourly blocks exist.
-   * Pads missing hours with zero-count (grey) blocks.
+   * Builds a full 24-hour timeline from (now - 23h) to now, filling in
+   * actual data where available and leaving gaps as zero-count (grey) blocks.
+   *
+   * The backend only returns hours that have check_results, so gaps
+   * (paused monitors, new monitors, etc.) must be filled client-side.
    *
    * Validates: Requirements 6.1
    */
   export function normalizeHeatmapData(data: HeatmapHour[]): HeatmapHour[] {
-    if (data.length === 0) {
-      // Generate 24 empty blocks starting from 24h ago
-      const now = new Date();
-      const startHour = new Date(now);
-      startHour.setMinutes(0, 0, 0);
-      startHour.setHours(startHour.getHours() - 23);
+    const now = new Date();
+    // Start of the 24-hour window: current hour minus 23 hours
+    const startHour = new Date(now);
+    startHour.setMinutes(0, 0, 0);
+    startHour.setMilliseconds(0);
+    startHour.setHours(startHour.getHours() - 23);
 
-      return Array.from({ length: 24 }, (_, i) => {
-        const hour = new Date(startHour);
-        hour.setHours(hour.getHours() + i);
-        return {
-          hour_start: hour.toISOString(),
-          up_count: 0,
-          down_count: 0,
-          unknown_count: 0,
-        };
-      });
+    // Build a lookup map from hour_start (truncated to hour) to data entry
+    const dataMap = new Map<number, HeatmapHour>();
+    for (const entry of data) {
+      const entryDate = new Date(entry.hour_start);
+      // Truncate to hour boundary for reliable matching
+      entryDate.setMinutes(0, 0, 0);
+      entryDate.setMilliseconds(0);
+      dataMap.set(entryDate.getTime(), entry);
     }
 
-    if (data.length >= 24) {
-      return data.slice(0, 24);
-    }
+    // Generate 24 slots and fill from lookup
+    return Array.from({ length: 24 }, (_, i) => {
+      const slotTime = new Date(startHour);
+      slotTime.setHours(slotTime.getHours() + i);
+      const key = slotTime.getTime();
+      const existing = dataMap.get(key);
 
-    // Pad with empty blocks to reach 24
-    const result = [...data];
-    const lastHour = new Date(result[result.length - 1].hour_start);
-    while (result.length < 24) {
-      const nextHour = new Date(lastHour);
-      nextHour.setHours(nextHour.getHours() + (result.length - data.length + 1));
-      result.push({
-        hour_start: nextHour.toISOString(),
+      if (existing) {
+        return existing;
+      }
+
+      return {
+        hour_start: slotTime.toISOString(),
         up_count: 0,
         down_count: 0,
         unknown_count: 0,
-      });
-    }
-
-    return result;
+      };
+    });
   }
 
   /**

@@ -213,3 +213,113 @@ type createMonitorRequest struct {
 	TimeoutSeconds  *int           `json:"timeout_seconds,omitempty"`
 	Settings        map[string]any `json:"settings,omitempty"`
 }
+
+// --- Update Monitor Status ---
+
+// updateMonitorStatusRequest is the request body for PUT /monitors/:id
+// when only changing the status field. We must send the full resource.
+type updateMonitorStatusRequest struct {
+	Name            string `json:"name"`
+	Type            string `json:"type"`
+	Target          string `json:"target"`
+	Status          string `json:"status"`
+	IntervalSeconds int    `json:"interval_seconds"`
+	TimeoutSeconds  int    `json:"timeout_seconds"`
+}
+
+// --- Dashboard Summary ---
+
+type wireDashboardSummary struct {
+	HealthScore        wireHealthScore        `json:"health_score"`
+	StatusDistribution wireStatusDistribution `json:"status_distribution"`
+	ActiveIncidents    []wireDashboardIncident `json:"active_incidents"`
+	TopLatencyMonitors []wireTopLatencyMonitor `json:"top_latency_monitors"`
+	SSLExpiry          []wireSSLExpiryEntry   `json:"ssl_expiry"`
+	GeneratedAt        string                 `json:"generated_at"`
+}
+
+type wireHealthScore struct {
+	UptimePercent      float64 `json:"uptime_percent"`
+	ActiveMonitorCount int     `json:"active_monitor_count"`
+}
+
+type wireStatusDistribution struct {
+	Up      int `json:"up"`
+	Down    int `json:"down"`
+	Unknown int `json:"unknown"`
+	Total   int `json:"total"`
+}
+
+type wireDashboardIncident struct {
+	MonitorID   string  `json:"monitor_id"`
+	MonitorName string  `json:"monitor_name"`
+	StartedAt   string  `json:"started_at"`
+	Cause       *string `json:"cause"`
+}
+
+type wireTopLatencyMonitor struct {
+	MonitorID    string `json:"monitor_id"`
+	MonitorName  string `json:"monitor_name"`
+	AvgLatencyMs int    `json:"avg_latency_ms"`
+}
+
+type wireSSLExpiryEntry struct {
+	MonitorID     string `json:"monitor_id"`
+	MonitorName   string `json:"monitor_name"`
+	DaysRemaining int    `json:"days_remaining"`
+	ExpiresAt     string `json:"expires_at"`
+}
+
+func (w wireDashboardSummary) toModel() DashboardSummary {
+	incidents := make([]DashboardIncident, 0, len(w.ActiveIncidents))
+	for _, inc := range w.ActiveIncidents {
+		incidents = append(incidents, DashboardIncident{
+			MonitorID:   inc.MonitorID,
+			MonitorName: inc.MonitorName,
+			StartedAt:   inc.StartedAt,
+			Cause:       inc.Cause,
+		})
+	}
+
+	latency := make([]TopLatencyMonitor, 0, len(w.TopLatencyMonitors))
+	for _, m := range w.TopLatencyMonitors {
+		latency = append(latency, TopLatencyMonitor{
+			MonitorID:    m.MonitorID,
+			MonitorName:  m.MonitorName,
+			AvgLatencyMs: m.AvgLatencyMs,
+		})
+	}
+
+	ssl := make([]SSLExpiryEntry, 0, len(w.SSLExpiry))
+	for _, e := range w.SSLExpiry {
+		ssl = append(ssl, SSLExpiryEntry{
+			MonitorID:     e.MonitorID,
+			MonitorName:   e.MonitorName,
+			DaysRemaining: e.DaysRemaining,
+			ExpiresAt:     e.ExpiresAt,
+		})
+	}
+
+	return DashboardSummary{
+		HealthScore: HealthScore{
+			UptimePercent:      w.HealthScore.UptimePercent,
+			ActiveMonitorCount: w.HealthScore.ActiveMonitorCount,
+		},
+		StatusDistribution: StatusDistribution{
+			Up:      w.StatusDistribution.Up,
+			Down:    w.StatusDistribution.Down,
+			Unknown: w.StatusDistribution.Unknown,
+			Total:   w.StatusDistribution.Total,
+		},
+		ActiveIncidents:    incidents,
+		TopLatencyMonitors: latency,
+		SSLExpiry:          ssl,
+		GeneratedAt:        w.GeneratedAt,
+	}
+}
+
+// --- Tags ---
+
+type wireTagList struct {
+	Data []string `json:"data"`
+}

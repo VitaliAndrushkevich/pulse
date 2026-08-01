@@ -375,15 +375,15 @@
       "createLabel": "Nome del token",
       "createPlaceholder": "es. ci-deploy, grafana-read",
       "createButton": "Crea token",
-      "expirationLabel": "Expires",
+      "expirationLabel": "Scadenza",
       "expiration": {
-        "7days": "7 days",
-        "30days": "30 days",
-        "60days": "60 days",
-        "90days": "90 days",
-        "1year": "1 year",
-        "custom": "Custom...",
-        "customLabel": "Expiration date and time"
+        "7days": "7 giorni",
+        "30days": "30 giorni",
+        "60days": "60 giorni",
+        "90days": "90 giorni",
+        "1year": "1 anno",
+        "custom": "Personalizzato…",
+        "customLabel": "Data e ora di scadenza"
       },
       "existingTitle": "Token esistenti",
       "existingDescription": "I valori dei token non vengono mostrati dopo la creazione. Vengono mostrati solo i metadati.",
@@ -399,15 +399,15 @@
       "revoke": "Revoca",
       "revoked": "Revocato",
       "expired": "Scaduto",
-      "delete": "Delete",
-      "deleteConfirm": "Are you sure? This permanently removes the token.",
+      "delete": "Elimina",
+      "deleteConfirm": "Sei sicuro? Il token verrà eliminato permanentemente.",
       "errors": {
         "networkList": "Impossibile connettersi al server. Verifica la connessione di rete.",
         "unexpectedList": "Si è verificato un errore imprevisto durante il caricamento dei token.",
         "networkCreate": "Impossibile connettersi al server. Riprova.",
         "unexpectedCreate": "Si è verificato un errore imprevisto. Riprova.",
-        "customDateRequired": "Please select an expiration date.",
-        "dateMustBeFuture": "Expiration date must be in the future."
+        "customDateRequired": "Seleziona una data di scadenza.",
+        "dateMustBeFuture": "La data di scadenza deve essere nel futuro."
       }
     }
   },
@@ -523,6 +523,7 @@
     "placeholder": "Inserisci payload JSON (es. {\"name\": \"value\"})",
     "label": "Payload richiesta (JSON)",
     "jsonHint": "Scrivi il body della richiesta gRPC in formato JSON. Usa il pulsante Formatta per la formattazione.",
+    "rawHint": "Enter JSON payload for the gRPC request. Load a proto source above for schema validation.",
     "format": "Formatta",
     "minify": "Minimizza"
   },
@@ -575,7 +576,11 @@
     "loading": "Caricamento cronologia…",
     "error": "Impossibile caricare i dati della cronologia.",
     "empty": "Nessun dato disponibile per il periodo selezionato.",
-    "retry": "Riprova"
+    "retry": "Riprova",
+    "chart": {
+      "avgLatency": "Latenza media",
+      "checksUp": "{count} check riusciti"
+    }
   },
   "notifications": {
     "title": "Notifiche",

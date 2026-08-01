@@ -107,12 +107,17 @@ The server exposes the following tools depending on the configured access mode:
 | `monitor-history` | Query check history points for a monitor over a time range |
 | `downtime-summary` | Summarize downtime periods within a rolling window (default 24h) |
 | `list-incidents` | List incidents globally or per monitor with pagination and open-only filter |
+| `dashboard-summary` | Get aggregated monitoring overview: health score, status distribution, active incidents, top latency, SSL expiry |
+| `list-tags` | List all tag keys, or list values for a specific tag key |
 
 ### Write Tools (read-write mode only)
 
 | Tool | Description |
 |------|-------------|
-| `create-monitor` | Create a simple health-check monitor (HTTP, TCP, UDP, or ICMP) |
+| `create-monitor` | Create a simple health-check monitor (DNS, HTTP, HTTP/3, ICMP, QUIC, SMTP, TCP, UDP, or WebSocket). Supports type-specific options: expected status codes for HTTP/HTTP3/WebSocket, record type and custom resolver for DNS |
+| `delete-monitor` | Delete a monitor permanently. Requires `confirm=true` to execute; without it returns a preview of what would be deleted |
+| `pause-monitor` | Pause a monitor (stops scheduling checks without deleting) |
+| `resume-monitor` | Resume a paused monitor (re-enables scheduled checks) |
 
 ## Architecture
 

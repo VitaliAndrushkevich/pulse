@@ -16,7 +16,20 @@
   import { t } from '$lib/i18n';
 
   type Tab = 'overview' | 'history' | 'notifications';
-  let activeTab = $state<Tab>('overview');
+
+  function getTabFromHash(): Tab {
+    if (typeof window === 'undefined') return 'overview';
+    const hash = window.location.hash.slice(1);
+    if (hash === 'history' || hash === 'notifications') return hash;
+    return 'overview';
+  }
+
+  let activeTab = $state<Tab>(getTabFromHash());
+
+  function setTab(tab: Tab) {
+    activeTab = tab;
+    window.location.hash = tab === 'overview' ? '' : tab;
+  }
 
   let history = $state<HistoryPoint[]>([]);
   let incidents = $state<Incident[]>([]);
@@ -62,7 +75,11 @@
   };
 
   async function fetchData() {
-    loading = true;
+    // Only show loading spinner on first load, not on re-fetches
+    const isFirstLoad = !monitor;
+    if (isFirstLoad) {
+      loading = true;
+    }
     error = null;
     notFound = false;
 
@@ -167,6 +184,15 @@
   $effect(() => {
     monitorId;
     untrack(() => fetchData());
+  });
+
+  // Sync tab with hash on back/forward navigation
+  $effect(() => {
+    function onHashChange() {
+      activeTab = getTabFromHash();
+    }
+    window.addEventListener('hashchange', onHashChange);
+    return () => window.removeEventListener('hashchange', onHashChange);
   });
 
   // Subscribe to WS monitor_status patches for the current monitor.
@@ -326,7 +352,7 @@
       <nav class="-mb-px flex gap-6" aria-label="Monitor tabs">
         <button
           type="button"
-          onclick={() => activeTab = 'overview'}
+          onclick={() => setTab('overview')}
           class="whitespace-nowrap border-b-2 px-1 py-3 text-sm font-medium transition-colors {activeTab === 'overview' ? 'border-[var(--color-brand-primary)] text-[var(--color-brand-primary)]' : 'border-transparent text-secondary hover:border-[var(--color-border)] hover:text-primary'}"
           aria-selected={activeTab === 'overview'}
           role="tab"
@@ -336,7 +362,7 @@
         </button>
         <button
           type="button"
-          onclick={() => activeTab = 'history'}
+          onclick={() => setTab('history')}
           class="whitespace-nowrap border-b-2 px-1 py-3 text-sm font-medium transition-colors {activeTab === 'history' ? 'border-[var(--color-brand-primary)] text-[var(--color-brand-primary)]' : 'border-transparent text-secondary hover:border-[var(--color-border)] hover:text-primary'}"
           aria-selected={activeTab === 'history'}
           role="tab"
@@ -346,7 +372,7 @@
         </button>
         <button
           type="button"
-          onclick={() => activeTab = 'notifications'}
+          onclick={() => setTab('notifications')}
           class="whitespace-nowrap border-b-2 px-1 py-3 text-sm font-medium transition-colors {activeTab === 'notifications' ? 'border-[var(--color-brand-primary)] text-[var(--color-brand-primary)]' : 'border-transparent text-secondary hover:border-[var(--color-border)] hover:text-primary'}"
           aria-selected={activeTab === 'notifications'}
           role="tab"

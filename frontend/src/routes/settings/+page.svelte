@@ -22,7 +22,9 @@
     <LanguageSelector />
   </section>
 
-  <ApiTokenSection />
+  <CollapsibleSection title={t('settings.tokens.title')} description={t('settings.tokens.description')} defaultOpen={true}>
+    <ApiTokenSection />
+  </CollapsibleSection>
 
   <CollapsibleSection title={t('notifications.smtpSettings.title')} description={t('notifications.smtpSettings.description')}>
     <SmtpSettingsSection />

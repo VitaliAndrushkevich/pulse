@@ -320,19 +320,6 @@ func (s *Scheduler) executeCheck(ctx context.Context, m db.Monitor, tags map[str
 		log.Printf("scheduler: monitor %s: write result: %v", m.ID, err)
 	}
 
-	// Also persist to the regular check_results table for the API layer.
-	if _, err := s.queries.CreateCheckResult(ctx, db.CreateCheckResultParams{
-		MonitorID:        m.ID,
-		CheckedAt:        result.CheckedAt,
-		State:            result.State,
-		LatencyMs:        &result.LatencyMs,
-		StatusCode:       result.StatusCode,
-		Error:            strPtr(result.Error),
-		SslDaysRemaining: result.SSLDaysRemaining,
-	}); err != nil {
-		log.Printf("scheduler: monitor %s: create check result: %v", m.ID, err)
-	}
-
 	// Manage incident lifecycle on state transitions.
 	s.manageIncidentLifecycle(ctx, m, result)
 
@@ -467,7 +454,7 @@ func (s *Scheduler) recordFailure(ctx context.Context, m db.Monitor, errMsg stri
 	nextCheck := now.Add(time.Duration(m.IntervalSeconds) * time.Second)
 
 	var latency int32
-	if _, err := s.queries.CreateCheckResult(ctx, db.CreateCheckResultParams{
+	if err := s.tsStore.WriteCheckResult(ctx, timescale.CheckPoint{
 		MonitorID:  m.ID,
 		CheckedAt:  now,
 		State:      "down",

@@ -23,6 +23,12 @@ type WebSocketSettings struct {
 	ExpectedResponse string `json:"expected_response,omitempty"`
 	// SkipTLSVerify disables certificate chain and hostname verification (default: false).
 	SkipTLSVerify bool `json:"skip_tls_verify,omitempty"`
+	// ExpectedStatuses is an optional list of HTTP status codes considered acceptable.
+	// When set, a failed WebSocket upgrade that returns one of these codes is treated
+	// as "up" (the server responded as expected). Useful for monitoring endpoints
+	// behind authentication where 401/403 indicates the server is alive.
+	// Each value must be in 100–599; max 10 entries.
+	ExpectedStatuses []int `json:"expected_statuses,omitempty"`
 }
 
 // WebSocketChecker implements the Checker and AuthenticatedChecker interfaces
@@ -46,6 +52,13 @@ func (w *WebSocketChecker) check(ctx context.Context, target string, settings js
 	var s WebSocketSettings
 	if len(settings) > 0 {
 		_ = json.Unmarshal(settings, &s)
+	}
+
+	// Validate expected_statuses early.
+	if err := validateWSExpectedStatuses(s.ExpectedStatuses); err != nil {
+		result.State = "down"
+		result.Error = err.Error()
+		return result
 	}
 
 	// Build request headers.
@@ -94,6 +107,14 @@ func (w *WebSocketChecker) check(ctx context.Context, target string, settings js
 	}
 
 	if err != nil {
+		// If expected_statuses is set and the server responded with a matching HTTP code,
+		// consider the monitor "up" — the server is alive and responding as configured.
+		if resp != nil && len(s.ExpectedStatuses) > 0 {
+			if wsStatusExpected(resp.StatusCode, s.ExpectedStatuses) {
+				result.State = "up"
+				return result
+			}
+		}
 		result.State = "down"
 		if resp != nil {
 			result.Error = fmt.Sprintf("websocket dial: %v (HTTP %d)", err, resp.StatusCode)
@@ -165,4 +186,31 @@ func websocketOrigin(target string) string {
 	default:
 		return ""
 	}
+}
+
+// validateWSExpectedStatuses checks that expected status codes are valid HTTP codes.
+// Each value must be in [100, 599], max 10 entries.
+func validateWSExpectedStatuses(statuses []int) error {
+	if len(statuses) == 0 {
+		return nil
+	}
+	if len(statuses) > 10 {
+		return fmt.Errorf("expected_statuses must have at most 10 entries, got %d", len(statuses))
+	}
+	for _, code := range statuses {
+		if code < 100 || code > 599 {
+			return fmt.Errorf("expected_statuses values must be between 100 and 599, got %d", code)
+		}
+	}
+	return nil
+}
+
+// wsStatusExpected returns true if the given HTTP status code is in the expected list.
+func wsStatusExpected(code int, expected []int) bool {
+	for _, e := range expected {
+		if code == e {
+			return true
+		}
+	}
+	return false
 }

@@ -48,7 +48,7 @@ func TestHandleCreateMonitor_ReadOnlyMode(t *testing.T) {
 }
 
 func TestHandleCreateMonitor_InvalidType(t *testing.T) {
-	cases := []string{"gRPC", "DNS", "SMTP", "websocket", "FTP", ""}
+	cases := []string{"gRPC", "FTP", ""}
 
 	for _, typ := range cases {
 		t.Run(typ, func(t *testing.T) {
@@ -75,7 +75,7 @@ func TestHandleCreateMonitor_InvalidType(t *testing.T) {
 			if mcpErr.Code != mcperr.CodeInvalidType {
 				t.Errorf("expected code %q, got %q", mcperr.CodeInvalidType, mcpErr.Code)
 			}
-			if !strings.Contains(mcpErr.Message, "HTTP, TCP, UDP, ICMP") {
+			if !strings.Contains(mcpErr.Message, "DNS, HTTP, HTTP/3, ICMP, QUIC, SMTP, TCP, UDP, WebSocket") {
 				t.Errorf("error message should list supported types, got: %s", mcpErr.Message)
 			}
 			if called {
@@ -93,12 +93,22 @@ func TestHandleCreateMonitor_TypeNormalization(t *testing.T) {
 		{"HTTP", "http"},
 		{"http", "http"},
 		{"Http", "http"},
+		{"HTTP/3", "http3"},
+		{"http/3", "http3"},
+		{"http3", "http3"},
 		{"TCP", "tcp"},
 		{"tcp", "tcp"},
 		{"UDP", "udp"},
 		{"udp", "udp"},
 		{"ICMP", "icmp"},
 		{"icmp", "icmp"},
+		{"DNS", "dns"},
+		{"dns", "dns"},
+		{"SMTP", "smtp"},
+		{"smtp", "smtp"},
+		{"WebSocket", "websocket"},
+		{"websocket", "websocket"},
+		{"WEBSOCKET", "websocket"},
 		{" HTTP ", "http"},
 	}
 
@@ -118,6 +128,15 @@ func TestHandleCreateMonitor_TypeNormalization(t *testing.T) {
 			target := "https://example.com"
 			if tt.expected == "tcp" || tt.expected == "udp" {
 				target = "example.com:80"
+			}
+			if tt.expected == "websocket" {
+				target = "ws://example.com/ws"
+			}
+			if tt.expected == "dns" {
+				target = "example.com"
+			}
+			if tt.expected == "smtp" {
+				target = "mail.example.com"
 			}
 			_, err := HandleCreateMonitor(context.Background(), deps, CreateMonitorToolInput{
 				Type:   tt.input,
@@ -519,5 +538,163 @@ func TestHandleCreateMonitor_ValidationOrder(t *testing.T) {
 	}
 	if mcpErr.Code != mcperr.CodeWriteDisabled {
 		t.Errorf("expected WRITE_DISABLED first in validation order, got %q", mcpErr.Code)
+	}
+}
+
+func TestHandleCreateMonitor_WebSocket_Success(t *testing.T) {
+	var gotType string
+	var gotSettings map[string]any
+	client := createFakeClient(func(_ context.Context, in pulseapi.CreateMonitorInput) (pulseapi.Monitor, error) {
+		gotType = in.Type
+		gotSettings = in.Settings
+		return pulseapi.Monitor{
+			ID: "mon-ws-1", Name: in.Name, Type: in.Type, Target: in.Target,
+			Status: "pending", State: "active",
+			IntervalSeconds: 60, TimeoutSeconds: 10,
+		}, nil
+	})
+
+	deps := Deps{Client: client, AccessMode: config.ReadWrite}
+	out, err := HandleCreateMonitor(context.Background(), deps, CreateMonitorToolInput{
+		Type:   "WebSocket",
+		Name:   "WS Auth Check",
+		Target: "wss://api.example.com/ws",
+	})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if gotType != "websocket" {
+		t.Errorf("expected type 'websocket', got %q", gotType)
+	}
+	if out.ID != "mon-ws-1" {
+		t.Errorf("expected ID 'mon-ws-1', got %q", out.ID)
+	}
+	// No settings should be set when ws_expected_statuses is empty.
+	if len(gotSettings) != 0 {
+		t.Errorf("expected empty settings, got %v", gotSettings)
+	}
+}
+
+func TestHandleCreateMonitor_WebSocket_ExpectedStatuses(t *testing.T) {
+	var gotSettings map[string]any
+	client := createFakeClient(func(_ context.Context, in pulseapi.CreateMonitorInput) (pulseapi.Monitor, error) {
+		gotSettings = in.Settings
+		return pulseapi.Monitor{
+			ID: "mon-ws-2", Name: in.Name, Type: in.Type, Target: in.Target,
+			Status: "pending", State: "active",
+			IntervalSeconds: 60, TimeoutSeconds: 10,
+		}, nil
+	})
+
+	deps := Deps{Client: client, AccessMode: config.ReadWrite}
+	_, err := HandleCreateMonitor(context.Background(), deps, CreateMonitorToolInput{
+		Type:               "WebSocket",
+		Name:               "WS Auth Check",
+		Target:             "wss://api.example.com/ws",
+		WSExpectedStatuses: []int{401, 403},
+	})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	statuses, ok := gotSettings["expected_statuses"]
+	if !ok {
+		t.Fatal("expected 'expected_statuses' in settings")
+	}
+	statusList, ok := statuses.([]int)
+	if !ok {
+		t.Fatalf("expected []int, got %T", statuses)
+	}
+	if len(statusList) != 2 || statusList[0] != 401 || statusList[1] != 403 {
+		t.Errorf("expected [401 403], got %v", statusList)
+	}
+}
+
+func TestHandleCreateMonitor_WebSocket_ExpectedStatusesInvalid(t *testing.T) {
+	client := createFakeClient(func(_ context.Context, _ pulseapi.CreateMonitorInput) (pulseapi.Monitor, error) {
+		t.Fatal("Pulse API should not be called")
+		return pulseapi.Monitor{}, nil
+	})
+
+	deps := Deps{Client: client, AccessMode: config.ReadWrite}
+
+	// Out of range value.
+	_, err := HandleCreateMonitor(context.Background(), deps, CreateMonitorToolInput{
+		Type:               "WebSocket",
+		Name:               "WS Check",
+		Target:             "ws://example.com/ws",
+		WSExpectedStatuses: []int{401, 600},
+	})
+	if err == nil {
+		t.Fatal("expected error for invalid status code")
+	}
+	var mcpErr *mcperr.MCPError
+	if !errors.As(err, &mcpErr) {
+		t.Fatalf("expected MCPError, got %T", err)
+	}
+	if mcpErr.Code != mcperr.CodeValidationError {
+		t.Errorf("expected code %q, got %q", mcperr.CodeValidationError, mcpErr.Code)
+	}
+}
+
+func TestHandleCreateMonitor_WebSocket_ExpectedStatusesTooMany(t *testing.T) {
+	client := createFakeClient(func(_ context.Context, _ pulseapi.CreateMonitorInput) (pulseapi.Monitor, error) {
+		t.Fatal("Pulse API should not be called")
+		return pulseapi.Monitor{}, nil
+	})
+
+	deps := Deps{Client: client, AccessMode: config.ReadWrite}
+
+	// 11 entries — over the limit of 10.
+	statuses := make([]int, 11)
+	for i := range statuses {
+		statuses[i] = 400 + i
+	}
+
+	_, err := HandleCreateMonitor(context.Background(), deps, CreateMonitorToolInput{
+		Type:               "WebSocket",
+		Name:               "WS Check",
+		Target:             "ws://example.com/ws",
+		WSExpectedStatuses: statuses,
+	})
+	if err == nil {
+		t.Fatal("expected error for too many statuses")
+	}
+	var mcpErr *mcperr.MCPError
+	if !errors.As(err, &mcpErr) {
+		t.Fatalf("expected MCPError, got %T", err)
+	}
+	if mcpErr.Code != mcperr.CodeValidationError {
+		t.Errorf("expected code %q, got %q", mcperr.CodeValidationError, mcpErr.Code)
+	}
+	if !strings.Contains(mcpErr.Message, "at most 10") {
+		t.Errorf("expected message about 10 entry limit, got: %s", mcpErr.Message)
+	}
+}
+
+func TestHandleCreateMonitor_WebSocket_ExpectedStatusesIgnoredForNonWS(t *testing.T) {
+	var gotSettings map[string]any
+	client := createFakeClient(func(_ context.Context, in pulseapi.CreateMonitorInput) (pulseapi.Monitor, error) {
+		gotSettings = in.Settings
+		return pulseapi.Monitor{
+			ID: "mon-1", Name: "Test", Type: in.Type, Target: in.Target,
+			Status: "pending", State: "active",
+			IntervalSeconds: 60, TimeoutSeconds: 10,
+		}, nil
+	})
+
+	deps := Deps{Client: client, AccessMode: config.ReadWrite}
+	_, err := HandleCreateMonitor(context.Background(), deps, CreateMonitorToolInput{
+		Type:               "HTTP",
+		Name:               "HTTP Check",
+		Target:             "https://example.com",
+		WSExpectedStatuses: []int{401},
+	})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if _, ok := gotSettings["expected_statuses"]; ok {
+		t.Error("ws_expected_statuses should NOT be set in settings for non-WebSocket type")
 	}
 }

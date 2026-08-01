@@ -77,6 +77,26 @@ func (f *fakeClient) CreateMonitor(context.Context, pulseapi.CreateMonitorInput)
 	return pulseapi.Monitor{}, nil
 }
 
+func (f *fakeClient) DeleteMonitor(context.Context, string) error {
+	return nil
+}
+
+func (f *fakeClient) UpdateMonitorStatus(context.Context, string, string) (pulseapi.Monitor, error) {
+	return pulseapi.Monitor{}, nil
+}
+
+func (f *fakeClient) GetDashboardSummary(context.Context) (pulseapi.DashboardSummary, error) {
+	return pulseapi.DashboardSummary{}, nil
+}
+
+func (f *fakeClient) ListTags(context.Context) ([]string, error) {
+	return nil, nil
+}
+
+func (f *fakeClient) ListTagValues(context.Context, string) ([]string, error) {
+	return nil, nil
+}
+
 func TestIsUUID(t *testing.T) {
 	tests := []struct {
 		input string

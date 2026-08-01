@@ -537,6 +537,13 @@ paths:
                   enum: [plaintext, tls, tls_skip_verify]
                   default: tls
                   description: "TLS mode for the connection"
+                metadata:
+                  type: object
+                  additionalProperties:
+                    type: string
+                  description: "Optional gRPC metadata (headers) sent on the reflection stream"
+                  example:
+                    authorization: "Bearer token123"
       responses:
         "200":
           description: Reflection succeeded
@@ -2081,12 +2088,13 @@ components:
           description: "Base64-encoded protobuf request message"
         payload_format:
           type: string
-          enum: [raw, proto_json]
+          enum: [raw, json, proto_json]
           default: raw
           description: >
             Payload interpretation mode. "raw" uses base64-encoded bytes (request_payload field),
-            "proto_json" uses Proto JSON format with schema validation against the configured
-            proto source.
+            "json" passes request_payload as raw JSON bytes without proto source (useful for
+            gRPC services behind JSON-aware proxies), "proto_json" uses Proto JSON format with
+            schema validation against the configured proto source.
 
     HTTPSettings:
       type: object
@@ -2169,6 +2177,19 @@ components:
           type: boolean
           default: false
           description: "Disable TLS certificate chain and hostname verification for wss:// connections"
+        expected_statuses:
+          type: array
+          items:
+            type: integer
+            minimum: 100
+            maximum: 599
+          maxItems: 10
+          description: >
+            Optional list of HTTP status codes considered acceptable on upgrade failure.
+            When set, a failed WebSocket upgrade returning one of these codes is treated as "up"
+            (the server responded as expected). Useful for monitoring endpoints behind authentication
+            where 401/403 indicates the server is alive. If empty or omitted, only a successful
+            upgrade (101) counts as up.
 
     DNSSettings:
       type: object

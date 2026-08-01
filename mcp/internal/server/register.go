@@ -43,20 +43,43 @@ var (
 		Description: "List incidents globally or per monitor, with optional open-only filter",
 	}
 
+	dashboardSummaryTool = &mcp.Tool{
+		Name:        "dashboard-summary",
+		Description: "Get aggregated monitoring overview: health score, status distribution, active incidents, top latency, SSL expiry",
+	}
+
+	listTagsTool = &mcp.Tool{
+		Name:        "list-tags",
+		Description: "List all tag keys, or list values for a specific tag key",
+	}
+
 	createMonitorTool = &mcp.Tool{
 		Name:        "create-monitor",
-		Description: "Create a new health-check monitor (HTTP, TCP, UDP, or ICMP)",
+		Description: "Create a new health-check monitor (DNS, HTTP, HTTP/3, ICMP, QUIC, SMTP, TCP, UDP, or WebSocket)",
+	}
+
+	deleteMonitorTool = &mcp.Tool{
+		Name:        "delete-monitor",
+		Description: "Delete a monitor (requires confirm=true for safety; without it returns a preview)",
+	}
+
+	pauseMonitorTool = &mcp.Tool{
+		Name:        "pause-monitor",
+		Description: "Pause a monitor (stops scheduling checks without deleting)",
+	}
+
+	resumeMonitorTool = &mcp.Tool{
+		Name:        "resume-monitor",
+		Description: "Resume a paused monitor (re-enables scheduled checks)",
 	}
 )
 
 // Register adds all MCP tools to the server according to the Access_Mode.
-// Read tools are always registered. Write tools (create-monitor) are registered
-// only in read-write mode. This satisfies Requirements 10.3, 10.5, 10.6 —
-// unregistered tools are neither advertised nor invocable.
+// Read tools are always registered. Write tools are registered only in read-write mode.
 //
-// Defense-in-depth: the create-monitor handler also checks deps.AccessMode at
-// call time (Requirement 10.4), so even if a client somehow invokes an
-// unadvertised tool, the request is rejected before any Pulse API call.
+// Defense-in-depth: write tool handlers also check deps.AccessMode at call time,
+// so even if a client somehow invokes an unadvertised tool, the request is rejected
+// before any Pulse API call.
 func Register(s *mcp.Server, deps tools.Deps, mode config.AccessMode) {
 	// Read tools — always available.
 	mcp.AddTool(s, listMonitorsTool, wrapHandler(deps, tools.HandleListMonitors))
@@ -65,10 +88,15 @@ func Register(s *mcp.Server, deps tools.Deps, mode config.AccessMode) {
 	mcp.AddTool(s, monitorHistoryTool, wrapHandler(deps, tools.HandleMonitorHistory))
 	mcp.AddTool(s, downtimeSummaryTool, wrapHandler(deps, tools.HandleDowntimeSummary))
 	mcp.AddTool(s, listIncidentsTool, wrapHandler(deps, tools.HandleListIncidents))
+	mcp.AddTool(s, dashboardSummaryTool, wrapHandler(deps, tools.HandleDashboardSummary))
+	mcp.AddTool(s, listTagsTool, wrapHandler(deps, tools.HandleListTags))
 
-	// Write tools — read-write mode only (Req 10.3, 10.5, 10.6).
+	// Write tools — read-write mode only.
 	if mode == config.ReadWrite {
 		mcp.AddTool(s, createMonitorTool, wrapHandler(deps, tools.HandleCreateMonitor))
+		mcp.AddTool(s, deleteMonitorTool, wrapHandler(deps, tools.HandleDeleteMonitor))
+		mcp.AddTool(s, pauseMonitorTool, wrapHandler(deps, tools.HandlePauseMonitor))
+		mcp.AddTool(s, resumeMonitorTool, wrapHandler(deps, tools.HandleResumeMonitor))
 	}
 }
 

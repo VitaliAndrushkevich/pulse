@@ -375,15 +375,15 @@
       "createLabel": "Token-Name",
       "createPlaceholder": "z.B. ci-deploy, grafana-read",
       "createButton": "Token erstellen",
-      "expirationLabel": "Expires",
+      "expirationLabel": "Gültigkeitsdauer",
       "expiration": {
-        "7days": "7 days",
-        "30days": "30 days",
-        "60days": "60 days",
-        "90days": "90 days",
-        "1year": "1 year",
-        "custom": "Custom...",
-        "customLabel": "Expiration date and time"
+        "7days": "7 Tage",
+        "30days": "30 Tage",
+        "60days": "60 Tage",
+        "90days": "90 Tage",
+        "1year": "1 Jahr",
+        "custom": "Benutzerdefiniert…",
+        "customLabel": "Ablaufdatum und -uhrzeit"
       },
       "existingTitle": "Vorhandene Token",
       "existingDescription": "Token-Werte werden nach der Erstellung nicht mehr angezeigt. Nur Metadaten werden angezeigt.",
@@ -399,15 +399,15 @@
       "revoke": "Widerrufen",
       "revoked": "Widerrufen",
       "expired": "Abgelaufen",
-      "delete": "Delete",
-      "deleteConfirm": "Are you sure? This permanently removes the token.",
+      "delete": "Löschen",
+      "deleteConfirm": "Sind Sie sicher? Das Token wird dauerhaft entfernt.",
       "errors": {
         "networkList": "Verbindung zum Server nicht möglich. Bitte Netzwerkverbindung prüfen.",
         "unexpectedList": "Ein unerwarteter Fehler beim Laden der Token ist aufgetreten.",
         "networkCreate": "Verbindung zum Server nicht möglich. Bitte erneut versuchen.",
         "unexpectedCreate": "Ein unerwarteter Fehler ist aufgetreten. Bitte erneut versuchen.",
-        "customDateRequired": "Please select an expiration date.",
-        "dateMustBeFuture": "Expiration date must be in the future."
+        "customDateRequired": "Bitte wählen Sie ein Ablaufdatum.",
+        "dateMustBeFuture": "Das Ablaufdatum muss in der Zukunft liegen."
       }
     }
   },
@@ -535,7 +535,11 @@
     "loading": "Verlauf wird geladen…",
     "error": "Verlaufsdaten konnten nicht geladen werden.",
     "empty": "Keine Daten für den gewählten Zeitraum verfügbar.",
-    "retry": "Erneut versuchen"
+    "retry": "Erneut versuchen",
+    "chart": {
+      "avgLatency": "Durchschn. Latenz",
+      "checksUp": "{count} Checks erfolgreich"
+    }
   },
   "errors": {
     "generic": "Etwas ist schiefgelaufen",
@@ -580,6 +584,7 @@
     "placeholder": "JSON-Payload eingeben (z.B. {\"name\": \"value\"})",
     "label": "Request-Payload (JSON)",
     "jsonHint": "Schreiben Sie den gRPC-Request-Body als JSON. Verwenden Sie die Formatieren-Schaltfläche für die Darstellung.",
+    "rawHint": "Enter JSON payload for the gRPC request. Load a proto source above for schema validation.",
     "format": "Formatieren",
     "minify": "Minifizieren"
   },

@@ -54,6 +54,26 @@ func (f *statsFakePulseClient) CreateMonitor(_ context.Context, _ pulseapi.Creat
 	return pulseapi.Monitor{}, nil
 }
 
+func (f *statsFakePulseClient) DeleteMonitor(_ context.Context, _ string) error {
+	return nil
+}
+
+func (f *statsFakePulseClient) UpdateMonitorStatus(_ context.Context, _ string, _ string) (pulseapi.Monitor, error) {
+	return pulseapi.Monitor{}, nil
+}
+
+func (f *statsFakePulseClient) GetDashboardSummary(_ context.Context) (pulseapi.DashboardSummary, error) {
+	return pulseapi.DashboardSummary{}, nil
+}
+
+func (f *statsFakePulseClient) ListTags(_ context.Context) ([]string, error) {
+	return nil, nil
+}
+
+func (f *statsFakePulseClient) ListTagValues(_ context.Context, _ string) ([]string, error) {
+	return nil, nil
+}
+
 // --- Generators ---
 
 // genSSLInfo generates a random SSLInfo with a valid expiration date and days remaining.

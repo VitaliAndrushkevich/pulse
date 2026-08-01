@@ -35,11 +35,28 @@ func (noopClient) ListIncidents(_ context.Context, _ pulseapi.IncidentQuery) (pu
 func (noopClient) CreateMonitor(_ context.Context, _ pulseapi.CreateMonitorInput) (pulseapi.Monitor, error) {
 	return pulseapi.Monitor{}, nil
 }
+func (noopClient) DeleteMonitor(_ context.Context, _ string) error {
+	return nil
+}
+func (noopClient) UpdateMonitorStatus(_ context.Context, _ string, _ string) (pulseapi.Monitor, error) {
+	return pulseapi.Monitor{}, nil
+}
+func (noopClient) GetDashboardSummary(_ context.Context) (pulseapi.DashboardSummary, error) {
+	return pulseapi.DashboardSummary{}, nil
+}
+func (noopClient) ListTags(_ context.Context) ([]string, error) {
+	return nil, nil
+}
+func (noopClient) ListTagValues(_ context.Context, _ string) ([]string, error) {
+	return nil, nil
+}
 
 // readToolNames is the set of tools that must be registered in both modes.
 var readToolNames = []string{
+	"dashboard-summary",
 	"list-monitors",
 	"get-monitor",
+	"list-tags",
 	"monitor-stats",
 	"monitor-history",
 	"downtime-summary",
@@ -49,6 +66,9 @@ var readToolNames = []string{
 // writeToolNames is the set of tools registered only in read-write mode.
 var writeToolNames = []string{
 	"create-monitor",
+	"delete-monitor",
+	"pause-monitor",
+	"resume-monitor",
 }
 
 // listRegisteredTools creates an MCP server, registers tools with the given mode,

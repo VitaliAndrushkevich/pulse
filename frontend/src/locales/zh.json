@@ -375,15 +375,15 @@
       "createLabel": "令牌名称",
       "createPlaceholder": "例如 ci-deploy, grafana-read",
       "createButton": "创建令牌",
-      "expirationLabel": "Expires",
+      "expirationLabel": "有效期",
       "expiration": {
-        "7days": "7 days",
-        "30days": "30 days",
-        "60days": "60 days",
-        "90days": "90 days",
-        "1year": "1 year",
-        "custom": "Custom...",
-        "customLabel": "Expiration date and time"
+        "7days": "7 天",
+        "30days": "30 天",
+        "60days": "60 天",
+        "90days": "90 天",
+        "1year": "1 年",
+        "custom": "自定义…",
+        "customLabel": "过期日期和时间"
       },
       "existingTitle": "现有令牌",
       "existingDescription": "令牌值在创建后不再显示。仅显示元数据。",
@@ -399,15 +399,15 @@
       "revoke": "撤销",
       "revoked": "已撤销",
       "expired": "已过期",
-      "delete": "Delete",
-      "deleteConfirm": "Are you sure? This permanently removes the token.",
+      "delete": "删除",
+      "deleteConfirm": "确定吗？令牌将被永久删除。",
       "errors": {
         "networkList": "无法连接到服务器。请检查网络连接。",
         "unexpectedList": "加载令牌时发生意外错误。",
         "networkCreate": "无法连接到服务器。请重试。",
         "unexpectedCreate": "发生了意外错误。请重试。",
-        "customDateRequired": "Please select an expiration date.",
-        "dateMustBeFuture": "Expiration date must be in the future."
+        "customDateRequired": "请选择过期日期。",
+        "dateMustBeFuture": "过期日期必须在未来。"
       }
     }
   },
@@ -535,7 +535,11 @@
     "loading": "加载历史…",
     "error": "历史数据加载失败。",
     "empty": "所选时间段暂无数据。",
-    "retry": "重试"
+    "retry": "重试",
+    "chart": {
+      "avgLatency": "平均延迟",
+      "checksUp": "{count} 次检查正常"
+    }
   },
   "errors": {
     "generic": "出了点问题",
@@ -580,6 +584,7 @@
     "placeholder": "输入 JSON 有效载荷（例如 {\"name\": \"value\"}）",
     "label": "请求有效载荷 (JSON)",
     "jsonHint": "以 JSON 格式编写 gRPC 请求体。使用「格式化」按钮美化输出。",
+    "rawHint": "输入 gRPC 请求的 JSON 载荷。上方加载 proto 源以启用架构验证。",
     "format": "格式化",
     "minify": "压缩"
   },

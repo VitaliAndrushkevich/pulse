@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { untrack } from 'svelte';
   import TimeRangePicker from './TimeRangePicker.svelte';
   import HistoryChartExplorer from './HistoryChartExplorer.svelte';
   import { getMonitorHistoryExtended, type AggregatedHistoryPoint } from '$lib/api';
@@ -67,9 +68,10 @@
   }
 
   // Initial fetch
+  // Initial fetch — only re-run when monitorId changes
   $effect(() => {
     monitorId;
-    fetchHistory();
+    untrack(() => fetchHistory());
   });
 </script>
 
@@ -108,6 +110,8 @@
       {points}
       {aggregatedPoints}
       loading={false}
+      from={selectedRange.from}
+      to={selectedRange.to}
     />
   {/if}
 </div>

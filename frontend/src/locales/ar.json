@@ -375,15 +375,15 @@
       "createLabel": "اسم الرمز",
       "createPlaceholder": "مثال: ci-deploy, grafana-read",
       "createButton": "إنشاء رمز",
-      "expirationLabel": "Expires",
+      "expirationLabel": "انتهاء الصلاحية",
       "expiration": {
-        "7days": "7 days",
-        "30days": "30 days",
-        "60days": "60 days",
-        "90days": "90 days",
-        "1year": "1 year",
-        "custom": "Custom...",
-        "customLabel": "Expiration date and time"
+        "7days": "٧ أيام",
+        "30days": "٣٠ يومًا",
+        "60days": "٦٠ يومًا",
+        "90days": "٩٠ يومًا",
+        "1year": "سنة واحدة",
+        "custom": "تخصيص…",
+        "customLabel": "تاريخ ووقت انتهاء الصلاحية"
       },
       "existingTitle": "الرموز الموجودة",
       "existingDescription": "لا تُعرض قيم الرموز بعد الإنشاء. تُعرض البيانات الوصفية فقط.",
@@ -399,15 +399,15 @@
       "revoke": "إلغاء",
       "revoked": "ملغى",
       "expired": "منتهي الصلاحية",
-      "delete": "Delete",
-      "deleteConfirm": "Are you sure? This permanently removes the token.",
+      "delete": "حذف",
+      "deleteConfirm": "هل أنت متأكد؟ سيتم حذف الرمز نهائيًا.",
       "errors": {
         "networkList": "تعذر الاتصال بالخادم. يرجى التحقق من اتصال الشبكة.",
         "unexpectedList": "حدث خطأ غير متوقع أثناء تحميل الرموز.",
         "networkCreate": "تعذر الاتصال بالخادم. يرجى المحاولة مرة أخرى.",
         "unexpectedCreate": "حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.",
-        "customDateRequired": "Please select an expiration date.",
-        "dateMustBeFuture": "Expiration date must be in the future."
+        "customDateRequired": "يرجى اختيار تاريخ انتهاء الصلاحية.",
+        "dateMustBeFuture": "يجب أن يكون تاريخ انتهاء الصلاحية في المستقبل."
       }
     }
   },
@@ -535,7 +535,11 @@
     "loading": "جارٍ تحميل السجل…",
     "error": "فشل تحميل بيانات السجل.",
     "empty": "لا تتوفر بيانات للفترة المحددة.",
-    "retry": "إعادة المحاولة"
+    "retry": "إعادة المحاولة",
+    "chart": {
+      "avgLatency": "متوسط زمن الاستجابة",
+      "checksUp": "{count} فحص ناجح"
+    }
   },
   "errors": {
     "generic": "حدث خطأ ما",
@@ -580,6 +584,7 @@
     "placeholder": "أدخل حمولة JSON (مثال: {\"name\": \"value\"})",
     "label": "حمولة الطلب (JSON)",
     "jsonHint": "اكتب جسم طلب gRPC بصيغة JSON. استخدم زر التنسيق لتحسين العرض.",
+    "rawHint": "Enter JSON payload for the gRPC request. Load a proto source above for schema validation.",
     "format": "تنسيق",
     "minify": "تصغير"
   },

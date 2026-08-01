@@ -375,15 +375,15 @@
       "createLabel": "토큰 이름",
       "createPlaceholder": "예: ci-deploy, grafana-read",
       "createButton": "토큰 만들기",
-      "expirationLabel": "Expires",
+      "expirationLabel": "만료",
       "expiration": {
-        "7days": "7 days",
-        "30days": "30 days",
-        "60days": "60 days",
-        "90days": "90 days",
-        "1year": "1 year",
-        "custom": "Custom...",
-        "customLabel": "Expiration date and time"
+        "7days": "7일",
+        "30days": "30일",
+        "60days": "60일",
+        "90days": "90일",
+        "1year": "1년",
+        "custom": "사용자 지정…",
+        "customLabel": "만료 날짜 및 시간"
       },
       "existingTitle": "기존 토큰",
       "existingDescription": "토큰 값은 생성 후 표시되지 않습니다. 메타데이터만 표시됩니다.",
@@ -399,15 +399,15 @@
       "revoke": "취소",
       "revoked": "취소됨",
       "expired": "만료됨",
-      "delete": "Delete",
-      "deleteConfirm": "Are you sure? This permanently removes the token.",
+      "delete": "삭제",
+      "deleteConfirm": "정말 삭제하시겠습니까? 토큰이 영구적으로 제거됩니다.",
       "errors": {
         "networkList": "서버에 연결할 수 없습니다. 네트워크 연결을 확인해 주세요.",
         "unexpectedList": "토큰 로딩 중 예기치 않은 오류가 발생했습니다.",
         "networkCreate": "서버에 연결할 수 없습니다. 다시 시도해 주세요.",
         "unexpectedCreate": "예기치 않은 오류가 발생했습니다. 다시 시도해 주세요.",
-        "customDateRequired": "Please select an expiration date.",
-        "dateMustBeFuture": "Expiration date must be in the future."
+        "customDateRequired": "만료 날짜를 선택하세요.",
+        "dateMustBeFuture": "만료 날짜는 미래여야 합니다."
       }
     }
   },
@@ -535,7 +535,11 @@
     "loading": "이력 로딩 중…",
     "error": "이력 데이터 로딩에 실패했습니다.",
     "empty": "선택한 기간에 데이터가 없습니다.",
-    "retry": "재시도"
+    "retry": "재시도",
+    "chart": {
+      "avgLatency": "평균 지연",
+      "checksUp": "{count}개 체크 정상"
+    }
   },
   "errors": {
     "generic": "오류가 발생했습니다",
@@ -580,6 +584,7 @@
     "placeholder": "JSON 페이로드 입력 (예: {\"name\": \"value\"})",
     "label": "요청 페이로드 (JSON)",
     "jsonHint": "gRPC 요청 본문을 JSON으로 작성하세요. 포맷 버튼으로 정렬할 수 있습니다.",
+    "rawHint": "gRPC 요청의 JSON 페이로드를 입력하세요. 위에서 proto 소스를 로드하면 스키마 검증이 활성화됩니다.",
     "format": "포맷",
     "minify": "압축"
   },

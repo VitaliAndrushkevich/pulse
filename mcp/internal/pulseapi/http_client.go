@@ -171,6 +171,70 @@ func (c *httpClient) CreateMonitor(ctx context.Context, in CreateMonitorInput) (
 	return wire.toModel(), nil
 }
 
+// DeleteMonitor implements PulseClient.
+func (c *httpClient) DeleteMonitor(ctx context.Context, id string) error {
+	_, err := c.doJSON(ctx, http.MethodDelete, "/monitors/"+url.PathEscape(id), nil, nil, nil)
+	return err
+}
+
+// UpdateMonitorStatus implements PulseClient.
+// It first GETs the monitor, then PUTs it back with the new status.
+func (c *httpClient) UpdateMonitorStatus(ctx context.Context, id string, status string) (Monitor, error) {
+	// GET current monitor state to preserve all fields.
+	var current wireMonitor
+	_, err := c.doJSON(ctx, http.MethodGet, "/monitors/"+url.PathEscape(id), nil, nil, &current)
+	if err != nil {
+		return Monitor{}, err
+	}
+
+	// PUT with updated status.
+	body := updateMonitorStatusRequest{
+		Name:            current.Name,
+		Type:            current.Type,
+		Target:          current.Target,
+		Status:          status,
+		IntervalSeconds: current.IntervalSeconds,
+		TimeoutSeconds:  current.TimeoutSeconds,
+	}
+
+	var wire wireMonitor
+	_, err = c.doJSON(ctx, http.MethodPut, "/monitors/"+url.PathEscape(id), nil, body, &wire)
+	if err != nil {
+		return Monitor{}, err
+	}
+	return wire.toModel(), nil
+}
+
+// GetDashboardSummary implements PulseClient.
+func (c *httpClient) GetDashboardSummary(ctx context.Context) (DashboardSummary, error) {
+	var wire wireDashboardSummary
+	_, err := c.doJSON(ctx, http.MethodGet, "/dashboard/summary", nil, nil, &wire)
+	if err != nil {
+		return DashboardSummary{}, err
+	}
+	return wire.toModel(), nil
+}
+
+// ListTags implements PulseClient.
+func (c *httpClient) ListTags(ctx context.Context) ([]string, error) {
+	var wire wireTagList
+	_, err := c.doJSON(ctx, http.MethodGet, "/tags", nil, nil, &wire)
+	if err != nil {
+		return nil, err
+	}
+	return wire.Data, nil
+}
+
+// ListTagValues implements PulseClient.
+func (c *httpClient) ListTagValues(ctx context.Context, key string) ([]string, error) {
+	var wire wireTagList
+	_, err := c.doJSON(ctx, http.MethodGet, "/tags/"+url.PathEscape(key), nil, nil, &wire)
+	if err != nil {
+		return nil, err
+	}
+	return wire.Data, nil
+}
+
 // doJSON performs an HTTP request and decodes the response into dest.
 // It handles auth headers, timeout, error envelopes, connectivity errors, and X-Request-ID.
 func (c *httpClient) doJSON(ctx context.Context, method, path string, params url.Values, body any, dest any) (string, error) {

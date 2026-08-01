@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
   import { EditorView, placeholder as cmPlaceholder, keymap } from '@codemirror/view';
-  import { EditorState, Compartment } from '@codemirror/state';
+  import { EditorState } from '@codemirror/state';
   import { json } from '@codemirror/lang-json';
   import { defaultKeymap, history, historyKeymap } from '@codemirror/commands';
   import { bracketMatching, foldGutter, indentOnInput } from '@codemirror/language';
@@ -32,8 +32,6 @@
   let isUpdatingFromProp = false;
   let formatError = $state<string | null>(null);
 
-  const readOnlyCompartment = new Compartment();
-
   function createExtensions() {
     const placeholderText = placeholder || t('payloadEditor.placeholder');
     return [
@@ -48,7 +46,6 @@
       highlightSelectionMatches(),
       json(),
       cmPlaceholder(placeholderText),
-      readOnlyCompartment.of(EditorState.readOnly.of(disabled)),
       keymap.of([
         ...closeBracketsKeymap,
         ...defaultKeymap,
@@ -142,13 +139,9 @@
     }
   });
 
-  // Update readonly state when disabled prop changes
-  $effect(() => {
-    if (!editorView) return;
-    editorView.dispatch({
-      effects: readOnlyCompartment.reconfigure(EditorState.readOnly.of(disabled)),
-    });
-  });
+  // Note: disabled prop is handled via button disabling only.
+  // CodeMirror editor itself is always editable — the disabled prop
+  // controls toolbar buttons (Format/Minify).
 
   /**
    * Format JSON: parse + re-serialize with 2-space indentation.

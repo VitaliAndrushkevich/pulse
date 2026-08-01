@@ -35,6 +35,21 @@ func (unreachableClient) ListIncidents(_ context.Context, _ pulseapi.IncidentQue
 func (unreachableClient) CreateMonitor(_ context.Context, _ pulseapi.CreateMonitorInput) (pulseapi.Monitor, error) {
 	return pulseapi.Monitor{}, &pulseapi.ConnectivityError{Reason: "connection_refused"}
 }
+func (unreachableClient) DeleteMonitor(_ context.Context, _ string) error {
+	return &pulseapi.ConnectivityError{Reason: "connection_refused"}
+}
+func (unreachableClient) UpdateMonitorStatus(_ context.Context, _ string, _ string) (pulseapi.Monitor, error) {
+	return pulseapi.Monitor{}, &pulseapi.ConnectivityError{Reason: "connection_refused"}
+}
+func (unreachableClient) GetDashboardSummary(_ context.Context) (pulseapi.DashboardSummary, error) {
+	return pulseapi.DashboardSummary{}, &pulseapi.ConnectivityError{Reason: "connection_refused"}
+}
+func (unreachableClient) ListTags(_ context.Context) ([]string, error) {
+	return nil, &pulseapi.ConnectivityError{Reason: "connection_refused"}
+}
+func (unreachableClient) ListTagValues(_ context.Context, _ string) ([]string, error) {
+	return nil, &pulseapi.ConnectivityError{Reason: "connection_refused"}
+}
 
 // noopClient satisfies the PulseClient interface without doing anything.
 type noopClient struct{}
@@ -56,6 +71,21 @@ func (noopClient) ListIncidents(_ context.Context, _ pulseapi.IncidentQuery) (pu
 }
 func (noopClient) CreateMonitor(_ context.Context, _ pulseapi.CreateMonitorInput) (pulseapi.Monitor, error) {
 	return pulseapi.Monitor{}, nil
+}
+func (noopClient) DeleteMonitor(_ context.Context, _ string) error {
+	return nil
+}
+func (noopClient) UpdateMonitorStatus(_ context.Context, _ string, _ string) (pulseapi.Monitor, error) {
+	return pulseapi.Monitor{}, nil
+}
+func (noopClient) GetDashboardSummary(_ context.Context) (pulseapi.DashboardSummary, error) {
+	return pulseapi.DashboardSummary{}, nil
+}
+func (noopClient) ListTags(_ context.Context) ([]string, error) {
+	return nil, nil
+}
+func (noopClient) ListTagValues(_ context.Context, _ string) ([]string, error) {
+	return nil, nil
 }
 
 // connectClientToServer creates a full MCP server via server.New, connects an
@@ -208,10 +238,12 @@ func TestToolsListReadOnly(t *testing.T) {
 	}
 
 	expectedTools := []string{
+		"dashboard-summary",
 		"downtime-summary",
 		"get-monitor",
 		"list-incidents",
 		"list-monitors",
+		"list-tags",
 		"monitor-history",
 		"monitor-stats",
 	}
@@ -222,8 +254,8 @@ func TestToolsListReadOnly(t *testing.T) {
 	}
 	sort.Strings(names)
 
-	if len(names) != 6 {
-		t.Fatalf("ReadOnly mode: expected 6 tools, got %d: %v", len(names), names)
+	if len(names) != 8 {
+		t.Fatalf("ReadOnly mode: expected 8 tools, got %d: %v", len(names), names)
 	}
 	for i, name := range expectedTools {
 		if names[i] != name {
@@ -254,12 +286,17 @@ func TestToolsListReadWrite(t *testing.T) {
 
 	expectedTools := []string{
 		"create-monitor",
+		"dashboard-summary",
+		"delete-monitor",
 		"downtime-summary",
 		"get-monitor",
 		"list-incidents",
 		"list-monitors",
+		"list-tags",
 		"monitor-history",
 		"monitor-stats",
+		"pause-monitor",
+		"resume-monitor",
 	}
 
 	names := make([]string, 0, len(res.Tools))
@@ -268,8 +305,8 @@ func TestToolsListReadWrite(t *testing.T) {
 	}
 	sort.Strings(names)
 
-	if len(names) != 7 {
-		t.Fatalf("ReadWrite mode: expected 7 tools, got %d: %v", len(names), names)
+	if len(names) != 12 {
+		t.Fatalf("ReadWrite mode: expected 12 tools, got %d: %v", len(names), names)
 	}
 	for i, name := range expectedTools {
 		if names[i] != name {

@@ -63,6 +63,7 @@ func TestProperty20_CreateMonitorBuildsCorrectPayloadAndReflectsDefaults(t *test
 			{"tcp", "example.com:5432"},
 			{"udp", "example.com:53"},
 			{"icmp", "192.168.1.1"},
+			{"websocket", "ws://example.com/ws"},
 		}
 		idx := rapid.IntRange(0, len(types)-1).Draw(t, "typeIdx")
 		return types[idx]
@@ -183,15 +184,16 @@ func TestProperty20_CreateMonitorBuildsCorrectPayloadAndReflectsDefaults(t *test
 
 // Feature: mcp-server, Property 21: Non-simple monitor type is rejected without calling Pulse
 //
-// For any monitor type not in {HTTP, TCP, UDP, ICMP, QUIC} (including otherwise-valid Pulse types
-// such as gRPC or DNS), the create-monitor tool returns an MCP error listing the supported
+// For any monitor type not in the supported set (including otherwise-valid Pulse types
+// such as gRPC), the create-monitor tool returns an MCP error listing the supported
 // types and makes zero Pulse calls.
 //
 // **Validates: Requirements 9.3**
 func TestProperty21_NonSimpleMonitorTypeRejectedWithoutCallingPulse(t *testing.T) {
 	// Set of supported types (lowercase) for create-monitor.
 	supported := map[string]bool{
-		"http": true, "tcp": true, "udp": true, "icmp": true, "quic": true,
+		"http": true, "http/3": true, "http3": true, "tcp": true, "udp": true,
+		"icmp": true, "quic": true, "websocket": true, "dns": true, "smtp": true,
 	}
 
 	rapid.Check(t, func(t *rapid.T) {
@@ -224,7 +226,7 @@ func TestProperty21_NonSimpleMonitorTypeRejectedWithoutCallingPulse(t *testing.T
 		}
 
 		// Error message should list supported types.
-		if !strings.Contains(mcpErr.Message, "HTTP, TCP, UDP, ICMP, QUIC") {
+		if !strings.Contains(mcpErr.Message, "DNS, HTTP, HTTP/3, ICMP, QUIC, SMTP, TCP, UDP, WebSocket") {
 			t.Fatalf("error message should list supported types, got: %s", mcpErr.Message)
 		}
 
@@ -255,6 +257,7 @@ func TestProperty22_AccessModeGateBlocksWritesInReadOnlyMode(t *testing.T) {
 			{"TCP", "TCP Check", "db.example.com:5432"},
 			{"UDP", "DNS Check", "ns1.example.com:53"},
 			{"ICMP", "Ping Check", "192.168.1.1"},
+			{"WebSocket", "WS Check", "ws://example.com/ws"},
 		}
 		idx := rapid.IntRange(0, len(types)-1).Draw(t, "inputIdx")
 		return types[idx]

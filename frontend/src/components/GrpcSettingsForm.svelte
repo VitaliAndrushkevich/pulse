@@ -92,9 +92,12 @@
       result.request_payload = requestPayload;
     }
 
-    // When proto source is loaded, always use proto_json format
+    // When proto source is loaded, use proto_json format (schema-validated conversion).
+    // When no proto source but payload is present, use json format (raw JSON passthrough).
     if (hasProtoSource) {
       result.payload_format = 'proto_json';
+    } else if (requestPayload.trim()) {
+      result.payload_format = 'json';
     }
 
     settings = result;
@@ -252,6 +255,7 @@
         {monitorId}
         {target}
         tlsMode={tlsMode}
+        metadata={Object.fromEntries(metadataRows.filter(r => r.key.trim()).map(r => [r.key, r.value]))}
         currentSource={protoSource}
         onSourceChanged={handleSourceChanged}
         onMethodSelected={handleMethodSelected}
@@ -296,19 +300,23 @@
       </div>
     {/if}
 
-    <!-- JSON Payload Editor (shown when proto source is loaded) -->
-    {#if hasProtoSource}
-      <div>
-        <span class="block text-sm font-medium text-primary">{t('payloadEditor.label')}</span>
-        <p class="mt-0.5 text-xs text-secondary">{t('payloadEditor.jsonHint')}</p>
-        <div class="mt-2">
-          <PayloadEditor
-            bind:value={requestPayload}
-            schema={selectedSchema}
-            placeholder={t('payloadEditor.placeholder')}
-          />
-        </div>
+    <!-- JSON Payload Editor — always visible for gRPC monitors -->
+    <div>
+      <span class="block text-sm font-medium text-primary">{t('payloadEditor.label')}</span>
+      <p class="mt-0.5 text-xs text-secondary">
+        {#if hasProtoSource}
+          {t('payloadEditor.jsonHint')}
+        {:else}
+          {t('payloadEditor.rawHint')}
+        {/if}
+      </p>
+      <div class="mt-2">
+        <PayloadEditor
+          bind:value={requestPayload}
+          schema={selectedSchema}
+          placeholder={t('payloadEditor.placeholder')}
+        />
       </div>
-    {/if}
+    </div>
   </div>
 </div>

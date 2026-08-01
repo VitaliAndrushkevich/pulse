@@ -198,7 +198,8 @@ func (h *ProtoSourceHandler) Upload(c *gin.Context) {
 // grpcSettings is a minimal view of the monitor's settings JSON for extracting
 // gRPC connection parameters needed by the Reflect handler.
 type grpcSettings struct {
-	TLSMode string `json:"tls_mode,omitempty"`
+	TLSMode  string            `json:"tls_mode,omitempty"`
+	Metadata map[string]string `json:"metadata,omitempty"`
 }
 
 // Reflect handles POST /monitors/:id/proto-source/reflect.
@@ -247,7 +248,7 @@ func (h *ProtoSourceHandler) Reflect(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 10*time.Second)
 	defer cancel()
 
-	fds, err := protolib.ReflectServices(ctx, target, tlsCfg)
+	fds, err := protolib.ReflectServices(ctx, target, tlsCfg, settings.Metadata)
 	if err != nil {
 		classifyAndRespondReflectionError(c, err)
 		return
@@ -420,8 +421,9 @@ func (h *ProtoSourceHandler) Delete(c *gin.Context) {
 
 // AdHocReflectRequest is the request body for the ad-hoc reflection endpoint.
 type AdHocReflectRequest struct {
-	Target  string `json:"target" binding:"required"`
-	TLSMode string `json:"tls_mode,omitempty"`
+	Target   string            `json:"target" binding:"required"`
+	TLSMode  string            `json:"tls_mode,omitempty"`
+	Metadata map[string]string `json:"metadata,omitempty"`
 }
 
 // AdHocReflect handles POST /api/v1/grpc/reflect.
@@ -462,20 +464,20 @@ func (h *ProtoSourceHandler) AdHocReflect(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 10*time.Second)
 	defer cancel()
 
-	fds, err := protolib.ReflectServices(ctx, req.Target, tlsCfg)
+	fds, err := protolib.ReflectServices(ctx, req.Target, tlsCfg, req.Metadata)
 	if err != nil {
 		classifyAndRespondReflectionError(c, err)
 		return
 	}
 
 	// Extract metadata.
-	metadata, err := protolib.ExtractMetadata(fds)
+	protoMeta, err := protolib.ExtractMetadata(fds)
 	if err != nil {
 		apiError(c, http.StatusInternalServerError, "PROTO_PARSE_ERROR", fmt.Sprintf("failed to extract metadata: %s", err.Error()))
 		return
 	}
 
-	if len(metadata.Services) == 0 {
+	if len(protoMeta.Services) == 0 {
 		apiError(c, http.StatusBadRequest, "REFLECTION_NO_SERVICES", "no discoverable services found")
 		return
 	}
@@ -483,8 +485,8 @@ func (h *ProtoSourceHandler) AdHocReflect(c *gin.Context) {
 	// Return metadata without persisting (no monitor ID to associate with).
 	c.JSON(http.StatusOK, gin.H{
 		"source_type": "reflection",
-		"filenames":   metadata.Filenames,
-		"services":    metadata.Services,
+		"filenames":   protoMeta.Filenames,
+		"services":    protoMeta.Services,
 		"size_bytes":  0,
 	})
 }

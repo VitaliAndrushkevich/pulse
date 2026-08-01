@@ -124,3 +124,50 @@ type SSLInfo struct {
 	ExpiresAt     time.Time
 	DaysRemaining int
 }
+
+// DashboardSummary is the aggregated overview of the monitoring system.
+type DashboardSummary struct {
+	HealthScore        HealthScore
+	StatusDistribution StatusDistribution
+	ActiveIncidents    []DashboardIncident
+	TopLatencyMonitors []TopLatencyMonitor
+	SSLExpiry          []SSLExpiryEntry
+	GeneratedAt        string
+}
+
+// HealthScore holds the global uptime percentage.
+type HealthScore struct {
+	UptimePercent      float64
+	ActiveMonitorCount int
+}
+
+// StatusDistribution holds the count of monitors by state.
+type StatusDistribution struct {
+	Up      int
+	Down    int
+	Unknown int
+	Total   int
+}
+
+// DashboardIncident represents an active incident on the dashboard.
+type DashboardIncident struct {
+	MonitorID   string
+	MonitorName string
+	StartedAt   string
+	Cause       *string
+}
+
+// TopLatencyMonitor represents a monitor with high average latency.
+type TopLatencyMonitor struct {
+	MonitorID    string
+	MonitorName  string
+	AvgLatencyMs int
+}
+
+// SSLExpiryEntry represents a monitor with an SSL certificate expiring soon.
+type SSLExpiryEntry struct {
+	MonitorID     string
+	MonitorName   string
+	DaysRemaining int
+	ExpiresAt     string
+}

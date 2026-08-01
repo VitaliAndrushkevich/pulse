@@ -278,7 +278,30 @@ function applyPatch(patch: MonitorPatch): void {
 		}
 	}
 
-	// --- 5. Update monitorStateCache and lastUpdated ---
+	// --- 5. Update heatmap current hour block ---
+	if (heatmap.length > 0) {
+		const checkedAt = new Date(patch.checked_at);
+		checkedAt.setMinutes(0, 0, 0);
+		checkedAt.setMilliseconds(0);
+		const checkedHourMs = checkedAt.getTime();
+
+		const idx = heatmap.findIndex((h) => {
+			const hourDate = new Date(h.hour_start);
+			hourDate.setMinutes(0, 0, 0);
+			hourDate.setMilliseconds(0);
+			return hourDate.getTime() === checkedHourMs;
+		});
+
+		if (idx !== -1) {
+			const updated = { ...heatmap[idx] };
+			if (newState === 'up') updated.up_count += 1;
+			else if (newState === 'down') updated.down_count += 1;
+			else updated.unknown_count += 1;
+			heatmap = [...heatmap.slice(0, idx), updated, ...heatmap.slice(idx + 1)];
+		}
+	}
+
+	// --- 6. Update monitorStateCache and lastUpdated ---
 	monitorStateCache.set(patch.monitor_id, newState);
 	lastUpdated = new Date();
 }

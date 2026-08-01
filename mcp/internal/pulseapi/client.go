@@ -23,4 +23,19 @@ type PulseClient interface {
 
 	// CreateMonitor creates a new monitor and returns the created resource.
 	CreateMonitor(ctx context.Context, in CreateMonitorInput) (Monitor, error)
+
+	// DeleteMonitor deletes a monitor by ID. Returns nil on success (204 No Content).
+	DeleteMonitor(ctx context.Context, id string) error
+
+	// UpdateMonitorStatus updates a monitor's status (active/paused) via PUT.
+	UpdateMonitorStatus(ctx context.Context, id string, status string) (Monitor, error)
+
+	// GetDashboardSummary returns the aggregated dashboard summary.
+	GetDashboardSummary(ctx context.Context) (DashboardSummary, error)
+
+	// ListTags returns all distinct tag keys.
+	ListTags(ctx context.Context) ([]string, error)
+
+	// ListTagValues returns distinct values for a given tag key.
+	ListTagValues(ctx context.Context, key string) ([]string, error)
 }

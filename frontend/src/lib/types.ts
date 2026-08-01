@@ -13,7 +13,7 @@ export interface GrpcSettings {
   metadata?: Record<string, string>;
   expected_statuses: number[];
   request_payload?: string;
-  payload_format?: 'raw' | 'proto_json';
+  payload_format?: 'raw' | 'json' | 'proto_json';
 }
 
 /** DNS record types supported by the DNS checker */

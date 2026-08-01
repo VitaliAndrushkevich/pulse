@@ -5,6 +5,7 @@
   import type { HistoryPoint } from '$lib/types';
   import type { AggregatedHistoryPoint } from '$lib/api';
   import { formatLatency } from '$lib/format';
+  import { t } from '$lib/i18n';
 
   // ---------------------------------------------------------------------------
   // Props (Svelte 5 runes)
@@ -14,10 +15,12 @@
     points?: HistoryPoint[];
     aggregatedPoints?: AggregatedHistoryPoint[];
     loading: boolean;
+    from?: string;
+    to?: string;
     onzoom?: (from: string, to: string) => void;
   }
 
-  let { points = [], aggregatedPoints = [], loading = false, onzoom }: Props = $props();
+  let { points = [], aggregatedPoints = [], loading = false, from, to, onzoom }: Props = $props();
 
   // ---------------------------------------------------------------------------
   // State
@@ -32,6 +35,7 @@
   let tooltipX: number = $state(0);
   let tooltipY: number = $state(0);
   let tooltipContent: string = $state('');
+  let avgLatency: number | null = $state(null);
 
   // ---------------------------------------------------------------------------
   // Derived
@@ -54,13 +58,16 @@
   /**
    * Compute the gap threshold: if the interval between two consecutive points
    * exceeds 3x the median interval, we treat it as a gap (monitor paused, etc.)
+   * Zero-intervals (duplicate timestamps) are excluded from the calculation.
    */
   function computeGapThreshold(timestamps: number[]): number {
     if (timestamps.length < 2) return Infinity;
     const intervals: number[] = [];
     for (let i = 1; i < timestamps.length; i++) {
-      intervals.push(timestamps[i] - timestamps[i - 1]);
+      const diff = timestamps[i] - timestamps[i - 1];
+      if (diff > 0) intervals.push(diff);
     }
+    if (intervals.length === 0) return Infinity;
     intervals.sort((a, b) => a - b);
     const median = intervals[Math.floor(intervals.length / 2)];
     return median * 3;
@@ -71,8 +78,20 @@
       (a, b) => new Date(a.checked_at).getTime() - new Date(b.checked_at).getTime()
     );
 
+    // Deduplicate points with the same second-precision timestamp (keep last)
+    const deduped: HistoryPoint[] = [];
+    for (let i = 0; i < sorted.length; i++) {
+      const ts = Math.floor(new Date(sorted[i].checked_at).getTime() / 1000);
+      const nextTs = i + 1 < sorted.length
+        ? Math.floor(new Date(sorted[i + 1].checked_at).getTime() / 1000)
+        : -1;
+      if (ts !== nextTs) {
+        deduped.push(sorted[i]);
+      }
+    }
+
     // First pass: collect raw timestamps for gap detection
-    const rawTimestamps = sorted.map((p) => Math.floor(new Date(p.checked_at).getTime() / 1000));
+    const rawTimestamps = deduped.map((p) => Math.floor(new Date(p.checked_at).getTime() / 1000));
     const gapThreshold = computeGapThreshold(rawTimestamps);
 
     const timestamps: number[] = [];
@@ -80,8 +99,8 @@
     // State encoded: 1=up, 0=down, 0.5=unknown
     const states: (number | null)[] = [];
 
-    for (let i = 0; i < sorted.length; i++) {
-      const p = sorted[i];
+    for (let i = 0; i < deduped.length; i++) {
+      const p = deduped[i];
 
       // Insert a null gap-breaker point if there's a large time gap
       if (i > 0) {
@@ -142,6 +161,36 @@
     }
 
     return [timestamps, minLatencies, maxLatencies, avgLatencies, states];
+  }
+
+  // ---------------------------------------------------------------------------
+  // Compute average latency from data
+  // ---------------------------------------------------------------------------
+
+  function computeAvgLatency(): number | null {
+    if (isAggregated && aggregatedPoints && aggregatedPoints.length > 0) {
+      let sum = 0;
+      let count = 0;
+      for (const p of aggregatedPoints) {
+        if (p.avg_latency_ms != null) {
+          sum += p.avg_latency_ms;
+          count++;
+        }
+      }
+      return count > 0 ? sum / count : null;
+    }
+    if (points && points.length > 0) {
+      let sum = 0;
+      let count = 0;
+      for (const p of points) {
+        if (p.state === 'up' && p.latency_ms != null) {
+          sum += p.latency_ms;
+          count++;
+        }
+      }
+      return count > 0 ? sum / count : null;
+    }
+    return null;
   }
 
   // ---------------------------------------------------------------------------
@@ -230,21 +279,21 @@
             const ts = u.data[0][idx];
             const timeStr = formatTimestamp(ts);
 
-            let content = `<div class="text-xs font-mono">${timeStr}</div>`;
+            let content = `<div class="text-sm font-mono">${timeStr}</div>`;
 
             if (isAggregated) {
               const min = u.data[1]?.[idx];
               const max = u.data[2]?.[idx];
               const avg = u.data[3]?.[idx];
               const stateVal = u.data[4]?.[idx];
-              content += `<div class="text-xs">Avg: ${avg != null ? formatLatency(avg) : 'N/A'}</div>`;
-              content += `<div class="text-xs">Min: ${min != null ? formatLatency(min) : 'N/A'} / Max: ${max != null ? formatLatency(max) : 'N/A'}</div>`;
-              content += `<div class="text-xs">State: ${stateLabel(stateVal)}</div>`;
+              content += `<div class="text-sm">Avg: ${avg != null ? formatLatency(avg) : 'N/A'}</div>`;
+              content += `<div class="text-sm">Min: ${min != null ? formatLatency(min) : 'N/A'} / Max: ${max != null ? formatLatency(max) : 'N/A'}</div>`;
+              content += `<div class="text-sm">State: ${stateLabel(stateVal)}</div>`;
             } else {
               const latency = u.data[1]?.[idx];
               const stateVal = u.data[2]?.[idx];
-              content += `<div class="text-xs">Latency: ${latency != null ? formatLatency(latency) : 'N/A'}</div>`;
-              content += `<div class="text-xs">State: ${stateLabel(stateVal)}</div>`;
+              content += `<div class="text-sm">Latency: ${latency != null ? formatLatency(latency) : 'N/A'}</div>`;
+              content += `<div class="text-sm">State: ${stateLabel(stateVal)}</div>`;
             }
 
             tooltipContent = content;
@@ -268,6 +317,9 @@
     if (!chartContainer || !hasData) return;
 
     destroyChart();
+
+    // Compute average latency for the legend
+    avgLatency = computeAvgLatency();
 
     const styles = getComputedStyle(document.documentElement);
     const axisStroke = styles.getPropertyValue('--color-text-muted').trim() || '#64748b';
@@ -321,6 +373,7 @@
           width: 2,
           fill: 'rgba(59, 130, 246, 0.1)',
           spanGaps: false,
+          points: { size: 6, fill: '#3b82f6' },
           value: (_u: uPlot, val: number | null) => val == null ? '--' : formatLatency(val)
         },
         {
@@ -332,8 +385,15 @@
 
     if (chartData[0].length === 0) return;
 
-    fullXMin = chartData[0][0];
-    fullXMax = chartData[0][chartData[0].length - 1];
+    // Determine X-axis bounds: use the requested time range (from/to props)
+    // so that different presets show different scale even with same data.
+    const dataXMin = chartData[0][0];
+    const dataXMax = chartData[0][chartData[0].length - 1];
+    const rangeXMin = from ? Math.floor(new Date(from).getTime() / 1000) : dataXMin;
+    const rangeXMax = to ? Math.floor(new Date(to).getTime() / 1000) : dataXMax;
+
+    fullXMin = rangeXMin;
+    fullXMax = rangeXMax;
 
     const width = chartContainer.clientWidth || 600;
     const MIN_ZOOM_SECONDS = 60;
@@ -346,20 +406,43 @@
       bands: isAggregated
         ? [{ series: [1, 2], fill: 'rgba(59, 130, 246, 0.08)' }]
         : undefined,
+      legend: { show: false },
       axes: [
         {
           stroke: axisStroke,
-          grid: { stroke: gridStroke + '40' }
+          grid: { stroke: gridStroke + '40' },
+          font: '12px system-ui, -apple-system, sans-serif',
+          space: 80,
+          values: (_u: uPlot, splits: number[]) => {
+            const rangeSec = rangeXMax - rangeXMin;
+            return splits.map((ts) => {
+              const d = new Date(ts * 1000);
+              const pad = (n: number) => String(n).padStart(2, '0');
+              const hhmm = `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+              if (rangeSec <= 86400) {
+                // Up to 24h: show HH:MM
+                return hhmm;
+              }
+              // More than 24h: show MM/DD HH:MM
+              return `${pad(d.getMonth() + 1)}/${pad(d.getDate())} ${hhmm}`;
+            });
+          }
         },
         {
           stroke: axisStroke,
           grid: { stroke: gridStroke + '40' },
-          label: 'Latency',
+          font: '12px system-ui, -apple-system, sans-serif',
+          gap: 8,
+          size: 64,
           values: (_u: uPlot, splits: number[]) => splits.map((v) => v == null ? '' : formatLatency(v))
         }
       ],
       scales: {
-        x: { time: true },
+        x: {
+          time: true,
+          min: rangeXMin,
+          max: rangeXMax
+        },
         y: { auto: true }
       },
       cursor: {
@@ -458,6 +541,8 @@
     points;
     aggregatedPoints;
     loading;
+    from;
+    to;
 
     if (!loading && chartContainer) {
       // Use microtask to avoid re-entrancy
@@ -510,6 +595,22 @@
         >
           {@html tooltipContent}
         </div>
+      {/if}
+    </div>
+
+    <!-- Custom legend below the chart -->
+    <div class="mt-3 flex items-center justify-center gap-6 text-sm text-[var(--color-text-secondary)]">
+      {#if tooltipVisible}
+        <span class="font-mono">{@html tooltipContent.replace(/<div[^>]*>/g, '').replace(/<\/div>/g, ' · ').replace(/ · $/, '')}</span>
+      {:else}
+        <span class="flex items-center gap-1.5">
+          <span class="inline-block h-2.5 w-2.5 rounded-full bg-[#3b82f6]"></span>
+          {t('history.chart.avgLatency')}: {avgLatency != null ? formatLatency(avgLatency) : '--'}
+        </span>
+        <span class="flex items-center gap-1.5">
+          <span class="inline-block h-2.5 w-2.5 rounded-full bg-[#10b981]"></span>
+          {t('history.chart.checksUp', { count: points ? points.filter(p => p.state === 'up').length : 0 })}
+        </span>
       {/if}
     </div>
   {/if}

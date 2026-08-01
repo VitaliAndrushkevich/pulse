@@ -47,6 +47,31 @@ func (t *trackingPulseClient) CreateMonitor(_ context.Context, _ pulseapi.Create
 	return pulseapi.Monitor{}, nil
 }
 
+func (t *trackingPulseClient) DeleteMonitor(_ context.Context, _ string) error {
+	t.called = true
+	return nil
+}
+
+func (t *trackingPulseClient) UpdateMonitorStatus(_ context.Context, _ string, _ string) (pulseapi.Monitor, error) {
+	t.called = true
+	return pulseapi.Monitor{}, nil
+}
+
+func (t *trackingPulseClient) GetDashboardSummary(_ context.Context) (pulseapi.DashboardSummary, error) {
+	t.called = true
+	return pulseapi.DashboardSummary{}, nil
+}
+
+func (t *trackingPulseClient) ListTags(_ context.Context) ([]string, error) {
+	t.called = true
+	return nil, nil
+}
+
+func (t *trackingPulseClient) ListTagValues(_ context.Context, _ string) ([]string, error) {
+	t.called = true
+	return nil, nil
+}
+
 // genInvalidWindowSeconds generates window_seconds values that are invalid:
 // negative, zero, 1–59, or > 604800.
 func genInvalidWindowSeconds() *rapid.Generator[int] {

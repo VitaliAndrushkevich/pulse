@@ -46,6 +46,26 @@ func (f *fakePulseClient) CreateMonitor(ctx context.Context, in pulseapi.CreateM
 	return pulseapi.Monitor{}, nil
 }
 
+func (f *fakePulseClient) DeleteMonitor(_ context.Context, _ string) error {
+	return nil
+}
+
+func (f *fakePulseClient) UpdateMonitorStatus(_ context.Context, _ string, _ string) (pulseapi.Monitor, error) {
+	return pulseapi.Monitor{}, nil
+}
+
+func (f *fakePulseClient) GetDashboardSummary(_ context.Context) (pulseapi.DashboardSummary, error) {
+	return pulseapi.DashboardSummary{}, nil
+}
+
+func (f *fakePulseClient) ListTags(_ context.Context) ([]string, error) {
+	return nil, nil
+}
+
+func (f *fakePulseClient) ListTagValues(_ context.Context, _ string) ([]string, error) {
+	return nil, nil
+}
+
 func TestHandleListMonitors_Defaults(t *testing.T) {
 	client := &fakePulseClient{
 		listMonitorsFunc: func(_ context.Context, q pulseapi.MonitorQuery) (pulseapi.MonitorPage, error) {

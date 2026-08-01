@@ -523,6 +523,7 @@
     "placeholder": "Enter JSON payload (e.g. {\"name\": \"value\"})",
     "label": "Request Payload (JSON)",
     "jsonHint": "Write your gRPC request body as JSON. Use Format button for pretty-printing.",
+    "rawHint": "Enter JSON payload for the gRPC request. Load a proto source above for schema validation.",
     "format": "Format",
     "minify": "Minify"
   },
@@ -575,7 +576,11 @@
     "loading": "Loading history...",
     "error": "Failed to load history data.",
     "empty": "No data available for the selected period.",
-    "retry": "Retry"
+    "retry": "Retry",
+    "chart": {
+      "avgLatency": "Avg Latency",
+      "checksUp": "{count} checks up"
+    }
   },
   "notifications": {
     "title": "Notifications",

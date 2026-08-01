@@ -604,8 +604,12 @@ export async function triggerReflection(monitorId: string): Promise<ProtoSourceM
  * POST /api/v1/grpc/reflect
  * Used during monitor creation when no monitorId exists yet.
  */
-export async function adHocReflect(target: string, tlsMode: string = 'tls'): Promise<ProtoSourceMeta> {
-  return apiRequest<ProtoSourceMeta>('POST', '/grpc/reflect', { target, tls_mode: tlsMode });
+export async function adHocReflect(target: string, tlsMode: string = 'tls', metadata?: Record<string, string>): Promise<ProtoSourceMeta> {
+  const body: Record<string, unknown> = { target, tls_mode: tlsMode };
+  if (metadata && Object.keys(metadata).length > 0) {
+    body.metadata = metadata;
+  }
+  return apiRequest<ProtoSourceMeta>('POST', '/grpc/reflect', body);
 }
 
 /**

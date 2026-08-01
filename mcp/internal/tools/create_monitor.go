@@ -12,27 +12,33 @@ import (
 // createMonitorTypes maps lowercase user input to the canonical Pulse wire form
 // for the subset of types supported by the create-monitor tool.
 var createMonitorTypes = map[string]string{
-	"http": "http",
-	"tcp":  "tcp",
-	"udp":  "udp",
-	"icmp": "icmp",
-	"quic": "quic",
+	"http":      "http",
+	"http/3":    "http3",
+	"http3":     "http3",
+	"tcp":       "tcp",
+	"udp":       "udp",
+	"icmp":      "icmp",
+	"quic":      "quic",
+	"websocket": "websocket",
+	"dns":       "dns",
+	"smtp":      "smtp",
 }
 
 // createMonitorSupportedTypes is the sorted list shown in error messages.
-var createMonitorSupportedTypes = "HTTP, TCP, UDP, ICMP, QUIC"
+var createMonitorSupportedTypes = "DNS, HTTP, HTTP/3, ICMP, QUIC, SMTP, TCP, UDP, WebSocket"
 
 // CreateMonitorToolInput defines the input schema for the create-monitor tool.
 type CreateMonitorToolInput struct {
-	// Type is the monitor type: HTTP, TCP, UDP, ICMP, or QUIC (case-insensitive).
-	Type string `json:"type" jsonschema:"Monitor type: HTTP, TCP, UDP, ICMP, or QUIC (case-insensitive)"`
+	// Type is the monitor type (case-insensitive).
+	Type string `json:"type" jsonschema:"Monitor type: DNS, HTTP, HTTP/3, ICMP, QUIC, SMTP, TCP, UDP, or WebSocket (case-insensitive)"`
 
 	// Name is the display name for the monitor (1–255 characters, not blank).
 	Name string `json:"name" jsonschema:"Monitor display name (1-255 characters)"`
 
 	// Target is the monitoring target. Format depends on type:
-	// HTTP: URL or bare host; TCP/UDP: host:port; ICMP: hostname or IP.
-	Target string `json:"target" jsonschema:"Monitoring target. HTTP: URL or bare host; TCP/UDP: host:port; ICMP: hostname or IP"`
+	// HTTP/HTTP3: URL or bare host; TCP/UDP: host:port; ICMP: hostname or IP;
+	// WebSocket: ws:// or wss:// URL; DNS: domain name to query; SMTP: hostname or host:port.
+	Target string `json:"target" jsonschema:"Monitoring target. HTTP: URL or bare host; TCP/UDP: host:port; ICMP: hostname or IP; WebSocket: ws:// or wss:// URL; DNS: domain name; SMTP: hostname or host:port"`
 
 	// IntervalSeconds is the check interval in seconds (≥1, default: Pulse default 60).
 	IntervalSeconds *int `json:"interval_seconds,omitempty" jsonschema:"Check interval in seconds (minimum 1, default 60)"`
@@ -41,8 +47,21 @@ type CreateMonitorToolInput struct {
 	TimeoutSeconds *int `json:"timeout_seconds,omitempty" jsonschema:"Check timeout in seconds (minimum 1, default 10)"`
 
 	// HTTPExpectedStatuses is an optional list of expected HTTP status codes (100–599).
-	// Only applicable for HTTP type monitors.
-	HTTPExpectedStatuses []int `json:"http_expected_statuses,omitempty" jsonschema:"Expected HTTP status codes (100-599, HTTP type only)"`
+	// Only applicable for HTTP and HTTP/3 type monitors.
+	HTTPExpectedStatuses []int `json:"http_expected_statuses,omitempty" jsonschema:"Expected HTTP status codes (100-599, HTTP and HTTP/3 type only)"`
+
+	// WSExpectedStatuses is an optional list of HTTP status codes considered acceptable
+	// on a failed WebSocket upgrade (100–599, max 10). Only applicable for WebSocket type.
+	// Useful for monitoring auth-protected endpoints where 401/403 means "server is alive".
+	WSExpectedStatuses []int `json:"ws_expected_statuses,omitempty" jsonschema:"Expected HTTP status codes on failed WebSocket upgrade (100-599, max 10, WebSocket type only)"`
+
+	// DNSRecordType is the DNS record type to query (A, AAAA, CNAME, MX, TXT, NS, SOA, SRV, PTR).
+	// Only applicable for DNS type monitors. Default: A.
+	DNSRecordType *string `json:"dns_record_type,omitempty" jsonschema:"DNS record type to query: A, AAAA, CNAME, MX, TXT, NS, SOA, SRV, PTR (DNS type only, default: A)"`
+
+	// DNSServer is a custom DNS resolver address (host:port).
+	// Only applicable for DNS type monitors. Default: 1.1.1.1:53.
+	DNSServer *string `json:"dns_server,omitempty" jsonschema:"Custom DNS resolver (host:port, DNS type only, default: 1.1.1.1:53)"`
 }
 
 // CreateMonitorOutput contains the created monitor details.
@@ -92,15 +111,42 @@ func HandleCreateMonitor(ctx context.Context, deps Deps, input CreateMonitorTool
 		return nil, mcperr.Validation("timeout_seconds must be ≥ 1")
 	}
 
-	// 6. Build settings map for HTTP expected statuses.
+	// 6. Build settings map for type-specific options.
 	settings := map[string]any{}
-	if canonicalType == "http" && len(input.HTTPExpectedStatuses) > 0 {
+	if (canonicalType == "http" || canonicalType == "http3") && len(input.HTTPExpectedStatuses) > 0 {
 		for _, code := range input.HTTPExpectedStatuses {
 			if code < 100 || code > 599 {
 				return nil, mcperr.Validation("http_expected_statuses values must be between 100 and 599")
 			}
 		}
 		settings["expected_statuses"] = input.HTTPExpectedStatuses
+	}
+	if canonicalType == "websocket" && len(input.WSExpectedStatuses) > 0 {
+		if len(input.WSExpectedStatuses) > 10 {
+			return nil, mcperr.Validation("ws_expected_statuses must have at most 10 entries")
+		}
+		for _, code := range input.WSExpectedStatuses {
+			if code < 100 || code > 599 {
+				return nil, mcperr.Validation("ws_expected_statuses values must be between 100 and 599")
+			}
+		}
+		settings["expected_statuses"] = input.WSExpectedStatuses
+	}
+	if canonicalType == "dns" {
+		if input.DNSRecordType != nil {
+			rt := strings.ToUpper(strings.TrimSpace(*input.DNSRecordType))
+			if !isValidDNSRecordType(rt) {
+				return nil, mcperr.Validation("dns_record_type must be one of: A, AAAA, CNAME, MX, TXT, NS, SOA, SRV, PTR")
+			}
+			settings["record_type"] = rt
+		}
+		if input.DNSServer != nil {
+			server := strings.TrimSpace(*input.DNSServer)
+			if server == "" {
+				return nil, mcperr.Validation("dns_server must not be blank")
+			}
+			settings["dns_server"] = server
+		}
 	}
 
 	// 7. Build Pulse API input.
@@ -167,11 +213,27 @@ func validateTarget(monitorType, target string) error {
 		// Allow IPv6 addresses (contain colons) but reject obvious host:port patterns.
 		// Simple heuristic: if it has a colon and the last segment is numeric, reject.
 		// Otherwise allow (could be IPv6 or hostname).
-	case "http", "quic":
-		// HTTP/QUIC targets: non-empty is sufficient; Pulse handles normalization.
+	case "http", "http3", "quic":
+		// HTTP/HTTP3/QUIC targets: non-empty is sufficient; Pulse handles normalization.
+	case "websocket":
+		// WebSocket targets should be ws:// or wss:// URLs.
+		// Non-empty is sufficient; Pulse handles normalization.
+	case "dns":
+		// DNS targets are domain names to query. Non-empty is sufficient.
+	case "smtp":
+		// SMTP targets are hostnames or host:port. Non-empty is sufficient.
 	}
 
 	return nil
+}
+
+// isValidDNSRecordType checks if the given string is a supported DNS record type.
+func isValidDNSRecordType(rt string) bool {
+	switch rt {
+	case "A", "AAAA", "CNAME", "MX", "TXT", "NS", "SOA", "SRV", "PTR":
+		return true
+	}
+	return false
 }
 
 // quote wraps a string in double quotes for use in error messages.

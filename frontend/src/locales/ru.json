@@ -375,15 +375,15 @@
       "createLabel": "Имя токена",
       "createPlaceholder": "например ci-deploy, grafana-read",
       "createButton": "Создать токен",
-      "expirationLabel": "Expires",
+      "expirationLabel": "Срок действия",
       "expiration": {
-        "7days": "7 days",
-        "30days": "30 days",
-        "60days": "60 days",
-        "90days": "90 days",
-        "1year": "1 year",
-        "custom": "Custom...",
-        "customLabel": "Expiration date and time"
+        "7days": "7 дней",
+        "30days": "30 дней",
+        "60days": "60 дней",
+        "90days": "90 дней",
+        "1year": "1 год",
+        "custom": "Указать…",
+        "customLabel": "Дата и время истечения"
       },
       "existingTitle": "Существующие токены",
       "existingDescription": "Значения токенов не отображаются после создания. Показаны только метаданные.",
@@ -399,15 +399,15 @@
       "revoke": "Отозвать",
       "revoked": "Отозван",
       "expired": "Истёк",
-      "delete": "Delete",
-      "deleteConfirm": "Are you sure? This permanently removes the token.",
+      "delete": "Удалить",
+      "deleteConfirm": "Вы уверены? Токен будет удалён безвозвратно.",
       "errors": {
         "networkList": "Не удалось подключиться к серверу. Проверьте сетевое соединение.",
         "unexpectedList": "Произошла непредвиденная ошибка при загрузке токенов.",
         "networkCreate": "Не удалось подключиться к серверу. Попробуйте ещё раз.",
         "unexpectedCreate": "Произошла непредвиденная ошибка. Попробуйте ещё раз.",
-        "customDateRequired": "Please select an expiration date.",
-        "dateMustBeFuture": "Expiration date must be in the future."
+        "customDateRequired": "Выберите дату истечения.",
+        "dateMustBeFuture": "Дата истечения должна быть в будущем."
       }
     }
   },
@@ -535,7 +535,11 @@
     "loading": "Загрузка истории...",
     "error": "Не удалось загрузить данные истории.",
     "empty": "Нет данных за выбранный период.",
-    "retry": "Повторить"
+    "retry": "Повторить",
+    "chart": {
+      "avgLatency": "Сред. задержка",
+      "checksUp": "{count} проверок успешно"
+    }
   },
   "errors": {
     "generic": "Что-то пошло не так",
@@ -580,6 +584,7 @@
     "placeholder": "Введите JSON-данные (напр. {\"name\": \"value\"})",
     "label": "Тело запроса (JSON)",
     "jsonHint": "Введите тело gRPC-запроса в формате JSON. Используйте кнопку «Форматировать» для форматирования.",
+    "rawHint": "Введите JSON-данные для gRPC-запроса. Загрузите proto-источник выше для валидации по схеме.",
     "format": "Форматировать",
     "minify": "Сжать"
   },

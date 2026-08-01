@@ -14,8 +14,10 @@
     if (timestamps.length < 2) return Infinity;
     const intervals: number[] = [];
     for (let i = 1; i < timestamps.length; i++) {
-      intervals.push(timestamps[i] - timestamps[i - 1]);
+      const diff = timestamps[i] - timestamps[i - 1];
+      if (diff > 0) intervals.push(diff);
     }
+    if (intervals.length === 0) return Infinity;
     intervals.sort((a, b) => a - b);
     const median = intervals[Math.floor(intervals.length / 2)];
     return median * 3;
@@ -27,15 +29,27 @@
       (a, b) => new Date(a.checked_at).getTime() - new Date(b.checked_at).getTime()
     );
 
+    // Deduplicate points with the same second-precision timestamp (keep last)
+    const deduped: HistoryPoint[] = [];
+    for (let i = 0; i < sorted.length; i++) {
+      const ts = Math.floor(new Date(sorted[i].checked_at).getTime() / 1000);
+      const nextTs = i + 1 < sorted.length
+        ? Math.floor(new Date(sorted[i + 1].checked_at).getTime() / 1000)
+        : -1;
+      if (ts !== nextTs) {
+        deduped.push(sorted[i]);
+      }
+    }
+
     // First pass: collect raw timestamps for gap detection
-    const rawTimestamps = sorted.map((p) => Math.floor(new Date(p.checked_at).getTime() / 1000));
+    const rawTimestamps = deduped.map((p) => Math.floor(new Date(p.checked_at).getTime() / 1000));
     const gapThreshold = computeGapThreshold(rawTimestamps);
 
     const timestamps: number[] = [];
     const latencies: (number | null)[] = [];
 
-    for (let i = 0; i < sorted.length; i++) {
-      const p = sorted[i];
+    for (let i = 0; i < deduped.length; i++) {
+      const p = deduped[i];
 
       // Insert a null gap-breaker if there's a large time gap
       if (i > 0) {

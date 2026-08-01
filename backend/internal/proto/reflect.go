@@ -11,6 +11,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/metadata"
 	reflectpb "google.golang.org/grpc/reflection/grpc_reflection_v1"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/descriptorpb"
@@ -30,8 +31,9 @@ const defaultReflectTimeout = 10 * time.Second
 
 // ReflectServices connects to a gRPC server and discovers schemas via Server Reflection.
 // Uses the provided TLS config and respects the context deadline.
+// Optional metadata is sent as gRPC headers on the reflection stream.
 // Returns a complete FileDescriptorSet with all transitive dependencies.
-func ReflectServices(ctx context.Context, target string, tlsCfg *tls.Config) (*descriptorpb.FileDescriptorSet, error) {
+func ReflectServices(ctx context.Context, target string, tlsCfg *tls.Config, md map[string]string) (*descriptorpb.FileDescriptorSet, error) {
 	// Enforce a 10-second timeout if the context doesn't already have a deadline.
 	if _, hasDeadline := ctx.Deadline(); !hasDeadline {
 		var cancel context.CancelFunc
@@ -55,6 +57,10 @@ func ReflectServices(ctx context.Context, target string, tlsCfg *tls.Config) (*d
 	defer conn.Close()
 
 	// Create the reflection client and open a bidi stream.
+	// Attach metadata as gRPC headers if provided.
+	if len(md) > 0 {
+		ctx = metadata.NewOutgoingContext(ctx, metadata.New(md))
+	}
 	client := reflectpb.NewServerReflectionClient(conn)
 	stream, err := client.ServerReflectionInfo(ctx)
 	if err != nil {
@@ -85,17 +91,34 @@ func ReflectServices(ctx context.Context, target string, tlsCfg *tls.Config) (*d
 		return nil, fmt.Errorf("server does not support reflection: unexpected response type")
 	}
 
-	// Filter out reflection and health services.
-	var serviceNames []string
+	// Collect all service names from the server.
+	var allServiceNames []string
 	for _, svc := range listResp.GetService() {
-		name := svc.GetName()
+		allServiceNames = append(allServiceNames, svc.GetName())
+	}
+
+	// Filter out well-known system services (reflection, health).
+	var serviceNames []string
+	for _, name := range allServiceNames {
 		if !reflectionServiceNames[name] {
 			serviceNames = append(serviceNames, name)
 		}
 	}
 
+	// Fallback: if filtering removed everything, include system services
+	// (except reflection itself) so the user can still select health checks.
 	if len(serviceNames) == 0 {
-		return nil, fmt.Errorf("no discoverable services found: server exposes only reflection/health services")
+		for _, name := range allServiceNames {
+			// Always exclude the reflection service itself — it's infrastructure.
+			if strings.Contains(name, "ServerReflection") {
+				continue
+			}
+			serviceNames = append(serviceNames, name)
+		}
+	}
+
+	if len(serviceNames) == 0 {
+		return nil, fmt.Errorf("no discoverable services found: server exposes only reflection services")
 	}
 
 	// Step 2: For each service, fetch the file descriptor containing it.

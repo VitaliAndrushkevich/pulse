@@ -255,6 +255,11 @@ Primary commands:
   - `GET /incidents`
   - `GET /monitors/{id}/incidents`
   - `POST /monitors`
+  - `DELETE /monitors/{id}`
+  - `PUT /monitors/{id}`
+  - `GET /dashboard/summary`
+  - `GET /tags`
+  - `GET /tags/{key}`
 - **Breaking response-shape changes** (renamed/removed fields, type changes, restructured envelopes) additionally require updating the relevant tool's output projection logic and its property tests in `mcp/internal/tools/`.
 
 ## Development Skills

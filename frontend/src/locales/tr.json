@@ -375,15 +375,15 @@
       "createLabel": "Token adı",
       "createPlaceholder": "ör. ci-deploy, grafana-read",
       "createButton": "Token Oluştur",
-      "expirationLabel": "Expires",
+      "expirationLabel": "Süre",
       "expiration": {
-        "7days": "7 days",
-        "30days": "30 days",
-        "60days": "60 days",
-        "90days": "90 days",
-        "1year": "1 year",
-        "custom": "Custom...",
-        "customLabel": "Expiration date and time"
+        "7days": "7 gün",
+        "30days": "30 gün",
+        "60days": "60 gün",
+        "90days": "90 gün",
+        "1year": "1 yıl",
+        "custom": "Özel…",
+        "customLabel": "Son kullanma tarihi ve saati"
       },
       "existingTitle": "Mevcut Token'lar",
       "existingDescription": "Token değerleri oluşturulduktan sonra gösterilmez. Yalnızca meta veriler görüntülenir.",
@@ -399,15 +399,15 @@
       "revoke": "İptal Et",
       "revoked": "İptal Edildi",
       "expired": "Süresi Doldu",
-      "delete": "Delete",
-      "deleteConfirm": "Are you sure? This permanently removes the token.",
+      "delete": "Sil",
+      "deleteConfirm": "Emin misiniz? Token kalıcı olarak silinecektir.",
       "errors": {
         "networkList": "Sunucuya bağlanılamıyor. Ağ bağlantınızı kontrol edin.",
         "unexpectedList": "Token'lar yüklenirken beklenmeyen bir hata oluştu.",
         "networkCreate": "Sunucuya bağlanılamıyor. Lütfen tekrar deneyin.",
         "unexpectedCreate": "Beklenmeyen bir hata oluştu. Lütfen tekrar deneyin.",
-        "customDateRequired": "Please select an expiration date.",
-        "dateMustBeFuture": "Expiration date must be in the future."
+        "customDateRequired": "Lütfen bir son kullanma tarihi seçin.",
+        "dateMustBeFuture": "Son kullanma tarihi gelecekte olmalıdır."
       }
     }
   },
@@ -535,7 +535,11 @@
     "loading": "Geçmiş yükleniyor…",
     "error": "Geçmiş verileri yüklenemedi.",
     "empty": "Seçilen dönem için veri yok.",
-    "retry": "Tekrar dene"
+    "retry": "Tekrar dene",
+    "chart": {
+      "avgLatency": "Ort. Gecikme",
+      "checksUp": "{count} kontrol başarılı"
+    }
   },
   "errors": {
     "generic": "Bir hata oluştu",
@@ -580,6 +584,7 @@
     "placeholder": "JSON veri yükü girin (ör. {\"name\": \"value\"})",
     "label": "İstek Veri Yükü (JSON)",
     "jsonHint": "gRPC istek gövdenizi JSON olarak yazın. Güzel biçimlendirme için Format düğmesini kullanın.",
+    "rawHint": "gRPC isteği için JSON yükünü girin. Şema doğrulaması için yukarıdan proto kaynağı yükleyin.",
     "format": "Biçimlendir",
     "minify": "Küçült"
   },

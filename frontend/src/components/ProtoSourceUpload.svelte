@@ -8,12 +8,13 @@
     monitorId?: string;
     target: string;
     tlsMode?: string;
+    metadata?: Record<string, string>;
     currentSource?: ProtoSourceMeta | null;
     onSourceChanged?: (source: ProtoSourceMeta | null) => void;
     onMethodSelected?: (selection: ServiceMethodSelection) => void;
   }
 
-  let { monitorId, target, tlsMode = 'tls', currentSource = null, onSourceChanged, onMethodSelected }: Props = $props();
+  let { monitorId, target, tlsMode = 'tls', metadata, currentSource = null, onSourceChanged, onMethodSelected }: Props = $props();
 
   // Internal state
   let isDragging = $state(false);
@@ -141,9 +142,9 @@
     error = null;
 
     try {
-      // Always use ad-hoc reflect with current form values (target + tlsMode)
+      // Always use ad-hoc reflect with current form values (target + tlsMode + metadata)
       // so the user doesn't need to save the monitor first.
-      const result = await adHocReflect(target, tlsMode);
+      const result = await adHocReflect(target, tlsMode, metadata);
       discoveredSource = result;
       onSourceChanged?.(result);
     } catch (err: unknown) {

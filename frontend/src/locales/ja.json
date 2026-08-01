@@ -375,15 +375,15 @@
       "createLabel": "トークン名",
       "createPlaceholder": "例：ci-deploy, grafana-read",
       "createButton": "トークンを作成",
-      "expirationLabel": "Expires",
+      "expirationLabel": "有効期限",
       "expiration": {
-        "7days": "7 days",
-        "30days": "30 days",
-        "60days": "60 days",
-        "90days": "90 days",
-        "1year": "1 year",
-        "custom": "Custom...",
-        "customLabel": "Expiration date and time"
+        "7days": "7日間",
+        "30days": "30日間",
+        "60days": "60日間",
+        "90days": "90日間",
+        "1year": "1年",
+        "custom": "カスタム…",
+        "customLabel": "有効期限の日時"
       },
       "existingTitle": "既存のトークン",
       "existingDescription": "トークンの値は作成後に表示されません。メタデータのみが表示されます。",
@@ -399,15 +399,15 @@
       "revoke": "取り消し",
       "revoked": "取り消し済み",
       "expired": "期限切れ",
-      "delete": "Delete",
-      "deleteConfirm": "Are you sure? This permanently removes the token.",
+      "delete": "削除",
+      "deleteConfirm": "本当に削除しますか？トークンは完全に削除されます。",
       "errors": {
         "networkList": "サーバーに接続できません。ネットワーク接続を確認してください。",
         "unexpectedList": "トークンの読み込み中に予期しないエラーが発生しました。",
         "networkCreate": "サーバーに接続できません。もう一度お試しください。",
         "unexpectedCreate": "予期しないエラーが発生しました。もう一度お試しください。",
-        "customDateRequired": "Please select an expiration date.",
-        "dateMustBeFuture": "Expiration date must be in the future."
+        "customDateRequired": "有効期限を選択してください。",
+        "dateMustBeFuture": "有効期限は未来の日付である必要があります。"
       }
     }
   },
@@ -535,7 +535,11 @@
     "loading": "履歴を読み込み中…",
     "error": "履歴データの読み込みに失敗しました。",
     "empty": "選択した期間にデータがありません。",
-    "retry": "再試行"
+    "retry": "再試行",
+    "chart": {
+      "avgLatency": "平均レイテンシ",
+      "checksUp": "{count} 件のチェック成功"
+    }
   },
   "errors": {
     "generic": "エラーが発生しました",
@@ -580,6 +584,7 @@
     "placeholder": "JSONペイロードを入力（例：{\"name\": \"value\"}）",
     "label": "リクエストペイロード（JSON）",
     "jsonHint": "gRPCリクエストボディをJSONで記述します。整形ボタンで読みやすく表示できます。",
+    "rawHint": "gRPCリクエストのJSONペイロードを入力してください。上のprotoソースを読み込むとスキーマ検証が有効になります。",
     "format": "整形",
     "minify": "圧縮"
   },

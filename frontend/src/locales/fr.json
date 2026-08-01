@@ -375,15 +375,15 @@
       "createLabel": "Nom du token",
       "createPlaceholder": "ex. ci-deploy, grafana-read",
       "createButton": "Créer le token",
-      "expirationLabel": "Expires",
+      "expirationLabel": "Expiration",
       "expiration": {
-        "7days": "7 days",
-        "30days": "30 days",
-        "60days": "60 days",
-        "90days": "90 days",
-        "1year": "1 year",
-        "custom": "Custom...",
-        "customLabel": "Expiration date and time"
+        "7days": "7 jours",
+        "30days": "30 jours",
+        "60days": "60 jours",
+        "90days": "90 jours",
+        "1year": "1 an",
+        "custom": "Personnalisé…",
+        "customLabel": "Date et heure d'expiration"
       },
       "existingTitle": "Tokens existants",
       "existingDescription": "Les valeurs des tokens ne sont plus affichées après la création. Seules les métadonnées sont visibles.",
@@ -399,15 +399,15 @@
       "revoke": "Révoquer",
       "revoked": "Révoqué",
       "expired": "Expiré",
-      "delete": "Delete",
-      "deleteConfirm": "Are you sure? This permanently removes the token.",
+      "delete": "Supprimer",
+      "deleteConfirm": "Êtes-vous sûr ? Le token sera supprimé définitivement.",
       "errors": {
         "networkList": "Impossible de se connecter au serveur. Vérifiez votre connexion réseau.",
         "unexpectedList": "Une erreur inattendue s'est produite lors du chargement des tokens.",
         "networkCreate": "Impossible de se connecter au serveur. Veuillez réessayer.",
         "unexpectedCreate": "Une erreur inattendue s'est produite. Veuillez réessayer.",
-        "customDateRequired": "Please select an expiration date.",
-        "dateMustBeFuture": "Expiration date must be in the future."
+        "customDateRequired": "Veuillez sélectionner une date d'expiration.",
+        "dateMustBeFuture": "La date d'expiration doit être dans le futur."
       }
     }
   },
@@ -535,7 +535,11 @@
     "loading": "Chargement de l'historique…",
     "error": "Échec du chargement des données d'historique.",
     "empty": "Aucune donnée disponible pour la période sélectionnée.",
-    "retry": "Réessayer"
+    "retry": "Réessayer",
+    "chart": {
+      "avgLatency": "Latence moy.",
+      "checksUp": "{count} vérifications OK"
+    }
   },
   "errors": {
     "generic": "Une erreur s'est produite",
@@ -580,6 +584,7 @@
     "placeholder": "Entrez le payload JSON (ex. {\"name\": \"value\"})",
     "label": "Payload de requête (JSON)",
     "jsonHint": "Écrivez le corps de votre requête gRPC en JSON. Utilisez le bouton Formater pour l'indentation.",
+    "rawHint": "Enter JSON payload for the gRPC request. Load a proto source above for schema validation.",
     "format": "Formater",
     "minify": "Minifier"
   },

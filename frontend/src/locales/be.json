@@ -375,15 +375,15 @@
       "createLabel": "Імя токена",
       "createPlaceholder": "напр. ci-deploy, grafana-read",
       "createButton": "Стварыць токен",
-      "expirationLabel": "Expires",
+      "expirationLabel": "Тэрмін дзеяння",
       "expiration": {
-        "7days": "7 days",
-        "30days": "30 days",
-        "60days": "60 days",
-        "90days": "90 days",
-        "1year": "1 year",
-        "custom": "Custom...",
-        "customLabel": "Expiration date and time"
+        "7days": "7 дзён",
+        "30days": "30 дзён",
+        "60days": "60 дзён",
+        "90days": "90 дзён",
+        "1year": "1 год",
+        "custom": "Уласны…",
+        "customLabel": "Дата і час заканчэння"
       },
       "existingTitle": "Існуючыя токены",
       "existingDescription": "Значэнні токенаў не адлюстроўваюцца пасля стварэння. Паказаны толькі метададзеныя.",
@@ -399,15 +399,15 @@
       "revoke": "Адклікаць",
       "revoked": "Адкліканы",
       "expired": "Скончыўся",
-      "delete": "Delete",
-      "deleteConfirm": "Are you sure? This permanently removes the token.",
+      "delete": "Выдаліць",
+      "deleteConfirm": "Вы ўпэўнены? Токен будзе выдалены назаўсёды.",
       "errors": {
         "networkList": "Не ўдалося падключыцца да сервера. Праверце сеткавае злучэнне.",
         "unexpectedList": "Адбылася нечаканая памылка пры загрузцы токенаў.",
         "networkCreate": "Не ўдалося падключыцца да сервера. Паспрабуйце яшчэ раз.",
         "unexpectedCreate": "Адбылася нечаканая памылка. Паспрабуйце яшчэ раз.",
-        "customDateRequired": "Please select an expiration date.",
-        "dateMustBeFuture": "Expiration date must be in the future."
+        "customDateRequired": "Калі ласка, абярыце дату заканчэння.",
+        "dateMustBeFuture": "Дата заканчэння павінна быць у будучыні."
       }
     }
   },
@@ -535,7 +535,11 @@
     "loading": "Загрузка гісторыі…",
     "error": "Не ўдалося загрузіць дадзеныя гісторыі.",
     "empty": "Няма дадзеных за абраны перыяд.",
-    "retry": "Паўтарыць"
+    "retry": "Паўтарыць",
+    "chart": {
+      "avgLatency": "Сяр. затрымка",
+      "checksUp": "{count} праверак уверх"
+    }
   },
   "errors": {
     "generic": "Нешта пайшло не так",
@@ -580,6 +584,7 @@
     "placeholder": "Увядзіце JSON (напр. {\"name\": \"value\"})",
     "label": "Карысная нагрузка запыту (JSON)",
     "jsonHint": "Напішыце цела gRPC-запыту як JSON. Кнопка «Фарматаваць» для прыгожага выгляду.",
+    "rawHint": "Увядзіце JSON-дадзеныя для gRPC-запыту. Загрузіце proto-крыніцу вышэй для валідацыі па схеме.",
     "format": "Фарматаваць",
     "minify": "Мініфіцыраваць"
   },

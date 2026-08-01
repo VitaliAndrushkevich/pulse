@@ -171,14 +171,7 @@
   <ShowOnceModal secret={createdTokenValue} onDismiss={handleModalDismiss} />
 {/if}
 
-<section class="space-y-6">
-  <!-- Section header -->
-  <div>
-    <h2 class="text-lg font-medium text-[var(--color-text-primary)]">{t('settings.tokens.title')}</h2>
-    <p class="mt-1 text-sm text-[var(--color-text-secondary)]">
-      {t('settings.tokens.description')}
-    </p>
-  </div>
+<div class="space-y-6">
 
   <!-- Create Token Form -->
   <div class="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-surface)] p-6 shadow-sm">
@@ -366,4 +359,4 @@
       </div>
     {/if}
   </div>
-</section>
+</div>

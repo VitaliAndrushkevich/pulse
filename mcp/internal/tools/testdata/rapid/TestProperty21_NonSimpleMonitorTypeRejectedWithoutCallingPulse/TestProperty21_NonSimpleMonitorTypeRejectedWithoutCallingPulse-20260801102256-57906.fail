@@ -1,0 +1,9 @@
+# 2026/08/01 10:22:56.560668 [TestProperty21_NonSimpleMonitorTypeRejectedWithoutCallingPulse] [rapid] draw type: "-"
+# 2026/08/01 10:22:56.560670 [TestProperty21_NonSimpleMonitorTypeRejectedWithoutCallingPulse] error message should list supported types, got: unsupported monitor type "-"; supported types: DNS, HTTP, HTTP/3, ICMP, QUIC, SMTP, TCP, UDP, WebSocket
+# 
+v0.4.8#4274233525668003295
+0x0
+0x0
+0x0
+0x0
+0x0

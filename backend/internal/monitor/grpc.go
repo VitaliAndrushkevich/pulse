@@ -360,13 +360,27 @@ func (rawCodec) Name() string {
 	return "raw"
 }
 
-// resolvePayload returns binary protobuf bytes from either base64 or Proto JSON format.
+// resolvePayload returns binary protobuf bytes from either base64, raw JSON, or Proto JSON format.
 // When format is "proto_json", it loads the proto source from DB, resolves the
 // message descriptor, and converts JSON to binary.
 func resolvePayload(ctx context.Context, queries *db.Queries, settings GRPCSettings) ([]byte, error) {
 	// Default or "raw" → existing base64 decode behavior.
 	if settings.PayloadFormat == "" || settings.PayloadFormat == "raw" {
 		return validateRequestPayload(settings.RequestPayload)
+	}
+
+	// "json" → pass raw JSON bytes through as-is (no proto source required).
+	// Useful for gRPC services behind JSON-aware proxies or when the user
+	// knows the exact wire format.
+	if settings.PayloadFormat == "json" {
+		if settings.RequestPayload == "" {
+			return nil, nil
+		}
+		payload := []byte(settings.RequestPayload)
+		if len(payload) > maxPayloadSize {
+			return nil, fmt.Errorf("request_payload size %d exceeds maximum of %d bytes (1MB)", len(payload), maxPayloadSize)
+		}
+		return payload, nil
 	}
 
 	if settings.PayloadFormat != "proto_json" {
