@@ -65,8 +65,10 @@ func TestProperty6_CaseSensitiveExactNameResolution(t *testing.T) {
 		monitors := make([]pulseapi.Monitor, 0, otherCount+1)
 		for i := 0; i < otherCount; i++ {
 			otherName := genMonitorName().Draw(t, "otherName")
-			// Ensure the other name doesn't collide with the target.
-			if otherName == name {
+			// Ensure the other name doesn't collide with the target, including
+			// case-insensitively — otherwise it could accidentally equal the
+			// case variation generated below for the "should NOT match" check.
+			if strings.EqualFold(otherName, name) {
 				otherName = otherName + "-other"
 			}
 			monitors = append(monitors, pulseapi.Monitor{
