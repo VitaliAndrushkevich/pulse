@@ -3,6 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
+  "packageManager": "pnpm@10.34.5",
   "scripts": {
     "dev": "svelte-kit sync && vite dev",
     "build": "svelte-kit sync && pnpm validate-locales && vite build",
