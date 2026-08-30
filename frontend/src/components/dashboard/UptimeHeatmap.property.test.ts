@@ -105,7 +105,7 @@ describe('Property 14: Heatmap always produces exactly 24 hourly blocks', () => 
 
 	it('normalizeHeatmapData returns 24 blocks for empty input', () => {
 		fc.assert(
-			fc.property(fc.constant([]), (data: HeatmapHour[]) => {
+			fc.property(fc.constant<HeatmapHour[]>([]), (data) => {
 				const result = normalizeHeatmapData(data);
 				expect(result).toHaveLength(24);
 			}),
