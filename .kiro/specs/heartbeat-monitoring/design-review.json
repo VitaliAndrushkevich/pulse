@@ -1,0 +1,34 @@
+{
+  "verdict": "APPROVED",
+  "findings": [
+    {
+      "id": "NIT-1",
+      "severity": "NIT",
+      "location": "design.md §5.1 / §2.2",
+      "problem": "Cites ListActiveMonitorsDue as the mirror for ListDueHeartbeats, but the scheduler actually polls via ListActiveMonitorsDueWithTags. Both queries exist; the cited tag-free query is the better model for heartbeats, so the citation is accurate.",
+      "fix": "Optionally add a one-line note that heartbeats intentionally use the tag-free due query because the sweep does not need the tag join, unlike the monitor scheduler."
+    },
+    {
+      "id": "NIT-2",
+      "severity": "NIT",
+      "location": "design.md §2.2 MarkHeartbeatUp / MarkHeartbeatFail",
+      "problem": "Two RETURNING forms are shown. The first inline form `RETURNING (SELECT state FROM heartbeats WHERE id=$1) AS previous_state, *` would read the post-update state and is unreliable; the design then corrects it to the sound CTE form. Showing both could confuse the implementer.",
+      "fix": "Delete the first (incorrect) inline form and keep only the CTE form (WITH prev AS (SELECT state ... FOR UPDATE) UPDATE ... RETURNING (SELECT state FROM prev) ...) as the single specified query."
+    },
+    {
+      "id": "NIT-3",
+      "severity": "NIT",
+      "location": "design.md §5.3 Template data note",
+      "problem": "Reusing TemplateData.Monitor renders heartbeat alerts with the label 'Monitor'. This is a consciously accepted v1 tradeoff with a deferred vocabulary pass; R5.8 payload fields are still satisfied.",
+      "fix": "None required for v1; the deferral is acceptable and documented."
+    },
+    {
+      "id": "NIT-4",
+      "severity": "NIT",
+      "location": "design.md §4.3 (ping processing) vs §8 (metrics)",
+      "problem": "§8 states pulse_heartbeat_up updates on all transitions and the ping handler holds heartbeat.Metrics, but §4.3's success/explicit-fail ping bullets do not explicitly restate the gauge update. R13.3 requires it; this is a documentation gap, not a design gap.",
+      "fix": "Add a half-sentence to §4.3's Success and Explicit-failure bullets noting the handler sets pulse_heartbeat_up to 1/0 respectively, matching §8."
+    }
+  ],
+  "reviewDoc": "/Users/vandrushkevich/workdir/personal/pulse/.kiro/specs/heartbeat-monitoring/design-review.md"
+}
