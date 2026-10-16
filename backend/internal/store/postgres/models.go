@@ -58,6 +58,38 @@ type DeliveryLog struct {
 	CreatedAt   time.Time   `db:"created_at" json:"created_at"`
 }
 
+type Heartbeat struct {
+	ID                      uuid.UUID          `db:"id" json:"id"`
+	Name                    string             `db:"name" json:"name"`
+	ExpectedIntervalSeconds int32              `db:"expected_interval_seconds" json:"expected_interval_seconds"`
+	GraceSeconds            int32              `db:"grace_seconds" json:"grace_seconds"`
+	Status                  string             `db:"status" json:"status"`
+	State                   string             `db:"state" json:"state"`
+	LastSuccessAt           pgtype.Timestamptz `db:"last_success_at" json:"last_success_at"`
+	NextExpectedDeadline    pgtype.Timestamptz `db:"next_expected_deadline" json:"next_expected_deadline"`
+	TokenPrefix             string             `db:"token_prefix" json:"token_prefix"`
+	TokenHash               string             `db:"token_hash" json:"token_hash"`
+	TokenCreatedAt          time.Time          `db:"token_created_at" json:"token_created_at"`
+	CreatedAt               time.Time          `db:"created_at" json:"created_at"`
+	UpdatedAt               time.Time          `db:"updated_at" json:"updated_at"`
+}
+
+type HeartbeatBinding struct {
+	ID                      uuid.UUID       `db:"id" json:"id"`
+	ChannelID               uuid.UUID       `db:"channel_id" json:"channel_id"`
+	HeartbeatID             uuid.UUID       `db:"heartbeat_id" json:"heartbeat_id"`
+	Triggers                json.RawMessage `db:"triggers" json:"triggers"`
+	ReminderIntervalMinutes *int32          `db:"reminder_interval_minutes" json:"reminder_interval_minutes"`
+	CreatedAt               time.Time       `db:"created_at" json:"created_at"`
+	UpdatedAt               time.Time       `db:"updated_at" json:"updated_at"`
+}
+
+type HeartbeatTag struct {
+	HeartbeatID uuid.UUID `db:"heartbeat_id" json:"heartbeat_id"`
+	Key         string    `db:"key" json:"key"`
+	Value       string    `db:"value" json:"value"`
+}
+
 type Incident struct {
 	ID         uuid.UUID          `db:"id" json:"id"`
 	MonitorID  uuid.UUID          `db:"monitor_id" json:"monitor_id"`
