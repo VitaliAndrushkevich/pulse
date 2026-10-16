@@ -38,7 +38,7 @@ func ValidateHeartbeatTriggers(triggers []TriggerCondition) []FieldError {
 	return errs
 }
 
-// translateHeartbeatTriggers maps heartbeat trigger vocabulary onto the monitor
+// TranslateHeartbeatTriggers maps heartbeat trigger vocabulary onto the monitor
 // vocabulary understood by StateTracker.Evaluate and bindingMatchesTrigger:
 //
 //	heartbeat_missed    -> monitor_down
@@ -49,7 +49,7 @@ func ValidateHeartbeatTriggers(triggers []TriggerCondition) []FieldError {
 // fan-out matcher operate on monitor_down/monitor_up and a DeliveryJob is
 // enqueued. Unknown types are passed through unchanged (validation rejects them
 // before persistence, so this is defensive).
-func translateHeartbeatTriggers(triggers []TriggerCondition) []TriggerCondition {
+func TranslateHeartbeatTriggers(triggers []TriggerCondition) []TriggerCondition {
 	out := make([]TriggerCondition, 0, len(triggers))
 	for _, t := range triggers {
 		switch t.Type {
