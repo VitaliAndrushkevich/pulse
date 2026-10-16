@@ -10,6 +10,8 @@ const (
 	TypeConnected = "connected"
 	// TypeMonitorTagsChanged is sent when a monitor's tags are modified.
 	TypeMonitorTagsChanged = "monitor_tags_changed"
+	// TypeHeartbeatStatus is sent when a heartbeat's observed state changes.
+	TypeHeartbeatStatus = "heartbeat_status"
 )
 
 // MonitorStatusPayload is the diff/patch payload broadcast after each check.
@@ -67,6 +69,42 @@ func NewMonitorStatusMessage(
 			CheckedAt:        checkedAt.UTC().Format(time.RFC3339Nano),
 			Timestamp:        time.Now().UTC().Format(time.RFC3339Nano),
 		},
+	}
+}
+
+// HeartbeatStatusPayload is the diff/patch payload broadcast when a heartbeat's
+// observed state changes (success ping, explicit-fail ping, missed-run detection,
+// or recovery). Only state and the two timestamps are carried — clients merge the
+// patch into local state rather than replacing the whole object. Optional
+// timestamps are omitted when not set.
+type HeartbeatStatusPayload struct {
+	HeartbeatID          string  `json:"heartbeat_id"`
+	State                string  `json:"state"`                            // up | down | paused | new
+	LastSuccessAt        *string `json:"last_success_at,omitempty"`        // RFC3339
+	NextExpectedDeadline *string `json:"next_expected_deadline,omitempty"` // RFC3339
+	Timestamp            string  `json:"timestamp"`                        // server broadcast time
+}
+
+// NewHeartbeatStatusMessage creates a broadcast-ready heartbeat status patch.
+// lastSuccess and nextDeadline are optional; nil timestamps are omitted from the
+// payload so clients never clobber known values with absent ones.
+func NewHeartbeatStatusMessage(id, state string, lastSuccess, nextDeadline *time.Time) Message {
+	payload := HeartbeatStatusPayload{
+		HeartbeatID: id,
+		State:       state,
+		Timestamp:   time.Now().UTC().Format(time.RFC3339Nano),
+	}
+	if lastSuccess != nil {
+		s := lastSuccess.UTC().Format(time.RFC3339Nano)
+		payload.LastSuccessAt = &s
+	}
+	if nextDeadline != nil {
+		s := nextDeadline.UTC().Format(time.RFC3339Nano)
+		payload.NextExpectedDeadline = &s
+	}
+	return Message{
+		Type:    TypeHeartbeatStatus,
+		Payload: payload,
 	}
 }
 
