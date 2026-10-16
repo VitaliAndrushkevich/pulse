@@ -176,13 +176,15 @@ func main() {
 	go retentionSvc.Start(appCtx)
 
 	// Heartbeat subsystem (heartbeat-monitoring): metrics on the shared registry
-	// plus the periodic-sweep evaluator detecting missed runs. The notification
-	// dispatch seam is wired in Phase 4 (nil here → dispatch skipped).
+	// plus the periodic-sweep evaluator detecting missed runs. The dispatch helper
+	// reuses the existing notification dispatcher/StateTracker/retry/delivery-logs
+	// unchanged — it is the single additive notification entry point (design §5.3).
 	heartbeatMetrics := heartbeat.NewMetrics(promRegistry)
+	heartbeatDispatch := heartbeat.NewDispatch(queries, dispatcher, cfg.BaseURL)
 	heartbeatWorkers := getEnvInt("PULSE_HEARTBEAT_WORKERS", heartbeat.DefaultWorkers)
 	heartbeatEvaluator := heartbeat.NewEvaluator(heartbeat.Config{
 		Workers: heartbeatWorkers,
-	}, queries, heartbeatMetrics, wsHub, nil)
+	}, queries, heartbeatMetrics, wsHub, heartbeatDispatch)
 	go heartbeatEvaluator.Run(appCtx)
 	log.Printf("startup: heartbeat evaluator started (%d workers)", heartbeatWorkers)
 
@@ -206,7 +208,7 @@ func main() {
 
 		HeartbeatMetrics:    heartbeatMetrics,
 		HeartbeatStateClear: stateTracker,
-		PingDispatcher:      nil, // wired in Phase 4
+		PingDispatcher:      heartbeatDispatch,
 	})
 	addr := ":" + cfg.Port
 	if cfg.DevMode {
