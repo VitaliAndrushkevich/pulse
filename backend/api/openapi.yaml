@@ -1133,6 +1133,428 @@ paths:
         "401":
           $ref: "#/components/responses/Unauthorized"
 
+  /heartbeats:
+    get:
+      operationId: listHeartbeats
+      summary: List heartbeats
+      tags: [Heartbeats]
+      parameters:
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: Paginated list of heartbeats
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/X-Request-ID"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HeartbeatListResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    post:
+      operationId: createHeartbeat
+      summary: Create a heartbeat
+      description: >
+        Creates a heartbeat and its scoped ping ingestion token. The raw ping
+        token (ping_token) and the derived ping_url / ping_fail_url are returned
+        ONLY in this response (and in the rotate-token response). They are never
+        returned on GET or LIST. ping_url / ping_fail_url are omitted when
+        PULSE_BASE_URL is not configured.
+      tags: [Heartbeats]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateHeartbeatRequest"
+      responses:
+        "201":
+          description: Heartbeat created; raw ping token returned once
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/X-Request-ID"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HeartbeatCreateResponse"
+        "400":
+          description: >
+            Validation error. Error codes: VALIDATION_ERROR (missing/invalid name,
+            expected_interval_seconds, grace_seconds, or status); INVALID_TAGS.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /heartbeats/{id}:
+    get:
+      operationId: getHeartbeat
+      summary: Get a heartbeat
+      tags: [Heartbeats]
+      parameters:
+        - $ref: "#/components/parameters/HeartbeatID"
+      responses:
+        "200":
+          description: Heartbeat details (no raw token or hash)
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/X-Request-ID"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Heartbeat"
+        "400":
+          description: "Invalid UUID. Error code: INVALID_ID."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    put:
+      operationId: putHeartbeat
+      summary: Create or update a heartbeat (idempotent)
+      description: >
+        Idempotent create-or-update. PUT never rotates the ping token. When
+        expected_interval_seconds or grace_seconds change while a last_success_at
+        exists, the next_expected_deadline is recomputed. If the PUT creates a new
+        heartbeat, the raw ping token is returned once (HeartbeatCreateResponse);
+        otherwise the standard Heartbeat is returned.
+      tags: [Heartbeats]
+      parameters:
+        - $ref: "#/components/parameters/HeartbeatID"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateHeartbeatRequest"
+      responses:
+        "200":
+          description: >
+            Heartbeat created or updated. On create via PUT the body is a
+            HeartbeatCreateResponse (raw token once); on update it is a Heartbeat.
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/X-Request-ID"
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/Heartbeat"
+                  - $ref: "#/components/schemas/HeartbeatCreateResponse"
+        "400":
+          description: >
+            Validation error. Error codes: INVALID_ID, VALIDATION_ERROR, INVALID_TAGS.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: >
+            Concurrent modification detected (serialization/lock failure).
+            Error code: CONFLICT.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    delete:
+      operationId: deleteHeartbeat
+      summary: Delete a heartbeat
+      description: >
+        Deletes the heartbeat and cascades its tags and notification bindings.
+        The ping URL stops working immediately.
+      tags: [Heartbeats]
+      parameters:
+        - $ref: "#/components/parameters/HeartbeatID"
+      responses:
+        "204":
+          description: Heartbeat deleted
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/X-Request-ID"
+        "400":
+          description: "Invalid UUID. Error code: INVALID_ID."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /heartbeats/{id}/rotate-token:
+    post:
+      operationId: rotateHeartbeatToken
+      summary: Rotate a heartbeat's ping token
+      description: >
+        Issues a new ping token, invalidating all existing ping URLs immediately.
+        The new raw ping token is returned once in this response.
+      tags: [Heartbeats]
+      parameters:
+        - $ref: "#/components/parameters/HeartbeatID"
+      responses:
+        "200":
+          description: New ping token issued; raw token returned once
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/X-Request-ID"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HeartbeatRotateTokenResponse"
+        "400":
+          description: "Invalid UUID. Error code: INVALID_ID."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /heartbeats/{id}/notification-bindings:
+    get:
+      operationId: listHeartbeatBindings
+      summary: List notification bindings for a heartbeat
+      tags: [Heartbeats]
+      parameters:
+        - $ref: "#/components/parameters/HeartbeatID"
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: Paginated list of bindings for the heartbeat
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/X-Request-ID"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HeartbeatBindingListResponse"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    post:
+      operationId: createHeartbeatBinding
+      summary: Create a notification binding for a heartbeat
+      description: >
+        Binds a notification channel to a heartbeat with heartbeat trigger
+        conditions. Allowed triggers are heartbeat_missed and heartbeat_recovered;
+        monitor trigger types are rejected with VALIDATION_ERROR and field details.
+        Each channel-heartbeat pair can have at most one binding.
+      tags: [Heartbeats]
+      parameters:
+        - $ref: "#/components/parameters/HeartbeatID"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateHeartbeatBindingRequest"
+      responses:
+        "201":
+          description: Binding created
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/X-Request-ID"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HeartbeatBinding"
+        "400":
+          description: >
+            Validation error with field-level details. Error code: VALIDATION_ERROR
+            (missing channel_id, invalid trigger type, or reminder_interval_minutes
+            outside 30–1440).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: A binding already exists for this channel-heartbeat pair
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /heartbeats/{id}/notification-bindings/{bindingId}:
+    put:
+      operationId: updateHeartbeatBinding
+      summary: Update a heartbeat notification binding
+      tags: [Heartbeats]
+      parameters:
+        - $ref: "#/components/parameters/HeartbeatID"
+        - $ref: "#/components/parameters/BindingID"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateHeartbeatBindingRequest"
+      responses:
+        "200":
+          description: Binding updated
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/X-Request-ID"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HeartbeatBinding"
+        "400":
+          description: >
+            Validation error with field-level details. Error code: VALIDATION_ERROR.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    delete:
+      operationId: deleteHeartbeatBinding
+      summary: Delete a heartbeat notification binding
+      tags: [Heartbeats]
+      parameters:
+        - $ref: "#/components/parameters/HeartbeatID"
+        - $ref: "#/components/parameters/BindingID"
+      responses:
+        "204":
+          description: Binding deleted
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/X-Request-ID"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /ping/{token}:
+    servers:
+      - url: /
+        description: Root-level ingestion (outside /api/v1)
+    get:
+      operationId: pingHeartbeatSuccessGet
+      summary: Report a successful heartbeat run
+      description: >
+        Records a successful check-in for the heartbeat identified by the token in
+        the path. Authorization is possession of the unguessable token — NO
+        JWT/API-token/session is required or accepted. Both GET and POST are
+        accepted; request bodies are ignored. An unknown, malformed, or revoked
+        token returns a minimal 404 with no body detail. A paused heartbeat still
+        records the success but is not evaluated for missed runs.
+      tags: [Ping]
+      security: []
+      parameters:
+        - $ref: "#/components/parameters/PingToken"
+      responses:
+        "200":
+          description: Ping recorded
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: OK
+        "404":
+          description: Unknown, malformed, or revoked token
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: not found
+    post:
+      operationId: pingHeartbeatSuccessPost
+      summary: Report a successful heartbeat run (POST)
+      tags: [Ping]
+      security: []
+      parameters:
+        - $ref: "#/components/parameters/PingToken"
+      responses:
+        "200":
+          description: Ping recorded
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: OK
+        "404":
+          description: Unknown, malformed, or revoked token
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: not found
+
+  /ping/{token}/fail:
+    servers:
+      - url: /
+        description: Root-level ingestion (outside /api/v1)
+    get:
+      operationId: pingHeartbeatFailGet
+      summary: Report an explicit heartbeat failure
+      description: >
+        Records an explicit failure for the heartbeat identified by the token in
+        the path, transitioning it to down without advancing last_success_at.
+        Authorization is possession of the unguessable token — NO
+        JWT/API-token/session is required or accepted. Both GET and POST are
+        accepted; request bodies are ignored.
+      tags: [Ping]
+      security: []
+      parameters:
+        - $ref: "#/components/parameters/PingToken"
+      responses:
+        "200":
+          description: Failure recorded
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: OK
+        "404":
+          description: Unknown, malformed, or revoked token
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: not found
+    post:
+      operationId: pingHeartbeatFailPost
+      summary: Report an explicit heartbeat failure (POST)
+      tags: [Ping]
+      security: []
+      parameters:
+        - $ref: "#/components/parameters/PingToken"
+      responses:
+        "200":
+          description: Failure recorded
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: OK
+        "404":
+          description: Unknown, malformed, or revoked token
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: not found
+
   /notifications/template-variables:
     get:
       operationId: getTemplateVariables
@@ -1376,6 +1798,21 @@ components:
       schema:
         type: string
         format: uuid
+    HeartbeatID:
+      name: id
+      in: path
+      required: true
+      description: Heartbeat UUID
+      schema:
+        type: string
+        format: uuid
+    PingToken:
+      name: token
+      in: path
+      required: true
+      description: Raw heartbeat ping token (unguessable secret in the URL)
+      schema:
+        type: string
 
   responses:
     BadRequest:
@@ -3068,6 +3505,285 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/DeliveryLog"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+        total_pages:
+          type: integer
+
+    # --- Heartbeat monitoring (heartbeat-monitoring) ---
+
+    ValidationErrorResponse:
+      type: object
+      description: >
+        A validation error carrying field-level details. Used by heartbeat
+        notification-binding endpoints. Error code is VALIDATION_ERROR.
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+              example: VALIDATION_ERROR
+            message:
+              type: string
+            details:
+              type: array
+              items:
+                $ref: "#/components/schemas/FieldError"
+
+    FieldError:
+      type: object
+      required: [field, message]
+      properties:
+        field:
+          type: string
+          description: The offending field path (e.g. "triggers[0].type")
+        message:
+          type: string
+
+    HeartbeatTag:
+      type: object
+      required: [key, value]
+      properties:
+        key:
+          type: string
+        value:
+          type: string
+
+    Heartbeat:
+      type: object
+      description: >
+        A heartbeat resource. This DTO never includes the raw ping token or its
+        hash; it exposes only token_prefix and token_created_at. The state field
+        reflects a presentation mapping — when status is "paused" the observed
+        state is reported as "paused".
+      required:
+        [id, name, expected_interval_seconds, grace_seconds, status, state, tags,
+         token_prefix, token_created_at, created_at, updated_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        expected_interval_seconds:
+          type: integer
+          minimum: 1
+          maximum: 31536000
+        grace_seconds:
+          type: integer
+          minimum: 0
+          maximum: 31536000
+        status:
+          type: string
+          enum: [active, paused]
+          description: Operator-controlled lifecycle status
+        state:
+          type: string
+          enum: [up, down, paused, new]
+          description: Observed state (paused is a presentation mapping of status=paused)
+        last_success_at:
+          type: string
+          format: date-time
+          nullable: true
+        next_expected_deadline:
+          type: string
+          format: date-time
+          nullable: true
+        tags:
+          type: array
+          items:
+            $ref: "#/components/schemas/HeartbeatTag"
+        token_prefix:
+          type: string
+          description: Lookup prefix of the ping token (not the token itself)
+        token_created_at:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    HeartbeatCreateResponse:
+      allOf:
+        - $ref: "#/components/schemas/Heartbeat"
+        - type: object
+          description: >
+            Create response. Carries the raw ping token exactly once. ping_url and
+            ping_fail_url are omitted when PULSE_BASE_URL is not configured.
+          required: [ping_token]
+          properties:
+            ping_token:
+              type: string
+              description: Raw ping token — shown only on create and rotate-token
+            ping_url:
+              type: string
+              description: Success ping URL (PULSE_BASE_URL + /ping/<token>)
+            ping_fail_url:
+              type: string
+              description: Failure ping URL (PULSE_BASE_URL + /ping/<token>/fail)
+
+    HeartbeatRotateTokenResponse:
+      type: object
+      description: >
+        Rotate-token response. Carries the new raw ping token exactly once. ping_url
+        and ping_fail_url are omitted when PULSE_BASE_URL is not configured.
+      required: [id, token_prefix, ping_token, token_created_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        token_prefix:
+          type: string
+        ping_token:
+          type: string
+          description: New raw ping token — shown only once
+        ping_url:
+          type: string
+        ping_fail_url:
+          type: string
+        token_created_at:
+          type: string
+          format: date-time
+
+    HeartbeatListResponse:
+      type: object
+      required: [data, total, page, limit, total_pages]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Heartbeat"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+        total_pages:
+          type: integer
+
+    CreateHeartbeatRequest:
+      type: object
+      required: [name, expected_interval_seconds]
+      properties:
+        name:
+          type: string
+          minLength: 1
+        expected_interval_seconds:
+          type: integer
+          minimum: 1
+          maximum: 31536000
+          description: How often the job is expected to check in
+        grace_seconds:
+          type: integer
+          minimum: 0
+          maximum: 31536000
+          default: 0
+          description: Extra time allowed before a missed check-in alerts
+        status:
+          type: string
+          enum: [active, paused]
+          default: active
+        tags:
+          type: array
+          items:
+            $ref: "#/components/schemas/HeartbeatTag"
+
+    HeartbeatTriggerCondition:
+      type: object
+      description: A heartbeat trigger condition.
+      required: [type]
+      properties:
+        type:
+          type: string
+          enum: [heartbeat_missed, heartbeat_recovered]
+          description: >
+            heartbeat_missed fires on a missed run or explicit failure;
+            heartbeat_recovered fires on recovery.
+
+    HeartbeatBinding:
+      type: object
+      description: A binding between a notification channel and a heartbeat.
+      required: [id, channel_id, heartbeat_id, triggers, created_at, updated_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        channel_id:
+          type: string
+          format: uuid
+        heartbeat_id:
+          type: string
+          format: uuid
+        triggers:
+          type: array
+          items:
+            $ref: "#/components/schemas/HeartbeatTriggerCondition"
+          minItems: 1
+        reminder_interval_minutes:
+          type: integer
+          minimum: 30
+          maximum: 1440
+          nullable: true
+          description: Reminder interval in minutes (30–1440). Null means disabled.
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    CreateHeartbeatBindingRequest:
+      type: object
+      required: [channel_id, triggers]
+      properties:
+        channel_id:
+          type: string
+          format: uuid
+        triggers:
+          type: array
+          items:
+            $ref: "#/components/schemas/HeartbeatTriggerCondition"
+          minItems: 1
+        reminder_interval_minutes:
+          type: integer
+          minimum: 30
+          maximum: 1440
+          nullable: true
+
+    UpdateHeartbeatBindingRequest:
+      type: object
+      required: [triggers]
+      properties:
+        triggers:
+          type: array
+          items:
+            $ref: "#/components/schemas/HeartbeatTriggerCondition"
+          minItems: 1
+        reminder_interval_minutes:
+          type: integer
+          minimum: 30
+          maximum: 1440
+          nullable: true
+
+    HeartbeatBindingListResponse:
+      type: object
+      required: [data, total, page, limit, total_pages]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/HeartbeatBinding"
         total:
           type: integer
         page:
