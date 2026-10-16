@@ -14,6 +14,7 @@ import (
 	"github.com/VitaliAndrushkevich/pulse/internal/api"
 	"github.com/VitaliAndrushkevich/pulse/internal/config"
 	"github.com/VitaliAndrushkevich/pulse/internal/crypto"
+	"github.com/VitaliAndrushkevich/pulse/internal/heartbeat"
 	"github.com/VitaliAndrushkevich/pulse/internal/hub"
 	"github.com/VitaliAndrushkevich/pulse/internal/monitor"
 	"github.com/VitaliAndrushkevich/pulse/internal/notification"
@@ -174,6 +175,17 @@ func main() {
 
 	go retentionSvc.Start(appCtx)
 
+	// Heartbeat subsystem (heartbeat-monitoring): metrics on the shared registry
+	// plus the periodic-sweep evaluator detecting missed runs. The notification
+	// dispatch seam is wired in Phase 4 (nil here → dispatch skipped).
+	heartbeatMetrics := heartbeat.NewMetrics(promRegistry)
+	heartbeatWorkers := getEnvInt("PULSE_HEARTBEAT_WORKERS", heartbeat.DefaultWorkers)
+	heartbeatEvaluator := heartbeat.NewEvaluator(heartbeat.Config{
+		Workers: heartbeatWorkers,
+	}, queries, heartbeatMetrics, wsHub, nil)
+	go heartbeatEvaluator.Run(appCtx)
+	log.Printf("startup: heartbeat evaluator started (%d workers)", heartbeatWorkers)
+
 	r := api.NewRouter(api.Deps{
 		Queries:         queries,
 		Pool:            pool,
@@ -191,6 +203,10 @@ func main() {
 		MetricsUser:     cfg.MetricsUser,
 		MetricsPassword: cfg.MetricsPassword,
 		ResetAdmin:      cfg.ResetAdmin,
+
+		HeartbeatMetrics:    heartbeatMetrics,
+		HeartbeatStateClear: stateTracker,
+		PingDispatcher:      nil, // wired in Phase 4
 	})
 	addr := ":" + cfg.Port
 	if cfg.DevMode {

@@ -17,6 +17,7 @@ import (
 	"github.com/VitaliAndrushkevich/pulse/internal/api/handlers"
 	"github.com/VitaliAndrushkevich/pulse/internal/api/middleware"
 	"github.com/VitaliAndrushkevich/pulse/internal/frontend"
+	"github.com/VitaliAndrushkevich/pulse/internal/heartbeat"
 	"github.com/VitaliAndrushkevich/pulse/internal/hub"
 	smtpclient "github.com/VitaliAndrushkevich/pulse/internal/notification/smtp"
 	db "github.com/VitaliAndrushkevich/pulse/internal/store/postgres"
@@ -42,6 +43,12 @@ type Deps struct {
 	MetricsUser     string // Basic Auth username for /metrics (empty = no auth)
 	MetricsPassword string // Basic Auth password for /metrics (empty = no auth)
 	ResetAdmin      bool   // PULSE_RESET_ADMIN — re-enables setup flow for credential reset
+
+	// Heartbeat subsystem (heartbeat-monitoring). All may be nil, in which case
+	// heartbeat routes are still registered but metrics/dispatch are skipped.
+	HeartbeatMetrics    *heartbeat.Metrics          // shared Prometheus gauges
+	HeartbeatStateClear handlers.HeartbeatStateClearer // notification dedup state clearer (StateTracker)
+	PingDispatcher      handlers.PingDispatcher     // heartbeat ping notification seam (Phase 4)
 }
 
 func NewRouter(deps Deps) *gin.Engine {
@@ -145,6 +152,19 @@ func NewRouter(deps Deps) *gin.Engine {
 
 	notifBindingHandler := handlers.NewNotificationBindingHandler(deps.Queries)
 	notifBindingHandler.Register(protected)
+
+	// Heartbeat admin CRUD + notification bindings (heartbeat-monitoring).
+	heartbeatHandler := handlers.NewHeartbeatHandler(deps.Queries, deps.Pool, deps.BaseURL, deps.HeartbeatStateClear)
+	heartbeatHandler.Register(protected)
+
+	heartbeatBindingHandler := handlers.NewHeartbeatBindingHandler(deps.Queries)
+	heartbeatBindingHandler.Register(protected)
+
+	// Root-level heartbeat ping ingestion (heartbeat-monitoring). These sit
+	// OUTSIDE /api/v1 (like /ws): authorization is possession of the unguessable
+	// token in the URL, not a Bearer/JWT header. Registered directly on the engine.
+	pingHandler := handlers.NewPingHandler(deps.Queries, deps.Hub, deps.HeartbeatMetrics, deps.PingDispatcher)
+	pingHandler.RegisterPingRoutes(r)
 
 	// Proto source management (grpc-proto-payload).
 	protoSourceHandler := handlers.NewProtoSourceHandler(deps.Queries, deps.Pool)
@@ -272,7 +292,7 @@ func dummyCompare() {
 
 // apiPrefixes are URL path prefixes reserved for API/system routes.
 // Requests matching these should return a JSON 404, not the SPA fallback.
-var apiPrefixes = []string{"/api/", "/ws", "/metrics", "/healthz", "/swagger"}
+var apiPrefixes = []string{"/api/", "/ws", "/metrics", "/healthz", "/swagger", "/ping"}
 
 // spaHandler returns a gin.HandlerFunc that serves the embedded frontend.
 // For API/system paths it returns a JSON 404; for everything else it tries to
