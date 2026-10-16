@@ -55,7 +55,37 @@ func testQueries(t *testing.T) (*db.Queries, *pgxpool.Pool, context.Context) {
 	}
 	t.Cleanup(pool.Close)
 
+	// Take the heartbeat schema advisory lock in SHARED mode for the lifetime of
+	// the test, so this data test cannot run while TestMigration017_UpDown holds
+	// it exclusively (and has the heartbeats table transiently dropped). Multiple
+	// data tests share the lock freely; only the schema mutator blocks them.
+	acquireSharedHeartbeatSchemaLock(t, pool)
+
 	return db.New(pool), pool, context.Background()
+}
+
+// heartbeatSchemaLockKey is a fixed pg_advisory_lock key coordinating the
+// heartbeat schema round-trip test with heartbeat-schema data tests.
+const heartbeatSchemaLockKey int64 = 0x48425F3031375F31 // "HB_017_1"
+
+// acquireSharedHeartbeatSchemaLock takes the heartbeat schema advisory lock in
+// shared mode on a dedicated connection held open for the whole test, releasing
+// it on cleanup.
+func acquireSharedHeartbeatSchemaLock(t *testing.T, pool *pgxpool.Pool) {
+	t.Helper()
+	ctx := context.Background()
+	conn, err := pool.Acquire(ctx)
+	if err != nil {
+		t.Fatalf("acquire schema-lock conn: %v", err)
+	}
+	if _, err := conn.Exec(ctx, "SELECT pg_advisory_lock_shared($1)", heartbeatSchemaLockKey); err != nil {
+		conn.Release()
+		t.Fatalf("acquire shared heartbeat schema lock: %v", err)
+	}
+	t.Cleanup(func() {
+		_, _ = conn.Exec(context.Background(), "SELECT pg_advisory_unlock_shared($1)", heartbeatSchemaLockKey)
+		conn.Release()
+	})
 }
 
 func tsNow() pgtype.Timestamptz {
@@ -104,6 +134,27 @@ func TestMigration017_UpDown(t *testing.T) {
 	}
 	defer m.Close()
 
+	// This test mutates global schema state (drops then recreates heartbeats),
+	// so it must not overlap with schema-dependent DB tests running concurrently
+	// in other packages under `go test -race ./...` (CI). Hold the heartbeat
+	// schema advisory lock EXCLUSIVELY for the whole round-trip; data-test setup
+	// takes the same lock in SHARED mode and therefore waits out this window.
+	ctx := context.Background()
+	lockPool, err := db.Connect(ctx, databaseURL)
+	if err != nil {
+		t.Skipf("postgres unavailable: %v", err)
+	}
+	defer lockPool.Close()
+	lockConn, err := lockPool.Acquire(ctx)
+	if err != nil {
+		t.Fatalf("acquire schema-lock conn: %v", err)
+	}
+	defer lockConn.Release()
+	if _, err := lockConn.Exec(ctx, "SELECT pg_advisory_lock($1)", heartbeatSchemaLockKey); err != nil {
+		t.Fatalf("acquire exclusive heartbeat schema lock: %v", err)
+	}
+	defer func() { _, _ = lockConn.Exec(context.Background(), "SELECT pg_advisory_unlock($1)", heartbeatSchemaLockKey) }()
+
 	// Bring the schema fully up first.
 	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
 		t.Fatalf("migrate up: %v", err)
@@ -120,7 +171,6 @@ func TestMigration017_UpDown(t *testing.T) {
 	}
 
 	// Confirm the table is present and queryable after the round-trip.
-	ctx := context.Background()
 	pool, err := db.Connect(ctx, databaseURL)
 	if err != nil {
 		t.Fatalf("connect after migration round-trip: %v", err)
