@@ -71,6 +71,8 @@ Pull requests to `main` trigger automated checks via GitHub Actions (`.github/wo
 
 PRs in the same concurrency group cancel previous runs automatically.
 
+Frontend CI and release jobs install the pnpm version declared in `frontend/package.json` via `pnpm/action-setup`'s `package_json_file` input. Keep this as the version source so dependency installation and `actions/setup-node` caching use the same pnpm store.
+
 ## Release Pipeline
 
 Pushing a semver tag (`v*`) triggers the release workflow (`.github/workflows/release.yml`):
