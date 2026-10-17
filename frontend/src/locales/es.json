@@ -549,66 +549,66 @@
   },
   "heartbeats": {
     "title": "Heartbeats",
-    "subtitle": "Monitor scheduled jobs by expected check-in",
-    "empty": "No heartbeats yet",
-    "create": "New heartbeat",
-    "edit": "Edit heartbeat",
-    "delete": "Delete heartbeat",
-    "deleteConfirm": "Delete this heartbeat? Its ping URL will stop working.",
-    "loading": "Loading heartbeats…",
-    "loadFailed": "Failed to load heartbeats",
-    "notFoundTitle": "Heartbeat not found",
-    "notFoundDescription": "The heartbeat you are looking for does not exist or was deleted.",
-    "notFoundAction": "Back to heartbeats",
+    "subtitle": "Supervisa tareas programadas por el registro de actividad esperado",
+    "empty": "Aún no hay heartbeats",
+    "create": "Nuevo heartbeat",
+    "edit": "Editar heartbeat",
+    "delete": "Eliminar heartbeat",
+    "deleteConfirm": "¿Eliminar este heartbeat? Su URL de ping dejará de funcionar.",
+    "loading": "Cargando heartbeats…",
+    "loadFailed": "No se pudieron cargar los heartbeats",
+    "notFoundTitle": "Heartbeat no encontrado",
+    "notFoundDescription": "El heartbeat que buscas no existe o fue eliminado.",
+    "notFoundAction": "Volver a los heartbeats",
     "state": {
-      "up": "Up",
-      "down": "Missed",
-      "paused": "Paused",
-      "new": "Awaiting first ping"
+      "up": "Activo",
+      "down": "Omitido",
+      "paused": "Pausado",
+      "new": "Esperando el primer ping"
     },
     "fields": {
-      "name": "Name",
-      "expectedInterval": "Expected interval",
-      "grace": "Grace period",
-      "status": "Status",
-      "lastSuccess": "Last success",
-      "nextDeadline": "Next expected by",
-      "tags": "Tags"
+      "name": "Nombre",
+      "expectedInterval": "Intervalo esperado",
+      "grace": "Período de gracia",
+      "status": "Estado",
+      "lastSuccess": "Último éxito",
+      "nextDeadline": "Próximo esperado antes de",
+      "tags": "Etiquetas"
     },
     "form": {
-      "nameRequired": "Name is required",
-      "intervalInvalid": "Expected interval must be a positive number of seconds",
-      "graceInvalid": "Grace period must be zero or a positive number of seconds",
-      "intervalHelp": "How often this job is expected to check in",
-      "graceHelp": "Extra time allowed before a missed check-in alerts"
+      "nameRequired": "El nombre es obligatorio",
+      "intervalInvalid": "El intervalo esperado debe ser un número positivo de segundos",
+      "graceInvalid": "El período de gracia debe ser cero o un número positivo de segundos",
+      "intervalHelp": "Con qué frecuencia se espera que esta tarea registre actividad",
+      "graceHelp": "Tiempo adicional permitido antes de que un registro omitido genere alerta"
     },
     "token": {
-      "title": "Ping URL",
-      "showOnce": "Copy this now — it is shown only once",
-      "copy": "Copy ping URL",
-      "copyFail": "Copy failure URL",
-      "copied": "Copied",
-      "rotate": "Rotate token",
-      "rotateConfirm": "Rotate the token? Existing ping URLs will stop working.",
-      "prefix": "Token prefix"
+      "title": "URL de ping",
+      "showOnce": "Cópiala ahora — solo se muestra una vez",
+      "copy": "Copiar URL de ping",
+      "copyFail": "Copiar URL de fallo",
+      "copied": "Copiado",
+      "rotate": "Rotar token",
+      "rotateConfirm": "¿Rotar el token? Las URL de ping existentes dejarán de funcionar.",
+      "prefix": "Prefijo del token"
     },
     "ping": {
-      "successUrl": "Success ping URL",
-      "failUrl": "Failure ping URL"
+      "successUrl": "URL de ping de éxito",
+      "failUrl": "URL de ping de fallo"
     },
     "examples": {
-      "title": "Usage examples",
+      "title": "Ejemplos de uso",
       "shell": "Shell",
       "cron": "Cron",
       "ci": "CI",
-      "note": "A success ping proves the command ran, not that its output is valid or restorable."
+      "note": "Un ping de éxito prueba que el comando se ejecutó, no que su salida sea válida o restaurable."
     },
     "bindings": {
-      "title": "Notifications",
-      "add": "Add notification",
-      "triggerMissed": "Missed run or explicit failure",
-      "triggerRecovered": "Recovered",
-      "empty": "No notifications configured"
+      "title": "Notificaciones",
+      "add": "Agregar notificación",
+      "triggerMissed": "Ejecución omitida o fallo explícito",
+      "triggerRecovered": "Recuperado",
+      "empty": "No hay notificaciones configuradas"
     }
   },
   "errors": {
@@ -880,5 +880,44 @@
       "smtpFromRequired": "La dirección de remitente es requerida.",
       "smtpFromInvalid": "Formato de dirección de correo inválido."
     }
+  },
+  "shell": {
+    "workspace": "Operations",
+    "navigation": "Main navigation",
+    "signature": "Self-hosted monitoring",
+    "skipToContent": "Skip to content",
+    "overview": "System overview",
+    "collapseNavigation": "Collapse navigation",
+    "expandNavigation": "Expand navigation",
+    "monitorsOverview": "Service monitoring",
+    "settingsOverview": "Configuration"
+  },
+  "users": {
+    "title": "Users",
+    "description": "Manage who can access this Pulse instance.",
+    "email": "Email",
+    "temporaryPassword": "Temporary password",
+    "role": "Role",
+    "admin": "Administrator",
+    "readOnly": "Read only",
+    "create": "Create user",
+    "created": "User created. Share the temporary password securely.",
+    "updated": "User updated.",
+    "passwordReset": "Password reset. Share the new temporary password securely.",
+    "failed": "Unable to update users.",
+    "loading": "Loading users…",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "enable": "Enable",
+    "disable": "Disable",
+    "resetPassword": "Reset password",
+    "makeAdmin": "Make administrator",
+    "makeReadOnly": "Make read only",
+    "you": "you",
+    "passwordPending": "Password change required",
+    "passwordHint": "Use a temporary password of 8–72 UTF-8 bytes. Users must replace it before accessing Pulse. Administrators have full access; read-only users can view monitoring and manage their own password and preferences.",
+    "firstLoginTitle": "Choose your password",
+    "firstLoginDescription": "Enter the temporary password provided by your administrator, then choose a different password to continue.",
+    "sessionError": "Unable to verify your session. Retry to continue."
   }
 }

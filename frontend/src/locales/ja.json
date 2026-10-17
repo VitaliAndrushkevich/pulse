@@ -6,7 +6,7 @@
   "nav": {
     "dashboard": "ダッシュボード",
     "monitors": "モニター",
-    "heartbeats": "Heartbeats",
+    "heartbeats": "ハートビート",
     "notifications": "通知",
     "settings": "設定",
     "logout": "ログアウト",
@@ -548,67 +548,67 @@
     }
   },
   "heartbeats": {
-    "title": "Heartbeats",
-    "subtitle": "Monitor scheduled jobs by expected check-in",
-    "empty": "No heartbeats yet",
-    "create": "New heartbeat",
-    "edit": "Edit heartbeat",
-    "delete": "Delete heartbeat",
-    "deleteConfirm": "Delete this heartbeat? Its ping URL will stop working.",
-    "loading": "Loading heartbeats…",
-    "loadFailed": "Failed to load heartbeats",
-    "notFoundTitle": "Heartbeat not found",
-    "notFoundDescription": "The heartbeat you are looking for does not exist or was deleted.",
-    "notFoundAction": "Back to heartbeats",
+    "title": "ハートビート",
+    "subtitle": "期待されるチェックインでスケジュールされたジョブを監視します",
+    "empty": "ハートビートはまだありません",
+    "create": "新しいハートビート",
+    "edit": "ハートビートを編集",
+    "delete": "ハートビートを削除",
+    "deleteConfirm": "このハートビートを削除しますか？ ping URL は動作しなくなります。",
+    "loading": "ハートビートを読み込んでいます…",
+    "loadFailed": "ハートビートの読み込みに失敗しました",
+    "notFoundTitle": "ハートビートが見つかりません",
+    "notFoundDescription": "お探しのハートビートは存在しないか、削除されました。",
+    "notFoundAction": "ハートビートに戻る",
     "state": {
-      "up": "Up",
-      "down": "Missed",
-      "paused": "Paused",
-      "new": "Awaiting first ping"
+      "up": "正常",
+      "down": "未達",
+      "paused": "一時停止",
+      "new": "最初の ping を待機中"
     },
     "fields": {
-      "name": "Name",
-      "expectedInterval": "Expected interval",
-      "grace": "Grace period",
-      "status": "Status",
-      "lastSuccess": "Last success",
-      "nextDeadline": "Next expected by",
-      "tags": "Tags"
+      "name": "名前",
+      "expectedInterval": "想定間隔",
+      "grace": "猶予期間",
+      "status": "ステータス",
+      "lastSuccess": "最後の成功",
+      "nextDeadline": "次回の想定期限",
+      "tags": "タグ"
     },
     "form": {
-      "nameRequired": "Name is required",
-      "intervalInvalid": "Expected interval must be a positive number of seconds",
-      "graceInvalid": "Grace period must be zero or a positive number of seconds",
-      "intervalHelp": "How often this job is expected to check in",
-      "graceHelp": "Extra time allowed before a missed check-in alerts"
+      "nameRequired": "名前は必須です",
+      "intervalInvalid": "想定間隔は正の秒数である必要があります",
+      "graceInvalid": "猶予期間はゼロまたは正の秒数である必要があります",
+      "intervalHelp": "このジョブがチェックインすると想定される頻度",
+      "graceHelp": "チェックイン未達の通知までに許容される追加時間"
     },
     "token": {
-      "title": "Ping URL",
-      "showOnce": "Copy this now — it is shown only once",
-      "copy": "Copy ping URL",
-      "copyFail": "Copy failure URL",
-      "copied": "Copied",
-      "rotate": "Rotate token",
-      "rotateConfirm": "Rotate the token? Existing ping URLs will stop working.",
-      "prefix": "Token prefix"
+      "title": "ping URL",
+      "showOnce": "今すぐコピーしてください — 一度だけ表示されます",
+      "copy": "ping URL をコピー",
+      "copyFail": "失敗 URL をコピー",
+      "copied": "コピーしました",
+      "rotate": "トークンをローテーション",
+      "rotateConfirm": "トークンをローテーションしますか？ 既存の ping URL は動作しなくなります。",
+      "prefix": "トークンのプレフィックス"
     },
     "ping": {
-      "successUrl": "Success ping URL",
-      "failUrl": "Failure ping URL"
+      "successUrl": "成功時の ping URL",
+      "failUrl": "失敗時の ping URL"
     },
     "examples": {
-      "title": "Usage examples",
+      "title": "使用例",
       "shell": "Shell",
       "cron": "Cron",
       "ci": "CI",
-      "note": "A success ping proves the command ran, not that its output is valid or restorable."
+      "note": "成功 ping はコマンドが実行されたことを証明するものであり、その出力が有効または復元可能であることを示すものではありません。"
     },
     "bindings": {
-      "title": "Notifications",
-      "add": "Add notification",
-      "triggerMissed": "Missed run or explicit failure",
-      "triggerRecovered": "Recovered",
-      "empty": "No notifications configured"
+      "title": "通知",
+      "add": "通知を追加",
+      "triggerMissed": "実行の未達または明示的な失敗",
+      "triggerRecovered": "回復",
+      "empty": "通知が設定されていません"
     }
   },
   "errors": {
@@ -880,5 +880,44 @@
       "smtpFromRequired": "送信元アドレスは必須です。",
       "smtpFromInvalid": "無効なメールアドレス形式です。"
     }
+  },
+  "shell": {
+    "workspace": "Operations",
+    "navigation": "Main navigation",
+    "signature": "Self-hosted monitoring",
+    "skipToContent": "Skip to content",
+    "overview": "System overview",
+    "collapseNavigation": "Collapse navigation",
+    "expandNavigation": "Expand navigation",
+    "monitorsOverview": "Service monitoring",
+    "settingsOverview": "Configuration"
+  },
+  "users": {
+    "title": "Users",
+    "description": "Manage who can access this Pulse instance.",
+    "email": "Email",
+    "temporaryPassword": "Temporary password",
+    "role": "Role",
+    "admin": "Administrator",
+    "readOnly": "Read only",
+    "create": "Create user",
+    "created": "User created. Share the temporary password securely.",
+    "updated": "User updated.",
+    "passwordReset": "Password reset. Share the new temporary password securely.",
+    "failed": "Unable to update users.",
+    "loading": "Loading users…",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "enable": "Enable",
+    "disable": "Disable",
+    "resetPassword": "Reset password",
+    "makeAdmin": "Make administrator",
+    "makeReadOnly": "Make read only",
+    "you": "you",
+    "passwordPending": "Password change required",
+    "passwordHint": "Use a temporary password of 8–72 UTF-8 bytes. Users must replace it before accessing Pulse. Administrators have full access; read-only users can view monitoring and manage their own password and preferences.",
+    "firstLoginTitle": "Choose your password",
+    "firstLoginDescription": "Enter the temporary password provided by your administrator, then choose a different password to continue.",
+    "sessionError": "Unable to verify your session. Retry to continue."
   }
 }

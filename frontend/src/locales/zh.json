@@ -6,7 +6,7 @@
   "nav": {
     "dashboard": "仪表板",
     "monitors": "监控器",
-    "heartbeats": "Heartbeats",
+    "heartbeats": "心跳监测",
     "notifications": "通知",
     "settings": "设置",
     "logout": "退出",
@@ -548,67 +548,67 @@
     }
   },
   "heartbeats": {
-    "title": "Heartbeats",
-    "subtitle": "Monitor scheduled jobs by expected check-in",
-    "empty": "No heartbeats yet",
-    "create": "New heartbeat",
-    "edit": "Edit heartbeat",
-    "delete": "Delete heartbeat",
-    "deleteConfirm": "Delete this heartbeat? Its ping URL will stop working.",
-    "loading": "Loading heartbeats…",
-    "loadFailed": "Failed to load heartbeats",
-    "notFoundTitle": "Heartbeat not found",
-    "notFoundDescription": "The heartbeat you are looking for does not exist or was deleted.",
-    "notFoundAction": "Back to heartbeats",
+    "title": "心跳监测",
+    "subtitle": "按预期签入监控计划任务",
+    "empty": "暂无心跳",
+    "create": "新建心跳",
+    "edit": "编辑心跳",
+    "delete": "删除心跳",
+    "deleteConfirm": "删除此心跳？其 ping URL 将停止工作。",
+    "loading": "正在加载心跳…",
+    "loadFailed": "加载心跳失败",
+    "notFoundTitle": "未找到心跳",
+    "notFoundDescription": "您查找的心跳不存在或已被删除。",
+    "notFoundAction": "返回心跳列表",
     "state": {
-      "up": "Up",
-      "down": "Missed",
-      "paused": "Paused",
-      "new": "Awaiting first ping"
+      "up": "正常",
+      "down": "错过",
+      "paused": "已暂停",
+      "new": "等待首次 ping"
     },
     "fields": {
-      "name": "Name",
-      "expectedInterval": "Expected interval",
-      "grace": "Grace period",
-      "status": "Status",
-      "lastSuccess": "Last success",
-      "nextDeadline": "Next expected by",
-      "tags": "Tags"
+      "name": "名称",
+      "expectedInterval": "预期间隔",
+      "grace": "宽限期",
+      "status": "状态",
+      "lastSuccess": "最近成功",
+      "nextDeadline": "下次预期截止",
+      "tags": "标签"
     },
     "form": {
-      "nameRequired": "Name is required",
-      "intervalInvalid": "Expected interval must be a positive number of seconds",
-      "graceInvalid": "Grace period must be zero or a positive number of seconds",
-      "intervalHelp": "How often this job is expected to check in",
-      "graceHelp": "Extra time allowed before a missed check-in alerts"
+      "nameRequired": "名称为必填项",
+      "intervalInvalid": "预期间隔必须为正的秒数",
+      "graceInvalid": "宽限期必须为零或正的秒数",
+      "intervalHelp": "此任务预期的签入频率",
+      "graceHelp": "错过签入告警前允许的额外时间"
     },
     "token": {
       "title": "Ping URL",
-      "showOnce": "Copy this now — it is shown only once",
-      "copy": "Copy ping URL",
-      "copyFail": "Copy failure URL",
-      "copied": "Copied",
-      "rotate": "Rotate token",
-      "rotateConfirm": "Rotate the token? Existing ping URLs will stop working.",
-      "prefix": "Token prefix"
+      "showOnce": "立即复制 — 仅显示一次",
+      "copy": "复制 ping URL",
+      "copyFail": "复制失败 URL",
+      "copied": "已复制",
+      "rotate": "轮换令牌",
+      "rotateConfirm": "轮换令牌？现有的 ping URL 将停止工作。",
+      "prefix": "令牌前缀"
     },
     "ping": {
-      "successUrl": "Success ping URL",
-      "failUrl": "Failure ping URL"
+      "successUrl": "成功 ping URL",
+      "failUrl": "失败 ping URL"
     },
     "examples": {
-      "title": "Usage examples",
+      "title": "使用示例",
       "shell": "Shell",
       "cron": "Cron",
       "ci": "CI",
-      "note": "A success ping proves the command ran, not that its output is valid or restorable."
+      "note": "成功 ping 仅证明命令已运行，并不表示其输出有效或可恢复。"
     },
     "bindings": {
-      "title": "Notifications",
-      "add": "Add notification",
-      "triggerMissed": "Missed run or explicit failure",
-      "triggerRecovered": "Recovered",
-      "empty": "No notifications configured"
+      "title": "通知",
+      "add": "添加通知",
+      "triggerMissed": "错过运行或明确失败",
+      "triggerRecovered": "已恢复",
+      "empty": "未配置任何通知"
     }
   },
   "errors": {
@@ -880,5 +880,44 @@
       "smtpFromRequired": "发件人地址为必填项。",
       "smtpFromInvalid": "邮箱地址格式无效。"
     }
+  },
+  "shell": {
+    "workspace": "Operations",
+    "navigation": "Main navigation",
+    "signature": "Self-hosted monitoring",
+    "skipToContent": "Skip to content",
+    "overview": "System overview",
+    "collapseNavigation": "Collapse navigation",
+    "expandNavigation": "Expand navigation",
+    "monitorsOverview": "Service monitoring",
+    "settingsOverview": "Configuration"
+  },
+  "users": {
+    "title": "Users",
+    "description": "Manage who can access this Pulse instance.",
+    "email": "Email",
+    "temporaryPassword": "Temporary password",
+    "role": "Role",
+    "admin": "Administrator",
+    "readOnly": "Read only",
+    "create": "Create user",
+    "created": "User created. Share the temporary password securely.",
+    "updated": "User updated.",
+    "passwordReset": "Password reset. Share the new temporary password securely.",
+    "failed": "Unable to update users.",
+    "loading": "Loading users…",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "enable": "Enable",
+    "disable": "Disable",
+    "resetPassword": "Reset password",
+    "makeAdmin": "Make administrator",
+    "makeReadOnly": "Make read only",
+    "you": "you",
+    "passwordPending": "Password change required",
+    "passwordHint": "Use a temporary password of 8–72 UTF-8 bytes. Users must replace it before accessing Pulse. Administrators have full access; read-only users can view monitoring and manage their own password and preferences.",
+    "firstLoginTitle": "Choose your password",
+    "firstLoginDescription": "Enter the temporary password provided by your administrator, then choose a different password to continue.",
+    "sessionError": "Unable to verify your session. Retry to continue."
   }
 }

@@ -549,66 +549,66 @@
   },
   "heartbeats": {
     "title": "Heartbeats",
-    "subtitle": "Monitor scheduled jobs by expected check-in",
-    "empty": "No heartbeats yet",
-    "create": "New heartbeat",
-    "edit": "Edit heartbeat",
-    "delete": "Delete heartbeat",
-    "deleteConfirm": "Delete this heartbeat? Its ping URL will stop working.",
-    "loading": "Loading heartbeats…",
-    "loadFailed": "Failed to load heartbeats",
-    "notFoundTitle": "Heartbeat not found",
-    "notFoundDescription": "The heartbeat you are looking for does not exist or was deleted.",
-    "notFoundAction": "Back to heartbeats",
+    "subtitle": "Surveillez les tâches planifiées selon l’enregistrement attendu",
+    "empty": "Aucun heartbeat pour l’instant",
+    "create": "Nouveau heartbeat",
+    "edit": "Modifier le heartbeat",
+    "delete": "Supprimer le heartbeat",
+    "deleteConfirm": "Supprimer ce heartbeat ? Son URL de ping cessera de fonctionner.",
+    "loading": "Chargement des heartbeats…",
+    "loadFailed": "Échec du chargement des heartbeats",
+    "notFoundTitle": "Heartbeat introuvable",
+    "notFoundDescription": "Le heartbeat que vous recherchez n’existe pas ou a été supprimé.",
+    "notFoundAction": "Retour aux heartbeats",
     "state": {
-      "up": "Up",
-      "down": "Missed",
-      "paused": "Paused",
-      "new": "Awaiting first ping"
+      "up": "Actif",
+      "down": "Manqué",
+      "paused": "En pause",
+      "new": "En attente du premier ping"
     },
     "fields": {
-      "name": "Name",
-      "expectedInterval": "Expected interval",
-      "grace": "Grace period",
-      "status": "Status",
-      "lastSuccess": "Last success",
-      "nextDeadline": "Next expected by",
-      "tags": "Tags"
+      "name": "Nom",
+      "expectedInterval": "Intervalle attendu",
+      "grace": "Délai de grâce",
+      "status": "Statut",
+      "lastSuccess": "Dernier succès",
+      "nextDeadline": "Prochain attendu avant",
+      "tags": "Étiquettes"
     },
     "form": {
-      "nameRequired": "Name is required",
-      "intervalInvalid": "Expected interval must be a positive number of seconds",
-      "graceInvalid": "Grace period must be zero or a positive number of seconds",
-      "intervalHelp": "How often this job is expected to check in",
-      "graceHelp": "Extra time allowed before a missed check-in alerts"
+      "nameRequired": "Le nom est obligatoire",
+      "intervalInvalid": "L’intervalle attendu doit être un nombre positif de secondes",
+      "graceInvalid": "Le délai de grâce doit être zéro ou un nombre positif de secondes",
+      "intervalHelp": "À quelle fréquence cette tâche est censée s’enregistrer",
+      "graceHelp": "Temps supplémentaire autorisé avant qu’un enregistrement manqué ne déclenche une alerte"
     },
     "token": {
-      "title": "Ping URL",
-      "showOnce": "Copy this now — it is shown only once",
-      "copy": "Copy ping URL",
-      "copyFail": "Copy failure URL",
-      "copied": "Copied",
-      "rotate": "Rotate token",
-      "rotateConfirm": "Rotate the token? Existing ping URLs will stop working.",
-      "prefix": "Token prefix"
+      "title": "URL de ping",
+      "showOnce": "Copiez-la maintenant — elle n’est affichée qu’une seule fois",
+      "copy": "Copier l’URL de ping",
+      "copyFail": "Copier l’URL d’échec",
+      "copied": "Copié",
+      "rotate": "Faire pivoter le jeton",
+      "rotateConfirm": "Faire pivoter le jeton ? Les URL de ping existantes cesseront de fonctionner.",
+      "prefix": "Préfixe du jeton"
     },
     "ping": {
-      "successUrl": "Success ping URL",
-      "failUrl": "Failure ping URL"
+      "successUrl": "URL de ping de succès",
+      "failUrl": "URL de ping d’échec"
     },
     "examples": {
-      "title": "Usage examples",
+      "title": "Exemples d’utilisation",
       "shell": "Shell",
       "cron": "Cron",
       "ci": "CI",
-      "note": "A success ping proves the command ran, not that its output is valid or restorable."
+      "note": "Un ping de succès prouve que la commande s’est exécutée, pas que sa sortie est valide ou restaurable."
     },
     "bindings": {
       "title": "Notifications",
-      "add": "Add notification",
-      "triggerMissed": "Missed run or explicit failure",
-      "triggerRecovered": "Recovered",
-      "empty": "No notifications configured"
+      "add": "Ajouter une notification",
+      "triggerMissed": "Exécution manquée ou échec explicite",
+      "triggerRecovered": "Rétabli",
+      "empty": "Aucune notification configurée"
     }
   },
   "errors": {
@@ -880,5 +880,44 @@
       "smtpFromRequired": "L'adresse d'expéditeur est requise.",
       "smtpFromInvalid": "Format d'adresse e-mail invalide."
     }
+  },
+  "shell": {
+    "workspace": "Operations",
+    "navigation": "Main navigation",
+    "signature": "Self-hosted monitoring",
+    "skipToContent": "Skip to content",
+    "overview": "System overview",
+    "collapseNavigation": "Collapse navigation",
+    "expandNavigation": "Expand navigation",
+    "monitorsOverview": "Service monitoring",
+    "settingsOverview": "Configuration"
+  },
+  "users": {
+    "title": "Users",
+    "description": "Manage who can access this Pulse instance.",
+    "email": "Email",
+    "temporaryPassword": "Temporary password",
+    "role": "Role",
+    "admin": "Administrator",
+    "readOnly": "Read only",
+    "create": "Create user",
+    "created": "User created. Share the temporary password securely.",
+    "updated": "User updated.",
+    "passwordReset": "Password reset. Share the new temporary password securely.",
+    "failed": "Unable to update users.",
+    "loading": "Loading users…",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "enable": "Enable",
+    "disable": "Disable",
+    "resetPassword": "Reset password",
+    "makeAdmin": "Make administrator",
+    "makeReadOnly": "Make read only",
+    "you": "you",
+    "passwordPending": "Password change required",
+    "passwordHint": "Use a temporary password of 8–72 UTF-8 bytes. Users must replace it before accessing Pulse. Administrators have full access; read-only users can view monitoring and manage their own password and preferences.",
+    "firstLoginTitle": "Choose your password",
+    "firstLoginDescription": "Enter the temporary password provided by your administrator, then choose a different password to continue.",
+    "sessionError": "Unable to verify your session. Retry to continue."
   }
 }

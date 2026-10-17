@@ -6,7 +6,7 @@
   "nav": {
     "dashboard": "대시보드",
     "monitors": "모니터",
-    "heartbeats": "Heartbeats",
+    "heartbeats": "하트비트",
     "notifications": "알림",
     "settings": "설정",
     "logout": "로그아웃",
@@ -548,67 +548,67 @@
     }
   },
   "heartbeats": {
-    "title": "Heartbeats",
-    "subtitle": "Monitor scheduled jobs by expected check-in",
-    "empty": "No heartbeats yet",
-    "create": "New heartbeat",
-    "edit": "Edit heartbeat",
-    "delete": "Delete heartbeat",
-    "deleteConfirm": "Delete this heartbeat? Its ping URL will stop working.",
-    "loading": "Loading heartbeats…",
-    "loadFailed": "Failed to load heartbeats",
-    "notFoundTitle": "Heartbeat not found",
-    "notFoundDescription": "The heartbeat you are looking for does not exist or was deleted.",
-    "notFoundAction": "Back to heartbeats",
+    "title": "하트비트",
+    "subtitle": "예상 체크인을 기준으로 예약된 작업을 모니터링합니다",
+    "empty": "아직 하트비트가 없습니다",
+    "create": "새 하트비트",
+    "edit": "하트비트 편집",
+    "delete": "하트비트 삭제",
+    "deleteConfirm": "이 하트비트를 삭제하시겠습니까? ping URL이 작동을 멈춥니다.",
+    "loading": "하트비트를 불러오는 중…",
+    "loadFailed": "하트비트를 불러오지 못했습니다",
+    "notFoundTitle": "하트비트를 찾을 수 없습니다",
+    "notFoundDescription": "찾고 있는 하트비트가 존재하지 않거나 삭제되었습니다.",
+    "notFoundAction": "하트비트로 돌아가기",
     "state": {
-      "up": "Up",
-      "down": "Missed",
-      "paused": "Paused",
-      "new": "Awaiting first ping"
+      "up": "정상",
+      "down": "누락",
+      "paused": "일시 중지됨",
+      "new": "첫 ping 대기 중"
     },
     "fields": {
-      "name": "Name",
-      "expectedInterval": "Expected interval",
-      "grace": "Grace period",
-      "status": "Status",
-      "lastSuccess": "Last success",
-      "nextDeadline": "Next expected by",
-      "tags": "Tags"
+      "name": "이름",
+      "expectedInterval": "예상 간격",
+      "grace": "유예 기간",
+      "status": "상태",
+      "lastSuccess": "마지막 성공",
+      "nextDeadline": "다음 예상 기한",
+      "tags": "태그"
     },
     "form": {
-      "nameRequired": "Name is required",
-      "intervalInvalid": "Expected interval must be a positive number of seconds",
-      "graceInvalid": "Grace period must be zero or a positive number of seconds",
-      "intervalHelp": "How often this job is expected to check in",
-      "graceHelp": "Extra time allowed before a missed check-in alerts"
+      "nameRequired": "이름은 필수입니다",
+      "intervalInvalid": "예상 간격은 양의 초 단위 숫자여야 합니다",
+      "graceInvalid": "유예 기간은 0 또는 양의 초 단위 숫자여야 합니다",
+      "intervalHelp": "이 작업이 체크인할 것으로 예상되는 빈도",
+      "graceHelp": "체크인 누락 알림 전에 허용되는 추가 시간"
     },
     "token": {
-      "title": "Ping URL",
-      "showOnce": "Copy this now — it is shown only once",
-      "copy": "Copy ping URL",
-      "copyFail": "Copy failure URL",
-      "copied": "Copied",
-      "rotate": "Rotate token",
-      "rotateConfirm": "Rotate the token? Existing ping URLs will stop working.",
-      "prefix": "Token prefix"
+      "title": "ping URL",
+      "showOnce": "지금 복사하세요 — 한 번만 표시됩니다",
+      "copy": "ping URL 복사",
+      "copyFail": "실패 URL 복사",
+      "copied": "복사됨",
+      "rotate": "토큰 교체",
+      "rotateConfirm": "토큰을 교체하시겠습니까? 기존 ping URL이 작동을 멈춥니다.",
+      "prefix": "토큰 접두사"
     },
     "ping": {
-      "successUrl": "Success ping URL",
-      "failUrl": "Failure ping URL"
+      "successUrl": "성공 ping URL",
+      "failUrl": "실패 ping URL"
     },
     "examples": {
-      "title": "Usage examples",
+      "title": "사용 예시",
       "shell": "Shell",
       "cron": "Cron",
       "ci": "CI",
-      "note": "A success ping proves the command ran, not that its output is valid or restorable."
+      "note": "성공 ping은 명령이 실행되었음을 증명할 뿐, 그 출력이 유효하거나 복원 가능함을 보장하지는 않습니다."
     },
     "bindings": {
-      "title": "Notifications",
-      "add": "Add notification",
-      "triggerMissed": "Missed run or explicit failure",
-      "triggerRecovered": "Recovered",
-      "empty": "No notifications configured"
+      "title": "알림",
+      "add": "알림 추가",
+      "triggerMissed": "실행 누락 또는 명시적 실패",
+      "triggerRecovered": "복구됨",
+      "empty": "구성된 알림이 없습니다"
     }
   },
   "errors": {
@@ -880,5 +880,44 @@
       "smtpFromRequired": "발신자 주소는 필수입니다.",
       "smtpFromInvalid": "잘못된 이메일 주소 형식입니다."
     }
+  },
+  "shell": {
+    "workspace": "Operations",
+    "navigation": "Main navigation",
+    "signature": "Self-hosted monitoring",
+    "skipToContent": "Skip to content",
+    "overview": "System overview",
+    "collapseNavigation": "Collapse navigation",
+    "expandNavigation": "Expand navigation",
+    "monitorsOverview": "Service monitoring",
+    "settingsOverview": "Configuration"
+  },
+  "users": {
+    "title": "Users",
+    "description": "Manage who can access this Pulse instance.",
+    "email": "Email",
+    "temporaryPassword": "Temporary password",
+    "role": "Role",
+    "admin": "Administrator",
+    "readOnly": "Read only",
+    "create": "Create user",
+    "created": "User created. Share the temporary password securely.",
+    "updated": "User updated.",
+    "passwordReset": "Password reset. Share the new temporary password securely.",
+    "failed": "Unable to update users.",
+    "loading": "Loading users…",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "enable": "Enable",
+    "disable": "Disable",
+    "resetPassword": "Reset password",
+    "makeAdmin": "Make administrator",
+    "makeReadOnly": "Make read only",
+    "you": "you",
+    "passwordPending": "Password change required",
+    "passwordHint": "Use a temporary password of 8–72 UTF-8 bytes. Users must replace it before accessing Pulse. Administrators have full access; read-only users can view monitoring and manage their own password and preferences.",
+    "firstLoginTitle": "Choose your password",
+    "firstLoginDescription": "Enter the temporary password provided by your administrator, then choose a different password to continue.",
+    "sessionError": "Unable to verify your session. Retry to continue."
   }
 }

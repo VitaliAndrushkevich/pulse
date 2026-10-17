@@ -6,7 +6,7 @@
   "nav": {
     "dashboard": "Панель",
     "monitors": "Мониторы",
-    "heartbeats": "Heartbeats",
+    "heartbeats": "Хартбиты",
     "notifications": "Уведомления",
     "settings": "Настройки",
     "logout": "Выйти",
@@ -548,67 +548,67 @@
     }
   },
   "heartbeats": {
-    "title": "Heartbeats",
-    "subtitle": "Monitor scheduled jobs by expected check-in",
-    "empty": "No heartbeats yet",
-    "create": "New heartbeat",
-    "edit": "Edit heartbeat",
-    "delete": "Delete heartbeat",
-    "deleteConfirm": "Delete this heartbeat? Its ping URL will stop working.",
-    "loading": "Loading heartbeats…",
-    "loadFailed": "Failed to load heartbeats",
-    "notFoundTitle": "Heartbeat not found",
-    "notFoundDescription": "The heartbeat you are looking for does not exist or was deleted.",
-    "notFoundAction": "Back to heartbeats",
+    "title": "Хартбиты",
+    "subtitle": "Отслеживайте запланированные задания по ожидаемой отметке",
+    "empty": "Хартбитов пока нет",
+    "create": "Новый хартбит",
+    "edit": "Редактировать хартбит",
+    "delete": "Удалить хартбит",
+    "deleteConfirm": "Удалить этот хартбит? Его ping URL перестанет работать.",
+    "loading": "Загрузка хартбитов…",
+    "loadFailed": "Не удалось загрузить хартбиты",
+    "notFoundTitle": "Хартбит не найден",
+    "notFoundDescription": "Запрашиваемый хартбит не существует или был удалён.",
+    "notFoundAction": "Назад к хартбитам",
     "state": {
-      "up": "Up",
-      "down": "Missed",
-      "paused": "Paused",
-      "new": "Awaiting first ping"
+      "up": "Активен",
+      "down": "Пропущен",
+      "paused": "Приостановлен",
+      "new": "Ожидание первого пинга"
     },
     "fields": {
-      "name": "Name",
-      "expectedInterval": "Expected interval",
-      "grace": "Grace period",
-      "status": "Status",
-      "lastSuccess": "Last success",
-      "nextDeadline": "Next expected by",
-      "tags": "Tags"
+      "name": "Название",
+      "expectedInterval": "Ожидаемый интервал",
+      "grace": "Льготный период",
+      "status": "Статус",
+      "lastSuccess": "Последний успех",
+      "nextDeadline": "Следующий ожидается до",
+      "tags": "Теги"
     },
     "form": {
-      "nameRequired": "Name is required",
-      "intervalInvalid": "Expected interval must be a positive number of seconds",
-      "graceInvalid": "Grace period must be zero or a positive number of seconds",
-      "intervalHelp": "How often this job is expected to check in",
-      "graceHelp": "Extra time allowed before a missed check-in alerts"
+      "nameRequired": "Название обязательно",
+      "intervalInvalid": "Ожидаемый интервал должен быть положительным числом секунд",
+      "graceInvalid": "Льготный период должен быть нулём или положительным числом секунд",
+      "intervalHelp": "Как часто это задание должно отмечаться",
+      "graceHelp": "Дополнительное время перед оповещением о пропущенной отметке"
     },
     "token": {
       "title": "Ping URL",
-      "showOnce": "Copy this now — it is shown only once",
-      "copy": "Copy ping URL",
-      "copyFail": "Copy failure URL",
-      "copied": "Copied",
-      "rotate": "Rotate token",
-      "rotateConfirm": "Rotate the token? Existing ping URLs will stop working.",
-      "prefix": "Token prefix"
+      "showOnce": "Скопируйте сейчас — он показывается только один раз",
+      "copy": "Скопировать ping URL",
+      "copyFail": "Скопировать URL ошибки",
+      "copied": "Скопировано",
+      "rotate": "Обновить токен",
+      "rotateConfirm": "Обновить токен? Существующие ping URL перестанут работать.",
+      "prefix": "Префикс токена"
     },
     "ping": {
-      "successUrl": "Success ping URL",
-      "failUrl": "Failure ping URL"
+      "successUrl": "Ping URL успеха",
+      "failUrl": "Ping URL ошибки"
     },
     "examples": {
-      "title": "Usage examples",
+      "title": "Примеры использования",
       "shell": "Shell",
       "cron": "Cron",
       "ci": "CI",
-      "note": "A success ping proves the command ran, not that its output is valid or restorable."
+      "note": "Успешный пинг подтверждает, что команда выполнилась, но не то, что её вывод корректен или пригоден для восстановления."
     },
     "bindings": {
-      "title": "Notifications",
-      "add": "Add notification",
-      "triggerMissed": "Missed run or explicit failure",
-      "triggerRecovered": "Recovered",
-      "empty": "No notifications configured"
+      "title": "Уведомления",
+      "add": "Добавить уведомление",
+      "triggerMissed": "Пропущенный запуск или явный сбой",
+      "triggerRecovered": "Восстановлено",
+      "empty": "Уведомления не настроены"
     }
   },
   "errors": {
@@ -880,5 +880,44 @@
       "smtpFromRequired": "Адрес отправителя обязателен.",
       "smtpFromInvalid": "Некорректный формат email-адреса."
     }
+  },
+  "shell": {
+    "workspace": "Operations",
+    "navigation": "Main navigation",
+    "signature": "Self-hosted monitoring",
+    "skipToContent": "Skip to content",
+    "overview": "System overview",
+    "collapseNavigation": "Collapse navigation",
+    "expandNavigation": "Expand navigation",
+    "monitorsOverview": "Service monitoring",
+    "settingsOverview": "Configuration"
+  },
+  "users": {
+    "title": "Users",
+    "description": "Manage who can access this Pulse instance.",
+    "email": "Email",
+    "temporaryPassword": "Temporary password",
+    "role": "Role",
+    "admin": "Administrator",
+    "readOnly": "Read only",
+    "create": "Create user",
+    "created": "User created. Share the temporary password securely.",
+    "updated": "User updated.",
+    "passwordReset": "Password reset. Share the new temporary password securely.",
+    "failed": "Unable to update users.",
+    "loading": "Loading users…",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "enable": "Enable",
+    "disable": "Disable",
+    "resetPassword": "Reset password",
+    "makeAdmin": "Make administrator",
+    "makeReadOnly": "Make read only",
+    "you": "you",
+    "passwordPending": "Password change required",
+    "passwordHint": "Use a temporary password of 8–72 UTF-8 bytes. Users must replace it before accessing Pulse. Administrators have full access; read-only users can view monitoring and manage their own password and preferences.",
+    "firstLoginTitle": "Choose your password",
+    "firstLoginDescription": "Enter the temporary password provided by your administrator, then choose a different password to continue.",
+    "sessionError": "Unable to verify your session. Retry to continue."
   }
 }

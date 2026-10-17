@@ -6,7 +6,7 @@
   "nav": {
     "dashboard": "لوحة التحكم",
     "monitors": "المراقبات",
-    "heartbeats": "Heartbeats",
+    "heartbeats": "نبضات الحياة",
     "notifications": "الإشعارات",
     "settings": "الإعدادات",
     "logout": "تسجيل الخروج",
@@ -548,67 +548,67 @@
     }
   },
   "heartbeats": {
-    "title": "Heartbeats",
-    "subtitle": "Monitor scheduled jobs by expected check-in",
-    "empty": "No heartbeats yet",
-    "create": "New heartbeat",
-    "edit": "Edit heartbeat",
-    "delete": "Delete heartbeat",
-    "deleteConfirm": "Delete this heartbeat? Its ping URL will stop working.",
-    "loading": "Loading heartbeats…",
-    "loadFailed": "Failed to load heartbeats",
-    "notFoundTitle": "Heartbeat not found",
-    "notFoundDescription": "The heartbeat you are looking for does not exist or was deleted.",
-    "notFoundAction": "Back to heartbeats",
+    "title": "نبضات الحياة",
+    "subtitle": "راقب المهام المجدولة من خلال تسجيل الوصول المتوقع",
+    "empty": "لا توجد نبضات حياة بعد",
+    "create": "نبضة حياة جديدة",
+    "edit": "تعديل نبضة الحياة",
+    "delete": "حذف نبضة الحياة",
+    "deleteConfirm": "هل تريد حذف نبضة الحياة هذه؟ سيتوقف عنوان Ping URL الخاص بها عن العمل.",
+    "loading": "جارٍ تحميل نبضات الحياة…",
+    "loadFailed": "فشل تحميل نبضات الحياة",
+    "notFoundTitle": "نبضة الحياة غير موجودة",
+    "notFoundDescription": "نبضة الحياة التي تبحث عنها غير موجودة أو تم حذفها.",
+    "notFoundAction": "العودة إلى نبضات الحياة",
     "state": {
-      "up": "Up",
-      "down": "Missed",
-      "paused": "Paused",
-      "new": "Awaiting first ping"
+      "up": "نشطة",
+      "down": "فائتة",
+      "paused": "متوقفة مؤقتًا",
+      "new": "في انتظار أول نبضة"
     },
     "fields": {
-      "name": "Name",
-      "expectedInterval": "Expected interval",
-      "grace": "Grace period",
-      "status": "Status",
-      "lastSuccess": "Last success",
-      "nextDeadline": "Next expected by",
-      "tags": "Tags"
+      "name": "الاسم",
+      "expectedInterval": "الفاصل الزمني المتوقع",
+      "grace": "فترة السماح",
+      "status": "الحالة",
+      "lastSuccess": "آخر نجاح",
+      "nextDeadline": "موعد الوصول المتوقع التالي",
+      "tags": "الوسوم"
     },
     "form": {
-      "nameRequired": "Name is required",
-      "intervalInvalid": "Expected interval must be a positive number of seconds",
-      "graceInvalid": "Grace period must be zero or a positive number of seconds",
-      "intervalHelp": "How often this job is expected to check in",
-      "graceHelp": "Extra time allowed before a missed check-in alerts"
+      "nameRequired": "الاسم مطلوب",
+      "intervalInvalid": "يجب أن يكون الفاصل الزمني المتوقع عددًا موجبًا من الثواني",
+      "graceInvalid": "يجب أن تكون فترة السماح صفرًا أو عددًا موجبًا من الثواني",
+      "intervalHelp": "عدد مرات تسجيل وصول هذه المهمة المتوقع",
+      "graceHelp": "وقت إضافي مسموح به قبل تنبيه فوات تسجيل الوصول"
     },
     "token": {
-      "title": "Ping URL",
-      "showOnce": "Copy this now — it is shown only once",
-      "copy": "Copy ping URL",
-      "copyFail": "Copy failure URL",
-      "copied": "Copied",
-      "rotate": "Rotate token",
-      "rotateConfirm": "Rotate the token? Existing ping URLs will stop working.",
-      "prefix": "Token prefix"
+      "title": "عنوان Ping URL",
+      "showOnce": "انسخه الآن — يُعرض مرة واحدة فقط",
+      "copy": "نسخ عنوان Ping URL",
+      "copyFail": "نسخ عنوان الفشل",
+      "copied": "تم النسخ",
+      "rotate": "تدوير الرمز",
+      "rotateConfirm": "هل تريد تدوير الرمز؟ ستتوقف عناوين Ping URL الحالية عن العمل.",
+      "prefix": "بادئة الرمز"
     },
     "ping": {
-      "successUrl": "Success ping URL",
-      "failUrl": "Failure ping URL"
+      "successUrl": "عنوان Ping URL للنجاح",
+      "failUrl": "عنوان Ping URL للفشل"
     },
     "examples": {
-      "title": "Usage examples",
+      "title": "أمثلة الاستخدام",
       "shell": "Shell",
       "cron": "Cron",
       "ci": "CI",
-      "note": "A success ping proves the command ran, not that its output is valid or restorable."
+      "note": "تثبت نبضة النجاح أن الأمر قد تم تشغيله، وليس أن مخرجاته صالحة أو قابلة للاستعادة."
     },
     "bindings": {
-      "title": "Notifications",
-      "add": "Add notification",
-      "triggerMissed": "Missed run or explicit failure",
-      "triggerRecovered": "Recovered",
-      "empty": "No notifications configured"
+      "title": "الإشعارات",
+      "add": "إضافة إشعار",
+      "triggerMissed": "تشغيل فائت أو فشل صريح",
+      "triggerRecovered": "تم التعافي",
+      "empty": "لم يتم تكوين أي إشعارات"
     }
   },
   "errors": {
@@ -880,5 +880,44 @@
       "statusFailure": "فشل",
       "total": "{count} تسليمات إجمالاً"
     }
+  },
+  "shell": {
+    "workspace": "Operations",
+    "navigation": "Main navigation",
+    "signature": "Self-hosted monitoring",
+    "skipToContent": "Skip to content",
+    "overview": "System overview",
+    "collapseNavigation": "Collapse navigation",
+    "expandNavigation": "Expand navigation",
+    "monitorsOverview": "Service monitoring",
+    "settingsOverview": "Configuration"
+  },
+  "users": {
+    "title": "Users",
+    "description": "Manage who can access this Pulse instance.",
+    "email": "Email",
+    "temporaryPassword": "Temporary password",
+    "role": "Role",
+    "admin": "Administrator",
+    "readOnly": "Read only",
+    "create": "Create user",
+    "created": "User created. Share the temporary password securely.",
+    "updated": "User updated.",
+    "passwordReset": "Password reset. Share the new temporary password securely.",
+    "failed": "Unable to update users.",
+    "loading": "Loading users…",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "enable": "Enable",
+    "disable": "Disable",
+    "resetPassword": "Reset password",
+    "makeAdmin": "Make administrator",
+    "makeReadOnly": "Make read only",
+    "you": "you",
+    "passwordPending": "Password change required",
+    "passwordHint": "Use a temporary password of 8–72 UTF-8 bytes. Users must replace it before accessing Pulse. Administrators have full access; read-only users can view monitoring and manage their own password and preferences.",
+    "firstLoginTitle": "Choose your password",
+    "firstLoginDescription": "Enter the temporary password provided by your administrator, then choose a different password to continue.",
+    "sessionError": "Unable to verify your session. Retry to continue."
   }
 }
