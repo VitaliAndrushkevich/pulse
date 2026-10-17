@@ -40,14 +40,11 @@ func (r *Registry) ProtoJSONToBytes(msgDesc protoreflect.MessageDescriptor, json
 // BytesToProtoJSON converts binary protobuf to Proto JSON given a message descriptor.
 // It creates a dynamic message from the descriptor, unmarshals the binary data into it,
 // then marshals to Proto JSON format.
+// Empty data is valid protobuf for a message with no populated fields.
 func (r *Registry) BytesToProtoJSON(msgDesc protoreflect.MessageDescriptor, data []byte) ([]byte, error) {
 	if msgDesc == nil {
 		return nil, fmt.Errorf("message descriptor is nil")
 	}
-	if len(data) == 0 {
-		return nil, fmt.Errorf("empty binary data")
-	}
-
 	msg := dynamicpb.NewMessage(msgDesc)
 
 	if err := proto.Unmarshal(data, msg); err != nil {
