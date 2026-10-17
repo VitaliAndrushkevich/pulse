@@ -17,9 +17,10 @@ Core outcomes:
 - REST and OpenAPI contract must be implemented before UI integration.
 
 ## API Conventions
-- Prefix all endpoints with `/api/v1`.
+- Prefix all endpoints with `/api/v1`. Root-level exceptions: `GET /healthz`, `GET /metrics`, `GET /ws`, dev-only `/swagger`, and the heartbeat ping ingestion routes `GET|POST /ping/{token}` and `GET|POST /ping/{token}/fail`.
 - Use stable UUID identifiers for resources.
-- `PUT /monitors/{id}` must be idempotent create-or-update.
+- `PUT /monitors/{id}` and `PUT /heartbeats/{id}` must be idempotent create-or-update. PUT on a heartbeat never rotates its ping token.
+- Heartbeat ping routes are authorized solely by possession of the unguessable token in the URL path (no JWT/API token/session; `security: []` in the spec). Unknown/malformed/rotated tokens return a minimal `404` after a constant-time compare.
 - List endpoints must be paginated (`page`, `limit`).
 - Error response envelope:
   - `{ "error": { "code": "SOME_CODE", "message": "Readable message" } }`
@@ -30,8 +31,8 @@ Core outcomes:
 - Endpoint: `/ws?token=<jwt_or_api_token>` (root-level, not under `/api/v1`).
 - Auth via query parameter (browsers cannot send Authorization headers on WS).
 - Message envelope: `{ "type": "<message_type>", "payload": { ... } }`.
-- Message types: `connected` (sent once after upgrade), `monitor_status` (diff/patch after each check).
-- `monitor_status` payloads are patches — clients must merge into local state, not replace entire objects.
+- Message types: `connected` (sent once after upgrade), `monitor_status` (diff/patch after each check), `heartbeat_status` (diff/patch when a heartbeat's state changes on ping/fail/missed-run).
+- `monitor_status` and `heartbeat_status` payloads are patches — clients must merge into local state, not replace entire objects.
 - Origin validation: in production, the `Origin` header must match `PULSE_BASE_URL` (scheme+host). In dev mode (`PULSE_DEV=true`) or when `PULSE_BASE_URL` is empty, all origins are allowed.
 - Hub drops slow consumers (buffer full) rather than blocking broadcasts.
 
@@ -39,6 +40,7 @@ Core outcomes:
 - Never return raw secret values from APIs.
 - Encrypt secret values at rest using AES-256-GCM.
 - Store API tokens as `bcrypt` hashes; raw token shown only at creation.
+- Heartbeat ping tokens are stored as SHA-256 hashes plus an 8-char lookup prefix; the raw ping token is returned only on heartbeat create and rotate-token. GET/LIST never expose the raw token or hash. Verification is a constant-time compare; only the prefix is ever logged.
 - Sanitize logs: strip auth headers and known secret fields.
 - Combined auth: endpoints accept both JWT (session) and Bearer API token (programmatic).
 - WS auth uses constant-time comparison with dummy bcrypt hash on failure (timing-safe).
@@ -88,6 +90,7 @@ The project is at MVP completion. Full milestone breakdown: [docs/MILESTONES.md]
 | H: Packaging & Release | ✅ Done |
 | I: Branding & Theming | ✅ Done |
 | J: Notifications | ✅ Done |
+| K: Heartbeat (push) Monitoring (PF-01 first useful version) | ✅ Done |
 
 ### Completed (A–H):
 - PostgreSQL schema + indexes, sqlc query layer, TimescaleDB history store
@@ -108,6 +111,7 @@ The project is at MVP completion. Full milestone breakdown: [docs/MILESTONES.md]
 - Authenticated `/ws` endpoint with query-param token validation (JWT + API token)
 - Scheduler → Hub broadcast (check results sent to hub after execution)
 - Notification subsystem: dispatcher with bounded worker pool, email (SMTP) and webhook channels, trigger-based fan-out, exponential backoff retry, delivery logging, reminder scheduler
+- Heartbeat (push) monitoring (PF-01 first useful version): `heartbeats` / `heartbeat_tags` / `heartbeat_bindings` tables (migration 017), admin CRUD + idempotent PUT + rotate-token, root-level token-scoped ping ingestion (`/ping/{token}`[/fail]) with SHA-256-hashed tokens, bounded missed-run sweep evaluator (`PULSE_HEARTBEAT_WORKERS`, default 50), once-per-episode down transition, missed-run/recovery notifications through the existing dispatcher, `heartbeat_status` WS broadcast, metrics `pulse_heartbeat_up` / `pulse_heartbeats_total`, binding triggers `heartbeat_missed` / `heartbeat_recovered`, and a localized frontend UI (list/detail/create/edit + nav). Deferred non-goals: run-lifecycle events, timezone-aware cron, concurrency/late-arrival semantics, a dedicated MCP heartbeat tool, restore-validity verification, external receiver, per-ping history
 - Full SvelteKit 5 frontend with TypeScript strict mode and Tailwind CSS 3.4
 - API client with Bearer auth, 15s timeout, error envelope parsing, X-Request-ID
 - WebSocket client with exponential backoff reconnection (1s–30s, ±25% jitter)
@@ -172,6 +176,18 @@ The project is at MVP completion. Full milestone breakdown: [docs/MILESTONES.md]
 | WS handler | `backend/internal/api/handlers/ws.go` |
 | Scheduler | `backend/internal/monitor/scheduler.go` |
 | Target normalization | `backend/internal/target/normalize.go` |
+| Heartbeat evaluator (missed-run sweep) | `backend/internal/heartbeat/evaluator.go` |
+| Heartbeat notification dispatch | `backend/internal/heartbeat/dispatch.go` |
+| Heartbeat metrics | `backend/internal/heartbeat/metrics.go` |
+| Heartbeat deadline recompute helper | `backend/internal/heartbeat/deadline.go` |
+| Heartbeat admin CRUD handler | `backend/internal/api/handlers/heartbeats.go` |
+| Heartbeat ping ingestion handler | `backend/internal/api/handlers/ping.go` |
+| Heartbeat notification-binding handler | `backend/internal/api/handlers/notification_bindings_heartbeat.go` |
+| Heartbeat migration | `backend/migrations/017_heartbeats.{up,down}.sql` |
+| Heartbeat sqlc queries | `backend/internal/store/postgres/queries/{heartbeats,heartbeat_tags,heartbeat_bindings}.sql` |
+| Heartbeat store (frontend, patch-merge) | `frontend/src/lib/stores/heartbeats.svelte.ts` |
+| Heartbeat components | `frontend/src/components/{HeartbeatRow,HeartbeatForm,HeartbeatBindings,PingExamples}.svelte` |
+| Heartbeat routes | `frontend/src/routes/heartbeats/` |
 | Checkers | `backend/internal/monitor/{http,http3,tcp,udp,websocket,grpc,dns,icmp,smtp,quic}.go` |
 | Notification dispatcher | `backend/internal/notification/dispatcher.go` |
 | Notification types & metrics | `backend/internal/notification/types.go` |
@@ -233,6 +249,7 @@ Primary commands:
 | `PULSE_JWT_SECRET` | HMAC secret for JWT token signing | *(required)* |
 | `DATABASE_URL` | PostgreSQL connection string | *(required)* |
 | `PULSE_SCHEDULER_WORKERS` | Bounded worker pool size for monitor checks | `50` |
+| `PULSE_HEARTBEAT_WORKERS` | Bounded worker pool size for the heartbeat missed-run sweep evaluator | `50` |
 | `PULSE_BASE_URL` | Public URL for email links, webhooks, and WebSocket origin validation | *(empty)* |
 | `PULSE_METRICS_USER` | Basic auth username for `/metrics` endpoint | *(empty — no auth)* |
 | `PULSE_METRICS_PASSWORD` | Basic auth password for `/metrics` endpoint | *(empty — no auth)* |
@@ -242,7 +259,8 @@ Primary commands:
 
 ## Delivery Constraints
 - Supported protocols: HTTP/HTTPS, HTTP/3, TCP, UDP, WebSocket, gRPC, DNS, ICMP, SMTP, QUIC.
-- Future scope only (do not implement unless requested): multi-tenant, status page, alert channels, Terraform provider.
+- Heartbeat (push) monitoring (PF-01 first useful version) is implemented as a resource parallel to monitors: admin CRUD under `/api/v1/heartbeats`, root-level token-scoped ping ingestion (`/ping/{token}`, `/ping/{token}/fail`), a bounded missed-run sweep evaluator, missed-run/recovery notifications through the existing dispatcher, WebSocket `heartbeat_status`, Prometheus metrics, and a full frontend UI (list/detail/create/edit + nav entry). See the "Heartbeats" section for the subsystem detail. A dedicated heartbeat MCP tool is deferred (non-goal) — no existing MCP tool consumes heartbeat endpoints, so none require co-change.
+- Future scope only (do not implement unless requested): multi-tenant, status page, Terraform provider. Heartbeat follow-ups deferred as non-goals: run-lifecycle events (run ids / duration), timezone-aware cron schedules, concurrent-run / duplicate / late-arrival / clock-boundary semantics, restore-validity verification, an independently hosted external receiver, and per-ping history/charts.
 - Keep infra local-first with Docker Compose and reproducible startup.
 
 ## MCP Server
@@ -343,6 +361,69 @@ Available in webhook body templates via Go `text/template` syntax:
 - `pulse_notification_dropped_total{channel_type}` — notifications dropped (buffer full or shutting down)
 - `pulse_notification_in_flight` — deliveries currently in progress
 - `pulse_notification_retry_queue_size` — notifications waiting in retry queue
+
+## Heartbeats
+
+Heartbeat (push) monitoring is the inverse of the probe scheduler: instead of Pulse calling out to a target, the scheduled job calls *in* to Pulse at the end of a successful run (a "dead man's switch"). Pulse records the arrival, persists when the next ping is expected, and raises an alert when that deadline passes with no ping. This closes the blind spot where a host stays online while a cron job (backup, invoice run, cert renewal, nightly import) silently stops firing. It is a sibling resource to monitors, not a monitor type.
+
+Scope: this is the PF-01 first useful version — a heartbeat resource with an expected interval, grace period, last success, and a scoped ingestion token, plus success/explicit-failure pings, missed-run detection, and notifications. Run-lifecycle events (run ids / per-run duration), timezone-aware cron schedules, concurrent-run / duplicate / late-arrival / clock-boundary semantics, a dedicated MCP heartbeat tool, restore-validity verification, an independently hosted external receiver, and per-ping history/charts are explicit non-goals and are not shipped.
+
+### Resource and Status Model
+
+A heartbeat carries two separate fields, mirroring the monitors convention:
+- **Lifecycle `status`** (`active` | `paused`) — the configuration intent. A `paused` heartbeat is skipped entirely by the missed-run evaluator.
+- **Observed `state`** (`up` | `down` | `paused` | `new`) — what the UI shows. `new` = created but never pinged (no deadline exists yet, so it can never be marked down); `up` = last ping was a success and the deadline has not passed; `down` = the deadline passed with no ping, or an explicit-failure ping arrived; `paused` = surfaced when lifecycle `status = paused`.
+
+Other fields: stable UUID `id`, `name`, `expected_interval_seconds`, `grace_seconds`, `last_success_at` (nullable), `next_expected_deadline` (nullable, persisted = `last_success_at + interval + grace`), `tags`, timestamps, and write-only ping-token material (`token_prefix` for display, `token_hash` for verification).
+
+### Ingestion vs. Administration Separation
+
+Administration (create/list/read/update/delete, rotate-token, bindings) lives under the authenticated `/api/v1/heartbeats` group and requires combined JWT or Bearer API-token auth, exactly like monitors. Ingestion lives at the **root-level** `/ping/{token}` and `/ping/{token}/fail` routes (registered directly on the engine like `/ws`, not under `/api/v1`, and `/ping` is added to the `apiPrefixes` SPA guard). Ping routes carry **no** JWT, API token, or session — authorization is possession of the unguessable token in the URL path, which authorizes reporting for exactly one heartbeat and confers no administrative capability. This hard separation means a ping URL distributed to a cron host can never be used for admin access or secret disclosure.
+
+### Ping Semantics and Deadline Recompute
+
+- **Success ping** (`GET|POST /ping/{token}`): sets `last_success_at = now`, recomputes and persists `next_expected_deadline = now + interval + grace`, transitions `state` to `up`, and fires the recovery notification path if the prior state was `down`. Returns a minimal `200 OK`.
+- **Explicit-failure ping** (`GET|POST /ping/{token}/fail`): transitions `state` to `down` and fires the missed/failure path; it does **not** advance `last_success_at`. Returns a minimal `200 OK`.
+- Both `GET` and `POST` are accepted (cron wrappers and CI runners vary; any body is ignored). A paused heartbeat still records a success ping's `last_success_at` but is not evaluated for missed runs.
+- Unknown/malformed/rotated tokens get a constant-time dummy compare and a minimal `404`, revealing nothing about whether the prefix matched. Only `token_prefix` is logged, never the raw token.
+- Notification dispatch and WS broadcast are fired non-blocking after the write, so ingestion latency never depends on delivery or fan-out.
+
+### Periodic-Sweep Evaluator
+
+Missed-run detection reuses the scheduler's bounded-worker-pool pattern (`backend/internal/heartbeat/evaluator.go`, modeled on `monitor/scheduler.go`): a `time.Ticker` loop (default 1s tick) queries a bounded batch (default 500) of due heartbeats via `ListDueHeartbeats`, backed by a **partial index** on `next_expected_deadline WHERE status='active' AND state='up'` so paused, `new`, and already-`down` rows are excluded cheaply at scale. Jobs are dispatched to a fixed worker pool sized by `PULSE_HEARTBEAT_WORKERS` (default 50) — no unbounded goroutines. `markDown` calls `MarkHeartbeatDown` (`WHERE id=$1 AND state='up'`), and only on an actual row update does it set the `pulse_heartbeat_up` gauge to 0, broadcast `heartbeat_status`, and dispatch the missed-run notification — so a heartbeat is marked down **once per episode**, never re-firing on every tick while it stays down. Shutdown is `context`-cancellation: the loop stops, closes the jobs channel, and drains in-flight work without leaking goroutines.
+
+### Ping-Token Storage (justified bcrypt deviation)
+
+API tokens and passwords use bcrypt (see Security Requirements). Heartbeat ping tokens deliberately use **SHA-256** (hex) plus an 8-char lookup prefix instead. The deviation is scoped and justified: a ping token is a high-entropy 256-bit random value (not a low-entropy human secret), so bcrypt's work factor adds no meaningful brute-force resistance, while ping ingestion is a hot path that must stay fast under bursts at 500+ heartbeats — a per-request bcrypt compare would be a needless cost. The raw token is generated via `token.GenerateRaw()` (`crypto/rand` → base64url) and returned exactly once on create and rotate-token; `GET`/`LIST` expose only `token_prefix`. Verification is a constant-time hex compare with a dummy-compare on miss (timing-safe). This deviation applies to ping tokens only; bcrypt remains the rule for API tokens and passwords.
+
+### Notification Integration
+
+Heartbeats reuse the entire notification subsystem rather than running a parallel alerting path. A dedicated `heartbeat_bindings` table (same shape as monitor bindings) connects a channel to a heartbeat with heartbeat-specific triggers, validated by `ValidateHeartbeatTriggers` (allowed set `{heartbeat_missed, heartbeat_recovered}`; monitor triggers such as `degraded`/`ssl_expiring`/`n_failures_in_row` are rejected with `400 VALIDATION_ERROR`). At dispatch, `translateHeartbeatTriggers` maps `heartbeat_missed → monitor_down` and `heartbeat_recovered → monitor_up`, so the existing `StateTracker` (keyed by the heartbeat UUID), fan-out, exponential-backoff retry queue (30s → 60s → 120s, max 4), and `delivery_logs` all work unchanged. The dispatch helper (`backend/internal/heartbeat/dispatch.go`) builds `[]notification.BindingWithChannel` with `MonitorID = heartbeatID` (satisfying `delivery_logs.monitor_id NOT NULL`) and a pre-filled payload builder, then calls `EvaluateAndDispatchWithPayload`. Down alerts fire once per missed-run episode; recovery fires once per `down → up` transition; dedup flags clear on recovery. Deleting a heartbeat cascades its bindings and clears its `StateTracker` state.
+
+### API Endpoints
+| Method | Path | Description |
+|--------|------|-------------|
+| `POST` | `/api/v1/heartbeats` | Create heartbeat (returns raw ping token + ping URLs **once**) |
+| `GET` | `/api/v1/heartbeats` | List heartbeats (paginated; never returns raw token/hash) |
+| `GET` | `/api/v1/heartbeats/{id}` | Get heartbeat details (`token_prefix` only) |
+| `PUT` | `/api/v1/heartbeats/{id}` | Idempotent create-or-update (never rotates the token) |
+| `DELETE` | `/api/v1/heartbeats/{id}` | Delete heartbeat, cascade bindings, clear state |
+| `POST` | `/api/v1/heartbeats/{id}/rotate-token` | Rotate ping token (returns new raw token **once**) |
+| `POST` | `/api/v1/heartbeats/{id}/notification-bindings` | Create binding (channel → heartbeat + heartbeat triggers) |
+| `GET` | `/api/v1/heartbeats/{id}/notification-bindings` | List bindings for heartbeat (paginated) |
+| `PUT` | `/api/v1/heartbeats/{id}/notification-bindings/{bindingId}` | Update binding triggers |
+| `DELETE` | `/api/v1/heartbeats/{id}/notification-bindings/{bindingId}` | Delete binding |
+| `GET`/`POST` | `/ping/{token}` | Success ping (root-level, token-in-path, no admin auth) |
+| `GET`/`POST` | `/ping/{token}/fail` | Explicit-failure ping (root-level, token-in-path, no admin auth) |
+
+### Environment Variables
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `PULSE_HEARTBEAT_WORKERS` | Bounded worker-pool size for the missed-run sweep evaluator | `50` |
+
+### Prometheus Metrics
+- `pulse_heartbeat_up{heartbeat_id, heartbeat_name}` — per-heartbeat up (1) / down (0) gauge (no token material in labels)
+- `pulse_heartbeats_total` — total number of heartbeats
 
 ## Localization (i18n)
 
