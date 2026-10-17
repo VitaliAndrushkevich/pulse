@@ -70,6 +70,67 @@ Messages follow the envelope format:
 { "type": "monitor_status", "payload": { "id": "uuid", "status": "up", "latency_ms": 42 } }
 ```
 
+## Heartbeats (push monitoring)
+
+Heartbeat monitors are the inverse of active checks: instead of Pulse probing a target,
+an external job (cron, backup script, scheduled task) pings Pulse on every successful run.
+If a ping does not arrive within `expected_interval_seconds + grace_seconds`, the heartbeat
+transitions to `down`.
+
+Create a heartbeat and capture the ping URL (the raw ping token is returned **only once**,
+on create and on rotate-token):
+
+```bash
+curl -X POST http://localhost:8080/api/v1/heartbeats \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Nightly Backup",
+    "expected_interval_seconds": 86400,
+    "grace_seconds": 3600
+  }'
+```
+
+Response (`201`) includes `ping_token`, `ping_url`, and `ping_fail_url`. `ping_url` /
+`ping_fail_url` are omitted when `PULSE_BASE_URL` is not set — construct them manually as
+`<base>/ping/<ping_token>` and `<base>/ping/<ping_token>/fail`.
+
+Report a successful run from your job (no auth — possession of the token in the URL is the
+authorization; GET and POST both work, request bodies are ignored):
+
+```bash
+curl http://localhost:8080/ping/<ping_token>
+```
+
+Report an explicit failure (transitions the heartbeat to `down` without advancing the last
+success time):
+
+```bash
+curl http://localhost:8080/ping/<ping_token>/fail
+```
+
+An unknown, malformed, or rotated token returns a minimal `404`.
+
+> **Note:** Heartbeat notification bindings (`heartbeat_missed`, `heartbeat_recovered`
+> triggers) can be created and stored, but end-to-end alert **delivery** for heartbeats is
+> not yet wired. State changes are persisted, broadcast over WebSocket, and reflected in
+> Prometheus metrics; alerts do not fire on missed runs yet.
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/v1/heartbeats` | List heartbeats (paginated; no raw token) |
+| `POST` | `/api/v1/heartbeats` | Create heartbeat (returns ping token once) |
+| `GET` | `/api/v1/heartbeats/{id}` | Get heartbeat details (no raw token) |
+| `PUT` | `/api/v1/heartbeats/{id}` | Create or update heartbeat (idempotent; never rotates token) |
+| `DELETE` | `/api/v1/heartbeats/{id}` | Delete heartbeat (cascades tags and bindings) |
+| `POST` | `/api/v1/heartbeats/{id}/rotate-token` | Issue a new ping token (invalidates old URLs) |
+| `GET` | `/api/v1/heartbeats/{id}/notification-bindings` | List bindings for heartbeat |
+| `POST` | `/api/v1/heartbeats/{id}/notification-bindings` | Create binding (`heartbeat_missed`/`heartbeat_recovered`) |
+| `PUT` | `/api/v1/heartbeats/{id}/notification-bindings/{bindingId}` | Update binding |
+| `DELETE` | `/api/v1/heartbeats/{id}/notification-bindings/{bindingId}` | Delete binding |
+| `GET`/`POST` | `/ping/{token}` | Report a successful run (root-level, no auth) |
+| `GET`/`POST` | `/ping/{token}/fail` | Report an explicit failure (root-level, no auth) |
+
 ## Endpoints
 
 | Method | Path | Description |
