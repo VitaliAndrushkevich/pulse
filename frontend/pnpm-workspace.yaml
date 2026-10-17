@@ -1,3 +1,11 @@
 allowBuilds:
   esbuild: true
   sharp: true
+
+# Security fixes for transitive dependencies pinned to vulnerable releases.
+overrides:
+  cookie@<0.7.0: ^0.7.2
+  devalue@<5.9.3: ^5.9.4
+  undici@>=7.0.0 <7.29.1: ^7.29.1
+  source-map-js@<1.2.2: ^1.2.2
+  postcss-selector-parser@<7.1.6: ^7.1.6

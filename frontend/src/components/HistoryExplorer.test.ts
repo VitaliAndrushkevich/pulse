@@ -21,28 +21,32 @@ vi.mock('$lib/api', () => ({
 
 // Mock uPlot (used by HistoryChartExplorer child component)
 vi.mock('uplot', () => ({
-  default: vi.fn().mockImplementation(() => ({
-    destroy: vi.fn(),
-    setSize: vi.fn(),
-    setScale: vi.fn(),
-    setSelect: vi.fn(),
-    cursor: { idx: null, left: 0, top: 0 },
-    bbox: { left: 0, top: 0, width: 600, height: 250 },
-    data: [],
-    select: { left: 0, width: 0, top: 0, height: 0 },
-    valToPos: vi.fn(() => 0),
-    posToVal: vi.fn(() => 0),
-    ctx: { save: vi.fn(), restore: vi.fn(), fillRect: vi.fn(), fillStyle: '' },
-  })),
+  default: vi.fn().mockImplementation(function () {
+    return {
+      destroy: vi.fn(),
+      setSize: vi.fn(),
+      setScale: vi.fn(),
+      setSelect: vi.fn(),
+      cursor: { idx: null, left: 0, top: 0 },
+      bbox: { left: 0, top: 0, width: 600, height: 250 },
+      data: [],
+      select: { left: 0, width: 0, top: 0, height: 0 },
+      valToPos: vi.fn(() => 0),
+      posToVal: vi.fn(() => 0),
+      ctx: { save: vi.fn(), restore: vi.fn(), fillRect: vi.fn(), fillStyle: '' },
+    };
+  }),
 }));
 vi.mock('uplot/dist/uPlot.min.css', () => ({}));
 
 // Mock ResizeObserver (not available in jsdom)
-const mockResizeObserver = vi.fn().mockImplementation(() => ({
-  observe: vi.fn(),
-  unobserve: vi.fn(),
-  disconnect: vi.fn(),
-}));
+const mockResizeObserver = vi.fn().mockImplementation(function () {
+  return {
+    observe: vi.fn(),
+    unobserve: vi.fn(),
+    disconnect: vi.fn(),
+  };
+});
 vi.stubGlobal('ResizeObserver', mockResizeObserver);
 
 import { getMonitorHistoryExtended } from '$lib/api';
