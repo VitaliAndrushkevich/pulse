@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Get started with Pulse — Docker Compose installation</title>
+  <meta name="description" content="Install Pulse with Docker Compose: configure secrets, start the application and TimescaleDB, then create your first uptime monitor or cron job heartbeat.">
+  <meta name="author" content="Vitali Andrushkevich">
+  <meta name="robots" content="index, follow, max-image-preview:large">
+  <link rel="canonical" href="https://uptime-pulse.com/get-started/">
+  <meta name="google-site-verification" content="rTt7ZFyr3LNO5-36J4Xt5T6VjvVAsXLbw9vFDFuJpvs" />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://uptime-pulse.com/get-started/">
+  <meta property="og:title" content="Get started with Pulse — Docker Compose installation">
+  <meta property="og:description" content="Install Pulse with Docker Compose: configure secrets, start the application and TimescaleDB, then create your first uptime monitor or cron job heartbeat.">
+  <meta property="og:site_name" content="Pulse">
+  <meta property="og:image" content="https://uptime-pulse.com/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+
+  <meta property="og:locale" content="en_US">
+  <meta property="og:image:alt" content="Pulse self-hosted uptime monitoring">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Get started with Pulse — Docker Compose installation">
+  <meta name="twitter:description" content="Install Pulse with Docker Compose: configure secrets, start the application and TimescaleDB, then create your first uptime monitor or cron job heartbeat.">
+  <meta name="twitter:image" content="https://uptime-pulse.com/og.png">
+  <meta name="twitter:image:alt" content="Pulse self-hosted uptime monitoring">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <style>
+    :root, [data-theme="light"] {
+      color-scheme: light;
+      --color-brand-primary: #0369a1;
+      --color-action-bg: #0369a1;
+      --color-action-hover: #075985;
+      --color-brand-hover: #0284c7;
+      --color-bg-page: #f8fafc;
+      --color-bg-surface: #ffffff;
+      --color-bg-surface-hover: #f1f5f9;
+      --color-text-primary: #0f172a;
+      --color-text-secondary: #475569;
+      --color-text-muted: #475569;
+      --color-border: #e2e8f0;
+      --color-success: #10b981;
+      --color-warning: #f59e0b;
+      --color-error: #ef4444;
+      --color-visual-bg: #0f172a;
+      --color-visual-border: rgba(255,255,255,0.06);
+      --color-visual-row: rgba(255,255,255,0.03);
+      --color-visual-row-hover: rgba(255,255,255,0.06);
+      --color-visual-text: #e2e8f0;
+      --color-visual-muted: #94a3b8;
+    }
+
+    [data-theme="dark"] {
+      color-scheme: dark;
+      --color-brand-primary: #7dd3fc;
+      --color-action-bg: #0369a1;
+      --color-action-hover: #075985;
+      --color-brand-hover: #06b6d4;
+      --color-bg-page: #0f172a;
+      --color-bg-surface: #1e293b;
+      --color-bg-surface-hover: #334155;
+      --color-text-primary: #f1f5f9;
+      --color-text-secondary: #94a3b8;
+      --color-text-muted: #94a3b8;
+      --color-border: #334155;
+      --color-success: #34d399;
+      --color-warning: #fbbf24;
+      --color-error: #f87171;
+      --color-visual-bg: #1e293b;
+      --color-visual-border: rgba(255,255,255,0.08);
+      --color-visual-row: rgba(255,255,255,0.04);
+      --color-visual-row-hover: rgba(255,255,255,0.08);
+      --color-visual-text: #f1f5f9;
+      --color-visual-muted: #64748b;
+    }
+
+    [data-theme="light"] .visual {
+      background: var(--color-bg-surface);
+      border: 1px solid var(--color-border);
+      box-shadow: 0 20px 50px rgba(0,0,0,0.08);
+    }
+
+    [data-theme="light"] .visual-toolbar {
+      background: var(--color-bg-surface-hover);
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    [data-theme="light"] .visual-toolbar-title { color: var(--color-text-secondary); }
+    [data-theme="light"] .visual-badge { background: rgba(16,185,129,0.1); }
+
+    [data-theme="light"] .stat-card {
+      background: var(--color-bg-page);
+      border-color: var(--color-border);
+    }
+
+    [data-theme="light"] .stat-label { color: var(--color-text-muted); }
+    [data-theme="light"] .stat-value { color: var(--color-text-primary); }
+    [data-theme="light"] .stat-value.success { color: var(--color-success); }
+
+    [data-theme="light"] .service-row {
+      background: var(--color-bg-page);
+      border-color: var(--color-border);
+    }
+
+    [data-theme="light"] .service-row:hover { background: var(--color-bg-surface-hover); }
+    [data-theme="light"] .service-name { color: var(--color-text-primary); }
+    [data-theme="light"] .service-latency { color: var(--color-text-muted); }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      color: var(--color-text-primary);
+      background: var(--color-bg-page);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    h1, h2, h3, .logo-text { font-family: system-ui, -apple-system, sans-serif; }
+    a:focus-visible, button:focus-visible, summary:focus-visible {
+      outline: 3px solid var(--color-brand-primary);
+      outline-offset: 4px;
+    }
+    .skip-link { position: absolute; inset-inline-start: 16px; top: -80px; z-index: 100; }
+    .skip-link:focus { top: 16px; }
+    .hero > *, .feature-card { min-width: 0; }
+    .hero-cta-group { flex-wrap: wrap; }
+    .features a { color: var(--color-brand-primary); text-underline-offset: 3px; }
+    section { scroll-margin-top: 88px; }
+    .release-note { border-inline-start: 3px solid var(--color-brand-primary); padding-inline-start: 20px; }
+    .release-note p + p { margin-top: 12px; }
+    .faq-item { padding: 20px 0; border-bottom: 1px solid var(--color-border); }
+    .faq-item summary { cursor: pointer; font-weight: 600; }
+    .faq-item p { margin-top: 12px; color: var(--color-text-secondary); max-width: 75ch; }
+    .steps { padding-inline-start: 24px; color: var(--color-text-secondary); }
+    .steps li + li { margin-top: 12px; }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+    }
+    @media (max-width: 420px) {
+      .header { padding: 12px 16px; }
+      .nav { gap: 8px; }
+      .visual-body { padding: 10px; }
+      .service-row { padding: 10px 6px; flex-wrap: wrap; gap: 6px; }
+      .service-info, .service-meta { gap: 6px; }
+      .service-name { font-size: 11px; overflow-wrap: anywhere; }
+      .visual-toolbar { flex-wrap: wrap; gap: 8px; }
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--color-border);
+      position: sticky;
+      top: 0;
+      background: var(--color-bg-surface);
+      backdrop-filter: blur(8px);
+      z-index: 50;
+      transition: background-color 0.3s ease, border-color 0.3s ease;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: var(--color-brand-primary);
+    }
+
+    .logo svg { color: var(--color-brand-primary); flex-shrink: 0; }
+    .logo-text {
+      font-size: 20px;
+      font-weight: 600;
+      letter-spacing: -0.025em;
+      color: var(--color-text-primary);
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .nav a {
+      text-decoration: none;
+      color: var(--color-text-secondary);
+      font-size: 14px;
+      font-weight: 500;
+      transition: color 0.2s ease;
+    }
+
+    .nav a:hover { color: var(--color-text-primary); }
+
+    .nav-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      transition: background 0.2s ease, color 0.2s ease;
+      color: var(--color-text-secondary);
+    }
+
+    .nav-icon:hover {
+      background: var(--color-bg-surface-hover);
+      color: var(--color-text-primary);
+    }
+
+    .theme-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      transition: background 0.2s ease, color 0.2s ease;
+      color: var(--color-text-secondary);
+    }
+
+    .theme-btn:hover {
+      background: var(--color-bg-surface-hover);
+      color: var(--color-text-primary);
+    }
+
+    /* Hero */
+    .hero {
+      padding: 80px 24px 100px;
+      max-width: 1100px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      align-items: center;
+    }
+
+    .hero-content h1 {
+      font-size: 48px;
+      font-weight: 700;
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+      margin-bottom: 16px;
+      color: var(--color-text-primary);
+    }
+
+    .hero-content h1 span { color: var(--color-brand-primary); }
+
+    .hero-subtitle {
+      font-size: 18px;
+      color: var(--color-text-secondary);
+      margin-bottom: 24px;
+      line-height: 1.6;
+      max-width: 480px;
+    }
+
+    .hero-desc {
+      font-size: 15px;
+      color: var(--color-text-muted);
+      margin-bottom: 32px;
+      line-height: 1.6;
+      max-width: 460px;
+    }
+
+    .hero-cta-group { display: flex; gap: 12px; align-items: center; }
+
+    .btn-primary {
+      background: var(--color-action-bg);
+      color: #ffffff;
+      padding: 12px 28px;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 1px 3px rgba(14,165,233,0.2);
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .btn-primary:hover {
+      background: var(--color-action-hover);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(14,165,233,0.25);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--color-text-secondary);
+      padding: 12px 24px;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 500;
+      border: 1px solid var(--color-border);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--color-text-primary);
+      color: var(--color-text-primary);
+    }
+
+    /* Dashboard Visual */
+    .visual {
+      background: var(--color-visual-bg);
+      border-radius: 12px;
+      padding: 0;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+      border: 1px solid var(--color-visual-border);
+      overflow: hidden;
+      transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .visual-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--color-visual-border);
+      background: rgba(0,0,0,0.1);
+    }
+
+    .visual-toolbar-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .visual-toolbar-dots {
+      display: flex;
+      gap: 6px;
+    }
+
+    .dot { width: 10px; height: 10px; border-radius: 50%; }
+    .dot-red { background: #ef4444; }
+    .dot-yellow { background: #f59e0b; }
+    .dot-green { background: #22c55e; }
+
+    .visual-toolbar-title {
+      font-family: ui-monospace, 'SFMono-Regular', Consolas, monospace;
+      font-size: 11px;
+      color: var(--color-visual-muted);
+      margin-left: 8px;
+    }
+
+    .visual-badge {
+      font-family: ui-monospace, 'SFMono-Regular', Consolas, monospace;
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: 9999px;
+      background: rgba(16,185,129,0.15);
+      color: var(--color-success);
+      font-weight: 500;
+    }
+
+    .visual-body { padding: 16px; }
+
+    .visual-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .stat-card {
+      background: var(--color-visual-row);
+      border: 1px solid var(--color-visual-border);
+      border-radius: 8px;
+      padding: 12px;
+    }
+
+    .stat-label {
+      font-size: 11px;
+      color: var(--color-visual-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 4px;
+    }
+
+    .stat-value {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--color-visual-text);
+      font-family: ui-monospace, 'SFMono-Regular', Consolas, monospace;
+    }
+
+    .stat-value.success { color: var(--color-success); }
+    .stat-value.warn { color: var(--color-warning); }
+
+    .service-list { display: flex; flex-direction: column; gap: 6px; }
+
+    .service-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px;
+      background: var(--color-visual-row);
+      border-radius: 8px;
+      border: 1px solid var(--color-visual-border);
+      transition: background 0.3s ease;
+    }
+
+    .service-row:hover { background: var(--color-visual-row-hover); }
+
+    .service-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .service-protocol {
+      font-family: ui-monospace, 'SFMono-Regular', Consolas, monospace;
+      font-size: 9px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: rgba(14,165,233,0.12);
+      color: var(--color-brand-primary);
+      font-weight: 500;
+      text-transform: uppercase;
+    }
+
+    .service-name {
+      font-family: ui-monospace, 'SFMono-Regular', Consolas, monospace;
+      font-size: 13px;
+      color: var(--color-visual-text);
+    }
+
+    .service-meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .service-latency {
+      font-family: ui-monospace, 'SFMono-Regular', Consolas, monospace;
+      font-size: 12px;
+      color: var(--color-visual-muted);
+    }
+
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      animation: pulse-dot 2s infinite;
+    }
+
+    .status-ok { color: var(--color-success); }
+    .status-ok .status-dot { background: var(--color-success); animation: dot-blink 3s infinite; }
+    .status-warn { color: var(--color-warning); }
+    .status-warn .status-dot { background: var(--color-warning); animation: dot-blink 2s infinite; }
+    .status-err { color: var(--color-error); }
+    .status-err .status-dot { background: var(--color-error); animation: dot-blink 1.5s infinite; }
+
+    .service-row:nth-child(1) .status-dot { animation-delay: 0s; }
+    .service-row:nth-child(2) .status-dot { animation-delay: 0.6s; }
+    .service-row:nth-child(3) .status-dot { animation-delay: 1.2s; }
+    .service-row:nth-child(4) .status-dot { animation-delay: 1.8s; }
+    .service-row:nth-child(5) .status-dot { animation-delay: 0.3s; }
+
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    @keyframes dot-blink {
+      0%, 70%, 100% { opacity: 1; transform: scale(1); }
+      80% { opacity: 0.3; transform: scale(0.8); }
+      90% { opacity: 1; transform: scale(1.1); }
+    }
+
+    /* Features Section */
+    .features {
+      padding: 80px 24px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .features-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--color-brand-primary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 12px;
+    }
+
+    .features-heading {
+      font-size: 32px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 48px;
+      color: var(--color-text-primary);
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+
+    .feature-card {
+      padding: 24px;
+      border-radius: 12px;
+      border: 1px solid var(--color-border);
+      background: var(--color-bg-surface);
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .feature-card:hover {
+      border-color: var(--color-brand-primary);
+      box-shadow: 0 4px 12px rgba(14,165,233,0.08);
+    }
+
+    .feature-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 16px;
+      background: rgba(14,165,233,0.08);
+      color: var(--color-brand-primary);
+    }
+
+    .feature-card h3 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--color-text-primary);
+    }
+
+    .feature-card p {
+      font-size: 14px;
+      color: var(--color-text-secondary);
+      line-height: 1.5;
+    }
+
+    /* Footer */
+    .footer {
+      border-top: 1px solid var(--color-border);
+      padding: 32px 24px;
+      max-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .footer-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--color-text-muted);
+      font-size: 13px;
+    }
+
+    .footer-left svg { color: var(--color-brand-primary); }
+
+    /* Responsive */
+    @media (max-width: 860px) {
+      .hero {
+        grid-template-columns: 1fr;
+        gap: 40px;
+        padding: 48px 20px 60px;
+      }
+      .hero-content h1 { font-size: 36px; }
+      .features-grid { grid-template-columns: 1fr; }
+      .visual-stats { grid-template-columns: 1fr; }
+      .footer { flex-direction: column; gap: 16px; text-align: center; }
+    }
+
+    @media (max-width: 640px) {
+      .nav a.nav-docs-text { display: none; }
+    }
+    .setup-page { min-height: 75vh; }
+    .setup-page > .features { max-width: 850px; }
+    .setup-page h1 { font-size: clamp(28px, 5vw, 42px); line-height: 1.2; margin-bottom: 24px; }
+    .setup-intro, .setup-step p { color: var(--color-text-secondary); margin-bottom: 16px; }
+    .setup-step { margin-top: 40px; }
+    .setup-step h2 { font-size: 22px; margin-bottom: 16px; }
+    .setup-step pre { padding: 20px; margin: 20px 0; overflow-x: auto; border: 1px solid var(--color-border); border-radius: 8px; background: var(--color-bg-surface); font-size: 13px; }
+    .setup-step code { overflow-wrap: anywhere; }
+    .setup-step pre code { overflow-wrap: normal; }
+    .setup-back { margin-top: 40px; }
+  </style>
+  <!-- FOUC prevention: apply theme before render -->
+  <script>
+    (function() {
+      var mode = 'system';
+      try {
+        var stored = localStorage.getItem('pulse-theme-mode');
+        if (stored === 'light' || stored === 'dark' || stored === 'system') mode = stored;
+        else {
+          var legacy = localStorage.getItem('pulse-theme');
+          if (legacy === 'light' || legacy === 'dark') mode = legacy;
+        }
+      } catch(e) {}
+      var resolved = mode === 'system'
+        ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+        : mode;
+      document.documentElement.setAttribute('data-theme', resolved);
+    })();
+  </script>
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "@id": "https://uptime-pulse.com/get-started/#webpage",
+  "url": "https://uptime-pulse.com/get-started/",
+  "name": "Get started with Pulse \u2014 Docker Compose installation",
+  "description": "Install Pulse with Docker Compose: configure secrets, start the application and TimescaleDB, then create your first uptime monitor or cron job heartbeat.",
+  "inLanguage": "en",
+  "isPartOf": {
+    "@id": "https://uptime-pulse.com/#website"
+  },
+  "about": {
+    "@id": "https://uptime-pulse.com/#software"
+  }
+}
+  </script>
+</head>
+<body>
+  <a class="skip-link btn-primary" href="#main">Skip to content</a>
+
+  <!-- Header -->
+  <header class="header">
+    <a href="/" class="logo" aria-label="Pulse home">
+      <svg aria-hidden="true" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" width="28" height="28">
+        <path d="M2 20 L8 20 L11 24 L16 8 L21 24 L24 20 L30 20"></path>
+      </svg>
+      <span class="logo-text">Pulse</span>
+    </a>
+    <nav class="nav" aria-label="Main navigation">
+      <a href="/get-started/" aria-current="page">Get started</a>
+      <a href="https://github.com/VitaliAndrushkevich/pulse/blob/main/README.md" class="nav-docs-text">Docs</a>
+      <a href="https://github.com/VitaliAndrushkevich/pulse" class="nav-icon" aria-label="GitHub repository" title="GitHub">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+      </a>
+      <button class="theme-btn" id="themeToggle" type="button" aria-label="Switch theme" title="Toggle theme">
+        <svg class="icon-sun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        <svg class="icon-moon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <svg class="icon-system" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+      </button>
+    </nav>
+  </header>
+
+  <main id="main" class="setup-page">
+    <section class="features" aria-labelledby="setup-heading">
+      <p class="features-title">Get started</p>
+      <h1 class="features-heading" id="setup-heading">Deploy Pulse with Docker Compose</h1>
+      <p class="setup-intro">Run uptime monitoring on your own infrastructure. The Compose file starts the Pulse application and PostgreSQL with TimescaleDB for monitoring history.</p>
+      <p class="setup-intro">Before you begin, install Docker with Docker Compose and have OpenSSL available to generate secrets.</p>
+
+      <section class="setup-step" aria-labelledby="download-heading">
+        <h2 id="download-heading">1. Download the Compose file</h2>
+        <p>Save the <a href="https://github.com/VitaliAndrushkevich/pulse/blob/main/docker-compose.yml">Docker Compose file</a> as <code>docker-compose.yml</code> in a new directory. Run the commands below from that directory.</p>
+      </section>
+
+      <section class="setup-step" aria-labelledby="secrets-heading">
+        <h2 id="secrets-heading">2. Configure secrets and database credentials</h2>
+        <p>Generate two separate secrets:</p>
+        <pre><code># PULSE_SECRET_KEY: base64-encoded 32-byte encryption key
+openssl rand -base64 32
+
+# PULSE_JWT_SECRET: secret for signing session tokens
+openssl rand -hex 32</code></pre>
+        <p>In <code>docker-compose.yml</code>, replace the <code>PULSE_SECRET_KEY</code> and <code>PULSE_JWT_SECRET</code> placeholders with the respective outputs. Replace the default database password in both <code>POSTGRES_PASSWORD</code> and <code>DATABASE_URL</code>; keep the database name and user consistent.</p>
+        <p>See the <a href="https://github.com/VitaliAndrushkevich/pulse/blob/main/.env.example">configuration reference</a> for additional settings.</p>
+      </section>
+
+      <section class="setup-step" aria-labelledby="start-heading">
+        <h2 id="start-heading">3. Start Pulse</h2>
+        <pre><code>docker compose up -d</code></pre>
+        <p>Open <a href="http://localhost:8080">http://localhost:8080</a> and follow the initial setup to create your admin account. If Docker runs on a remote server, use that server's address instead of localhost.</p>
+      </section>
+
+      <section class="setup-step" aria-labelledby="monitor-heading">
+        <h2 id="monitor-heading">4. Add your first monitor</h2>
+        <p>Open Monitors and create a check for your website, API or network service. Pulse supports multi-protocol checks and heartbeat monitoring. For a cron job, backup script or CI task, create a heartbeat and send a success ping after each run.</p>
+        <p>Configure an email or webhook notification channel and bind it to your monitor or heartbeat to receive alerts.</p>
+        <p><a href="https://github.com/VitaliAndrushkevich/pulse#heartbeat-monitoring">Heartbeat examples</a> · <a href="https://github.com/VitaliAndrushkevich/pulse#quick-start">Full installation documentation</a></p>
+      </section>
+      <p class="setup-back"><a href="/">← Back to Pulse</a></p>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-left">
+      <svg aria-hidden="true" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
+        <path d="M2 20 L8 20 L11 24 L16 8 L21 24 L24 20 L30 20"></path>
+      </svg>
+      <span>&copy; 2026 Pulse. Open source under Apache 2.0.</span>
+    </div>
+  </footer>
+
+  <script>
+    // Theme toggle
+    (function() {
+      var btn = document.getElementById('themeToggle');
+      var modes = ['light', 'dark', 'system'];
+      var current = 'system';
+
+      try {
+        var stored = localStorage.getItem('pulse-theme-mode');
+        if (stored === 'light' || stored === 'dark' || stored === 'system') current = stored;
+        else {
+          var legacy = localStorage.getItem('pulse-theme');
+          if (legacy === 'light' || legacy === 'dark') current = legacy;
+        }
+      } catch(e) {}
+
+      function getSystemTheme() {
+        return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      }
+
+      function apply(mode) {
+        var resolved = mode === 'system' ? getSystemTheme() : mode;
+        document.documentElement.setAttribute('data-theme', resolved);
+        updateIcon(mode);
+      }
+
+      function updateIcon(mode) {
+        btn.querySelector('.icon-sun').style.display = mode === 'light' ? '' : 'none';
+        btn.querySelector('.icon-moon').style.display = mode === 'dark' ? '' : 'none';
+        btn.querySelector('.icon-system').style.display = mode === 'system' ? '' : 'none';
+
+        var labels = { light: 'Switch to dark theme', dark: 'Switch to system theme', system: 'Switch to light theme' };
+        var titles = { light: 'Light', dark: 'Dark', system: 'System' };
+        btn.setAttribute('aria-label', labels[mode]);
+        btn.setAttribute('title', titles[mode]);
+      }
+
+      function persist(mode) {
+        try {
+          if (mode === 'system') {
+            localStorage.removeItem('pulse-theme');
+            localStorage.setItem('pulse-theme-mode', 'system');
+          } else {
+            localStorage.setItem('pulse-theme', mode);
+            localStorage.setItem('pulse-theme-mode', mode);
+          }
+        } catch(e) {}
+      }
+
+      btn.addEventListener('click', function() {
+        var idx = modes.indexOf(current);
+        current = modes[(idx + 1) % modes.length];
+        apply(current);
+        persist(current);
+      });
+
+      // Listen for system theme changes
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function() {
+        if (current === 'system') apply('system');
+      });
+
+      updateIcon(current);
+    })();
+
+  </script>
+</body>
+</html>

@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://uptime-pulse.com/sitemap.xml

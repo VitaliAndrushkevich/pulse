@@ -3,43 +3,47 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pulse — Self-hosted uptime monitoring</title>
-  <meta name="description" content="Pulse is an open-source, self-hosted uptime monitoring platform. Multi-protocol health checks (HTTP, TCP, gRPC, DNS, ICMP, SMTP), real-time WebSocket dashboard, smart notifications. Single container deployment.">
-  <meta name="keywords" content="uptime monitoring, self-hosted, health checks, open source, HTTP monitoring, TCP monitoring, gRPC monitoring, DNS monitoring, ICMP ping, WebSocket dashboard, Prometheus metrics, server monitoring, infrastructure monitoring, alerting, notifications">
+  <title>Pulse — Open-source, self-hosted uptime monitoring</title>
+  <meta name="description" content="Monitor websites, APIs and infrastructure with Pulse: open-source, self-hosted uptime monitoring, multi-protocol checks, email alerts and a real-time dashboard.">
   <meta name="author" content="Vitali Andrushkevich">
-  <meta name="robots" content="index, follow">
-  <link rel="canonical" href="https://uptime-pulse.com">
+  <meta name="robots" content="index, follow, max-image-preview:large">
+  <link rel="canonical" href="https://uptime-pulse.com/">
   <meta name="google-site-verification" content="rTt7ZFyr3LNO5-36J4Xt5T6VjvVAsXLbw9vFDFuJpvs" />
 
   <!-- Open Graph -->
   <meta property="og:type" content="website">
-  <meta property="og:url" content="https://uptime-pulse.com">
-  <meta property="og:title" content="Pulse — Self-hosted uptime monitoring">
-  <meta property="og:description" content="Open-source multi-protocol uptime monitoring. HTTP, TCP, gRPC, DNS, ICMP, SMTP health checks with real-time WebSocket dashboard and smart notifications.">
+  <meta property="og:url" content="https://uptime-pulse.com/">
+  <meta property="og:title" content="Pulse — Open-source, self-hosted uptime monitoring">
+  <meta property="og:description" content="Monitor websites, APIs and infrastructure with Pulse: open-source, self-hosted uptime monitoring, multi-protocol checks, email alerts and a real-time dashboard.">
   <meta property="og:site_name" content="Pulse">
   <meta property="og:image" content="https://uptime-pulse.com/og.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
 
+  <meta property="og:locale" content="en_US">
+  <meta property="og:image:alt" content="Pulse self-hosted uptime monitoring">
+
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Pulse — Self-hosted uptime monitoring">
-  <meta name="twitter:description" content="Open-source multi-protocol uptime monitoring. One binary, your infrastructure, full control.">
+  <meta name="twitter:title" content="Pulse — Open-source, self-hosted uptime monitoring">
+  <meta name="twitter:description" content="Monitor websites, APIs and infrastructure with Pulse: open-source, self-hosted uptime monitoring, multi-protocol checks, email alerts and a real-time dashboard.">
   <meta name="twitter:image" content="https://uptime-pulse.com/og.png">
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' fill='none' stroke='%230ea5e9' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 20 L8 20 L11 24 L16 8 L21 24 L24 20 L30 20'/%3E%3C/svg%3E">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <meta name="twitter:image:alt" content="Pulse self-hosted uptime monitoring">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <style>
     :root, [data-theme="light"] {
       color-scheme: light;
-      --color-brand-primary: #0ea5e9;
+      --color-brand-primary: #0369a1;
+      --color-action-bg: #0369a1;
+      --color-action-hover: #075985;
       --color-brand-hover: #0284c7;
       --color-bg-page: #f8fafc;
       --color-bg-surface: #ffffff;
       --color-bg-surface-hover: #f1f5f9;
       --color-text-primary: #0f172a;
       --color-text-secondary: #475569;
-      --color-text-muted: #94a3b8;
+      --color-text-muted: #475569;
       --color-border: #e2e8f0;
       --color-success: #10b981;
       --color-warning: #f59e0b;
@@ -54,14 +58,16 @@
 
     [data-theme="dark"] {
       color-scheme: dark;
-      --color-brand-primary: #22d3ee;
+      --color-brand-primary: #7dd3fc;
+      --color-action-bg: #0369a1;
+      --color-action-hover: #075985;
       --color-brand-hover: #06b6d4;
       --color-bg-page: #0f172a;
       --color-bg-surface: #1e293b;
       --color-bg-surface-hover: #334155;
       --color-text-primary: #f1f5f9;
       --color-text-secondary: #94a3b8;
-      --color-text-muted: #64748b;
+      --color-text-muted: #94a3b8;
       --color-border: #334155;
       --color-success: #34d399;
       --color-warning: #fbbf24;
@@ -109,12 +115,43 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
-      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      font-family: system-ui, -apple-system, sans-serif;
       color: var(--color-text-primary);
       background: var(--color-bg-page);
       line-height: 1.5;
       -webkit-font-smoothing: antialiased;
       transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    h1, h2, h3, .logo-text { font-family: system-ui, -apple-system, sans-serif; }
+    a:focus-visible, button:focus-visible, summary:focus-visible {
+      outline: 3px solid var(--color-brand-primary);
+      outline-offset: 4px;
+    }
+    .skip-link { position: absolute; inset-inline-start: 16px; top: -80px; z-index: 100; }
+    .skip-link:focus { top: 16px; }
+    .hero > *, .feature-card { min-width: 0; }
+    .hero-cta-group { flex-wrap: wrap; }
+    .features a { color: var(--color-brand-primary); text-underline-offset: 3px; }
+    section { scroll-margin-top: 88px; }
+    .release-note { border-inline-start: 3px solid var(--color-brand-primary); padding-inline-start: 20px; }
+    .release-note p + p { margin-top: 12px; }
+    .faq-item { padding: 20px 0; border-bottom: 1px solid var(--color-border); }
+    .faq-item summary { cursor: pointer; font-weight: 600; }
+    .faq-item p { margin-top: 12px; color: var(--color-text-secondary); max-width: 75ch; }
+    .steps { padding-inline-start: 24px; color: var(--color-text-secondary); }
+    .steps li + li { margin-top: 12px; }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+    }
+    @media (max-width: 420px) {
+      .header { padding: 12px 16px; }
+      .nav { gap: 8px; }
+      .visual-body { padding: 10px; }
+      .service-row { padding: 10px 6px; flex-wrap: wrap; gap: 6px; }
+      .service-info, .service-meta { gap: 6px; }
+      .service-name { font-size: 11px; overflow-wrap: anywhere; }
+      .visual-toolbar { flex-wrap: wrap; gap: 8px; }
     }
 
     /* Header */
@@ -240,7 +277,7 @@
     .hero-cta-group { display: flex; gap: 12px; align-items: center; }
 
     .btn-primary {
-      background: var(--color-brand-primary);
+      background: var(--color-action-bg);
       color: #ffffff;
       padding: 12px 28px;
       border-radius: 10px;
@@ -255,7 +292,7 @@
     }
 
     .btn-primary:hover {
-      background: var(--color-brand-hover);
+      background: var(--color-action-hover);
       transform: translateY(-1px);
       box-shadow: 0 4px 12px rgba(14,165,233,0.25);
     }
@@ -316,14 +353,14 @@
     .dot-green { background: #22c55e; }
 
     .visual-toolbar-title {
-      font-family: 'JetBrains Mono', monospace;
+      font-family: ui-monospace, 'SFMono-Regular', Consolas, monospace;
       font-size: 11px;
       color: var(--color-visual-muted);
       margin-left: 8px;
     }
 
     .visual-badge {
-      font-family: 'JetBrains Mono', monospace;
+      font-family: ui-monospace, 'SFMono-Regular', Consolas, monospace;
       font-size: 10px;
       padding: 2px 8px;
       border-radius: 9999px;
@@ -360,7 +397,7 @@
       font-size: 20px;
       font-weight: 600;
       color: var(--color-visual-text);
-      font-family: 'JetBrains Mono', monospace;
+      font-family: ui-monospace, 'SFMono-Regular', Consolas, monospace;
     }
 
     .stat-value.success { color: var(--color-success); }
@@ -388,7 +425,7 @@
     }
 
     .service-protocol {
-      font-family: 'JetBrains Mono', monospace;
+      font-family: ui-monospace, 'SFMono-Regular', Consolas, monospace;
       font-size: 9px;
       padding: 2px 6px;
       border-radius: 4px;
@@ -399,7 +436,7 @@
     }
 
     .service-name {
-      font-family: 'JetBrains Mono', monospace;
+      font-family: ui-monospace, 'SFMono-Regular', Consolas, monospace;
       font-size: 13px;
       color: var(--color-visual-text);
     }
@@ -411,7 +448,7 @@
     }
 
     .service-latency {
-      font-family: 'JetBrains Mono', monospace;
+      font-family: ui-monospace, 'SFMono-Regular', Consolas, monospace;
       font-size: 12px;
       color: var(--color-visual-muted);
     }
@@ -579,18 +616,62 @@
       document.documentElement.setAttribute('data-theme', resolved);
     })();
   </script>
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "https://uptime-pulse.com/#website",
+      "url": "https://uptime-pulse.com/",
+      "name": "Pulse",
+      "alternateName": "Pulse uptime monitoring",
+      "inLanguage": "en"
+    },
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://uptime-pulse.com/#software",
+      "name": "Pulse",
+      "url": "https://uptime-pulse.com/",
+      "description": "Monitor websites, APIs and infrastructure with Pulse: open-source, self-hosted uptime monitoring, multi-protocol checks, email alerts and a real-time dashboard.",
+      "applicationCategory": "DeveloperApplication",
+      "operatingSystem": "Linux, macOS, Windows",
+      "license": "https://www.apache.org/licenses/LICENSE-2.0",
+      "isAccessibleForFree": true,
+      "sameAs": "https://github.com/VitaliAndrushkevich/pulse",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "featureList": [
+        "REST API & MCP server",
+        "History & incident investigation",
+        "13 interface languages",
+        "Multi-protocol monitoring and heartbeat checks",
+        "Heartbeat monitoring for cron jobs",
+        "Admin and read-only user roles",
+        "Email and webhook alerts",
+        "Prometheus metrics"
+      ]
+    }
+  ]
+}
+  </script>
 </head>
 <body>
+  <a class="skip-link btn-primary" href="#main">Skip to content</a>
 
   <!-- Header -->
   <header class="header">
-    <a href="#" class="logo">
+    <a href="/" class="logo" aria-label="Pulse home">
       <svg aria-hidden="true" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" width="28" height="28">
         <path d="M2 20 L8 20 L11 24 L16 8 L21 24 L24 20 L30 20"></path>
       </svg>
       <span class="logo-text">Pulse</span>
     </a>
-    <nav class="nav">
+    <nav class="nav" aria-label="Main navigation">
+      <a href="/get-started/">Get started</a>
       <a href="https://github.com/VitaliAndrushkevich/pulse/blob/main/README.md" class="nav-docs-text">Docs</a>
       <a href="https://github.com/VitaliAndrushkevich/pulse" class="nav-icon" aria-label="GitHub repository" title="GitHub">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
@@ -603,14 +684,15 @@
     </nav>
   </header>
 
+  <main id="main">
   <!-- Hero -->
   <section class="hero">
     <div class="hero-content">
-      <h1>Self-hosted uptime<br>monitoring.<br>That's <span>Pulse</span>.</h1>
-      <p class="hero-subtitle">Multi-protocol health checks with real-time alerts. One binary, your infrastructure, full control.</p>
-      <p class="hero-desc">HTTP, TCP, UDP, gRPC, DNS, ICMP, WebSocket, SMTP — Pulse monitors all of them with a bounded worker pool, WebSocket-driven dashboard, and zero external dependencies. Deploy as a single container alongside PostgreSQL.</p>
+      <h1>Open-source uptime monitoring.<br>Self-hosted with <span>Pulse</span>.</h1>
+      <p class="hero-subtitle">Multi-protocol monitoring and heartbeat checks for cron jobs. Real-time alerts on your infrastructure.</p>
+      <p class="hero-desc">Monitor websites, APIs and infrastructure over HTTP/S, HTTP/3, TCP, UDP, WebSocket, gRPC, DNS, ICMP, SMTP and QUIC. Run Pulse on your infrastructure with PostgreSQL and TimescaleDB; no hosted monitoring service required.</p>
       <div class="hero-cta-group">
-        <a href="https://github.com/VitaliAndrushkevich/pulse#quick-start" class="btn-primary">Quick Start</a>
+        <a href="/get-started/" class="btn-primary">Get started</a>
         <a href="https://github.com/VitaliAndrushkevich/pulse" class="btn-secondary">View on GitHub</a>
       </div>
     </div>
@@ -623,9 +705,9 @@
             <div class="dot dot-yellow"></div>
             <div class="dot dot-green"></div>
           </div>
-          <span class="visual-toolbar-title">Pulse Dashboard</span>
+          <span class="visual-toolbar-title">Pulse Dashboard · example</span>
         </div>
-        <span class="visual-badge">All systems operational</span>
+        <span class="visual-badge">Demo data</span>
       </div>
       <div class="visual-body">
         <div class="visual-stats">
@@ -699,16 +781,16 @@
   </section>
 
   <!-- Features -->
-  <section class="features">
+  <section class="features" id="features" aria-labelledby="features-heading">
     <p class="features-title">Built for production</p>
-    <h2 class="features-heading">Everything you need, nothing you don't</h2>
+    <h2 class="features-heading" id="features-heading">Website, API and infrastructure monitoring</h2>
     <div class="features-grid">
       <div class="feature-card">
         <div class="feature-icon">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
         </div>
-        <h3>10 Protocols</h3>
-        <p>HTTP/S, HTTP/3, TCP, UDP, WebSocket, gRPC, DNS, ICMP, SMTP, and QUIC — all from one engine.</p>
+        <h3>Multi-protocol monitoring</h3>
+        <p>HTTP/S, HTTP/3, TCP, UDP, WebSocket, gRPC, DNS, ICMP, SMTP and QUIC — plus separate heartbeat monitoring for scheduled jobs.</p>
       </div>
       <div class="feature-card">
         <div class="feature-icon">
@@ -722,14 +804,14 @@
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
         </div>
         <h3>Self-hosted & Secure</h3>
-        <p>Single binary, your infrastructure. AES-256-GCM encrypted secrets, bcrypt-hashed tokens, zero cloud dependencies.</p>
+        <p>Keep monitoring data on your infrastructure. Encrypted credentials, hashed API tokens and admin-created accounts with admin or read-only roles help control access.</p>
       </div>
       <div class="feature-card">
         <div class="feature-icon">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
         </div>
         <h3>Smart Notifications</h3>
-        <p>Email and webhook alerts with state deduplication, exponential backoff retries, and configurable reminders.</p>
+        <p>Email and webhook alerts for downtime, recovery, slow responses and expiring SSL certificates, with deduplication, retry backoff and delivery logs.</p>
       </div>
       <div class="feature-card">
         <div class="feature-icon">
@@ -743,10 +825,61 @@
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
         </div>
         <h3>Single Container</h3>
-        <p>Frontend embedded into the Go binary. Deploy with docker-compose and PostgreSQL — production ready in minutes.</p>
+        <p>The web UI is embedded in the Go binary. Docker Compose runs the Pulse application alongside PostgreSQL with TimescaleDB for monitoring history.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h10"/></svg></div>
+        <h3>REST API & MCP server</h3>
+        <p>Automate monitor management through the versioned REST API and OpenAPI contract. Connect AI assistants through the separate MCP server, with read-only access by default.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h10"/></svg></div>
+        <h3>History & incident investigation</h3>
+        <p>Explore uptime, response times, incidents and check failures. Set per-monitor history retention from 1 to 365 days and organize monitors with tags.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h10"/></svg></div>
+        <h3>13 interface languages</h3>
+        <p>Use Pulse in English, Arabic, Belarusian, German, Spanish, French, Italian, Japanese, Korean, Portuguese, Russian, Turkish or Chinese, with RTL support and light, dark and system themes.</p>
       </div>
     </div>
   </section>
+
+  <section class="features" id="heartbeats" aria-labelledby="next-heading">
+    <p class="features-title">Cron jobs &amp; scheduled tasks</p>
+    <h2 class="features-heading" id="next-heading">Heartbeat monitoring for cron jobs</h2>
+    <div class="release-note">
+      <p>Use heartbeat push monitoring for scheduled tasks, backups and CI jobs. A task calls a token-scoped ping URL after a successful run; Pulse detects missed runs after the configured grace window and sends downtime and recovery alerts.</p>
+      <p>Heartbeat event history and a status timeline help investigate missed runs. Send an explicit failure ping when a job fails, and configure history retention for each heartbeat. Follow the <a href="https://github.com/VitaliAndrushkevich/pulse#heartbeat-monitoring">heartbeat setup guide</a> for shell, cron and CI examples.</p>
+    </div>
+  </section>
+
+
+  <section class="features" id="faq" aria-labelledby="faq-heading">
+    <p class="features-title">Common questions</p>
+    <h2 class="features-heading" id="faq-heading">About self-hosted uptime monitoring</h2>
+    <details class="faq-item">
+      <summary>What is Pulse?</summary>
+      <p>Pulse is an open-source, self-hosted uptime monitoring platform for websites, APIs and infrastructure. It combines multi-protocol health checks, a real-time dashboard, email and webhook alerts, a REST API and a separate MCP server.</p>
+    </details>
+    <details class="faq-item">
+      <summary>Is Pulse free to self-host?</summary>
+      <p>Pulse is available under the Apache License 2.0. You can run it on your own infrastructure. You provide the server and database, plus an SMTP server or webhook destination if you want notifications.</p>
+    </details>
+    <details class="faq-item">
+      <summary>Which protocols can Pulse monitor?</summary>
+      <p>Pulse supports HTTP/HTTPS, HTTP/3, TCP, UDP, WebSocket, gRPC, DNS, ICMP, SMTP and QUIC checks for websites, APIs and infrastructure. Heartbeat monitoring detects missed runs from scheduled jobs.</p>
+    </details>
+    <details class="faq-item">
+      <summary>Does Pulse need an external database?</summary>
+      <p>Yes. Pulse serves its API and embedded web UI from one application binary or container, and requires PostgreSQL with TimescaleDB for configuration and time-series history. The Docker Compose file includes the database service.</p>
+    </details>
+    <details class="faq-item">
+      <summary>Can I monitor cron jobs and scheduled backups?</summary>
+      <p>Yes. Create a heartbeat and have your cron job, backup script or CI task call its token-scoped ping URL after success. Pulse detects missed pings after the configured grace window and supports explicit failure pings, downtime and recovery alerts, and event history.</p>
+    </details>
+  </section>
+  </main>
 
   <!-- Footer -->
   <footer class="footer">
@@ -822,6 +955,8 @@
       updateIcon(current);
     })();
 
+    // Animate illustrative demo values only when motion is allowed.
+    if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
     // Animate latency values
     var latencies = document.querySelectorAll('.service-latency');
     setInterval(function() {
@@ -838,6 +973,7 @@
         }
       });
     }, 2000);
+    }
   </script>
 </body>
 </html>
