@@ -26,6 +26,7 @@
   const navLinks = [
     { href: '/', key: 'nav.dashboard' },
     { href: '/monitors', key: 'nav.monitors' },
+    { href: '/heartbeats', key: 'nav.heartbeats' },
     { href: '/notifications', key: 'nav.notifications' },
     { href: '/settings', key: 'nav.settings' }
   ];
