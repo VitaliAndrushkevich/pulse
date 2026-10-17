@@ -284,14 +284,14 @@ When adding any new UI feature with user-visible text:
 1. **Add keys to `en.json` first** — English is the source of truth.
 2. **Use `t('section.key')` in components** — never hardcode display strings.
 3. **Update ALL locale files** — add the new key to every `*.json` file in `frontend/src/locales/`. Use the English value as a placeholder if no translation is available yet.
-4. **Run locale validation**: `cd frontend && pnpm validate-locales`. Caveat: the script only warns on missing keys (fails on missing files / nesting > 4 levels) and its locale list omits `ar` and `be` — check those two files manually.
+4. **Run locale validation**: `cd frontend && pnpm validate-locales`. The script validates every locale registered in `config.ts`, including `ar` and `be`. It only warns on missing keys (fails on missing files / nesting > 4 levels).
 5. **Verify RTL** — for layout-affecting strings (long labels, directional icons like `←`), ensure Arabic locale renders correctly. Use `dir`-aware CSS (`margin-inline-start` instead of `margin-left`).
 
 ### Adding a New Language
 1. Create `frontend/src/locales/{code}.json` with all keys translated.
 2. Register in `frontend/src/lib/i18n/config.ts` → `SUPPORTED_LOCALES` array.
    - Add `dir: 'rtl'` if the language is right-to-left.
-3. Add the code to the locale list in `frontend/scripts/validate-locales.ts`.
+3. The locale validator automatically includes languages registered in `config.ts`.
 4. Validate JSON: `python3 -c "import json; json.load(open('frontend/src/locales/{code}.json'))"`.
 5. The language will appear automatically in the Settings → Language selector.
 
