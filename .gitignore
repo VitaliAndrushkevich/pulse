@@ -40,3 +40,5 @@ mcp/bin/
 pulse-mcp
 
 docs/audit-working
+.pnpm-store/v11/index.db
+.pnpm-store/v11/.pnpm-needs-build-marker
