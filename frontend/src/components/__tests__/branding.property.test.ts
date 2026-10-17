@@ -6,6 +6,7 @@
  */
 import { describe, it, expect } from 'vitest';
 import { render } from '@testing-library/svelte';
+import { readFileSync } from 'node:fs';
 import * as fc from 'fast-check';
 import BrandLockup from '../BrandLockup.svelte';
 
@@ -110,27 +111,32 @@ describe('Property 2: BrandLockup proportional scaling', () => {
   });
 });
 
+// Read the real theme so palette changes remain covered by the contrast tests.
+const themeCSS = readFileSync('src/app.css', 'utf8');
+const darkTokens = themeCSS.match(/\[data-theme="dark"\] \{([\s\S]*?)\n\}/)![1];
+const lightTokens = themeCSS.match(/\[data-theme="light"\] \{([\s\S]*?)\n\}/)![1];
+function tokenHex(tokens: string, name: string): string {
+  const match = tokens.match(new RegExp(`--color-${name}:\\s*(#[0-9a-f]{6});`, 'i'));
+  if (!match) throw new Error(`Missing theme color ${name}`);
+  return match[1];
+}
+
 // Feature: pulse-branding, Property 3: Dark theme WCAG contrast compliance
 
 /**
  * For any color defined in the Dark_Theme token set (primary text, brand primary,
  * success, warning, error), that color SHALL achieve a minimum contrast ratio of
- * 4.5:1 against the dark page background color (`#0f172a`) per the WCAG 2.1
+ * 4.5:1 against the actual dark page background color per the WCAG 2.1
  * relative luminance formula.
  *
  * **Validates: Requirements 5.5, 5.7**
  */
 describe('Property 3: Dark theme WCAG contrast compliance', () => {
   // Dark theme foreground colors
-  const darkThemeForegroundColors = [
-    { name: 'Primary text', hex: '#f1f5f9' },
-    { name: 'Brand primary', hex: '#22d3ee' },
-    { name: 'Success', hex: '#34d399' },
-    { name: 'Warning', hex: '#fbbf24' },
-    { name: 'Error', hex: '#f87171' },
-  ] as const;
+  const darkThemeForegroundColors = ['text-primary', 'brand-primary', 'success', 'warning', 'error']
+    .map((name) => ({ name, hex: tokenHex(darkTokens, name) }));
 
-  const darkBackground = '#0f172a';
+  const darkBackground = tokenHex(darkTokens, 'bg-page');
 
   /**
    * Convert a hex color string to an array of sRGB values in [0, 1].
@@ -293,19 +299,11 @@ describe('Property 5: Theme icon indicates active mode', () => {
  * **Validates: Requirements 11.1, 11.3**
  */
 describe('Property 6: Tailwind brand scale token mapping', () => {
-  // Expected light-theme fallback hex values per shade
-  const expectedFallbacks: Record<number, string> = {
-    50: '#f0f9ff',
-    100: '#e0f2fe',
-    200: '#bae6fd',
-    300: '#7dd3fc',
-    400: '#38bdf8',
-    500: '#0ea5e9',
-    600: '#0284c7',
-    700: '#0369a1',
-    800: '#075985',
-    900: '#0c4a6e',
-  };
+  // Fallbacks must match the actual light palette, rather than a second copy.
+  const expectedFallbacks = Object.fromEntries(
+    [50, 100, 200, 300, 400, 500, 600, 700, 800, 900]
+      .map((shade) => [shade, tokenHex(lightTokens, `brand-${shade}`)])
+  );
 
   const shades = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900] as const;
 

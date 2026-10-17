@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -22,7 +23,8 @@ import (
 
 // authFakeDB implements db.DBTX for ChangePassword tests.
 type authFakeDB struct {
-	user *db.User
+	user     *db.User
+	queryErr error
 }
 
 func (f *authFakeDB) Exec(_ context.Context, _ string, _ ...interface{}) (pgconn.CommandTag, error) {
@@ -43,6 +45,9 @@ type authFakeRow struct {
 }
 
 func (r *authFakeRow) Scan(dest ...interface{}) error {
+	if r.db.queryErr != nil {
+		return r.db.queryErr
+	}
 	if r.db.user == nil {
 		return pgx.ErrNoRows
 	}
@@ -54,16 +59,24 @@ func (r *authFakeRow) Scan(dest ...interface{}) error {
 		*dest[2].(*string) = r.db.user.PasswordHash
 		*dest[3].(*time.Time) = r.db.user.CreatedAt
 		*dest[4].(*time.Time) = r.db.user.UpdatedAt
-	case 2:
+	case 3:
 		// UpdateUserPassword: args = (uuid.UUID, string), scans id, email, password_hash, created_at, updated_at
 		newHash := r.args[1].(string)
 		r.db.user.PasswordHash = newHash
 		r.db.user.UpdatedAt = time.Now().UTC()
+		r.db.user.SessionVersion++
+		r.db.user.MustChangePassword = false
 		*dest[0].(*uuid.UUID) = r.db.user.ID
 		*dest[1].(*string) = r.db.user.Email
 		*dest[2].(*string) = r.db.user.PasswordHash
 		*dest[3].(*time.Time) = r.db.user.CreatedAt
 		*dest[4].(*time.Time) = r.db.user.UpdatedAt
+	}
+	if len(dest) > 5 {
+		*dest[5].(*string) = r.db.user.Role
+		*dest[6].(*bool) = r.db.user.Enabled
+		*dest[7].(*bool) = r.db.user.MustChangePassword
+		*dest[8].(*int64) = r.db.user.SessionVersion
 	}
 	return nil
 }
@@ -80,6 +93,9 @@ func setupAuthRouter(fdb *authFakeDB, userID uuid.UUID) *gin.Engine {
 	// Simulate auth middleware setting user_id
 	auth := r.Group("/api/v1", func(c *gin.Context) {
 		c.Set("user_id", userID.String())
+		if fdb.user != nil {
+			c.Set("session_version", fdb.user.SessionVersion)
+		}
 		c.Next()
 	})
 	auth.PUT("/auth/password", h.ChangePassword)
@@ -96,8 +112,9 @@ func newTestUser(t *testing.T) (uuid.UUID, *db.User) {
 	}
 	now := time.Now().UTC()
 	return uid, &db.User{
-		ID:           uid,
-		Email:        "test@example.com",
+		ID:    uid,
+		Email: "test@example.com",
+		Role:  "admin", Enabled: true, MustChangePassword: true,
 		PasswordHash: string(hash),
 		CreatedAt:    now,
 		UpdatedAt:    now,
@@ -125,12 +142,12 @@ func TestChangePassword_Success(t *testing.T) {
 		t.Fatalf("invalid json: %v", err)
 	}
 
-	// Req 4.7: response only contains "message" field
-	if _, ok := resp["message"]; !ok {
-		t.Error("response missing message field")
+	if resp["token"] == "" || resp["expires_at"] == nil || resp["user"] == nil {
+		t.Fatalf("missing refreshed session: %v", resp)
 	}
-	if len(resp) != 1 {
-		t.Errorf("response should only have 'message', got keys: %v", resp)
+	identity := resp["user"].(map[string]interface{})
+	if identity["must_change_password"] != false || user.SessionVersion != 1 {
+		t.Fatalf("password change did not activate account and revoke previous sessions")
 	}
 	// Must not echo password or hash
 	if _, ok := resp["password"]; ok {
@@ -263,6 +280,64 @@ func TestChangePassword_MissingBody(t *testing.T) {
 			}
 			if errObj["code"] != "VALIDATION_ERROR" {
 				t.Errorf("expected code VALIDATION_ERROR, got %v", errObj["code"])
+			}
+		})
+	}
+}
+
+func TestChangePassword_RejectSamePassword(t *testing.T) {
+	uid, user := newTestUser(t)
+	router := setupAuthRouter(&authFakeDB{user: user}, uid)
+	req := httptest.NewRequest(http.MethodPut, "/api/v1/auth/password", strings.NewReader(`{"current_password":"oldpassword123","new_password":"oldpassword123"}`))
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+	if w.Code != 400 || user.SessionVersion != 0 {
+		t.Fatalf("same password accepted: %d %s", w.Code, w.Body.String())
+	}
+}
+
+func TestChangePassword_RejectsResetAfterAuthentication(t *testing.T) {
+	uid, user := newTestUser(t)
+	user.SessionVersion = 2
+	handler := handlers.NewAuthHandler(db.New(&authFakeDB{user: user}), []byte("test-key"), time.Hour)
+	router := gin.New()
+	router.PUT("/auth/password", func(c *gin.Context) { c.Set("user_id", uid.String()); c.Set("session_version", int64(1)); c.Next() }, handler.ChangePassword)
+	req := httptest.NewRequest(http.MethodPut, "/auth/password", strings.NewReader(`{"current_password":"oldpassword123","new_password":"newpassword456"}`))
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+	if w.Code != 401 || user.SessionVersion != 2 {
+		t.Fatalf("stale authenticated session accepted: %d %s", w.Code, w.Body.String())
+	}
+}
+
+func TestLogin_DistinguishesLookupFailureFromInvalidCredentials(t *testing.T) {
+	for _, tc := range []struct {
+		name   string
+		err    error
+		status int
+		code   string
+	}{
+		{"missing account", pgx.ErrNoRows, 401, "UNAUTHORIZED"},
+		{"database unavailable", errors.New("connection failed with secret database details"), 500, "INTERNAL_ERROR"},
+		{"schema mismatch", &pgconn.PgError{Code: "42703", Message: "column role does not exist; secret database details"}, 500, "INTERNAL_ERROR"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			router := gin.New()
+			handler := handlers.NewAuthHandler(db.New(&authFakeDB{queryErr: tc.err}), []byte("test-key"), time.Hour)
+			handler.Register(router.Group("/api/v1"))
+			req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/login", strings.NewReader(`{"email":"admin@example.com","password":"current-secret"}`))
+			req.Header.Set("Content-Type", "application/json")
+			w := httptest.NewRecorder()
+			router.ServeHTTP(w, req)
+			if w.Code != tc.status || !strings.Contains(w.Body.String(), tc.code) {
+				t.Fatalf("got %d %s", w.Code, w.Body.String())
+			}
+			for _, secret := range []string{"current-secret", "database details", "column role"} {
+				if strings.Contains(w.Body.String(), secret) {
+					t.Fatalf("error exposed sensitive details: %s", w.Body.String())
+				}
 			}
 		})
 	}

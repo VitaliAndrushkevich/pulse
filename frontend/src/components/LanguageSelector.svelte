@@ -1,4 +1,5 @@
 <script lang="ts">
+  import SelectField from './SelectField.svelte';
   import { getLocale, setLocale, t } from '$lib/i18n/locale.svelte';
   import { SUPPORTED_LOCALES } from '$lib/i18n/config';
   import type { LocaleCode } from '$lib/i18n/config';
@@ -19,16 +20,16 @@
   >
     {t('settings.language.label')}
   </label>
-  <select
+  <SelectField
     id="language-select"
     aria-labelledby="language-select-label"
     value={selected}
     onchange={handleChange}
-    class="block w-full rounded-md border border-[var(--color-border)] bg-surface px-3 py-2 text-sm text-primary shadow-sm transition focus:border-[var(--color-brand-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--color-brand-primary)]"
+    class="w-full"
     data-testid="language-select"
   >
     {#each SUPPORTED_LOCALES as locale}
       <option value={locale.code}>{locale.name}</option>
     {/each}
-  </select>
+  </SelectField>
 </div>

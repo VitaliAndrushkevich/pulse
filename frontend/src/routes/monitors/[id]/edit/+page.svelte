@@ -1,4 +1,5 @@
 <script lang="ts">
+  import EditorPage from '../../../../components/EditorPage.svelte';
   import { page } from '$app/stores';
   import { goto } from '$app/navigation';
   import { untrack } from 'svelte';
@@ -55,8 +56,7 @@
   <MonitorNotificationBindings monitorId={monitorId} />
 {/snippet}
 
-<section class="space-y-6">
-  <h1 class="text-2xl font-bold tracking-tight text-primary">{t('monitors.edit')}</h1>
+<EditorPage eyebrow={t('nav.monitors')} title={t('monitors.edit')}>
 
   {#if loading}
     <div class="flex items-center justify-center p-12" data-testid="loading-state">
@@ -113,4 +113,4 @@
       extraSections={notificationBindingsSnippet}
     />
   {/if}
-</section>
+</EditorPage>

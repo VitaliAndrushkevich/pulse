@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { isAdmin } from '$lib/stores/auth.svelte';
   import { untrack } from 'svelte';
   import { getHeartbeats } from '$lib/api';
   import type { Heartbeat, PaginatedList } from '$lib/types';
@@ -54,12 +55,12 @@
       <h1 class="text-2xl font-bold tracking-tight text-primary">{t('heartbeats.title')}</h1>
       <p class="mt-1 text-sm text-secondary">{t('heartbeats.subtitle')}</p>
     </div>
-    <a
+    {#if isAdmin()}<a
       href="/heartbeats/create"
       class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
     >
       {t('heartbeats.create')}
-    </a>
+    </a>{/if}
   </div>
 
   {#if loading}
@@ -80,12 +81,12 @@
   {:else if total === 0}
     <div class="rounded-xl border border-dashed border-[var(--color-border)] bg-surface p-12 text-center" data-testid="empty-state">
       <p class="text-secondary">{t('heartbeats.empty')}</p>
-      <a
+      {#if isAdmin()}<a
         href="/heartbeats/create"
         class="mt-3 inline-block text-sm font-medium text-indigo-600 hover:text-indigo-700"
       >
         {t('heartbeats.create')}
-      </a>
+      </a>{/if}
     </div>
   {:else}
     <div class="overflow-hidden rounded-xl border border-[var(--color-border)] bg-surface" data-testid="heartbeat-list">

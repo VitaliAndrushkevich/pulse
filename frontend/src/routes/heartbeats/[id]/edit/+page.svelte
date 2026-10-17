@@ -1,4 +1,5 @@
 <script lang="ts">
+  import EditorPage from '../../../../components/EditorPage.svelte';
   import { page } from '$app/stores';
   import { goto } from '$app/navigation';
   import { untrack } from 'svelte';
@@ -55,8 +56,11 @@
   });
 </script>
 
-<section class="space-y-6">
-  <h1 class="text-2xl font-bold tracking-tight text-primary">{t('heartbeats.edit')}</h1>
+{#snippet notificationBindingsSnippet()}
+  <HeartbeatBindings heartbeatId={heartbeatId} />
+{/snippet}
+
+<EditorPage eyebrow={t('nav.heartbeats')} title={t('heartbeats.edit')}>
 
   {#if loading}
     <div class="flex items-center justify-center p-12" data-testid="loading-state">
@@ -96,8 +100,8 @@
       initialTags={heartbeat.tags}
       onSubmit={handleSubmit}
       onCancel={handleCancel}
+      extraSections={notificationBindingsSnippet}
     />
 
-    <HeartbeatBindings heartbeatId={heartbeatId} />
   {/if}
-</section>
+</EditorPage>

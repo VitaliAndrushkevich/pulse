@@ -2,6 +2,7 @@
   import type { Heartbeat } from '$lib/types';
   import { formatDate } from '$lib/format';
   import { t } from '$lib/i18n';
+  import { resolve } from '$app/paths';
 
   interface Props {
     heartbeat: Heartbeat;
@@ -10,10 +11,10 @@
   let { heartbeat }: Props = $props();
 
   const stateColors: Record<string, string> = {
-    up: 'bg-emerald-500',
-    down: 'bg-rose-500',
-    paused: 'bg-slate-400',
-    new: 'bg-amber-400'
+    up: 'bg-[var(--color-success)]',
+    down: 'bg-[var(--color-error)]',
+    paused: 'bg-[var(--color-text-muted)]',
+    new: 'bg-[var(--color-warning)]'
   };
 
   const stateTranslationKeys: Record<string, string> = {
@@ -32,13 +33,13 @@
   }
 
   const isPaused = $derived(heartbeat.state === 'paused');
-  const stateColor = $derived(stateColors[heartbeat.state] ?? 'bg-slate-400');
+  const stateColor = $derived(stateColors[heartbeat.state] ?? 'bg-[var(--color-text-muted)]');
   const stateLabel = $derived(t(stateTranslationKeys[heartbeat.state] ?? 'heartbeats.state.new'));
 </script>
 
 <a
-  href="/heartbeats/{heartbeat.id}"
-  class="flex h-16 items-center gap-4 border-b border-[var(--color-border)] bg-surface px-4 transition hover:bg-[var(--color-bg-surface-hover)] {isPaused ? 'opacity-60' : ''}"
+  href={resolve('/heartbeats/[id]', { id: heartbeat.id })}
+  class="flex h-16 items-center gap-3 sm:gap-4 border-b border-[var(--color-border)] bg-surface px-4 transition hover:bg-[var(--color-bg-surface-hover)] {isPaused ? 'opacity-60' : ''}"
   data-testid="heartbeat-row"
 >
   <!-- State indicator dot -->
@@ -57,9 +58,9 @@
   <!-- Tags (compact chips) -->
   {#if heartbeat.tags && heartbeat.tags.length > 0}
     <div class="hidden flex-shrink-0 items-center gap-1 md:flex" data-testid="heartbeat-tags">
-      {#each heartbeat.tags.slice(0, 3) as tag}
-        <span class="inline-flex items-center rounded-full bg-indigo-50 px-1.5 py-0.5 text-[10px] leading-none">
-          <span class="font-medium text-indigo-700">{tag.key}</span><span class="text-indigo-400">:</span><span class="text-indigo-600">{tag.value}</span>
+      {#each heartbeat.tags.slice(0, 3) as tag (tag.key)}
+        <span class="pulse-tag">
+          <span class="font-medium">{tag.key}</span><span class="opacity-50">:</span><span>{tag.value}</span>
         </span>
       {/each}
       {#if heartbeat.tags.length > 3}
@@ -70,19 +71,19 @@
 
   <!-- State badge -->
   <span
-    class="flex-shrink-0 rounded-full bg-[var(--color-bg-surface-hover)] px-2 py-0.5 text-xs font-medium text-primary"
+    class="pulse-protocol"
     data-testid="heartbeat-state"
   >
     {stateLabel}
   </span>
 
   <!-- Expected interval -->
-  <span class="hidden flex-shrink-0 text-sm text-secondary sm:inline" data-testid="heartbeat-interval">
+  <span class="hidden flex-shrink-0 font-mono text-xs text-secondary lg:inline" data-testid="heartbeat-interval">
     {t('heartbeats.fields.expectedInterval')}: {formatInterval(heartbeat.expected_interval_seconds)}
   </span>
 
   <!-- Last success -->
-  <span class="flex-shrink-0 text-xs text-[var(--color-text-muted)]" data-testid="heartbeat-last-success">
+  <span class="hidden flex-shrink-0 font-mono text-[10px] text-[var(--color-text-muted)] sm:inline" data-testid="heartbeat-last-success">
     {formatDate(heartbeat.last_success_at, t('common.never'))}
   </span>
 </a>

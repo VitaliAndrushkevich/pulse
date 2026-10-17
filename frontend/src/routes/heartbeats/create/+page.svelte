@@ -1,4 +1,5 @@
 <script lang="ts">
+  import EditorPage from '../../../components/EditorPage.svelte';
   import { goto } from '$app/navigation';
   import { createHeartbeat } from '$lib/api';
   import { heartbeatStore } from '$lib/stores/heartbeats.svelte';
@@ -42,11 +43,10 @@
   }
 </script>
 
-<section class="space-y-6">
-  <h1 class="text-2xl font-bold tracking-tight text-primary">{t('heartbeats.create')}</h1>
+<EditorPage eyebrow={t('nav.heartbeats')} title={t('heartbeats.create')}>
 
   <HeartbeatForm mode="create" onSubmit={handleSubmit} onCancel={handleCancel} />
-</section>
+</EditorPage>
 
 {#if showOnceSecret}
   <ShowOnceModal secret={showOnceSecret} onDismiss={handleDismiss} />

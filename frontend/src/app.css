@@ -10,70 +10,79 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ============================================
-   Theme Tokens — CSS Custom Properties
-   Requirements: 4.1–4.8, 5.1–5.7, 11.3
-   ============================================ */
-
+/* Pulse uses a bright instrument palette. Brand and status colors are separate:
+   blue identifies actions; green, amber and red carry operational meaning. */
 :root,
 [data-theme="light"] {
   color-scheme: light;
-
-  /* Core semantic tokens */
-  --color-brand-primary: #0ea5e9;
-  --color-brand-hover: #0284c7;
-  --color-bg-page: #f8fafc;
+  --color-brand-primary: #0369a1;
+  --color-brand-hover: #075985;
+  --color-bg-page: #f4faff;
   --color-bg-surface: #ffffff;
-  --color-bg-surface-hover: #f1f5f9;
-  --color-text-primary: #0f172a;
-  --color-text-secondary: #475569;
-  --color-text-muted: #94a3b8;
-  --color-border: #e2e8f0;
-  --color-success: #10b981;
-  --color-warning: #f59e0b;
-  --color-error: #ef4444;
-
-  /* Extended brand scale for Tailwind utilities */
+  --color-bg-surface-hover: #eaf5fd;
+  --color-text-primary: #16324a;
+  --color-text-secondary: #49647a;
+  --color-text-muted: #60768a;
+  --color-border: #d6e5ef;
+  --color-success: #16815d;
+  --color-warning: #946000;
+  --color-error: #bd3838;
   --color-brand-50: #f0f9ff;
   --color-brand-100: #e0f2fe;
   --color-brand-200: #bae6fd;
   --color-brand-300: #7dd3fc;
   --color-brand-400: #38bdf8;
-  --color-brand-500: #0ea5e9;
-  --color-brand-600: #0284c7;
-  --color-brand-700: #0369a1;
-  --color-brand-800: #075985;
-  --color-brand-900: #0c4a6e;
+  --color-brand-500: #0284c7;
+  --color-brand-600: #0369a1;
+  --color-brand-700: #075985;
+  --color-brand-800: #0c4a6e;
+  --color-brand-900: #083b59;
+  --color-on-brand: #ffffff;
+  --color-rail: #163e5b;
+  --color-rail-text: #c5dff0;
+  --color-rail-active: #ffffff;
+  --color-rail-line: #285674;
+  --color-rail-accent: #7dd3fc;
+  --color-rail-success: #5bddaa;
+  --color-rail-warning: #ffd475;
+  --font-data: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
 }
 
 [data-theme="dark"] {
   color-scheme: dark;
+  --color-brand-primary: #7dd3fc;
+  --color-brand-hover: #b4e8ff;
+  --color-bg-page: #142b40;
+  --color-bg-surface: #1c3850;
+  --color-bg-surface-hover: #24465f;
+  --color-text-primary: #f0f8ff;
+  --color-text-secondary: #bad3e5;
+  --color-text-muted: #9eb9cd;
+  --color-border: #385972;
+  --color-success: #5bddaa;
+  --color-warning: #ffd475;
+  --color-error: #ff9d9d;
+  /* Interactive fills remain dark enough for white button labels. */
+  --color-brand-50: #193f5b;
+  --color-brand-100: #214e6a;
+  --color-brand-200: #29617f;
+  --color-brand-300: #3184a8;
+  --color-brand-400: #38bdf8;
+  --color-brand-500: #0284c7;
+  --color-brand-600: #0369a1;
+  --color-brand-700: #075985;
+  --color-brand-800: #0c4a6e;
+  --color-brand-900: #083b59;
+  --color-rail: #10304a;
+  --color-rail-text: #c5dff0;
+  --color-rail-active: #ffffff;
+  --color-rail-line: #24516e;
+}
 
-  /* Core semantic tokens — dark palette */
-  --color-brand-primary: #22d3ee;
-  --color-brand-hover: #06b6d4;
-  --color-bg-page: #0f172a;
-  --color-bg-surface: #1e293b;
-  --color-bg-surface-hover: #334155;
-  --color-text-primary: #f1f5f9;
-  --color-text-secondary: #94a3b8;
-  --color-text-muted: #64748b;
-  --color-border: #334155;
-  --color-success: #34d399;
-  --color-warning: #fbbf24;
-  --color-error: #f87171;
-
-  /* Extended brand scale — cyan family for dark */
-  --color-brand-50: #ecfeff;
-  --color-brand-100: #cffafe;
-  --color-brand-200: #a5f3fc;
-  --color-brand-300: #67e8f9;
-  --color-brand-400: #22d3ee;
-  --color-brand-500: #06b6d4;
-  --color-brand-600: #0891b2;
-  --color-brand-700: #0e7490;
-  --color-brand-800: #155e75;
-  --color-brand-900: #164e63;
+/* Aliases used by existing chart and notification components. */
+:root {
+  --color-bg-primary: var(--color-bg-page);
+  --color-bg-secondary: var(--color-bg-surface-hover);
 }
 
 body {
@@ -81,4 +90,107 @@ body {
   color: var(--color-text-primary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+@layer base {
+  h1, h2 {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-weight: 600;
+    letter-spacing: -0.04em;
+  }
+
+  h1 { line-height: 1.15; }
+
+  :focus-visible {
+    outline: 2px solid var(--color-brand-primary);
+    outline-offset: 3px;
+  }
+
+  ::selection {
+    background: var(--color-brand-200);
+    color: var(--color-text-primary);
+  }
+}
+
+@layer components {
+  .pulse-panel {
+    border: 1px solid var(--color-border);
+    border-radius: 0.375rem;
+    background: var(--color-bg-surface);
+  }
+
+  .pulse-editor-form input:not([type="checkbox"]):not([type="radio"]),
+  .pulse-editor-form textarea {
+    min-height: 2.5rem;
+    box-shadow: none;
+  }
+
+  .pulse-editor-form input[type="number"],
+  .pulse-editor-form input#monitor-target,
+  .pulse-editor-form input#monitor-status-codes,
+  .pulse-editor-form input#ws-expected-status-codes {
+    font-family: var(--font-data);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .pulse-editor-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    padding-block-start: 1.25rem;
+    border-block-start: 1px solid var(--color-border);
+  }
+
+  .pulse-editor-actions > button { min-height: 2.5rem; }
+
+  .pulse-eyebrow {
+    font-family: var(--font-data);
+    font-size: 0.65rem;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    line-height: 1.6;
+    text-transform: uppercase;
+    color: var(--color-text-secondary);
+  }
+
+  .pulse-tag {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid var(--color-border);
+    border-radius: 0.2rem;
+    background: var(--color-bg-surface-hover);
+    padding: 0.15rem 0.35rem;
+    font-family: var(--font-data);
+    font-size: 0.625rem;
+    line-height: 1;
+    color: var(--color-text-secondary);
+  }
+
+  .pulse-protocol {
+    flex-shrink: 0;
+    border: 1px solid var(--color-border);
+    border-radius: 0.2rem;
+    padding: 0.2rem 0.4rem;
+    font-family: var(--font-data);
+    font-size: 0.625rem;
+    font-weight: 600;
+    letter-spacing: 0.035em;
+    color: var(--color-text-secondary);
+  }
+}
+
+.tabular-nums {
+  font-family: var(--font-data);
+  letter-spacing: -0.04em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

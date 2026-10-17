@@ -1,4 +1,5 @@
 <script lang="ts">
+  import SelectField from './SelectField.svelte';
   import type { GrpcSettings, TlsMode, ProtoSourceMeta, ProtoMessageSchema, ServiceMethodSelection } from '$lib/types';
   import { getProtoSource } from '$lib/api';
   import { t } from '$lib/i18n';
@@ -140,16 +141,16 @@
   <!-- TLS Mode -->
   <div>
     <label for="grpc-tls-mode" class="block text-sm font-medium text-primary">{t('grpc.tlsMode')}</label>
-    <select
+    <SelectField
       id="grpc-tls-mode"
       bind:value={tlsMode}
-      class="mt-1 block w-full rounded-md border border-[var(--color-border)] px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+      class="mt-1 w-full"
       data-testid="grpc-tls-mode"
     >
       <option value="plaintext">{t('grpc.tlsModes.plaintext')}</option>
       <option value="tls">{t('grpc.tlsModes.tls')}</option>
       <option value="tls_skip_verify">{t('grpc.tlsModes.tlsSkipVerify')}</option>
-    </select>
+    </SelectField>
   </div>
 
   <!-- SSL Expiry Threshold (hidden when plaintext) -->

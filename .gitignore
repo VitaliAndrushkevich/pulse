@@ -11,11 +11,21 @@ backend/*.test
 # MCP artifacts
 mcp/*.test
 
+# Node / pnpm artifacts (any level — the only real JS project is frontend/)
+node_modules/
+.pnpm-store/
+*.tsbuildinfo
+
+# Stray pnpm/corepack artifacts at the repo root. The frontend owns the only
+# package.json + lockfile; running pnpm from the repo root instead of frontend/
+# regenerates these at the root — ignore them so they never get committed.
+/package.json
+/pnpm-lock.yaml
+/pnpm-workspace.yaml
+
 # Frontend artifacts
-frontend/node_modules/
 frontend/build/
 frontend/.svelte-kit/
-frontend/.pnpm-store
 
 # Embedded frontend build output (populated at build time)
 backend/internal/frontend/dist/*
@@ -40,5 +50,4 @@ mcp/bin/
 pulse-mcp
 
 docs/audit-working
-.pnpm-store/v11/index.db
-.pnpm-store/v11/.pnpm-needs-build-marker
+.worktrees

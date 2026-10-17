@@ -13,8 +13,55 @@ curl -X POST http://localhost:8080/api/v1/auth/login \
 Response:
 
 ```json
-{ "token": "eyJhbGciOi..." }
+{
+  "token": "eyJhbGciOi...",
+  "expires_at": "2026-10-18T12:00:00Z",
+  "user": {
+    "id": "uuid",
+    "email": "admin@example.com",
+    "role": "admin",
+    "enabled": true,
+    "must_change_password": false,
+    "created_at": "2026-10-17T12:00:00Z"
+  }
+}
 ```
+
+## Users and roles
+
+Pulse has no public registration. First-run setup creates an admin; existing
+accounts remain admins after upgrading. Administrators manage users in Settings
+or through these endpoints:
+
+| Endpoint | Purpose |
+| --- | --- |
+| `GET /auth/me` | Current user, wrapped in `{ "user": ... }`; JWT required |
+| `PUT /auth/password` | Change own password; JWT required |
+| `GET /users?page=1&limit=20` | Paginated users; admin only |
+| `POST /users` | Create user with `email`, `password`, `role`; admin only |
+| `PATCH /users/{id}` | Update `role` and/or `enabled`; admin only |
+| `POST /users/{id}/reset-password` | Assign temporary `password`; admin only |
+
+Paths in this table are relative to `/api/v1`. Roles are `admin` and `read_only`.
+Read-only users can view monitoring data but cannot change resources or access
+user management, notification configuration, credentials, or API-token management.
+Monitor settings are redacted to `{}` for read-only users.
+
+Creation and administrative password resets set `must_change_password: true`.
+That user must call `PUT /auth/password` with `current_password` and a different
+`new_password` (8–72 bytes) before using monitoring APIs or WebSockets. Restricted
+JWT requests return `403 PASSWORD_CHANGE_REQUIRED`. Password changes return the
+same session envelope as login; replace the old JWT with the returned token.
+The profile endpoint remains available during this restricted state.
+
+Disabling, role changes, password changes, and password resets invalidate existing
+JWT sessions. API tokens use the owner's current role and cannot access the API
+while the account is disabled or awaiting a password change. Existing WebSocket
+connections revalidate credentials every 54 seconds. Admins cannot disable or
+demote themselves or remove the last active admin.
+
+See [multiuser design and operational details](MULTIUSER.md). The full request,
+response, and error contract is in `backend/api/openapi.yaml`.
 
 ## Create a Monitor
 

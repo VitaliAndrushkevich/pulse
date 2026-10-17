@@ -112,8 +112,8 @@
 </script>
 
 <WidgetShell {loading} {error} {onRetry}>
-  <div class="flex flex-col gap-2 p-4" data-testid="incidents-panel">
-    <h3 class="text-sm font-medium" style="color: var(--color-text-secondary)">
+  <div class="flex flex-col gap-3 p-5" data-testid="incidents-panel">
+    <h3 class="pulse-eyebrow">
       {t('dashboard.incidents.title')}
     </h3>
 

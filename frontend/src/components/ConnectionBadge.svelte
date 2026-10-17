@@ -6,10 +6,12 @@
    * satisfying Requirements 1.7 and 5.8:
    * - Stale-data indicator within 2s of disconnection
    * - Removed when connection is re-established
-   * - Visible without scrolling (placed in app header)
+   * - Visible without scrolling (placed in navigation footer)
    */
   import { connectionStore } from '$lib/stores/connection.svelte';
   import { t } from '$lib/i18n';
+
+  let { compact = false }: { compact?: boolean } = $props();
 
   let status = $derived(connectionStore.status);
   let visible = $derived(status === 'disconnected' || status === 'connecting');
@@ -17,24 +19,22 @@
 
 {#if visible}
   <div
-    class="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-2.5 py-1 text-xs font-medium text-amber-800 border border-amber-300"
+    class="connection-badge inline-flex items-center gap-1.5 rounded-full px-2 py-1 text-xs font-medium text-[var(--color-warning)]"
+    class:compact
+    title={t(visible ? 'connection.statusPaused' : 'connection.statusLive')}
     role="status"
     aria-live="polite"
     aria-label={t('connection.statusPaused')}
   >
     <span class="relative flex h-2 w-2">
       <span
-        class="absolute inline-flex h-full w-full animate-ping rounded-full opacity-75"
-        class:bg-amber-400={status === 'connecting'}
-        class:bg-amber-500={status === 'disconnected'}
+        class="absolute inline-flex h-full w-full animate-ping rounded-full bg-[var(--color-warning)] opacity-75"
       ></span>
       <span
-        class="relative inline-flex h-2 w-2 rounded-full"
-        class:bg-amber-400={status === 'connecting'}
-        class:bg-amber-500={status === 'disconnected'}
+        class="relative inline-flex h-2 w-2 rounded-full bg-[var(--color-warning)]"
       ></span>
     </span>
-    <span>
+    <span class="connection-label">
       {#if status === 'connecting'}
         {t('connection.reconnecting')}
       {:else}
@@ -44,14 +44,22 @@
   </div>
 {:else if status === 'connected'}
   <div
-    class="inline-flex items-center gap-1.5 rounded-full px-2 py-1 text-xs font-medium text-green-700"
+    class="connection-badge inline-flex items-center gap-1.5 rounded-full px-2 py-1 text-xs font-medium text-[var(--color-success)]"
+    class:compact
+    title={t(visible ? 'connection.statusPaused' : 'connection.statusLive')}
     role="status"
     aria-live="polite"
     aria-label={t('connection.statusLive')}
   >
     <span class="relative flex h-2 w-2">
-      <span class="relative inline-flex h-2 w-2 rounded-full bg-green-500"></span>
+      <span class="relative inline-flex h-2 w-2 rounded-full bg-[var(--color-success)]"></span>
     </span>
-    <span>{t('connection.live')}</span>
+    <span class="connection-label">{t('connection.live')}</span>
   </div>
 {/if}
+
+<style>
+  @media (min-width: 1024px) {
+    .compact .connection-label { display: none; }
+  }
+</style>

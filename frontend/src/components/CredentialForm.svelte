@@ -1,4 +1,5 @@
 <script lang="ts">
+  import SelectField from './SelectField.svelte';
   import type { CreateCredentialRequest } from '$lib/api';
   import { t } from '$lib/i18n';
 
@@ -101,16 +102,16 @@
     <label for="credential-auth-type" class="block text-sm font-medium text-primary">
       {t('auth.authType')}
     </label>
-    <select
+    <SelectField
       id="credential-auth-type"
       bind:value={authType}
-      class="mt-1 block w-full rounded-md border border-[var(--color-border)] px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+      class="mt-1 w-full"
       data-testid="select-auth-type"
     >
       {#each authTypeOptions as opt}
         <option value={opt.value}>{opt.label}</option>
       {/each}
-    </select>
+    </SelectField>
   </div>
 
   {#if authType !== 'none'}
@@ -228,16 +229,16 @@
     <label for="credential-auth-type" class="block text-sm font-medium text-primary">
       {t('auth.authType')}
     </label>
-    <select
+    <SelectField
       id="credential-auth-type"
       bind:value={authType}
-      class="mt-1 block w-full rounded-md border border-[var(--color-border)] px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+      class="mt-1 w-full"
       data-testid="select-auth-type"
     >
       {#each authTypeOptions as opt}
         <option value={opt.value}>{opt.label}</option>
       {/each}
-    </select>
+    </SelectField>
   </div>
 
   {#if authType !== 'none'}

@@ -2,7 +2,7 @@
   import { goto } from '$app/navigation';
   import { onMount } from 'svelte';
   import { setupAdmin, getSetupStatus, ApiRequestError, NetworkError } from '$lib/api';
-  import { setToken } from '$lib/stores/auth.svelte';
+  import { setSession } from '$lib/stores/auth.svelte';
   import { validateEmail, validatePassword } from '$lib/validation';
   import BrandLockup from '../../components/BrandLockup.svelte';
   import { t } from '$lib/i18n';
@@ -44,8 +44,8 @@
 
     try {
       const response = await setupAdmin({ email, password });
-      setToken(response.token);
-      await goto('/');
+      setSession(response);
+      await goto(response.user?.must_change_password ? '/change-password' : '/');
     } catch (err: unknown) {
       if (err instanceof ApiRequestError) {
         if (err.statusCode === 409) {

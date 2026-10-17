@@ -1,4 +1,5 @@
 <script lang="ts">
+  import EditorPage from '../../../components/EditorPage.svelte';
   import { goto } from '$app/navigation';
   import { createMonitor, createCredential, createNotificationBinding, type CreateCredentialRequest, type CreateBindingRequest } from '$lib/api';
   import MonitorForm from '../../../components/MonitorForm.svelte';
@@ -39,12 +40,11 @@
   }
 </script>
 
-<section class="space-y-6">
-  <h1 class="text-2xl font-bold tracking-tight text-primary">{t('monitors.create')}</h1>
+<EditorPage eyebrow={t('nav.monitors')} title={t('monitors.create')}>
 
   <MonitorForm
     mode="create"
     onSubmit={handleSubmit}
     onCancel={handleCancel}
   />
-</section>
+</EditorPage>

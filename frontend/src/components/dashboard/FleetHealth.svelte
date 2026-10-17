@@ -42,13 +42,13 @@
 </script>
 
 <WidgetShell {loading} {error} {onRetry}>
-  <div class="flex h-full flex-col items-center justify-center gap-1 px-4 py-8" data-testid="fleet-health">
-    <h3 class="text-sm font-medium" style="color: var(--color-text-secondary)">
+  <div class="flex h-full flex-col items-start justify-center gap-3 px-5 py-7" data-testid="fleet-health">
+    <h3 class="pulse-eyebrow">
       {t('dashboard.fleetHealth.title')}
     </h3>
 
     <span
-      class="text-5xl font-bold tabular-nums"
+      class="text-4xl xl:text-5xl font-semibold tabular-nums"
       style="color: {color}"
       aria-label={isEmpty
         ? t('dashboard.healthScore.noData')

@@ -19,9 +19,29 @@ Pulse is a self-hosted uptime monitoring platform. It ships as a single binary w
 - **MCP server** — manage monitors and get the status via AI assistants (Kiro, Copilot, Claude, Cursor) through the Model Context Protocol
 - **Prometheus metrics** — built-in `/metrics` endpoint with optional Basic Auth protection
 - **Security** — AES-256-GCM secret encryption, JWT + API token auth, per-monitor credentials
+- **User management** — admin-created accounts, admin and read-only roles, required temporary-password replacement on first login; [access guide](docs/MULTIUSER.md)
 - **Scalable** — bounded worker pools, designed for 500+ concurrent monitors
 - **Light/Dark/System theming** — CSS custom properties with tri-state cycling, OS preference tracking, WCAG AA contrast
-- **Brand identity** — ECG-inspired logo mark with responsive lockup, self-hosted Inter typography
+- **Pulse UI** — blue instrument-panel design, collapsible navigation with a saved preference, sidebar status/theme/account controls, consistent page headers, and themed keyboard-accessible dropdowns
+- **Brand identity** — ECG-inspired logo mark with responsive lockup, self-hosted Inter typography and tabular operational data
+
+## Frontend experience
+
+Pulse uses a blue instrument-panel design with bright blue-white surfaces in light
+mode and navy surfaces in dark mode. Status colors stay distinct from action
+colors so failures remain easy to spot. Flat panels, compact metadata labels, and
+monospace operational values keep the interface focused on monitoring.
+
+The desktop sidebar can collapse to icons with hover and keyboard-focus labels;
+its state is saved in this browser. Live connection status, the theme switcher,
+and Logout stay in the sidebar footer. Mobile retains labeled navigation and
+visible controls. Dashboard, Monitors, and Settings share an eyebrow/title header
+and workspace alignment. Shared dropdowns use the active theme and support arrow
+keys, Home/End, typing to find an option, Enter to select, and Escape to dismiss.
+
+See [UI design conventions](docs/UI-DESIGN.md) for component and theme guidance.
+For frontend development use Node 22.12+ (or a newer supported LTS) and the pnpm
+version pinned in `frontend/package.json`.
 
 ## Architecture
 
@@ -317,7 +337,7 @@ Docker Compose automatically merges this with the base file.
 | Layer | Technology |
 |-------|-----------|
 | Backend | Go 1.26, Gin, pgx/v5, sqlc, gorilla/websocket, golang-jwt/jwt/v5 |
-| Frontend | Svelte 5, SvelteKit, TypeScript strict, Tailwind CSS 3.4, uPlot |
+| Frontend | Svelte 5, SvelteKit 2, Vite 8, TypeScript strict, Tailwind CSS 3.4, uPlot |
 | Database | PostgreSQL 16 + TimescaleDB 2.17 |
 | Protocols | HTTP/HTTPS, HTTP/3 (QUIC), TCP, UDP, WebSocket, gRPC, DNS, ICMP (raw sockets), SMTP |
 | Observability | Prometheus client_golang |

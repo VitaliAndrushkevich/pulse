@@ -11,6 +11,17 @@ import (
 	"github.com/google/uuid"
 )
 
+const countActiveAdmins = `-- name: CountActiveAdmins :one
+SELECT count(*) FROM users WHERE role = 'admin' AND enabled
+`
+
+func (q *Queries) CountActiveAdmins(ctx context.Context) (int64, error) {
+	row := q.db.QueryRow(ctx, countActiveAdmins)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const countUsers = `-- name: CountUsers :one
 SELECT count(*) FROM users
 `
@@ -22,10 +33,38 @@ func (q *Queries) CountUsers(ctx context.Context) (int64, error) {
 	return count, err
 }
 
+const createManagedUser = `-- name: CreateManagedUser :one
+INSERT INTO users (email, password_hash, role, must_change_password)
+VALUES (lower($1::text), $2, $3, true) RETURNING id, email, password_hash, created_at, updated_at, role, enabled, must_change_password, session_version
+`
+
+type CreateManagedUserParams struct {
+	Email        string `db:"email" json:"email"`
+	PasswordHash string `db:"password_hash" json:"password_hash"`
+	Role         string `db:"role" json:"role"`
+}
+
+func (q *Queries) CreateManagedUser(ctx context.Context, arg CreateManagedUserParams) (User, error) {
+	row := q.db.QueryRow(ctx, createManagedUser, arg.Email, arg.PasswordHash, arg.Role)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Email,
+		&i.PasswordHash,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Role,
+		&i.Enabled,
+		&i.MustChangePassword,
+		&i.SessionVersion,
+	)
+	return i, err
+}
+
 const createUser = `-- name: CreateUser :one
 INSERT INTO users (email, password_hash)
 VALUES ($1, $2)
-RETURNING id, email, password_hash, created_at, updated_at
+RETURNING id, email, password_hash, created_at, updated_at, role, enabled, must_change_password, session_version
 `
 
 type CreateUserParams struct {
@@ -42,6 +81,10 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.PasswordHash,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Role,
+		&i.Enabled,
+		&i.MustChangePassword,
+		&i.SessionVersion,
 	)
 	return i, err
 }
@@ -56,7 +99,7 @@ func (q *Queries) DeleteUser(ctx context.Context, id uuid.UUID) error {
 }
 
 const getFirstUser = `-- name: GetFirstUser :one
-SELECT id, email, password_hash, created_at, updated_at FROM users LIMIT 1
+SELECT id, email, password_hash, created_at, updated_at, role, enabled, must_change_password, session_version FROM users WHERE role = 'admin' ORDER BY created_at, id LIMIT 1
 `
 
 func (q *Queries) GetFirstUser(ctx context.Context) (User, error) {
@@ -68,12 +111,16 @@ func (q *Queries) GetFirstUser(ctx context.Context) (User, error) {
 		&i.PasswordHash,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Role,
+		&i.Enabled,
+		&i.MustChangePassword,
+		&i.SessionVersion,
 	)
 	return i, err
 }
 
 const getUser = `-- name: GetUser :one
-SELECT id, email, password_hash, created_at, updated_at FROM users WHERE id = $1
+SELECT id, email, password_hash, created_at, updated_at, role, enabled, must_change_password, session_version FROM users WHERE id = $1
 `
 
 func (q *Queries) GetUser(ctx context.Context, id uuid.UUID) (User, error) {
@@ -85,16 +132,20 @@ func (q *Queries) GetUser(ctx context.Context, id uuid.UUID) (User, error) {
 		&i.PasswordHash,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Role,
+		&i.Enabled,
+		&i.MustChangePassword,
+		&i.SessionVersion,
 	)
 	return i, err
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, email, password_hash, created_at, updated_at FROM users WHERE email = $1
+SELECT id, email, password_hash, created_at, updated_at, role, enabled, must_change_password, session_version FROM users WHERE lower(email) = lower($1)
 `
 
-func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error) {
-	row := q.db.QueryRow(ctx, getUserByEmail, email)
+func (q *Queries) GetUserByEmail(ctx context.Context, lower string) (User, error) {
+	row := q.db.QueryRow(ctx, getUserByEmail, lower)
 	var i User
 	err := row.Scan(
 		&i.ID,
@@ -102,6 +153,114 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 		&i.PasswordHash,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Role,
+		&i.Enabled,
+		&i.MustChangePassword,
+		&i.SessionVersion,
+	)
+	return i, err
+}
+
+const listUsers = `-- name: ListUsers :many
+SELECT id, email, password_hash, created_at, updated_at, role, enabled, must_change_password, session_version FROM users ORDER BY created_at, id LIMIT $1 OFFSET $2
+`
+
+type ListUsersParams struct {
+	Limit  int32 `db:"limit" json:"limit"`
+	Offset int32 `db:"offset" json:"offset"`
+}
+
+func (q *Queries) ListUsers(ctx context.Context, arg ListUsersParams) ([]User, error) {
+	rows, err := q.db.Query(ctx, listUsers, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []User{}
+	for rows.Next() {
+		var i User
+		if err := rows.Scan(
+			&i.ID,
+			&i.Email,
+			&i.PasswordHash,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.Role,
+			&i.Enabled,
+			&i.MustChangePassword,
+			&i.SessionVersion,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const lockUsers = `-- name: LockUsers :exec
+LOCK TABLE users IN SHARE ROW EXCLUSIVE MODE
+`
+
+func (q *Queries) LockUsers(ctx context.Context) error {
+	_, err := q.db.Exec(ctx, lockUsers)
+	return err
+}
+
+const resetUserPassword = `-- name: ResetUserPassword :one
+UPDATE users SET password_hash = $2, must_change_password = true,
+ session_version = session_version + 1, updated_at = now() WHERE id = $1 RETURNING id, email, password_hash, created_at, updated_at, role, enabled, must_change_password, session_version
+`
+
+type ResetUserPasswordParams struct {
+	ID           uuid.UUID `db:"id" json:"id"`
+	PasswordHash string    `db:"password_hash" json:"password_hash"`
+}
+
+func (q *Queries) ResetUserPassword(ctx context.Context, arg ResetUserPasswordParams) (User, error) {
+	row := q.db.QueryRow(ctx, resetUserPassword, arg.ID, arg.PasswordHash)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Email,
+		&i.PasswordHash,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Role,
+		&i.Enabled,
+		&i.MustChangePassword,
+		&i.SessionVersion,
+	)
+	return i, err
+}
+
+const updateManagedUser = `-- name: UpdateManagedUser :one
+UPDATE users SET role = $2, enabled = $3,
+ session_version = session_version + CASE WHEN (enabled AND NOT $3) OR role <> $2 THEN 1 ELSE 0 END,
+ updated_at = now() WHERE id = $1 RETURNING id, email, password_hash, created_at, updated_at, role, enabled, must_change_password, session_version
+`
+
+type UpdateManagedUserParams struct {
+	ID      uuid.UUID `db:"id" json:"id"`
+	Role    string    `db:"role" json:"role"`
+	Enabled bool      `db:"enabled" json:"enabled"`
+}
+
+func (q *Queries) UpdateManagedUser(ctx context.Context, arg UpdateManagedUserParams) (User, error) {
+	row := q.db.QueryRow(ctx, updateManagedUser, arg.ID, arg.Role, arg.Enabled)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Email,
+		&i.PasswordHash,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Role,
+		&i.Enabled,
+		&i.MustChangePassword,
+		&i.SessionVersion,
 	)
 	return i, err
 }
@@ -110,10 +269,13 @@ const updateUserEmailAndPassword = `-- name: UpdateUserEmailAndPassword :one
 UPDATE users
 SET
     email         = $2,
+    enabled = true,
     password_hash = $3,
+    must_change_password = false,
+    session_version = session_version + 1,
     updated_at    = now()
 WHERE id = $1
-RETURNING id, email, password_hash, created_at, updated_at
+RETURNING id, email, password_hash, created_at, updated_at, role, enabled, must_change_password, session_version
 `
 
 type UpdateUserEmailAndPasswordParams struct {
@@ -131,6 +293,10 @@ func (q *Queries) UpdateUserEmailAndPassword(ctx context.Context, arg UpdateUser
 		&i.PasswordHash,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Role,
+		&i.Enabled,
+		&i.MustChangePassword,
+		&i.SessionVersion,
 	)
 	return i, err
 }
@@ -139,18 +305,21 @@ const updateUserPassword = `-- name: UpdateUserPassword :one
 UPDATE users
 SET
     password_hash = $2,
+    must_change_password = false,
+    session_version = session_version + 1,
     updated_at    = now()
-WHERE id = $1
-RETURNING id, email, password_hash, created_at, updated_at
+WHERE id = $1 AND session_version = $3 AND enabled
+RETURNING id, email, password_hash, created_at, updated_at, role, enabled, must_change_password, session_version
 `
 
 type UpdateUserPasswordParams struct {
-	ID           uuid.UUID `db:"id" json:"id"`
-	PasswordHash string    `db:"password_hash" json:"password_hash"`
+	ID             uuid.UUID `db:"id" json:"id"`
+	PasswordHash   string    `db:"password_hash" json:"password_hash"`
+	SessionVersion int64     `db:"session_version" json:"session_version"`
 }
 
 func (q *Queries) UpdateUserPassword(ctx context.Context, arg UpdateUserPasswordParams) (User, error) {
-	row := q.db.QueryRow(ctx, updateUserPassword, arg.ID, arg.PasswordHash)
+	row := q.db.QueryRow(ctx, updateUserPassword, arg.ID, arg.PasswordHash, arg.SessionVersion)
 	var i User
 	err := row.Scan(
 		&i.ID,
@@ -158,6 +327,10 @@ func (q *Queries) UpdateUserPassword(ctx context.Context, arg UpdateUserPassword
 		&i.PasswordHash,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Role,
+		&i.Enabled,
+		&i.MustChangePassword,
+		&i.SessionVersion,
 	)
 	return i, err
 }

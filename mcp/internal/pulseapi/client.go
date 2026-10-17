@@ -5,11 +5,15 @@ import "context"
 // PulseClient is the interface through which the MCP server interacts with Pulse.
 // All Pulse access flows through this interface, keeping tool handlers testable
 // and centralizing auth, timeout, error-envelope parsing, and X-Request-ID handling.
+// Pulse enforces the token owner's current account status and role. All methods
+// can return PASSWORD_CHANGE_REQUIRED; writes can also return FORBIDDEN even
+// when the MCP server's local access mode allows writes.
 type PulseClient interface {
 	// ListMonitors returns a paginated list of monitors matching the query filters.
 	ListMonitors(ctx context.Context, q MonitorQuery) (MonitorPage, error)
 
-	// GetMonitor returns the full configuration and current status of a single monitor.
+	// GetMonitor returns the permitted configuration and current status of a monitor.
+	// Read-only accounts receive empty settings to avoid exposing credentials.
 	GetMonitor(ctx context.Context, id string) (Monitor, error)
 
 	// GetMonitorStats returns computed statistics for a monitor, including uptime and SSL info.

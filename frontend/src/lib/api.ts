@@ -1,9 +1,9 @@
 // API client — fetch wrapper with auth, timeout, and error handling
 
-import { getToken, clearToken } from '$lib/stores/auth.svelte';
+import { getToken, clearToken, setSession, requirePasswordChange } from '$lib/stores/auth.svelte';
 import { toastStore } from '$lib/stores/toast.svelte';
 import type {
-  Monitor, PaginatedList, HistoryPoint, Incident, Secret, Tag, DashboardSummary, ProtoSourceMeta,
+  User, UserRole, Monitor, PaginatedList, HistoryPoint, Incident, Secret, Tag, DashboardSummary, ProtoSourceMeta,
   NotificationChannel, NotificationChannelType, ChannelBinding, TriggerCondition,
   TemplateVariableGroup, SMTPSettings, SMTPSettingsRequest, TestChannelResult, TestSMTPResult,
   EmailChannelConfig, WebhookChannelConfig,
@@ -30,6 +30,8 @@ export interface LoginRequest {
 
 export interface LoginResponse {
   token: string;
+  expires_at: string;
+  user: User;
 }
 
 export interface CreateMonitorRequest {
@@ -191,7 +193,7 @@ export async function apiRequest<T>(
 
   // Handle 401 — clear JWT, redirect, suppress toast (unless skipped for login page)
   if (response.status === 401) {
-    if (!options?.skipUnauthorizedHandler) {
+    if (!options?.skipUnauthorizedHandler && getToken() === token) {
       onUnauthorized();
     }
     throw new ApiRequestError(401, { code: 'UNAUTHORIZED', message: 'Authentication required' }, requestId);
@@ -208,6 +210,10 @@ export async function apiRequest<T>(
       }
     } catch {
       // Response body isn't valid JSON or doesn't match envelope
+    }
+
+    if (apiError?.code === 'PASSWORD_CHANGE_REQUIRED' && getToken() === token) {
+      requirePasswordChange();
     }
 
     if (apiError) {
@@ -279,8 +285,32 @@ export interface ChangePasswordRequest {
 }
 
 /** PUT /api/v1/auth/password — change current user password */
-export async function changePassword(data: ChangePasswordRequest): Promise<{ message: string }> {
-  return apiRequest<{ message: string }>('PUT', '/auth/password', data, { skipToast: true });
+export async function changePassword(data: ChangePasswordRequest): Promise<LoginResponse> {
+  const session = await apiRequest<LoginResponse>('PUT', '/auth/password', data, { skipToast: true, skipUnauthorizedHandler: true });
+  setSession(session);
+  return session;
+}
+
+export async function getCurrentUser(): Promise<User> {
+  const response = await apiRequest<{ user: User }>('GET', '/auth/me', undefined, { skipToast: true });
+  return response.user;
+}
+
+export interface UserList {
+  data: User[];
+  page: number; limit: number; total: number; total_pages: number;
+}
+export function listUsers(page = 1, limit = 20): Promise<UserList> {
+  return apiRequest('GET', `/users?page=${page}&limit=${limit}`);
+}
+export function createUser(data: { email: string; password: string; role: UserRole }): Promise<User> {
+  return apiRequest('POST', '/users', data, { skipToast: true });
+}
+export function updateUser(id: string, data: { role?: UserRole; enabled?: boolean }): Promise<User> {
+  return apiRequest('PATCH', `/users/${id}`, data, { skipToast: true });
+}
+export function resetUserPassword(id: string, password: string): Promise<User> {
+  return apiRequest('POST', `/users/${id}/reset-password`, { password }, { skipToast: true });
 }
 
 /** GET /api/v1/monitors?page=&limit=&type=&tag=key:value */

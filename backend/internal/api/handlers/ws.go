@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"encoding/json"
+	"context"
 	"log"
 	"net/http"
 	"strings"
@@ -9,6 +9,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 	"golang.org/x/crypto/bcrypt"
 
@@ -108,13 +109,13 @@ func (wh *WSHandler) Handle(c *gin.Context) {
 	}
 
 	// Register client with the hub.
-	client := wh.hub.RegisterClient(conn)
+	wh.hub.RegisterClient(conn, func() bool {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		validationContext := &gin.Context{Request: (&http.Request{}).WithContext(ctx)}
+		return wh.validateToken(validationContext, rawToken)
+	})
 
-	// Send initial connected message.
-	connMsg := hub.NewConnectedMessage(client.ID)
-	data, _ := json.Marshal(connMsg)
-	conn.SetWriteDeadline(time.Now().Add(10 * time.Second))
-	conn.WriteMessage(websocket.TextMessage, data)
 }
 
 // dummyHash for uniform timing on API token validation failures.
@@ -133,6 +134,14 @@ func (wh *WSHandler) validateToken(c *gin.Context, rawToken string) bool {
 			return wh.jwtSecret, nil
 		})
 		if err == nil && tok.Valid {
+			uid, parseErr := uuid.Parse(claims.UserID)
+			if parseErr != nil {
+				return false
+			}
+			user, err := wh.queries.GetUser(c.Request.Context(), uid)
+			if err != nil || !user.Enabled || user.MustChangePassword || user.SessionVersion != claims.SessionVersion {
+				return false
+			}
 			c.Set("user_id", claims.UserID)
 			return true
 		}
@@ -158,6 +167,10 @@ func (wh *WSHandler) validateToken(c *gin.Context, rawToken string) bool {
 			}
 			if candidates[i].ExpiresAt.Valid && candidates[i].ExpiresAt.Time.Before(time.Now()) {
 				continue
+			}
+			user, err := wh.queries.GetUser(c.Request.Context(), candidates[i].UserID)
+			if err != nil || !user.Enabled || user.MustChangePassword {
+				return false
 			}
 			c.Set("user_id", candidates[i].UserID.String())
 			return true

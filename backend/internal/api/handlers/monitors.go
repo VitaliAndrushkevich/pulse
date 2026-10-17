@@ -277,7 +277,7 @@ func (h *MonitorHandler) List(c *gin.Context) {
 		if err != nil {
 			monitorTags = []db.MonitorTag{}
 		}
-		data = append(data, toMonitorResponseWithTags(m, monitorTags))
+		data = append(data, monitorResponseForViewer(c, m, monitorTags))
 	}
 
 	totalPages := int(total) / limit
@@ -318,7 +318,7 @@ func (h *MonitorHandler) Get(c *gin.Context) {
 		monitorTags = []db.MonitorTag{}
 	}
 
-	c.JSON(http.StatusOK, toMonitorResponseWithTags(m, monitorTags))
+	c.JSON(http.StatusOK, monitorResponseForViewer(c, m, monitorTags))
 }
 
 // Put handles PUT /monitors/:id with idempotent create-or-update semantics.
@@ -513,6 +513,17 @@ func validateRetentionDays(days *int32) (int32, error) {
 		return 0, fmt.Errorf("history_retention_days must be between 1 and 365, got %d", *days)
 	}
 	return *days, nil
+}
+
+// monitorResponseForViewer hides free-form protocol configuration from viewers.
+// Headers, metadata, and request payloads can contain credentials under arbitrary
+// names, so filtering known secret keys would leave an unsafe response surface.
+func monitorResponseForViewer(c *gin.Context, m db.Monitor, monitorTags []db.MonitorTag) monitorResponse {
+	resp := toMonitorResponseWithTags(m, monitorTags)
+	if c.GetString("role") == "read_only" {
+		resp.Settings = json.RawMessage(`{}`)
+	}
+	return resp
 }
 
 func toMonitorResponse(m db.Monitor) monitorResponse {

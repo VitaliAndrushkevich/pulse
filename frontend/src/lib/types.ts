@@ -452,3 +452,13 @@ export interface ProtoField {
   message_fields?: ProtoField[];
   comment?: string;
 }
+
+export type UserRole = 'admin' | 'read_only';
+export interface User {
+  id: string;
+  email: string;
+  role: UserRole;
+  enabled: boolean;
+  must_change_password: boolean;
+  created_at: string;
+}

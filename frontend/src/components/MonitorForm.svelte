@@ -1,4 +1,5 @@
 <script lang="ts">
+  import SelectField from './SelectField.svelte';
   import type { MonitorType, GrpcSettings, DnsSettings, IcmpSettings, SmtpSettings, Tag } from '$lib/types';
   import type { CreateCredentialRequest } from '$lib/api';
   import { validateName, validateTarget, validateInterval, validateTimeout, validateType } from '$lib/validation';
@@ -306,7 +307,7 @@
   const monitorTypes: MonitorType[] = ['http', 'http3', 'tcp', 'udp', 'websocket', 'grpc', 'dns', 'icmp', 'smtp', 'quic'];
 </script>
 
-<form onsubmit={handleSubmit} class="mx-auto max-w-2xl space-y-6" data-testid="monitor-form">
+<form onsubmit={handleSubmit} class="pulse-editor-form space-y-6" data-testid="monitor-form">
   <!-- API Error Summary -->
   {#if apiError}
     <div
@@ -319,6 +320,7 @@
     </div>
   {/if}
 
+  <div class="pulse-panel space-y-6 p-5 sm:p-6">
   <!-- Name -->
   <div>
     <label for="monitor-name" class="block text-sm font-medium text-primary">{t('monitors.form.name')}</label>
@@ -328,7 +330,7 @@
       bind:value={name}
       onblur={() => markTouched('name')}
       placeholder={t('monitors.form.namePlaceholder')}
-      class="mt-1 block w-full rounded-md border border-[var(--color-border)] bg-surface px-3 py-2 text-sm text-primary shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+      class="mt-1 block w-full rounded-md border border-[var(--color-border)] bg-surface px-3 py-2 text-sm text-primary shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
       data-testid="input-name"
     />
     {#if touched.name && !nameValidation.valid}
@@ -339,17 +341,17 @@
   <!-- Type -->
   <div>
     <label for="monitor-type" class="block text-sm font-medium text-primary">{t('monitors.form.type')}</label>
-    <select
+    <SelectField
       id="monitor-type"
       bind:value={type}
       onblur={() => markTouched('type')}
-      class="mt-1 block w-full rounded-md border border-[var(--color-border)] bg-surface px-3 py-2 text-sm text-primary shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+      class="mt-1 w-full"
       data-testid="input-type"
     >
-      {#each monitorTypes as t}
+      {#each monitorTypes as t (t)}
         <option value={t}>{t === 'http' ? 'HTTP(S)' : t === 'http3' ? 'HTTP/3' : t === 'quic' ? 'QUIC' : t === 'grpc' ? 'gRPC' : t === 'dns' ? 'DNS' : t === 'icmp' ? 'ICMP' : t === 'smtp' ? 'SMTP' : t.toUpperCase()}</option>
       {/each}
-    </select>
+    </SelectField>
     {#if touched.type && !typeValidation.valid}
       <p class="mt-1 text-xs text-rose-600" data-testid="error-type">{typeValidation.error}</p>
     {/if}
@@ -364,7 +366,7 @@
       bind:value={target}
       onblur={() => markTouched('target')}
       placeholder={targetPlaceholder}
-      class="mt-1 block w-full rounded-md border border-[var(--color-border)] bg-surface px-3 py-2 text-sm text-primary shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+      class="mt-1 block w-full rounded-md border border-[var(--color-border)] bg-surface px-3 py-2 text-sm text-primary shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
       data-testid="input-target"
     />
     {#if touched.target && !targetValidation.valid}
@@ -374,7 +376,7 @@
   </div>
 
   <!-- Interval and Timeout -->
-  <div class="grid grid-cols-2 gap-4">
+  <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
     <div>
       <label for="monitor-interval" class="block text-sm font-medium text-primary">{t('monitors.form.interval')}</label>
       <input
@@ -384,7 +386,7 @@
         onblur={() => markTouched('interval')}
         min="10"
         max="86400"
-        class="mt-1 block w-full rounded-md border border-[var(--color-border)] bg-surface px-3 py-2 text-sm text-primary shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+        class="mt-1 block w-full rounded-md border border-[var(--color-border)] bg-surface px-3 py-2 text-sm text-primary shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
         data-testid="input-interval"
       />
       {#if touched.interval && !intervalValidation.valid}
@@ -401,7 +403,7 @@
         onblur={() => markTouched('timeout')}
         min="1"
         max="300"
-        class="mt-1 block w-full rounded-md border border-[var(--color-border)] bg-surface px-3 py-2 text-sm text-primary shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+        class="mt-1 block w-full rounded-md border border-[var(--color-border)] bg-surface px-3 py-2 text-sm text-primary shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
         data-testid="input-timeout"
       />
       {#if touched.timeout && !timeoutValidation.valid}
@@ -410,32 +412,14 @@
     </div>
   </div>
 
-  <!-- Status Toggle -->
-  <fieldset>
-    <legend class="block text-sm font-medium text-primary">{t('monitors.form.status')}</legend>
-    <div class="mt-1 flex items-center gap-4">
-      <label class="flex items-center gap-2 text-sm text-secondary">
-        <input
-          type="radio"
-          bind:group={status}
-          value="active"
-          class="text-blue-600 focus:ring-blue-500"
-          data-testid="input-status-active"
-        />
-        {t('monitors.form.statusActive')}
-      </label>
-      <label class="flex items-center gap-2 text-sm text-secondary">
-        <input
-          type="radio"
-          bind:group={status}
-          value="paused"
-          class="text-blue-600 focus:ring-blue-500"
-          data-testid="input-status-paused"
-        />
-        {t('monitors.form.statusPaused')}
-      </label>
-    </div>
-  </fieldset>
+  <!-- Status -->
+  <div>
+    <label for="monitor-status" class="block text-sm font-medium text-primary">{t('monitors.form.status')}</label>
+    <SelectField id="monitor-status" bind:value={status} class="mt-1 w-full sm:max-w-xs" data-testid="input-status">
+      <option value="active">{t('monitors.form.statusActive')}</option>
+      <option value="paused">{t('monitors.form.statusPaused')}</option>
+    </SelectField>
+  </div>
 
   <!-- History Retention Days -->
   <div>
@@ -446,7 +430,7 @@
       bind:value={history_retention_days}
       min="1"
       max="365"
-      class="mt-1 block w-full rounded-md border border-[var(--color-border)] bg-surface px-3 py-2 text-sm text-primary shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+      class="mt-1 block w-full rounded-md border border-[var(--color-border)] bg-surface px-3 py-2 text-sm text-primary shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
       data-testid="input-retention-days"
     />
     <p class="mt-1 text-xs text-secondary">{t('monitors.form.retentionHelp')}</p>
@@ -463,17 +447,17 @@
         type="text"
         bind:value={expectedStatusCodes}
         placeholder={t('monitors.form.expectedStatusCodesPlaceholder')}
-        class="mt-1 block w-full rounded-md border border-[var(--color-border)] bg-surface px-3 py-2 text-sm text-primary shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+        class="mt-1 block w-full rounded-md border border-[var(--color-border)] bg-surface px-3 py-2 text-sm text-primary shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
         data-testid="input-expected-status-codes"
       />
       <p class="mt-1 text-xs text-secondary">{t('monitors.form.expectedStatusCodesHelp')}</p>
     </div>
     <div class="mt-2">
-      <label class="inline-flex items-center gap-2 text-sm text-slate-700">
+      <label class="inline-flex items-center gap-2 text-sm text-primary">
         <input id="skip-tls-verify" type="checkbox" bind:checked={skipTLSVerify} class="h-4 w-4" data-testid="input-skip-tls-verify" />
         <span>{t('monitors.form.skipTlsVerify')}</span>
       </label>
-      <p class="mt-1 text-xs text-slate-500">{t('monitors.form.skipTlsVerifyHelp')}</p>
+      <p class="mt-1 text-xs text-secondary">{t('monitors.form.skipTlsVerifyHelp')}</p>
     </div>
 
     <!-- Custom Headers (up to 5, non-secret) -->
@@ -484,7 +468,7 @@
           <button
             type="button"
             onclick={() => { customHeaders.push({ key: '', value: '' }); }}
-            class="text-xs font-medium text-blue-600 hover:text-blue-800"
+            class="text-xs font-medium text-brand-600 hover:text-brand-800"
             data-testid="btn-add-header"
           >
             {t('monitors.form.addHeader')}
@@ -502,14 +486,14 @@
                 type="text"
                 bind:value={header.key}
                 placeholder={t('monitors.form.headerNamePlaceholder')}
-                class="block w-1/3 rounded-md border border-[var(--color-border)] bg-surface px-3 py-1.5 text-sm text-primary shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                class="block w-1/3 rounded-md border border-[var(--color-border)] bg-surface px-3 py-1.5 text-sm text-primary shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
                 data-testid="input-header-key-{i}"
               />
               <input
                 type="text"
                 bind:value={header.value}
                 placeholder={t('monitors.form.headerValuePlaceholder')}
-                class="block flex-1 rounded-md border border-[var(--color-border)] bg-surface px-3 py-1.5 text-sm text-primary shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                class="block flex-1 rounded-md border border-[var(--color-border)] bg-surface px-3 py-1.5 text-sm text-primary shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
                 data-testid="input-header-value-{i}"
               />
               <button
@@ -539,7 +523,7 @@
         type="text"
         bind:value={payload}
         placeholder={t('monitors.form.payloadPlaceholder')}
-        class="mt-1 block w-full rounded-md border border-[var(--color-border)] bg-surface px-3 py-2 text-sm text-primary shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+        class="mt-1 block w-full rounded-md border border-[var(--color-border)] bg-surface px-3 py-2 text-sm text-primary shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
         data-testid="input-payload"
       />
       <p class="mt-1 text-xs text-secondary">{t('monitors.form.payloadHelp')}</p>
@@ -556,7 +540,7 @@
         type="text"
         bind:value={expectedStatusCodes}
         placeholder={t('monitors.form.wsExpectedStatusCodesPlaceholder')}
-        class="mt-1 block w-full rounded-md border border-[var(--color-border)] bg-surface px-3 py-2 text-sm text-primary shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+        class="mt-1 block w-full rounded-md border border-[var(--color-border)] bg-surface px-3 py-2 text-sm text-primary shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
         data-testid="input-ws-expected-status-codes"
       />
       <p class="mt-1 text-xs text-secondary">{t('monitors.form.wsExpectedStatusCodesHelp')}</p>
@@ -568,17 +552,17 @@
         type="text"
         bind:value={handshakeMessage}
         placeholder={t('monitors.form.handshakeMessagePlaceholder')}
-        class="mt-1 block w-full rounded-md border border-[var(--color-border)] bg-surface px-3 py-2 text-sm text-primary shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+        class="mt-1 block w-full rounded-md border border-[var(--color-border)] bg-surface px-3 py-2 text-sm text-primary shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
         data-testid="input-handshake-message"
       />
       <p class="mt-1 text-xs text-secondary">{t('monitors.form.handshakeMessageHelp')}</p>
     </div>
     <div class="mt-2">
-      <label class="inline-flex items-center gap-2 text-sm text-slate-700">
+      <label class="inline-flex items-center gap-2 text-sm text-primary">
         <input id="ws-skip-tls-verify" type="checkbox" bind:checked={skipTLSVerify} class="h-4 w-4" data-testid="input-ws-skip-tls-verify" />
         <span>{t('monitors.form.skipTlsVerify')}</span>
       </label>
-      <p class="mt-1 text-xs text-slate-500">{t('monitors.form.skipTlsVerifyHelp')}</p>
+      <p class="mt-1 text-xs text-secondary">{t('monitors.form.skipTlsVerifyHelp')}</p>
     </div>
   {/if}
 
@@ -636,23 +620,25 @@
   {#if secrets && secrets.length > 0}
     <div>
       <label for="monitor-secret" class="block text-sm font-medium text-primary">{t('monitors.form.secretReference')}</label>
-      <select
+      <SelectField
         id="monitor-secret"
         bind:value={selectedSecretId}
-        class="mt-1 block w-full rounded-md border border-[var(--color-border)] bg-surface px-3 py-2 text-sm text-primary shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+        class="mt-1 w-full"
         data-testid="input-secret"
       >
         <option value="">{t('common.none')}</option>
         {#each secrets as secret}
           <option value={secret.id}>{formatSecretReference(secret.name, secret.id)}</option>
         {/each}
-      </select>
+      </SelectField>
       <p class="mt-1 text-xs text-secondary">{t('monitors.form.secretReferenceHelp')}</p>
     </div>
   {/if}
 
   <!-- Tags -->
   <TagEditor tags={formTags} onchange={(updated) => { formTags = updated; }} />
+
+  </div>
 
   <!-- Notification Bindings (create mode — pending, no API calls until submit) -->
   {#if mode === 'create'}
@@ -668,7 +654,7 @@
   {/if}
 
   <!-- Form Actions -->
-  <div class="flex items-center justify-end gap-3 border-t border-[var(--color-border)] pt-4">
+  <div class="pulse-editor-actions">
     <button
       type="button"
       onclick={onCancel}
@@ -680,7 +666,7 @@
     <button
       type="submit"
       disabled={!isFormValid || submitting}
-      class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+      class="rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-50"
       data-testid="btn-submit"
     >
       {#if submitting}

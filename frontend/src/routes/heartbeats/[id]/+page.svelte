@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { isAdmin } from '$lib/stores/auth.svelte';
   import { page } from '$app/stores';
   import { goto } from '$app/navigation';
   import { untrack } from 'svelte';
@@ -140,6 +141,7 @@
         ></span>
         <h1 class="truncate text-2xl font-bold tracking-tight text-primary">{heartbeat.name}</h1>
       </div>
+      {#if isAdmin()}
       <div class="flex items-center gap-2">
         <a
           href="/heartbeats/{heartbeat.id}/edit"
@@ -156,6 +158,7 @@
           {t('heartbeats.delete')}
         </button>
       </div>
+      {/if}
     </div>
 
     <!-- Overview fields -->
@@ -201,6 +204,7 @@
         </div>
       {/if}
 
+      {#if isAdmin()}
       <!-- Ping URL / rotate -->
       <div class="mt-6 border-t border-[var(--color-border)] pt-4">
         <div class="flex items-center justify-between">
@@ -215,13 +219,14 @@
           </button>
         </div>
       </div>
+      {/if}
     </div>
 
     <!-- Usage examples -->
-    <PingExamples {pingUrl} {pingFailUrl} />
+    {#if isAdmin()}<PingExamples {pingUrl} {pingFailUrl} />{/if}
 
     <!-- Notification bindings -->
-    <HeartbeatBindings heartbeatId={heartbeat.id} />
+    {#if isAdmin()}<HeartbeatBindings heartbeatId={heartbeat.id} />{/if}
   {/if}
 </section>
 

@@ -1,7 +1,16 @@
 openapi: 3.0.3
 info:
   title: Pulse API
-  description: Self-hosted uptime monitoring platform API.
+  description: >
+    Self-hosted uptime monitoring platform API. Administrators have full access.
+    Read-only users can view monitoring data and change their own password; all
+    writes, user/token administration, credentials and notification configuration
+    require an administrator. Authentication reads the current account role and
+    enabled status on every request. Disabled accounts and revoked sessions get
+    401. Temporary-password sessions can only access JWT-only /auth/me and
+    /auth/password; other requests get 403 PASSWORD_CHANGE_REQUIRED. API tokens
+    inherit their owner permissions and cannot be used while a password change is
+    required. Existing WebSocket sessions are revalidated at most every 54 seconds.
   version: 1.0.0
   contact:
     name: Pulse
@@ -14,6 +23,155 @@ security:
   - bearerAuth: []
 
 paths:
+  /auth/me:
+    get:
+      operationId: getCurrentUser
+      summary: Get current session identity
+      description: JWT only; available while a temporary password change is required.
+      tags: [Auth]
+      responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "200":
+          description: Current user identity
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [user]
+                properties:
+                  user:
+                    $ref: "#/components/schemas/User"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /users:
+    get:
+      operationId: listUsers
+      summary: List user accounts (administrator only)
+      tags: [Users]
+      parameters:
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "200":
+          description: Paginated users
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserList"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    post:
+      operationId: createUser
+      summary: Create user with temporary password (administrator only)
+      description: Account is enabled and must replace its temporary password at first login.
+      tags: [Users]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateUserRequest"
+      responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "201":
+          description: User created; password is never returned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "409":
+          description: EMAIL_EXISTS
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /users/{id}:
+    patch:
+      operationId: updateUser
+      summary: Update role or enabled status (administrator only)
+      description: >
+        Self-disable and self-demotion are rejected. Changes serialize to protect
+        the last enabled administrator. Role changes and disable revoke sessions.
+      tags: [Users]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateUserRequest"
+      responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "200":
+          description: Updated user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: SELF_UPDATE_FORBIDDEN or LAST_ADMIN
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /users/{id}/reset-password:
+    post:
+      operationId: resetUserPassword
+      summary: Assign a new temporary password (administrator only)
+      description: Revokes existing sessions and requires password change at next login.
+      tags: [Users]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResetUserPasswordRequest"
+      responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "200":
+          description: Updated user; password is never returned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
   /auth/login:
     post:
       operationId: login
@@ -35,6 +193,12 @@ paths:
                 $ref: "#/components/schemas/LoginResponse"
         "401":
           $ref: "#/components/responses/Unauthorized"
+        "500":
+          description: Authentication storage is unavailable or inconsistent (INTERNAL_ERROR); credentials are not rejected as invalid.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
   /auth/password:
     put:
@@ -48,16 +212,18 @@ paths:
             schema:
               $ref: "#/components/schemas/ChangePasswordRequest"
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "200":
           description: Password updated successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ChangePasswordResponse"
+                $ref: "#/components/schemas/LoginResponse"
         "400":
           description: >
             Validation error. Possible error codes: VALIDATION_ERROR (missing fields,
-            password too short < 8 characters, or too long > 72 bytes).
+            password shorter than 8 bytes, longer than 72 bytes, or unchanged).
           content:
             application/json:
               schema:
@@ -131,7 +297,7 @@ paths:
           description: >
             Validation error. Error code: VALIDATION_ERROR.
             Returned when email or password is missing, or when the password
-            is shorter than 8 characters.
+            is shorter than 8 bytes or longer than 72 bytes.
           content:
             application/json:
               schema:
@@ -171,6 +337,8 @@ paths:
           style: form
           explode: true
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "200":
           description: Paginated list of monitors
           content:
@@ -203,6 +371,8 @@ paths:
                   authorization: "Bearer token123"
                 expected_statuses: [0]
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "201":
           description: Monitor created
           content:
@@ -229,6 +399,8 @@ paths:
       parameters:
         - $ref: "#/components/parameters/MonitorID"
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "200":
           description: Monitor details
           content:
@@ -250,6 +422,8 @@ paths:
             schema:
               $ref: "#/components/schemas/PutMonitorRequest"
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "200":
           description: Monitor created or updated
           content:
@@ -274,6 +448,8 @@ paths:
       parameters:
         - $ref: "#/components/parameters/MonitorID"
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "204":
           description: Monitor deleted
         "401":
@@ -316,6 +492,8 @@ paths:
             minimum: 60
             maximum: 86400
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "200":
           description: Check history points (raw or aggregated depending on step)
           content:
@@ -337,6 +515,8 @@ paths:
         - $ref: "#/components/parameters/Page"
         - $ref: "#/components/parameters/Limit"
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "200":
           description: Paginated list of incidents
           content:
@@ -354,6 +534,8 @@ paths:
       parameters:
         - $ref: "#/components/parameters/MonitorID"
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "200":
           description: Monitor statistics
           content:
@@ -389,6 +571,8 @@ paths:
                     format: binary
                   description: ".proto files or a single .desc (FileDescriptorSet) file"
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "200":
           description: Proto source uploaded and parsed successfully
           content:
@@ -417,6 +601,8 @@ paths:
       parameters:
         - $ref: "#/components/parameters/MonitorID"
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "200":
           description: Proto source metadata
           content:
@@ -444,6 +630,8 @@ paths:
       parameters:
         - $ref: "#/components/parameters/MonitorID"
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "200":
           description: Proto source deleted (or did not exist)
           content:
@@ -477,6 +665,8 @@ paths:
             schema:
               type: object
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "200":
           description: Reflection succeeded, proto source updated
           content:
@@ -555,6 +745,8 @@ paths:
                     grpc.reflection.v1.ServerReflection) in the discovered service list.
                     By default these are filtered out to show only application services.
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "200":
           description: Reflection succeeded
           content:
@@ -613,6 +805,8 @@ paths:
                     One or more .proto, .desc, or .bin files to parse.
                     Maximum 5MB total.
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "200":
           description: Proto files parsed successfully
           content:
@@ -649,6 +843,8 @@ paths:
             schema:
               $ref: "#/components/schemas/CreateMonitorCredentialRequest"
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "201":
           description: Credential created (secret values not returned)
           content:
@@ -677,6 +873,8 @@ paths:
       parameters:
         - $ref: "#/components/parameters/MonitorID"
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "200":
           description: List of credential metadata
           content:
@@ -712,6 +910,8 @@ paths:
             schema:
               $ref: "#/components/schemas/UpdateMonitorCredentialRequest"
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "200":
           description: Credential updated (secret values not returned)
           content:
@@ -741,6 +941,8 @@ paths:
         - $ref: "#/components/parameters/MonitorID"
         - $ref: "#/components/parameters/CredentialID"
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "204":
           description: Credential deleted
         "401":
@@ -761,6 +963,8 @@ paths:
       description: Returns all distinct tag keys currently in use across all monitors. Used for frontend autocomplete.
       tags: [Tags]
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "200":
           description: List of distinct tag keys
           content:
@@ -785,6 +989,8 @@ paths:
             type: string
             pattern: "^[a-z][a-z0-9_-]{0,63}$"
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "200":
           description: List of distinct values for the tag key
           content:
@@ -809,6 +1015,8 @@ paths:
             type: string
             enum: [open]
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "200":
           description: Paginated list of incidents
           content:
@@ -827,6 +1035,8 @@ paths:
         - $ref: "#/components/parameters/Page"
         - $ref: "#/components/parameters/Limit"
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "200":
           description: Paginated list of tokens
           content:
@@ -846,6 +1056,8 @@ paths:
             schema:
               $ref: "#/components/schemas/CreateTokenRequest"
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "201":
           description: Token created (raw value shown only at creation)
           content:
@@ -874,6 +1086,8 @@ paths:
             type: string
             enum: ["true"]
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "200":
           description: Token revoked or deleted
           content:
@@ -897,6 +1111,8 @@ paths:
         failures are reflected via the `partial_data` flag in the health score.
       tags: [Dashboard]
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "200":
           description: Aggregated dashboard summary
           content:
@@ -921,6 +1137,8 @@ paths:
         - $ref: "#/components/parameters/Page"
         - $ref: "#/components/parameters/Limit"
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "200":
           description: Paginated list of notification channels
           headers:
@@ -943,6 +1161,8 @@ paths:
             schema:
               $ref: "#/components/schemas/CreateNotificationChannelRequest"
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "201":
           description: Channel created
           headers:
@@ -965,6 +1185,8 @@ paths:
       parameters:
         - $ref: "#/components/parameters/NotificationChannelID"
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "200":
           description: Channel details (header values redacted)
           headers:
@@ -991,6 +1213,8 @@ paths:
             schema:
               $ref: "#/components/schemas/CreateNotificationChannelRequest"
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "200":
           description: Channel updated
           headers:
@@ -1014,6 +1238,8 @@ paths:
       parameters:
         - $ref: "#/components/parameters/NotificationChannelID"
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "204":
           description: Channel deleted
           headers:
@@ -1034,6 +1260,8 @@ paths:
         - $ref: "#/components/parameters/Page"
         - $ref: "#/components/parameters/Limit"
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "200":
           description: Paginated list of bindings for the monitor
           headers:
@@ -1063,6 +1291,8 @@ paths:
             schema:
               $ref: "#/components/schemas/CreateNotificationBindingRequest"
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "201":
           description: Binding created
           headers:
@@ -1100,6 +1330,8 @@ paths:
             schema:
               $ref: "#/components/schemas/UpdateNotificationBindingRequest"
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "200":
           description: Binding updated
           headers:
@@ -1123,6 +1355,8 @@ paths:
         - $ref: "#/components/parameters/MonitorID"
         - $ref: "#/components/parameters/BindingID"
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "204":
           description: Binding deleted
           headers:
@@ -1142,6 +1376,8 @@ paths:
         - $ref: "#/components/parameters/Page"
         - $ref: "#/components/parameters/Limit"
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "200":
           description: Paginated list of heartbeats
           headers:
@@ -1170,6 +1406,8 @@ paths:
             schema:
               $ref: "#/components/schemas/CreateHeartbeatRequest"
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "201":
           description: Heartbeat created; raw ping token returned once
           headers:
@@ -1198,6 +1436,8 @@ paths:
       parameters:
         - $ref: "#/components/parameters/HeartbeatID"
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "200":
           description: Heartbeat details (no raw token or hash)
           headers:
@@ -1236,6 +1476,8 @@ paths:
             schema:
               $ref: "#/components/schemas/CreateHeartbeatRequest"
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "200":
           description: >
             Heartbeat created or updated. On create via PUT the body is a
@@ -1276,6 +1518,8 @@ paths:
       parameters:
         - $ref: "#/components/parameters/HeartbeatID"
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "204":
           description: Heartbeat deleted
           headers:
@@ -1301,6 +1545,8 @@ paths:
       parameters:
         - $ref: "#/components/parameters/HeartbeatID"
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "200":
           description: New ping token issued; raw token returned once
           headers:
@@ -1331,6 +1577,8 @@ paths:
         - $ref: "#/components/parameters/Page"
         - $ref: "#/components/parameters/Limit"
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "200":
           description: Paginated list of bindings for the heartbeat
           headers:
@@ -1362,6 +1610,8 @@ paths:
             schema:
               $ref: "#/components/schemas/CreateHeartbeatBindingRequest"
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "201":
           description: Binding created
           headers:
@@ -1406,6 +1656,8 @@ paths:
             schema:
               $ref: "#/components/schemas/UpdateHeartbeatBindingRequest"
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "200":
           description: Binding updated
           headers:
@@ -1434,6 +1686,8 @@ paths:
         - $ref: "#/components/parameters/HeartbeatID"
         - $ref: "#/components/parameters/BindingID"
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "204":
           description: Binding deleted
           headers:
@@ -1565,6 +1819,8 @@ paths:
         prefix (monitor, Incident, top-level).
       tags: [Notifications]
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "200":
           description: Template variable reference grouped by prefix
           headers:
@@ -1590,6 +1846,8 @@ paths:
       parameters:
         - $ref: "#/components/parameters/NotificationChannelID"
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "200":
           description: Test result (success or failure with error detail)
           headers:
@@ -1620,6 +1878,8 @@ paths:
         configured, returns `{ "configured": false }`.
       tags: [Notifications]
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "200":
           description: SMTP configuration (password redacted)
           headers:
@@ -1646,6 +1906,8 @@ paths:
             schema:
               $ref: "#/components/schemas/SMTPSettingsRequest"
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "200":
           description: SMTP settings saved
           headers:
@@ -1670,6 +1932,8 @@ paths:
         Deletes the SMTP configuration row, disabling email notifications.
       tags: [Notifications]
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "204":
           description: SMTP settings deleted
           headers:
@@ -1691,6 +1955,8 @@ paths:
         - $ref: "#/components/parameters/Page"
         - $ref: "#/components/parameters/Limit"
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "200":
           description: Paginated list of delivery logs
           headers:
@@ -1715,6 +1981,8 @@ paths:
         Returns the result synchronously.
       tags: [Notifications]
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "200":
           description: Test result (success or failure with error detail)
           headers:
@@ -1815,6 +2083,14 @@ components:
         type: string
 
   responses:
+    Forbidden:
+      description: >
+        FORBIDDEN (administrator role or JWT session required) or
+        PASSWORD_CHANGE_REQUIRED (replace the temporary password first).
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
     BadRequest:
       description: Validation error
       content:
@@ -1843,6 +2119,74 @@ components:
         example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
 
   schemas:
+    User:
+      type: object
+      required: [id, email, role, enabled, must_change_password, created_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        role:
+          type: string
+          enum: [admin, read_only]
+        enabled:
+          type: boolean
+        must_change_password:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+    UserList:
+      type: object
+      required: [data, page, limit, total, total_pages]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/User"
+        page:
+          type: integer
+        limit:
+          type: integer
+        total:
+          type: integer
+          format: int64
+        total_pages:
+          type: integer
+    CreateUserRequest:
+      type: object
+      required: [email, password, role]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+          description: Administrator-assigned temporary password, 8–72 bytes
+        role:
+          type: string
+          enum: [admin, read_only]
+    UpdateUserRequest:
+      type: object
+      minProperties: 1
+      properties:
+        role:
+          type: string
+          enum: [admin, read_only]
+        enabled:
+          type: boolean
+    ResetUserPasswordRequest:
+      type: object
+      required: [password]
+      properties:
+        password:
+          type: string
+          minLength: 8
+          description: Administrator-assigned temporary password, 8–72 bytes
     ErrorResponse:
       type: object
       required: [error]
@@ -1856,6 +2200,11 @@ components:
               description: >
                 Machine-readable error code. Known codes include:
                 VALIDATION_ERROR - general field validation failure;
+                FORBIDDEN - administrator role or a user session is required;
+                PASSWORD_CHANGE_REQUIRED - replace temporary password before accessing the application;
+                EMAIL_EXISTS - email already belongs to an account;
+                SELF_UPDATE_FORBIDDEN - cannot disable or demote own account;
+                LAST_ADMIN - cannot remove the last active administrator;
                 TEMPLATE_ERROR - webhook template parsing or unknown variable error;
                 NOT_FOUND - referenced resource does not exist;
                 CONFLICT - duplicate resource (e.g., binding for same channel-monitor pair);
@@ -1892,11 +2241,13 @@ components:
 
     LoginResponse:
       type: object
-      required: [token, expires_at]
+      required: [token, expires_at, user]
       properties:
         token:
           type: string
-          description: JWT token
+          description: JWT token; previous sessions are revoked after password changes
+        user:
+          $ref: "#/components/schemas/User"
         expires_at:
           type: string
           format: date-time
@@ -1912,15 +2263,7 @@ components:
           type: string
           minLength: 8
           description: >
-            New password (minimum 8 characters, maximum 72 bytes due to bcrypt limit)
-
-    ChangePasswordResponse:
-      type: object
-      required: [message]
-      properties:
-        message:
-          type: string
-          example: "password updated successfully"
+            New password (8–72 bytes, must differ from the current password)
 
     SetupRequest:
       type: object
@@ -1933,7 +2276,7 @@ components:
         password:
           type: string
           minLength: 8
-          description: Admin user password (minimum 8 characters)
+          description: Admin user password (8–72 bytes)
 
     SetupStatusResponse:
       type: object
@@ -1990,7 +2333,7 @@ components:
           nullable: true
         settings:
           type: object
-          description: "Type-specific settings. For type=http/http3/quic, see HTTPSettings. For type=websocket, see WebSocketSettings. For type=grpc, see GRPCSettings. For type=dns, see DNSSettings. For type=icmp, see ICMPSettings. For type=smtp, see SMTPSettings."
+          description: "Type-specific settings. For type=http/http3/quic, see HTTPSettings. For type=websocket, see WebSocketSettings. For type=grpc, see GRPCSettings. For type=dns, see DNSSettings. For type=icmp, see ICMPSettings. For type=smtp, see SMTPSettings. Empty object for read-only accounts to avoid revealing embedded credentials."
         history_retention_days:
           type: integer
           minimum: 1

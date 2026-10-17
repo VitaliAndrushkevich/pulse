@@ -27,28 +27,28 @@ import (
 
 // Deps holds shared dependencies injected into the router.
 type Deps struct {
-	Queries        *db.Queries
-	Pool           *pgxpool.Pool
-	SecretKey      []byte
-	JWTSecret      []byte
-	JWTExpiry      time.Duration
-	TimescaleStore *timescale.Store
-	Metrics        *handlers.Metrics
-	PromRegistry   *prometheus.Registry
-	Hub            *hub.Hub
-	SMTPClient     *smtpclient.Client // nil if SMTP not configured
-	DevMode        bool
-	OpenAPIDir     string // directory containing openapi.yaml, used for swagger in dev mode
-	BaseURL        string // public base URL for notification links
+	Queries         *db.Queries
+	Pool            *pgxpool.Pool
+	SecretKey       []byte
+	JWTSecret       []byte
+	JWTExpiry       time.Duration
+	TimescaleStore  *timescale.Store
+	Metrics         *handlers.Metrics
+	PromRegistry    *prometheus.Registry
+	Hub             *hub.Hub
+	SMTPClient      *smtpclient.Client // nil if SMTP not configured
+	DevMode         bool
+	OpenAPIDir      string // directory containing openapi.yaml, used for swagger in dev mode
+	BaseURL         string // public base URL for notification links
 	MetricsUser     string // Basic Auth username for /metrics (empty = no auth)
 	MetricsPassword string // Basic Auth password for /metrics (empty = no auth)
 	ResetAdmin      bool   // PULSE_RESET_ADMIN — re-enables setup flow for credential reset
 
 	// Heartbeat subsystem (heartbeat-monitoring). All may be nil, in which case
 	// heartbeat routes are still registered but metrics/dispatch are skipped.
-	HeartbeatMetrics    *heartbeat.Metrics          // shared Prometheus gauges
+	HeartbeatMetrics    *heartbeat.Metrics             // shared Prometheus gauges
 	HeartbeatStateClear handlers.HeartbeatStateClearer // notification dedup state clearer (StateTracker)
-	PingDispatcher      handlers.PingDispatcher     // heartbeat ping notification seam (Phase 4)
+	PingDispatcher      handlers.PingDispatcher        // heartbeat ping notification seam (Phase 4)
 }
 
 func NewRouter(deps Deps) *gin.Engine {
@@ -95,12 +95,14 @@ func NewRouter(deps Deps) *gin.Engine {
 
 	// Initial setup endpoint — create first admin user (no auth required).
 	// When ResetAdmin is true, the setup flow is re-enabled for credential reset.
-	setupHandler := handlers.NewSetupHandler(deps.Queries, deps.JWTSecret, deps.JWTExpiry, deps.ResetAdmin)
+	setupHandler := handlers.NewSetupHandler(deps.Queries, deps.JWTSecret, deps.JWTExpiry, deps.ResetAdmin, deps.Pool)
 	setupHandler.Register(v1)
 
 	// Protected group — requires valid JWT or Bearer API token.
 	protected := v1.Group("")
-	protected.Use(combinedAuth(deps.Queries, deps.JWTSecret))
+	protected.Use(combinedAuth(deps.Queries, deps.JWTSecret), authorizeRequest())
+	protected.GET("/auth/me", authHandler.Me)
+	handlers.NewUserHandler(deps.Queries, deps.Pool).Register(protected)
 
 	// Authenticated password change (password-reset spec, Req 4.1).
 	protected.PUT("/auth/password", authHandler.ChangePassword)
@@ -223,8 +225,17 @@ func combinedAuth(queries *db.Queries, jwtSecret []byte) gin.HandlerFunc {
 				return jwtSecret, nil
 			})
 			if err == nil && tok.Valid {
-				c.Set("user_id", claims.UserID)
-				c.Set("email", claims.Email)
+				uid, parseErr := uuid.Parse(claims.UserID)
+				if parseErr != nil {
+					unauthorized(c)
+					return
+				}
+				user, userErr := queries.GetUser(c.Request.Context(), uid)
+				if userErr != nil || !user.Enabled || user.SessionVersion != claims.SessionVersion {
+					unauthorized(c)
+					return
+				}
+				setIdentity(c, user, "jwt")
 				c.Next()
 				return
 			}
@@ -270,10 +281,53 @@ func combinedAuth(queries *db.Queries, jwtSecret []byte) gin.HandlerFunc {
 			return
 		}
 
+		user, err := queries.GetUser(c.Request.Context(), matched.UserID)
+		if err != nil || !user.Enabled || user.MustChangePassword {
+			unauthorized(c)
+			return
+		}
 		_ = queries.TouchAPIToken(c.Request.Context(), matched.ID)
-		c.Set("user_id", matched.UserID.String())
+		setIdentity(c, user, "api_token")
 		c.Next()
 	}
+}
+
+func setIdentity(c *gin.Context, user db.User, kind string) {
+	c.Set("user_id", user.ID.String())
+	c.Set("session_version", user.SessionVersion)
+	c.Set("email", user.Email)
+	c.Set("role", user.Role)
+	c.Set("must_change_password", user.MustChangePassword)
+	c.Set("auth_type", kind)
+}
+
+func authorizeRequest() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		path := c.Request.URL.Path
+		accountRoute := path == "/api/v1/auth/me" || path == "/api/v1/auth/password"
+		if accountRoute {
+			if c.GetString("auth_type") != "jwt" {
+				forbidden(c, "FORBIDDEN", "a user session is required")
+				return
+			}
+			c.Next()
+			return
+		}
+		if c.GetBool("must_change_password") {
+			forbidden(c, "PASSWORD_CHANGE_REQUIRED", "change your temporary password before continuing")
+			return
+		}
+		adminOnly := c.Request.Method != http.MethodGet && c.Request.Method != http.MethodHead
+		adminOnly = adminOnly || strings.HasPrefix(path, "/api/v1/users") || strings.HasPrefix(path, "/api/v1/tokens") || strings.HasPrefix(path, "/api/v1/notifications") || strings.Contains(path, "/credentials")
+		if adminOnly && c.GetString("role") != "admin" {
+			forbidden(c, "FORBIDDEN", "administrator access required")
+			return
+		}
+		c.Next()
+	}
+}
+func forbidden(c *gin.Context, code, message string) {
+	c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": gin.H{"code": code, "message": message}})
 }
 
 func unauthorized(c *gin.Context) {

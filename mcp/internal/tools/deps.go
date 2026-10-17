@@ -18,6 +18,8 @@ type Deps struct {
 }
 
 // mapPulseError maps Pulse API errors and connectivity errors to MCP errors.
+// Preserve FORBIDDEN and PASSWORD_CHANGE_REQUIRED so callers can distinguish
+// account restrictions from the MCP server's local WRITE_DISABLED policy.
 func mapPulseError(err error) error {
 	var pe *pulseapi.PulseError
 	if errors.As(err, &pe) {

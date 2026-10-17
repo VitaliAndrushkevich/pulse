@@ -1,4 +1,5 @@
 <script lang="ts">
+  import SelectField from './SelectField.svelte';
   import { onMount } from 'svelte';
   import { listNotificationChannels } from '$lib/api';
   import type { NotificationChannel, TriggerCondition, TriggerType } from '$lib/types';
@@ -240,17 +241,17 @@
         <!-- Channel selector -->
         <div class="mb-3">
           <label class="text-xs font-medium text-secondary" for="pending-channel-select">{t('notifications.bindings.channel')}</label>
-          <select
+          <SelectField
             id="pending-channel-select"
             bind:value={selectedChannelId}
-            class="mt-1 block w-full rounded-md border border-[var(--color-border)] bg-page px-2 py-1.5 text-sm text-primary"
+            class="mt-1 w-full"
             data-testid="pending-channel-select"
           >
             <option value="">{t('notifications.bindings.channelPlaceholder')}</option>
             {#each availableChannels() as channel}
               <option value={channel.id}>{channel.name} ({channel.type})</option>
             {/each}
-          </select>
+          </SelectField>
         </div>
 
         <!-- Trigger conditions -->
@@ -317,16 +318,16 @@
         <!-- Reminder policy -->
         <div class="mb-3">
           <label class="text-xs font-medium text-secondary" for="pending-reminder-select">{t('notifications.reminders.interval')}</label>
-          <select
+          <SelectField
             id="pending-reminder-select"
             bind:value={addReminderInterval}
-            class="mt-1 block w-48 rounded-md border border-[var(--color-border)] bg-page px-2 py-1.5 text-sm text-primary"
+            class="mt-1 w-48"
             data-testid="pending-reminder-select"
           >
             {#each reminderOptions as opt}
               <option value={opt.value}>{opt.label}</option>
             {/each}
-          </select>
+          </SelectField>
         </div>
 
         <!-- Validation error -->

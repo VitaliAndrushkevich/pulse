@@ -1,4 +1,5 @@
 <script lang="ts">
+  import SelectField from './SelectField.svelte';
   import { onMount } from 'svelte';
   import {
     listNotificationChannels,
@@ -320,17 +321,17 @@
 
           <div class="mb-3">
             <label class="text-xs font-medium text-secondary" for="add-hb-channel-select">{t('heartbeats.bindings.title')}</label>
-            <select
+            <SelectField
               id="add-hb-channel-select"
               bind:value={selectedChannelId}
-              class="mt-1 block w-full rounded-md border border-[var(--color-border)] bg-page px-2 py-1.5 text-sm text-primary"
+              class="mt-1 w-full"
               data-testid="hb-channel-select"
             >
               <option value="">{t('common.none')}</option>
               {#each availableChannels() as channel}
                 <option value={channel.id}>{channel.name} ({channel.type})</option>
               {/each}
-            </select>
+            </SelectField>
           </div>
 
           <div class="mb-3 space-y-2">

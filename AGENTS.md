@@ -74,7 +74,7 @@ Core outcomes:
 - Property-based tests use `pgregory.net/rapid` (backend and MCP).
 
 ## Frontend Conventions
-- Svelte 5 with SvelteKit 2, TypeScript strict, Tailwind CSS 3.4. Tests: Vitest + fast-check + @testing-library/svelte.
+- Svelte 5 with SvelteKit 2, Vite 8 + Svelte Vite plugin 7, TypeScript strict, Tailwind CSS 3.4. Node 22.12+ or a newer supported LTS; exact versions in `frontend/package.json`. Tests: Vitest + fast-check + @testing-library/svelte.
 - **pnpm** is the package manager for the `frontend/` directory — use `pnpm` for dependency installation (`pnpm install`), script execution (`pnpm <script>`), and lockfile management (`pnpm-lock.yaml`). Run `pnpm install` before any script (a fresh checkout has no `node_modules`).
 - Static adapter (`@sveltejs/adapter-static`) — output embedded into Go binary.
 - Place API client in `frontend/src/lib/api.ts`.
@@ -84,6 +84,11 @@ Core outcomes:
 - Avoid blocking renders; large monitor views must remain virtualized.
 - **Theming:** Use CSS custom properties from `app.css` (e.g., `var(--color-brand-primary)`) instead of hardcoded Tailwind color classes. Tailwind brand utilities (`bg-brand-500`, `text-brand-600`) resolve to CSS variables automatically.
 - **Dark mode:** Controlled via `data-theme` attribute on `<html>`. Never use Tailwind's `dark:` prefix — use `[data-theme="dark"]` selector strategy already configured.
+- **Visual identity:** Follow [UI design](docs/UI-DESIGN.md): Pulse blue accents, blue-white light surfaces, navy dark surfaces, flat panels, compact corners, and monospace operational values. Reserve green/amber/red for status. Keep filled-action colors separate from inline-action text colors so both remain readable in dark mode. Older `indigo-*` utilities are mapped to the brand scale; use `brand-*` for new work.
+- **Navigation shell:** The desktop rail in `+layout.svelte` collapses from full labels to icons; `pulse-sidebar-collapsed` persists the preference. Preserve accessible names, hover/focus labels, the skip link, and parent-route active states. Live status, theme, and Logout belong in the rail footer; mobile keeps labeled navigation and visible controls. Use logical CSS properties for RTL.
+- **Page layout:** Use `components/PageHeader.svelte` for the eyebrow, title, optional description, and optional action snippet. Dashboard, Monitors, and Settings share this header. Let the workspace own page padding; avoid an additional centered/padded page wrapper. Use `pulse-panel`, `pulse-eyebrow`, `pulse-tag`, and `pulse-protocol` for shared visual primitives and avoid redundant nested cards.
+- **Select controls:** Use `components/SelectField.svelte` rather than new bare native selects. Pass the existing `<option>` snippet, a stable `id` with a matching `<label>`, and `bind:value`/`onchange` as needed. It keeps a hidden native select for typed values and form integration, and exposes a themed combobox/listbox with keyboard navigation, typeahead, outside dismissal, and viewport-aware top-layer menus. The native fallback is internal to the component. Keep fields and adjacent submit buttons aligned at a 40px minimum control height; let form rows stack on narrow screens.
+- **UI verification:** Run the frontend checks below, including locale coverage in `ar` and `be`. For shared control or layout changes inspect populated/empty views, both themes, narrow viewports, RTL, keyboard focus, and dropdown boundaries. Branding tests read the actual CSS palette for dark foreground contrast and Tailwind fallback alignment. Preserve fixed row heights in virtualized lists.
 - **i18n / Localization:** All user-visible strings MUST use the `t()` function from `$lib/i18n`. Never hardcode display strings in Svelte templates or component scripts. When adding new UI text (labels, buttons, errors, toasts, empty states), add the corresponding key to `frontend/src/locales/en.json` first, then reference it via `t('section.key')`. Other locale files (`ru.json`, `es.json`, etc.) should also receive the new key — use the English value as a placeholder if no translation is available yet. See [Localization](#localization-i18n).
 
 ## MCP Server
@@ -330,6 +335,7 @@ When adding any new UI feature with user-visible text:
 | Frontend stores / routes / components | `frontend/src/lib/stores/`, `frontend/src/routes/`, `frontend/src/components/` |
 | Vite config (dev proxy) | `frontend/vite.config.ts` |
 | Brand lockup / theme switcher | `frontend/src/components/BrandLockup.svelte`, `frontend/src/components/ThemeSwitcher.svelte` |
+| UI design / shared header / select | `docs/UI-DESIGN.md`, `frontend/src/components/PageHeader.svelte`, `frontend/src/components/SelectField.svelte` |
 | Theme tokens (CSS) | `frontend/src/app.css` |
 | Static brand assets / generators | `frontend/static/brand/`, `frontend/scripts/generate-brand-pngs.mjs`, `frontend/scripts/generate-icons.mjs` |
 | i18n module / locale store | `frontend/src/lib/i18n/`, `frontend/src/lib/i18n/config.ts`, `frontend/src/lib/i18n/locale.svelte.ts` |
@@ -345,4 +351,3 @@ When adding any new UI feature with user-visible text:
   - **svelte-core-bestpractices**: reactivity, events, styling, library integration — load for any Svelte component work.
   - **golang-***: database, concurrency, error handling, testing, performance, security, observability, troubleshooting — load per task domain.
 - Kiro hooks in `.kiro/hooks/`: `locale-sync-check` (frontend edits → `t()` + all locales), `openapi-mcp-sync` (spec edits → MCP tools), `update-swagger-documentation` (backend edits → OpenAPI), `update-docs-on-change` (source/config edits → docs).
-- Copilot-side guidance: `.github/copilot-instructions.md` (currently stale; trust this file over it).
