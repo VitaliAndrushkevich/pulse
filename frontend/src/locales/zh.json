@@ -24,6 +24,7 @@
     "error": "出了点问题",
     "copy": "复制",
     "copied": "已复制！",
+    "close": "Close",
     "remove": "移除",
     "replace": "替换",
     "add": "添加",
@@ -609,6 +610,22 @@
       "triggerMissed": "错过运行或明确失败",
       "triggerRecovered": "已恢复",
       "empty": "未配置任何通知"
+    },
+    "timeline": {
+      "title": "Status Timeline (24h)",
+      "uptime": "Uptime",
+      "uptimeTooltip": "Share of successful check-ins over the selected window",
+      "missed": "Missed runs",
+      "legendSuccess": "Success",
+      "legendMissed": "Missed",
+      "legendFail": "Failed",
+      "loading": "Loading history…",
+      "loadFailed": "Failed to load heartbeat history",
+      "empty": "No heartbeat history yet",
+      "emptyHint": "Events will appear here after the next ping or missed run.",
+      "eventSuccessAt": "Success at {time}",
+      "eventMissedAt": "Missed run at {time}",
+      "eventFailAt": "Explicit failure at {time}"
     }
   },
   "errors": {

@@ -24,6 +24,7 @@
     "error": "Une erreur s'est produite",
     "copy": "Copier",
     "copied": "Copié !",
+    "close": "Close",
     "remove": "Retirer",
     "replace": "Remplacer",
     "add": "Ajouter",
@@ -609,6 +610,22 @@
       "triggerMissed": "Exécution manquée ou échec explicite",
       "triggerRecovered": "Rétabli",
       "empty": "Aucune notification configurée"
+    },
+    "timeline": {
+      "title": "Status Timeline (24h)",
+      "uptime": "Uptime",
+      "uptimeTooltip": "Share of successful check-ins over the selected window",
+      "missed": "Missed runs",
+      "legendSuccess": "Success",
+      "legendMissed": "Missed",
+      "legendFail": "Failed",
+      "loading": "Loading history…",
+      "loadFailed": "Failed to load heartbeat history",
+      "empty": "No heartbeat history yet",
+      "emptyHint": "Events will appear here after the next ping or missed run.",
+      "eventSuccessAt": "Success at {time}",
+      "eventMissedAt": "Missed run at {time}",
+      "eventFailAt": "Explicit failure at {time}"
     }
   },
   "errors": {

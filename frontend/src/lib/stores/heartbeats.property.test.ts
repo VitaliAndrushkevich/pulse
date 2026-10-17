@@ -46,6 +46,7 @@ const arbHeartbeat: fc.Arbitrary<Heartbeat> = fc.record({
   tags: fc.array(arbTag, { maxLength: 4 }),
   token_prefix: fc.string({ minLength: 8, maxLength: 8 }),
   token_created_at: arbTimestamp,
+  history_retention_days: fc.integer({ min: 1, max: 365 }),
   created_at: arbTimestamp,
   updated_at: arbTimestamp
 });

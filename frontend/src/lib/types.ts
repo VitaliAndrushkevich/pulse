@@ -184,8 +184,38 @@ export interface Heartbeat {
   tags: Tag[];
   token_prefix: string;
   token_created_at: string;
+  history_retention_days: number;
   created_at: string;
   updated_at: string;
+}
+
+/** Heartbeat timeline event kind — matches heartbeat_events.event_type */
+export type HeartbeatEventType = 'success' | 'fail' | 'missed';
+
+/** A single discrete heartbeat episode — from GET /heartbeats/{id}/history */
+export interface HeartbeatEvent {
+  event_type: HeartbeatEventType;
+  previous_state?: 'up' | 'down' | 'paused' | 'new';
+  occurred_at: string; // RFC3339
+}
+
+/** Summary block of GET /heartbeats/{id}/history */
+export interface HeartbeatHistorySummary {
+  uptime_percent: number | null;
+  missed_count: number;
+  fail_count: number;
+  success_count: number;
+  total_events: number;
+}
+
+/** Response of GET /heartbeats/{id}/history */
+export interface HeartbeatHistoryResponse {
+  heartbeat_id: string;
+  from: string;
+  to: string;
+  truncated: boolean;
+  summary: HeartbeatHistorySummary;
+  events: HeartbeatEvent[];
 }
 
 /**

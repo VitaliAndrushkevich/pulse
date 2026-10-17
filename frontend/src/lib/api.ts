@@ -7,7 +7,7 @@ import type {
   NotificationChannel, NotificationChannelType, ChannelBinding, TriggerCondition,
   TemplateVariableGroup, SMTPSettings, SMTPSettingsRequest, TestChannelResult, TestSMTPResult,
   EmailChannelConfig, WebhookChannelConfig,
-  Heartbeat, HeartbeatBinding, HeartbeatTriggerCondition
+  Heartbeat, HeartbeatBinding, HeartbeatTriggerCondition, HeartbeatHistoryResponse
 } from '$lib/types';
 
 // ---------------------------------------------------------------------------
@@ -920,6 +920,7 @@ export interface CreateHeartbeatRequest {
   grace_seconds?: number;
   status?: 'active' | 'paused';
   tags?: Tag[];
+  history_retention_days?: number;
 }
 
 export type UpdateHeartbeatRequest = CreateHeartbeatRequest;
@@ -967,6 +968,16 @@ export async function getHeartbeats(
 /** GET /api/v1/heartbeats/:id */
 export async function getHeartbeat(id: string): Promise<Heartbeat> {
   return apiRequest<Heartbeat>('GET', `/heartbeats/${id}`);
+}
+
+/** GET /api/v1/heartbeats/:id/history?from=&to= */
+export async function getHeartbeatHistory(
+  id: string,
+  from: string,
+  to: string
+): Promise<HeartbeatHistoryResponse> {
+  const params = new URLSearchParams({ from, to });
+  return apiRequest<HeartbeatHistoryResponse>('GET', `/heartbeats/${id}/history?${params.toString()}`);
 }
 
 /** POST /api/v1/heartbeats — returns the raw ping token exactly once */

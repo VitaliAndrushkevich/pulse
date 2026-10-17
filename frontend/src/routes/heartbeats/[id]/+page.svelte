@@ -5,15 +5,17 @@
   import { untrack } from 'svelte';
   import {
     getHeartbeat,
+    getHeartbeatHistory,
     deleteHeartbeat,
     rotateHeartbeatToken,
     ApiRequestError,
   } from '$lib/api';
   import { heartbeatStore } from '$lib/stores/heartbeats.svelte';
   import HeartbeatBindings from '../../../components/HeartbeatBindings.svelte';
+  import HeartbeatTimeline from '../../../components/HeartbeatTimeline.svelte';
   import PingExamples from '../../../components/PingExamples.svelte';
   import ShowOnceModal from '../../../components/ShowOnceModal.svelte';
-  import type { Heartbeat } from '$lib/types';
+  import type { Heartbeat, HeartbeatHistoryResponse } from '$lib/types';
   import { formatDate } from '$lib/format';
   import { t } from '$lib/i18n';
 
@@ -21,6 +23,21 @@
   let loading = $state(true);
   let error = $state<string | null>(null);
   let notFound = $state(false);
+
+  // Timeline history (last 24h). Fetched on load; no live WS append in v1.
+  let history = $state<HeartbeatHistoryResponse | null>(null);
+  let historyLoading = $state(true);
+  let historyError = $state<string | null>(null);
+  let historyFrom = $state('');
+  let historyTo = $state('');
+
+  const EMPTY_SUMMARY = {
+    uptime_percent: null,
+    missed_count: 0,
+    fail_count: 0,
+    success_count: 0,
+    total_events: 0,
+  };
 
   let busy = $state(false);
   let showRotateConfirm = $state(false);
@@ -68,6 +85,22 @@
     }
   }
 
+  async function fetchHistory() {
+    historyLoading = true;
+    historyError = null;
+    const to = new Date();
+    const from = new Date(to.getTime() - 24 * 60 * 60 * 1000);
+    historyFrom = from.toISOString();
+    historyTo = to.toISOString();
+    try {
+      history = await getHeartbeatHistory(heartbeatId, historyFrom, historyTo);
+    } catch (err: unknown) {
+      historyError = err instanceof Error ? err.message : t('heartbeats.timeline.loadFailed');
+    } finally {
+      historyLoading = false;
+    }
+  }
+
   async function handleRotate() {
     busy = true;
     try {
@@ -99,7 +132,10 @@
 
   $effect(() => {
     heartbeatId;
-    untrack(() => fetchData());
+    untrack(() => {
+      fetchData();
+      fetchHistory();
+    });
   });
 </script>
 
@@ -220,6 +256,19 @@
         </div>
       </div>
       {/if}
+    </div>
+
+    <!-- Status timeline -->
+    <div class="rounded-xl border border-[var(--color-border)] bg-surface p-6">
+      <h2 class="mb-4 text-sm font-semibold text-primary">{t('heartbeats.timeline.title')}</h2>
+      <HeartbeatTimeline
+        events={history?.events ?? []}
+        summary={history?.summary ?? EMPTY_SUMMARY}
+        loading={historyLoading}
+        error={historyError}
+        from={historyFrom}
+        to={historyTo}
+      />
     </div>
 
     <!-- Usage examples -->

@@ -65,6 +65,7 @@ function makeHeartbeat(overrides: Partial<Heartbeat> = {}): Heartbeat {
     tags: overrides.tags ?? [],
     token_prefix: overrides.token_prefix ?? 'a1B2c3D4',
     token_created_at: overrides.token_created_at ?? '2025-01-01T00:00:00Z',
+    history_retention_days: overrides.history_retention_days ?? 30,
     created_at: overrides.created_at ?? '2025-01-01T00:00:00Z',
     updated_at: overrides.updated_at ?? '2025-01-01T00:00:00Z'
   };
