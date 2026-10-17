@@ -146,7 +146,25 @@ Create and `PUT` accept an optional `history_retention_days` (integer `1`–`365
 out-of-range values return `400 INVALID_RETENTION_PERIOD`. It mirrors the per-monitor retention
 setting and controls how long heartbeat events (one per ping success, explicit fail, and
 missed-run transition) are kept before the retention service prunes them. The retained events are
-not yet exposed through a read/timeline endpoint.
+exposed through `GET /api/v1/heartbeats/{id}/history` (see below).
+
+The history endpoint returns the discrete event timeline plus a summary and mirrors monitor
+history for parameter handling:
+
+```bash
+curl -H "Authorization: Bearer <token>" \
+  "http://localhost:8080/api/v1/heartbeats/<id>/history?from=2026-10-16T00:00:00Z&to=2026-10-17T00:00:00Z"
+```
+
+- `from`/`to` are RFC 3339 timestamps; the range defaults to the last 24 hours when omitted and
+  is clamped to the heartbeat's `history_retention_days` (`truncated: true` when clamping occurs).
+- `step` (seconds, `60`–`86400`) is accepted and validated for symmetry with monitor history but
+  is inert in v1 — there is no server-side bucketing, so it is ignored.
+- The response contains `events` (each with `event_type` of `success`/`fail`/`missed`, optional
+  `previous_state`, and `occurred_at`) and a `summary` (`uptime_percent` — null when there are no
+  events — plus `success_count`, `fail_count`, `missed_count`, `total_events`).
+- Available only when the TimescaleDB history store is configured; otherwise the route is not
+  registered.
 
 Report a successful run from your job (no auth — possession of the token in the URL is the
 authorization; GET and POST both work, request bodies are ignored):
@@ -177,6 +195,7 @@ An unknown, malformed, or rotated token returns a minimal `404`.
 | `PUT` | `/api/v1/heartbeats/{id}` | Create or update heartbeat (idempotent; never rotates token) |
 | `DELETE` | `/api/v1/heartbeats/{id}` | Delete heartbeat (cascades tags and bindings) |
 | `POST` | `/api/v1/heartbeats/{id}/rotate-token` | Issue a new ping token (invalidates old URLs) |
+| `GET` | `/api/v1/heartbeats/{id}/history` | Event timeline + summary (TimescaleDB; only when configured) |
 | `GET` | `/api/v1/heartbeats/{id}/notification-bindings` | List bindings for heartbeat |
 | `POST` | `/api/v1/heartbeats/{id}/notification-bindings` | Create binding (`heartbeat_missed`/`heartbeat_recovered`) |
 | `PUT` | `/api/v1/heartbeats/{id}/notification-bindings/{bindingId}` | Update binding |

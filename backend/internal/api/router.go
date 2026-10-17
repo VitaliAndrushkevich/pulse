@@ -160,6 +160,12 @@ func NewRouter(deps Deps) *gin.Engine {
 	heartbeatHandler := handlers.NewHeartbeatHandler(deps.Queries, deps.Pool, deps.BaseURL, deps.HeartbeatStateClear)
 	heartbeatHandler.Register(protected)
 
+	// Heartbeat historical event timeline (heartbeat-timeline).
+	if deps.TimescaleStore != nil {
+		heartbeatHistoryHandler := handlers.NewHeartbeatHistoryHandler(deps.Queries, deps.TimescaleStore)
+		heartbeatHistoryHandler.Register(protected)
+	}
+
 	heartbeatBindingHandler := handlers.NewHeartbeatBindingHandler(deps.Queries)
 	heartbeatBindingHandler.Register(protected)
 

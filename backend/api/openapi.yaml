@@ -1568,6 +1568,66 @@ paths:
         "401":
           $ref: "#/components/responses/Unauthorized"
 
+  /heartbeats/{id}/history:
+    get:
+      operationId: getHeartbeatHistory
+      summary: Get the event timeline for a heartbeat
+      description: >
+        Returns the historical event timeline (success, fail, missed episodes)
+        for the specified heartbeat within the given time range, plus a summary
+        (uptime %, per-type counts, total). Events are returned as discrete rows,
+        not time-bucketed samples. The time range is clamped to the heartbeat's
+        configured `history_retention_days`; if clamping occurs, `truncated` is
+        set to true. Defaults to the last 24 hours when `from`/`to` are omitted.
+        Available only when the TimescaleDB history store is configured.
+      tags: [Heartbeats]
+      parameters:
+        - $ref: "#/components/parameters/HeartbeatID"
+        - name: from
+          in: query
+          description: Start of time range (RFC 3339). Defaults to 24h ago.
+          schema:
+            type: string
+            format: date-time
+        - name: to
+          in: query
+          description: End of time range (RFC 3339). Defaults to now.
+          schema:
+            type: string
+            format: date-time
+        - name: step
+          in: query
+          description: >
+            Aggregation interval in seconds. Accepted for symmetry with monitor
+            history and validated (60–86400), but inert in v1: there is no
+            server-side bucketing, so the value is ignored.
+          schema:
+            type: integer
+            minimum: 60
+            maximum: 86400
+      responses:
+        "200":
+          description: Heartbeat event timeline and summary
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/X-Request-ID"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HeartbeatHistoryResponse"
+        "400":
+          description: >
+            Invalid UUID, time range, or step. Error codes: INVALID_ID,
+            INVALID_STEP, VALIDATION_ERROR.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
   /heartbeats/{id}/notification-bindings:
     get:
       operationId: listHeartbeatBindings
@@ -3983,6 +4043,78 @@ components:
             ping_fail_url:
               type: string
               description: Failure ping URL (PULSE_BASE_URL + /ping/<token>/fail)
+
+    HeartbeatEvent:
+      type: object
+      description: A single heartbeat timeline event.
+      required: [event_type, occurred_at]
+      properties:
+        event_type:
+          type: string
+          enum: [success, fail, missed]
+          description: >
+            success = a received ping; fail = an explicit failure ping;
+            missed = a missed-run transition detected by the sweep evaluator.
+        previous_state:
+          type: string
+          enum: [up, down, paused, new]
+          nullable: true
+          description: >
+            The heartbeat's state immediately before this event, used to label
+            recoveries. Omitted when not applicable.
+        occurred_at:
+          type: string
+          format: date-time
+
+    HeartbeatHistorySummary:
+      type: object
+      required: [missed_count, fail_count, success_count, total_events]
+      properties:
+        uptime_percent:
+          type: number
+          format: float
+          nullable: true
+          description: >
+            success_count / total_events * 100, rounded to one decimal. Null when
+            there are no events in the range. Both fail and missed reduce uptime.
+        missed_count:
+          type: integer
+          format: int64
+        fail_count:
+          type: integer
+          format: int64
+        success_count:
+          type: integer
+          format: int64
+        total_events:
+          type: integer
+          format: int64
+
+    HeartbeatHistoryResponse:
+      type: object
+      required: [heartbeat_id, from, to, truncated, summary, events]
+      properties:
+        heartbeat_id:
+          type: string
+          format: uuid
+        from:
+          type: string
+          format: date-time
+          description: Effective start of the range after retention clamping.
+        to:
+          type: string
+          format: date-time
+        truncated:
+          type: boolean
+          description: >
+            True when the requested `from` was clamped to the heartbeat's
+            retention window.
+        summary:
+          $ref: "#/components/schemas/HeartbeatHistorySummary"
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/HeartbeatEvent"
 
     HeartbeatRotateTokenResponse:
       type: object
