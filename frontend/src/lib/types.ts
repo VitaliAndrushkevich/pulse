@@ -166,6 +166,42 @@ export interface MonitorStats {
   last_error?: LastErrorInfo;
 }
 
+// ─── Heartbeat Types ────────────────────────────────────────────────────────
+
+/** Observed heartbeat state (derived from pings + evaluator + paused mapping) */
+export type HeartbeatState = 'up' | 'down' | 'paused' | 'new';
+
+/** Heartbeat — matches OpenAPI Heartbeat schema (GET/LIST — never carries a raw token) */
+export interface Heartbeat {
+  id: string;
+  name: string;
+  expected_interval_seconds: number;
+  grace_seconds: number;
+  status: 'active' | 'paused';
+  state: HeartbeatState;
+  last_success_at: string | null;
+  next_expected_deadline: string | null;
+  tags: Tag[];
+  token_prefix: string;
+  token_created_at: string;
+  created_at: string;
+  updated_at: string;
+}
+
+/**
+ * HeartbeatStatusPayload — patch payload from WebSocket heartbeat_status messages.
+ *
+ * The field set differs from MonitorPatch: heartbeats have no probe check time, so
+ * there is no checked_at/latency_ms. Only state and the two timestamps are merged.
+ */
+export interface HeartbeatStatusPayload {
+  heartbeat_id: string;
+  state: HeartbeatState;
+  last_success_at?: string | null;
+  next_expected_deadline?: string | null;
+  timestamp: string;
+}
+
 // ─── Dashboard Summary Types ────────────────────────────────────────────────
 
 /** Dashboard summary response from GET /api/v1/dashboard/summary */
@@ -292,6 +328,25 @@ export interface ChannelBinding {
   channel_id: string;
   monitor_id: string;
   triggers: TriggerCondition[];
+  reminder_interval_minutes: number | null;
+  created_at: string;
+  updated_at: string;
+}
+
+/** Heartbeat trigger types — the allowed set for heartbeat bindings */
+export type HeartbeatTriggerType = 'heartbeat_missed' | 'heartbeat_recovered';
+
+/** A single trigger condition in a heartbeat binding */
+export interface HeartbeatTriggerCondition {
+  type: HeartbeatTriggerType;
+}
+
+/** Heartbeat binding — links a channel to a heartbeat with triggers */
+export interface HeartbeatBinding {
+  id: string;
+  channel_id: string;
+  heartbeat_id: string;
+  triggers: HeartbeatTriggerCondition[];
   reminder_interval_minutes: number | null;
   created_at: string;
   updated_at: string;

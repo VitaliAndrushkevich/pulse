@@ -6,7 +6,8 @@ import type {
   Monitor, PaginatedList, HistoryPoint, Incident, Secret, Tag, DashboardSummary, ProtoSourceMeta,
   NotificationChannel, NotificationChannelType, ChannelBinding, TriggerCondition,
   TemplateVariableGroup, SMTPSettings, SMTPSettingsRequest, TestChannelResult, TestSMTPResult,
-  EmailChannelConfig, WebhookChannelConfig
+  EmailChannelConfig, WebhookChannelConfig,
+  Heartbeat, HeartbeatBinding, HeartbeatTriggerCondition
 } from '$lib/types';
 
 // ---------------------------------------------------------------------------
@@ -876,5 +877,134 @@ export async function listMonitorDeliveryLogs(
   return apiRequest<PaginatedList<DeliveryLogEntry>>(
     'GET',
     `/monitors/${monitorId}/delivery-logs?page=${page}&limit=${limit}`
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Heartbeats
+// ---------------------------------------------------------------------------
+
+export interface CreateHeartbeatRequest {
+  name: string;
+  expected_interval_seconds: number;
+  grace_seconds?: number;
+  status?: 'active' | 'paused';
+  tags?: Tag[];
+}
+
+export type UpdateHeartbeatRequest = CreateHeartbeatRequest;
+
+/**
+ * Response returned once on heartbeat create (and PUT-as-create). It is one of the
+ * only two responses carrying the raw ping token; ping_url/ping_fail_url are omitted
+ * when PULSE_BASE_URL is not configured on the server.
+ */
+export interface HeartbeatCreateResponse extends Heartbeat {
+  ping_token: string;
+  ping_url?: string;
+  ping_fail_url?: string;
+}
+
+/** Response returned once on rotate-token — carries the new raw ping token. */
+export interface RotateHeartbeatTokenResponse {
+  id: string;
+  token_prefix: string;
+  ping_token: string;
+  ping_url?: string;
+  ping_fail_url?: string;
+  token_created_at: string;
+}
+
+export interface CreateHeartbeatBindingRequest {
+  channel_id: string;
+  triggers: HeartbeatTriggerCondition[];
+  reminder_interval_minutes?: number | null;
+}
+
+export interface UpdateHeartbeatBindingRequest {
+  triggers: HeartbeatTriggerCondition[];
+  reminder_interval_minutes?: number | null;
+}
+
+/** GET /api/v1/heartbeats?page=&limit= */
+export async function getHeartbeats(
+  page: number = 1,
+  limit: number = 20
+): Promise<PaginatedList<Heartbeat>> {
+  return apiRequest<PaginatedList<Heartbeat>>('GET', `/heartbeats?page=${page}&limit=${limit}`);
+}
+
+/** GET /api/v1/heartbeats/:id */
+export async function getHeartbeat(id: string): Promise<Heartbeat> {
+  return apiRequest<Heartbeat>('GET', `/heartbeats/${id}`);
+}
+
+/** POST /api/v1/heartbeats — returns the raw ping token exactly once */
+export async function createHeartbeat(
+  data: CreateHeartbeatRequest
+): Promise<HeartbeatCreateResponse> {
+  return apiRequest<HeartbeatCreateResponse>('POST', '/heartbeats', data);
+}
+
+/** PUT /api/v1/heartbeats/:id — idempotent create-or-update (never rotates the token) */
+export async function updateHeartbeat(
+  id: string,
+  data: UpdateHeartbeatRequest
+): Promise<Heartbeat> {
+  return apiRequest<Heartbeat>('PUT', `/heartbeats/${id}`, data);
+}
+
+/** DELETE /api/v1/heartbeats/:id */
+export async function deleteHeartbeat(id: string): Promise<void> {
+  return apiRequest<void>('DELETE', `/heartbeats/${id}`);
+}
+
+/** POST /api/v1/heartbeats/:id/rotate-token — returns a new raw ping token once */
+export async function rotateHeartbeatToken(id: string): Promise<RotateHeartbeatTokenResponse> {
+  return apiRequest<RotateHeartbeatTokenResponse>('POST', `/heartbeats/${id}/rotate-token`);
+}
+
+/** GET /api/v1/heartbeats/:id/notification-bindings */
+export async function listHeartbeatBindings(heartbeatId: string): Promise<HeartbeatBinding[]> {
+  const result = await apiRequest<PaginatedList<HeartbeatBinding>>(
+    'GET',
+    `/heartbeats/${heartbeatId}/notification-bindings`
+  );
+  return result.data;
+}
+
+/** POST /api/v1/heartbeats/:id/notification-bindings */
+export async function createHeartbeatBinding(
+  heartbeatId: string,
+  data: CreateHeartbeatBindingRequest
+): Promise<HeartbeatBinding> {
+  return apiRequest<HeartbeatBinding>(
+    'POST',
+    `/heartbeats/${heartbeatId}/notification-bindings`,
+    data
+  );
+}
+
+/** PUT /api/v1/heartbeats/:id/notification-bindings/:bindingId */
+export async function updateHeartbeatBinding(
+  heartbeatId: string,
+  bindingId: string,
+  data: UpdateHeartbeatBindingRequest
+): Promise<HeartbeatBinding> {
+  return apiRequest<HeartbeatBinding>(
+    'PUT',
+    `/heartbeats/${heartbeatId}/notification-bindings/${bindingId}`,
+    data
+  );
+}
+
+/** DELETE /api/v1/heartbeats/:id/notification-bindings/:bindingId */
+export async function deleteHeartbeatBinding(
+  heartbeatId: string,
+  bindingId: string
+): Promise<void> {
+  return apiRequest<void>(
+    'DELETE',
+    `/heartbeats/${heartbeatId}/notification-bindings/${bindingId}`
   );
 }
