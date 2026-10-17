@@ -9,6 +9,7 @@ Pulse is a self-hosted uptime monitoring platform. It ships as a single binary w
 ## Key Features
 
 - **Multi-protocol monitoring** — HTTP/HTTPS, HTTP/3, QUIC, TCP, UDP, WebSocket, gRPC, DNS, ICMP, SMTP
+- **Heartbeat (push) monitoring** — dead-man's-switch checks for cron jobs and scheduled tasks via a token-scoped ping URL; flips to `down` when a run is missed within the grace window
 - **Notifications** — Email (SMTP) and webhook channels with trigger-based rules, deduplication, retry with exponential backoff, and reminders
 - **Single deployable container** — Go binary with embedded SvelteKit frontend
 - **Real-time updates** — WebSocket diff/patch messages for instant UI sync
@@ -101,6 +102,7 @@ On first launch you'll be guided through initial setup to create your admin acco
 | `PULSE_PORT` | HTTP port the server listens on | `8080` |
 | `PULSE_DEV` | Enable dev mode (Swagger UI, debug logging) | `false` |
 | `PULSE_SCHEDULER_WORKERS` | Number of concurrent check workers | `200` |
+| `PULSE_HEARTBEAT_WORKERS` | Number of concurrent heartbeat missed-run sweep workers | `50` |
 | `PULSE_SECRET_KEY` | AES-256-GCM key for secrets at rest (base64, 32 bytes) | **required** |
 | `PULSE_JWT_SECRET` | Secret for signing JWT tokens | **required** |
 | `PULSE_JWT_EXPIRY` | JWT token expiry duration (Go duration) | `24h` |
@@ -206,6 +208,54 @@ curl -X POST http://localhost:8080/api/v1/monitors/<monitor-id>/notification-bin
     "reminder_interval_minutes": 30
   }'
 ```
+
+## Heartbeat Monitoring
+
+Active probes catch a host going offline, but they can't see a cron job that silently stops firing — a backup, invoice run, certificate renewal, or nightly import. Heartbeat monitoring inverts the direction: instead of Pulse calling out to a target, your scheduled job calls *in* to Pulse at the end of a successful run (a "dead man's switch"). Pulse records the arrival, computes when the next ping is expected (`last success + interval + grace`), and flips the heartbeat to `down` when that deadline passes with no ping. A job can also report an explicit failure.
+
+Each heartbeat has its own unguessable ping token embedded in a URL. The token authorizes reporting for exactly one heartbeat and carries no administrative capability, so you can safely drop a ping URL into a cron host or CI pipeline. The raw token is shown only once, at creation and on rotation.
+
+Missed-run and recovery alerts flow through the same notification channels and bindings as monitor alerts (see [Notifications](#notifications)).
+
+### Shell
+
+Send a success ping at the end of a job, and report an explicit failure when the preceding command fails:
+
+```sh
+# Ping on success at the end of a job:
+curl -fsS -m 10 --retry 3 https://pulse.example.com/ping/<TOKEN>
+
+# Report failure when the preceding command exits non-zero:
+run_backup || curl -fsS -m 10 https://pulse.example.com/ping/<TOKEN>/fail
+```
+
+### Cron
+
+Ping only *after* the command succeeds — pinging before the work completes defeats the purpose:
+
+```cron
+# Pinging BEFORE the work defeats the purpose — ping only on success.
+0 2 * * * /usr/local/bin/backup.sh && curl -fsS -m 10 https://pulse.example.com/ping/<TOKEN>
+```
+
+### CI
+
+Ping on job success from a scheduled pipeline (e.g. a nightly GitHub Actions workflow):
+
+```yaml
+# GitHub Actions, scheduled workflow
+- name: Notify Pulse on success
+  if: success()
+  run: curl -fsS -m 10 https://pulse.example.com/ping/<TOKEN>
+```
+
+Replace `<TOKEN>` with the ping token shown when you create the heartbeat. The heartbeat detail page renders these same snippets pre-filled with the real ping URL and a copy-to-clipboard control.
+
+### What a green heartbeat does — and doesn't — prove
+
+A success ping proves the command *ran* and exited successfully. It does **not** prove its output is valid or restorable — a backup command can succeed while producing an unusable archive. Verify restore separately.
+
+Independence matters: a heartbeat receiver hosted independently from the job's host can detect loss of the host itself (or of Pulse), while a receiver running on the same host that failed cannot report its own outage. Keep the receiver separate from what it watches.
 
 ## MCP Server (AI Integration)
 
