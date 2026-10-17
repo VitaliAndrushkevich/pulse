@@ -103,6 +103,7 @@ func createTestHeartbeat(t *testing.T, q *db.Queries, ctx context.Context, name 
 		ExpectedIntervalSeconds: 60,
 		GraceSeconds:            10,
 		Status:                  "active",
+		HistoryRetentionDays:    30,
 		TokenPrefix:             uuid.NewString()[:8],
 		TokenHash:               uuid.NewString(),
 	})

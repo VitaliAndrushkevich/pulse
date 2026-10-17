@@ -1,0 +1,29 @@
+{
+  "id": "FEAT-002",
+  "type": "feat",
+  "description": "Read endpoint GET /api/v1/heartbeats/{id}/history mirroring monitor history, its OpenAPI contract, and the no-MCP-change confirmation. Depends on FEAT-001 (the Timescale store methods QueryHeartbeatEvents/CountHeartbeatEventsByType and the heartbeats.history_retention_days column/response). Returns discrete events plus a summary (uptime %, missed/fail/success counts). step is accepted and validated for symmetry with monitor history but is inert in v1.",
+  "status": "pending",
+  "steps": [
+    "Create backend/internal/api/handlers/heartbeat_history.go with type HeartbeatHistoryHandler{ queries *db.Queries; tsStore *timescale.Store }, NewHeartbeatHistoryHandler(queries, tsStore), and Register(rg *gin.RouterGroup) mounting rg.GET(\"/heartbeats/:id/history\", h.GetHistory). GetHistory mirrors history.go: parse optional step and validate [60,86400] -> 400 INVALID_STEP (echoed back but inert, no server-side bucketing); parse id as UUID -> 400 INVALID_ID; GetHeartbeat(id) -> 404 NOT_FOUND \"heartbeat not found\"; default window now-24h..now; parse from/to RFC3339 -> 400 VALIDATION_ERROR on bad value; require from.Before(to) else 400 VALIDATION_ERROR \"from must be before to\"; retentionClamp(from, now, hb.HistoryRetentionDays) for truncated.",
+    "Build the response per design section 4.3: top-level heartbeat_id, from, to (RFC3339), truncated; summary{ uptime_percent (float 1 decimal = success_count/total_events*100, JSON null when total_events==0), missed_count, fail_count, success_count, total_events }; events[] each { event_type, previous_state (omitempty), occurred_at RFC3339 }. Use QueryHeartbeatEvents for events (initialize make([]..., 0, n) so it serializes as [] never null) and CountHeartbeatEventsByType for the summary. Enforce the invariant success_count + fail_count + missed_count == total_events.",
+    "Register the handler in backend/internal/api/router.go inside the protected group, gated by `if deps.TimescaleStore != nil`, immediately after the heartbeat CRUD handler registration: historyHandler := handlers.NewHeartbeatHistoryHandler(deps.Queries, deps.TimescaleStore); historyHandler.Register(protected).",
+    "Add unit tests in backend/internal/api/handlers/heartbeat_history_test.go: from/to defaults, invalid timestamps, from>=to, invalid step, bad UUID, retention clamping; summary math (uptime_percent = success_count/total_events*100, null at zero events, invariant success+fail+missed == total, and that both fail and missed reduce uptime equally).",
+    "Update backend/api/openapi.yaml in THIS change: add path GET /heartbeats/{id}/history under the heartbeats tag with the id path param, from/to/step query params, a 200 referencing a new HeartbeatHistoryResponse schema, and 400/404 referencing the existing error envelope. Add schemas HeartbeatHistoryResponse, HeartbeatEvent (event_type enum [success,fail,missed]; previous_state enum [up,down,paused,new]), and HeartbeatHistorySummary matching the response exactly. Add history_retention_days (integer, minimum 1, maximum 365, default 30) to the existing heartbeat request and response schemas, mirroring the monitor schema.",
+    "Confirm no MCP change is needed: grep mcp/internal/ for any consumer of /heartbeats and confirm the route is absent from the AGENTS.md MCP co-change list; record the result (expected: no MCP changes) in the FEAT findings."
+  ],
+  "acceptance_criteria": [
+    "`cd backend && go build -o /dev/null ./cmd/pulse` succeeds with the new handler registered.",
+    "`cd backend && go test -race -count=1 ./...` passes, including the new heartbeat_history handler tests (param parsing, retention clamp, summary math + invariant).",
+    "GET /api/v1/heartbeats/{id}/history returns the design-section-4.3 shape: 400 INVALID_ID / INVALID_STEP / VALIDATION_ERROR and 404 NOT_FOUND as specified; events is [] (never null) when empty; summary.uptime_percent is null when total_events==0.",
+    "backend/api/openapi.yaml documents the new path and schemas and the history_retention_days property in the same change; the enums match the handler.",
+    "A grep of mcp/internal/ confirms no heartbeat consumer, so no MCP change is made; the determination is recorded in findings."
+  ],
+  "verification": [
+    "cd backend && go build -o /dev/null ./cmd/pulse",
+    "cd backend && go test -race -count=1 ./...",
+    "grep -rn \"heartbeat\" mcp/internal/ || true  (expect no tool/client consumer; document the output)",
+    "pg_isready -h localhost -p 5432 -t 3 && cd backend && PULSE_RUN_DB_TESTS=1 go test ./internal/store/timescale/... (ONLY if preflight succeeds; else skip and record that integration tests were skipped)"
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}

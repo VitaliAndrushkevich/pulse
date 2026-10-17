@@ -102,6 +102,7 @@ func createHeartbeat(t *testing.T, q *db.Queries, ctx context.Context, name, sta
 		ExpectedIntervalSeconds: 60,
 		GraceSeconds:            10,
 		Status:                  status,
+		HistoryRetentionDays:    30,
 		TokenPrefix:             uuid.NewString()[:8],
 		TokenHash:               uuid.NewString(),
 	})
@@ -146,12 +147,13 @@ func TestEvaluator_MarksDueDown_Once(t *testing.T) {
 	// reached on a real up → down update.
 	rec := &recordingDispatcher{}
 	metrics := heartbeat.NewMetrics(newTestRegistry())
+	events := &recordingEventWriter{}
 
 	ev := heartbeat.NewEvaluator(heartbeat.Config{
 		Workers:      2,
 		TickInterval: 20 * time.Millisecond,
 		BatchSize:    100,
-	}, q, metrics, nil, rec)
+	}, q, metrics, nil, rec, events)
 
 	runCtx, cancel := context.WithCancel(ctx)
 	done := make(chan struct{})
@@ -176,6 +178,17 @@ func TestEvaluator_MarksDueDown_Once(t *testing.T) {
 		if prev != "up" {
 			t.Errorf("missed-run previousState = %q; want up", prev)
 		}
+	}
+	// Exactly one 'missed' timeline event must be written for the episode.
+	missed := events.eventsFor(due.ID)
+	if len(missed) != 1 {
+		t.Fatalf("WriteHeartbeatEvent fired %d times for the due heartbeat; want exactly 1", len(missed))
+	}
+	if missed[0].EventType != "missed" {
+		t.Errorf("event EventType = %q; want missed", missed[0].EventType)
+	}
+	if missed[0].PreviousState == nil || *missed[0].PreviousState != "up" {
+		t.Errorf("event PreviousState = %v; want up", missed[0].PreviousState)
 	}
 }
 
@@ -203,7 +216,7 @@ func TestEvaluator_SkipsNewAndPaused(t *testing.T) {
 		Workers:      2,
 		TickInterval: 20 * time.Millisecond,
 		BatchSize:    100,
-	}, q, heartbeat.NewMetrics(newTestRegistry()), nil, rec)
+	}, q, heartbeat.NewMetrics(newTestRegistry()), nil, rec, nil)
 
 	runCtx, cancel := context.WithCancel(ctx)
 	done := make(chan struct{})
@@ -244,7 +257,7 @@ func TestEvaluator_ShutdownDrainsNoLeak(t *testing.T) {
 		Workers:      8,
 		TickInterval: 10 * time.Millisecond,
 		BatchSize:    100,
-	}, q, heartbeat.NewMetrics(newTestRegistry()), nil, &recordingDispatcher{})
+	}, q, heartbeat.NewMetrics(newTestRegistry()), nil, &recordingDispatcher{}, nil)
 
 	runCtx, cancel := context.WithCancel(ctx)
 	done := make(chan struct{})
@@ -266,6 +279,77 @@ func TestEvaluator_ShutdownDrainsNoLeak(t *testing.T) {
 	})
 	if after := countEvaluatorGoroutines(); after > before {
 		t.Errorf("goroutine leak: evaluator goroutines before=%d after=%d (worker pool not drained)", before, after)
+	}
+}
+
+// TestEvaluator_WritesMissedEvent_OnTransition is a DB-free unit test proving the
+// evaluator writes exactly one 'missed' event (previous_state "up") when
+// MarkHeartbeatDown reports a real up→down transition.
+func TestEvaluator_WritesMissedEvent_OnTransition(t *testing.T) {
+	id := uuid.New()
+	q := &fakeEvaluatorQueries{
+		markDownUpdates: true,
+		row:             db.Heartbeat{ID: id, Name: "unit-due", State: "up"},
+	}
+	events := &recordingEventWriter{}
+
+	ev := heartbeat.NewEvaluator(heartbeat.Config{
+		Workers:      1,
+		TickInterval: 10 * time.Millisecond,
+		BatchSize:    10,
+	}, q, heartbeat.NewMetrics(newTestRegistry()), nil, &recordingDispatcher{}, events)
+
+	runCtx, cancel := context.WithCancel(context.Background())
+	done := make(chan struct{})
+	go func() { ev.Run(runCtx); close(done) }()
+
+	waitFor(t, time.Second, func() bool { return len(events.eventsFor(id)) >= 1 })
+	cancel()
+	<-done
+
+	got := events.eventsFor(id)
+	if len(got) < 1 {
+		t.Fatalf("expected at least one missed event, got %d", len(got))
+	}
+	// Every event for this id must be a 'missed' with previous_state "up".
+	for _, e := range got {
+		if e.EventType != "missed" {
+			t.Errorf("event EventType = %q; want missed", e.EventType)
+		}
+		if e.PreviousState == nil || *e.PreviousState != "up" {
+			t.Errorf("event PreviousState = %v; want up", e.PreviousState)
+		}
+	}
+}
+
+// TestEvaluator_NoEvent_WhenAlreadyDown is a DB-free unit test proving the
+// evaluator writes zero events when MarkHeartbeatDown matches no row (the
+// WHERE state='up' guard already transitioned the heartbeat).
+func TestEvaluator_NoEvent_WhenAlreadyDown(t *testing.T) {
+	id := uuid.New()
+	q := &fakeEvaluatorQueries{
+		markDownUpdates: false,
+		row:             db.Heartbeat{ID: id, Name: "unit-already-down", State: "up"},
+	}
+	events := &recordingEventWriter{}
+
+	ev := heartbeat.NewEvaluator(heartbeat.Config{
+		Workers:      1,
+		TickInterval: 10 * time.Millisecond,
+		BatchSize:    10,
+	}, q, heartbeat.NewMetrics(newTestRegistry()), nil, &recordingDispatcher{}, events)
+
+	runCtx, cancel := context.WithCancel(context.Background())
+	done := make(chan struct{})
+	go func() { ev.Run(runCtx); close(done) }()
+
+	// Let several ticks elapse; a buggy write would appear here.
+	time.Sleep(150 * time.Millisecond)
+	cancel()
+	<-done
+
+	if n := events.total(); n != 0 {
+		t.Fatalf("expected zero events when already-down, got %d", n)
 	}
 }
 

@@ -7,9 +7,11 @@ import (
 	"sync"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/prometheus/client_golang/prometheus"
 
 	db "github.com/VitaliAndrushkevich/pulse/internal/store/postgres"
+	"github.com/VitaliAndrushkevich/pulse/internal/store/timescale"
 )
 
 // countEvaluatorGoroutines returns the number of live goroutines currently
@@ -77,6 +79,66 @@ func (r *recordingDispatcher) prevStatesFor(id uuid.UUID) []string {
 		}
 	}
 	return out
+}
+
+// recordingEventWriter captures WriteHeartbeatEvent calls so tests can assert the
+// evaluator writes exactly one 'missed' event per missed-run episode.
+type recordingEventWriter struct {
+	mu    sync.Mutex
+	calls []timescale.HeartbeatEvent
+}
+
+func (w *recordingEventWriter) WriteHeartbeatEvent(_ context.Context, ev timescale.HeartbeatEvent) error {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	w.calls = append(w.calls, ev)
+	return nil
+}
+
+func (w *recordingEventWriter) eventsFor(id uuid.UUID) []timescale.HeartbeatEvent {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	var out []timescale.HeartbeatEvent
+	for _, c := range w.calls {
+		if c.HeartbeatID == id {
+			out = append(out, c)
+		}
+	}
+	return out
+}
+
+func (w *recordingEventWriter) total() int {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	return len(w.calls)
+}
+
+// fakeEvaluatorQueries is a DB-free implementation of the evaluator's narrowed
+// Queries interface. markDownUpdates controls whether MarkHeartbeatDown reports a
+// real up→down transition (returning a row) or the already-down case (ErrNoRows).
+type fakeEvaluatorQueries struct {
+	markDownUpdates bool
+	row             db.Heartbeat
+}
+
+func (f *fakeEvaluatorQueries) ListDueHeartbeats(context.Context, int32) ([]db.Heartbeat, error) {
+	// Always report the configured row as due so the worker pool calls markDown.
+	return []db.Heartbeat{f.row}, nil
+}
+
+func (f *fakeEvaluatorQueries) CountHeartbeats(context.Context) (int64, error) {
+	return 0, nil
+}
+
+func (f *fakeEvaluatorQueries) MarkHeartbeatDown(_ context.Context, id uuid.UUID) (db.Heartbeat, error) {
+	if !f.markDownUpdates {
+		// WHERE state='up' matched no row (already down) → sqlc returns ErrNoRows.
+		return db.Heartbeat{}, pgx.ErrNoRows
+	}
+	updated := f.row
+	updated.ID = id
+	updated.State = "down"
+	return updated, nil
 }
 
 

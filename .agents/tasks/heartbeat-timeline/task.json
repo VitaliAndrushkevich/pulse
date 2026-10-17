@@ -1,0 +1,7 @@
+{
+  "task_id": "task-heartbeat-timeline",
+  "task_description": "Add a durable, append-only heartbeat event log (TimescaleDB hypertable) with per-heartbeat retention, a GET /api/v1/heartbeats/{id}/history endpoint mirroring monitor history, and a color-coded status timeline on the heartbeat detail page. Implements the APPROVED design at .agents/tasks/heartbeat-timeline/design.md.",
+  "status": "pending",
+  "feature_order": ["FEAT-001", "FEAT-002", "FEAT-003"],
+  "blocked_reason": null
+}

@@ -72,6 +72,7 @@ type Heartbeat struct {
 	TokenCreatedAt          time.Time          `db:"token_created_at" json:"token_created_at"`
 	CreatedAt               time.Time          `db:"created_at" json:"created_at"`
 	UpdatedAt               time.Time          `db:"updated_at" json:"updated_at"`
+	HistoryRetentionDays    int32              `db:"history_retention_days" json:"history_retention_days"`
 }
 
 type HeartbeatBinding struct {
@@ -82,6 +83,15 @@ type HeartbeatBinding struct {
 	ReminderIntervalMinutes *int32          `db:"reminder_interval_minutes" json:"reminder_interval_minutes"`
 	CreatedAt               time.Time       `db:"created_at" json:"created_at"`
 	UpdatedAt               time.Time       `db:"updated_at" json:"updated_at"`
+}
+
+type HeartbeatEvent struct {
+	ID            uuid.UUID `db:"id" json:"id"`
+	HeartbeatID   uuid.UUID `db:"heartbeat_id" json:"heartbeat_id"`
+	OccurredAt    time.Time `db:"occurred_at" json:"occurred_at"`
+	EventType     string    `db:"event_type" json:"event_type"`
+	PreviousState *string   `db:"previous_state" json:"previous_state"`
+	CreatedAt     time.Time `db:"created_at" json:"created_at"`
 }
 
 type HeartbeatTag struct {

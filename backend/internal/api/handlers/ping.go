@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"log"
 	"net/http"
 	"time"
@@ -8,9 +9,12 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgtype"
 
+	"github.com/google/uuid"
+
 	"github.com/VitaliAndrushkevich/pulse/internal/heartbeat"
 	"github.com/VitaliAndrushkevich/pulse/internal/hub"
 	db "github.com/VitaliAndrushkevich/pulse/internal/store/postgres"
+	"github.com/VitaliAndrushkevich/pulse/internal/store/timescale"
 	"github.com/VitaliAndrushkevich/pulse/internal/token"
 )
 
@@ -32,14 +36,16 @@ type PingDispatcher interface {
 // the prior state together with the write (design §4.1, §4.3).
 type PingHandler struct {
 	queries    *db.Queries
-	hub        *hub.Hub         // WebSocket broadcast hub (may be nil)
-	metrics    *heartbeat.Metrics // Prometheus gauges (may be nil)
-	dispatcher PingDispatcher   // notification seam (may be nil until Phase 4)
+	hub        *hub.Hub                      // WebSocket broadcast hub (may be nil)
+	metrics    *heartbeat.Metrics            // Prometheus gauges (may be nil)
+	dispatcher PingDispatcher                // notification seam (may be nil until Phase 4)
+	events     timescale.HeartbeatEventWriter // timeline event writer (may be nil)
 }
 
-// NewPingHandler creates a ping handler. hub, metrics, and dispatcher may be nil.
-func NewPingHandler(queries *db.Queries, wsHub *hub.Hub, metrics *heartbeat.Metrics, dispatcher PingDispatcher) *PingHandler {
-	return &PingHandler{queries: queries, hub: wsHub, metrics: metrics, dispatcher: dispatcher}
+// NewPingHandler creates a ping handler. hub, metrics, dispatcher, and events
+// may be nil. A nil events writer simply skips the timeline-event write.
+func NewPingHandler(queries *db.Queries, wsHub *hub.Hub, metrics *heartbeat.Metrics, dispatcher PingDispatcher, events timescale.HeartbeatEventWriter) *PingHandler {
+	return &PingHandler{queries: queries, hub: wsHub, metrics: metrics, dispatcher: dispatcher, events: events}
 }
 
 // RegisterPingRoutes registers the four root-level ping routes directly on the
@@ -137,6 +143,11 @@ func (h *PingHandler) verifyToken(c *gin.Context) (db.GetHeartbeatByTokenPrefixR
 // afterTransition runs the non-blocking metric update, WS broadcast, and
 // notification dispatch for an observed state change.
 func (h *PingHandler) afterTransition(c *gin.Context, row db.Heartbeat, newState, previousState string) {
+	// Single-source rule: this is the only ping-path site that records a timeline
+	// event. afterTransition is reached by BOTH Success ("up") and Fail ("down"),
+	// so one write here covers both. Fail MUST NOT write a second event.
+	h.writeEvent(c.Request.Context(), row.ID, eventTypeForState(newState), previousState)
+
 	if h.metrics != nil {
 		h.metrics.SetUp(row.ID.String(), row.Name, newState == "up")
 	}
@@ -158,6 +169,46 @@ func (h *PingHandler) afterTransition(c *gin.Context, row db.Heartbeat, newState
 
 	if h.dispatcher != nil {
 		h.dispatcher.DispatchHeartbeat(c, row, newState, previousState)
+	}
+}
+
+// eventTypeForState maps the ping-path observed state to a heartbeat_events
+// event_type. It is only ever called from afterTransition with "up" or "down".
+// "missed" is NOT a ping-path event — it is produced ONLY by the evaluator
+// sweep. The default branch guards against a future caller mis-mapping.
+func eventTypeForState(state string) string {
+	switch state {
+	case "up":
+		return "success"
+	case "down":
+		return "fail"
+	default:
+		// Unreachable on the ping path. Log and fall back to "fail" rather than
+		// writing an invalid event_type that would violate the CHECK constraint.
+		log.Printf("ping: eventTypeForState called with unexpected state=%q", state)
+		return "fail"
+	}
+}
+
+// writeEvent records a single heartbeat timeline event. It returns early when no
+// writer is wired (nil is valid). A write failure is logged and swallowed — the
+// heartbeat state UPDATE already committed, so a lost history row never fails the
+// ping (design §2.5).
+func (h *PingHandler) writeEvent(ctx context.Context, id uuid.UUID, eventType, prev string) {
+	if h.events == nil {
+		return
+	}
+	var prevPtr *string
+	if prev != "" {
+		prevPtr = &prev
+	}
+	if err := h.events.WriteHeartbeatEvent(ctx, timescale.HeartbeatEvent{
+		HeartbeatID:   id,
+		EventType:     eventType,
+		PreviousState: prevPtr,
+		OccurredAt:    time.Now().UTC(),
+	}); err != nil {
+		log.Printf("ping: write heartbeat event failed id=%s type=%s: %v", id, eventType, err)
 	}
 }
 
@@ -183,6 +234,7 @@ func markUpRowToHeartbeat(r db.MarkHeartbeatUpRow) db.Heartbeat {
 		TokenCreatedAt:          r.TokenCreatedAt,
 		CreatedAt:               r.CreatedAt,
 		UpdatedAt:               r.UpdatedAt,
+		HistoryRetentionDays:    r.HistoryRetentionDays,
 	}
 }
 
@@ -202,5 +254,6 @@ func markFailRowToHeartbeat(r db.MarkHeartbeatFailRow) db.Heartbeat {
 		TokenCreatedAt:          r.TokenCreatedAt,
 		CreatedAt:               r.CreatedAt,
 		UpdatedAt:               r.UpdatedAt,
+		HistoryRetentionDays:    r.HistoryRetentionDays,
 	}
 }

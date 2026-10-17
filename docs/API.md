@@ -142,6 +142,12 @@ Response (`201`) includes `ping_token`, `ping_url`, and `ping_fail_url`. `ping_u
 `ping_fail_url` are omitted when `PULSE_BASE_URL` is not set — construct them manually as
 `<base>/ping/<ping_token>` and `<base>/ping/<ping_token>/fail`.
 
+Create and `PUT` accept an optional `history_retention_days` (integer `1`–`365`, default `30`);
+out-of-range values return `400 INVALID_RETENTION_PERIOD`. It mirrors the per-monitor retention
+setting and controls how long heartbeat events (one per ping success, explicit fail, and
+missed-run transition) are kept before the retention service prunes them. The retained events are
+not yet exposed through a read/timeline endpoint.
+
 Report a successful run from your job (no auth — possession of the token in the URL is the
 authorization; GET and POST both work, request bodies are ignored):
 

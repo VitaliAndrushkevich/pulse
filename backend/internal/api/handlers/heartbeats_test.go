@@ -208,6 +208,7 @@ func scanHeartbeat(hb db.Heartbeat, dest []interface{}) error {
 	*dest[10].(*time.Time) = hb.TokenCreatedAt
 	*dest[11].(*time.Time) = hb.CreatedAt
 	*dest[12].(*time.Time) = hb.UpdatedAt
+	*dest[13].(*int32) = hb.HistoryRetentionDays
 	return nil
 }
 
@@ -319,8 +320,8 @@ type markUpRow struct {
 }
 
 func (r *markUpRow) Scan(dest ...interface{}) error {
-	_ = scanHeartbeat(r.hb, dest[:13])
-	*dest[13].(*string) = r.prev
+	_ = scanHeartbeat(r.hb, dest[:14])
+	*dest[14].(*string) = r.prev
 	return nil
 }
 
@@ -330,8 +331,8 @@ type markFailRow struct {
 }
 
 func (r *markFailRow) Scan(dest ...interface{}) error {
-	_ = scanHeartbeat(r.hb, dest[:13])
-	*dest[13].(*string) = r.prev
+	_ = scanHeartbeat(r.hb, dest[:14])
+	*dest[14].(*string) = r.prev
 	return nil
 }
 

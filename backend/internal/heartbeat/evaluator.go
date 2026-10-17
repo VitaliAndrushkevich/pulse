@@ -10,6 +10,7 @@ import (
 
 	"github.com/VitaliAndrushkevich/pulse/internal/hub"
 	db "github.com/VitaliAndrushkevich/pulse/internal/store/postgres"
+	"github.com/VitaliAndrushkevich/pulse/internal/store/timescale"
 )
 
 const (
@@ -58,15 +59,17 @@ type Evaluator struct {
 	cfg        Config
 	queries    Queries
 	metrics    *Metrics
-	hub        *hub.Hub   // WebSocket broadcast hub (may be nil)
-	dispatcher Dispatcher // missed-run notification seam (may be nil until Phase 4)
+	hub        *hub.Hub                      // WebSocket broadcast hub (may be nil)
+	dispatcher Dispatcher                    // missed-run notification seam (may be nil until Phase 4)
+	events     timescale.HeartbeatEventWriter // timeline event writer (may be nil)
 	stopOnce   sync.Once
 }
 
 // NewEvaluator creates an evaluator with the given configuration and
-// dependencies. hub and dispatcher may be nil (broadcast/dispatch are then
-// skipped). Zero-valued Config fields fall back to the Default* constants.
-func NewEvaluator(cfg Config, queries Queries, metrics *Metrics, wsHub *hub.Hub, dispatcher Dispatcher) *Evaluator {
+// dependencies. hub, dispatcher, and events may be nil (broadcast/dispatch/
+// event-write are then skipped). Zero-valued Config fields fall back to the
+// Default* constants.
+func NewEvaluator(cfg Config, queries Queries, metrics *Metrics, wsHub *hub.Hub, dispatcher Dispatcher, events timescale.HeartbeatEventWriter) *Evaluator {
 	if cfg.Workers <= 0 {
 		cfg.Workers = DefaultWorkers
 	}
@@ -82,6 +85,7 @@ func NewEvaluator(cfg Config, queries Queries, metrics *Metrics, wsHub *hub.Hub,
 		metrics:    metrics,
 		hub:        wsHub,
 		dispatcher: dispatcher,
+		events:     events,
 	}
 }
 
@@ -177,6 +181,23 @@ func (e *Evaluator) markDown(ctx context.Context, row db.Heartbeat) {
 	}
 
 	// A real up → down transition occurred. Fire the side effects exactly once.
+
+	// Record exactly one 'missed' timeline event per missed-run episode. The
+	// WHERE state='up' guard above means this runs once per episode, never on a
+	// repeated sweep of an already-down row. A write failure is logged and
+	// swallowed — the down transition already committed (design §2.5).
+	if e.events != nil {
+		prev := previousState // always "up" for a sweep miss
+		if err := e.events.WriteHeartbeatEvent(ctx, timescale.HeartbeatEvent{
+			HeartbeatID:   updated.ID,
+			EventType:     "missed",
+			PreviousState: &prev,
+			OccurredAt:    time.Now().UTC(),
+		}); err != nil {
+			log.Printf("heartbeat evaluator: write missed event failed id=%s: %v", updated.ID, err)
+		}
+	}
+
 	if e.metrics != nil {
 		e.metrics.SetUp(updated.ID.String(), updated.Name, false)
 	}

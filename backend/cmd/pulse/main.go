@@ -184,7 +184,7 @@ func main() {
 	heartbeatWorkers := getEnvInt("PULSE_HEARTBEAT_WORKERS", heartbeat.DefaultWorkers)
 	heartbeatEvaluator := heartbeat.NewEvaluator(heartbeat.Config{
 		Workers: heartbeatWorkers,
-	}, queries, heartbeatMetrics, wsHub, heartbeatDispatch)
+	}, queries, heartbeatMetrics, wsHub, heartbeatDispatch, timescaleStore)
 	go heartbeatEvaluator.Run(appCtx)
 	log.Printf("startup: heartbeat evaluator started (%d workers)", heartbeatWorkers)
 
@@ -206,9 +206,10 @@ func main() {
 		MetricsPassword: cfg.MetricsPassword,
 		ResetAdmin:      cfg.ResetAdmin,
 
-		HeartbeatMetrics:    heartbeatMetrics,
-		HeartbeatStateClear: stateTracker,
-		PingDispatcher:      heartbeatDispatch,
+		HeartbeatMetrics:     heartbeatMetrics,
+		HeartbeatStateClear:  stateTracker,
+		PingDispatcher:       heartbeatDispatch,
+		HeartbeatEventWriter: timescaleStore,
 	})
 	addr := ":" + cfg.Port
 	if cfg.DevMode {

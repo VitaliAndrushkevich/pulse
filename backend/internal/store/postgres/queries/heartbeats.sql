@@ -18,10 +18,10 @@ SELECT COUNT(*) FROM heartbeats;
 -- name: CreateHeartbeat :one
 INSERT INTO heartbeats (
     name, expected_interval_seconds, grace_seconds,
-    status, state, token_prefix, token_hash
+    status, state, token_prefix, token_hash, history_retention_days
 ) VALUES (
     $1, $2, $3,
-    $4, 'new', $5, $6
+    $4, 'new', $5, $6, $7
 )
 RETURNING *;
 
@@ -31,16 +31,17 @@ RETURNING *;
 -- never touched here (PUT never rotates the token — design §2.2).
 INSERT INTO heartbeats (
     id, name, expected_interval_seconds, grace_seconds,
-    status, state, token_prefix, token_hash
+    status, state, token_prefix, token_hash, history_retention_days
 ) VALUES (
     $1, $2, $3, $4,
-    $5, 'new', $6, $7
+    $5, 'new', $6, $7, $8
 )
 ON CONFLICT (id) DO UPDATE SET
     name                      = EXCLUDED.name,
     expected_interval_seconds = EXCLUDED.expected_interval_seconds,
     grace_seconds             = EXCLUDED.grace_seconds,
     status                    = EXCLUDED.status,
+    history_retention_days    = EXCLUDED.history_retention_days,
     updated_at                = now()
 RETURNING *;
 

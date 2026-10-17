@@ -58,12 +58,12 @@ func (q *Queries) CountHeartbeatsByState(ctx context.Context) ([]CountHeartbeats
 const createHeartbeat = `-- name: CreateHeartbeat :one
 INSERT INTO heartbeats (
     name, expected_interval_seconds, grace_seconds,
-    status, state, token_prefix, token_hash
+    status, state, token_prefix, token_hash, history_retention_days
 ) VALUES (
     $1, $2, $3,
-    $4, 'new', $5, $6
+    $4, 'new', $5, $6, $7
 )
-RETURNING id, name, expected_interval_seconds, grace_seconds, status, state, last_success_at, next_expected_deadline, token_prefix, token_hash, token_created_at, created_at, updated_at
+RETURNING id, name, expected_interval_seconds, grace_seconds, status, state, last_success_at, next_expected_deadline, token_prefix, token_hash, token_created_at, created_at, updated_at, history_retention_days
 `
 
 type CreateHeartbeatParams struct {
@@ -73,6 +73,7 @@ type CreateHeartbeatParams struct {
 	Status                  string `db:"status" json:"status"`
 	TokenPrefix             string `db:"token_prefix" json:"token_prefix"`
 	TokenHash               string `db:"token_hash" json:"token_hash"`
+	HistoryRetentionDays    int32  `db:"history_retention_days" json:"history_retention_days"`
 }
 
 func (q *Queries) CreateHeartbeat(ctx context.Context, arg CreateHeartbeatParams) (Heartbeat, error) {
@@ -83,6 +84,7 @@ func (q *Queries) CreateHeartbeat(ctx context.Context, arg CreateHeartbeatParams
 		arg.Status,
 		arg.TokenPrefix,
 		arg.TokenHash,
+		arg.HistoryRetentionDays,
 	)
 	var i Heartbeat
 	err := row.Scan(
@@ -99,6 +101,7 @@ func (q *Queries) CreateHeartbeat(ctx context.Context, arg CreateHeartbeatParams
 		&i.TokenCreatedAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.HistoryRetentionDays,
 	)
 	return i, err
 }
@@ -113,7 +116,7 @@ func (q *Queries) DeleteHeartbeat(ctx context.Context, id uuid.UUID) error {
 }
 
 const getHeartbeat = `-- name: GetHeartbeat :one
-SELECT id, name, expected_interval_seconds, grace_seconds, status, state, last_success_at, next_expected_deadline, token_prefix, token_hash, token_created_at, created_at, updated_at FROM heartbeats
+SELECT id, name, expected_interval_seconds, grace_seconds, status, state, last_success_at, next_expected_deadline, token_prefix, token_hash, token_created_at, created_at, updated_at, history_retention_days FROM heartbeats
 WHERE id = $1
 `
 
@@ -134,6 +137,7 @@ func (q *Queries) GetHeartbeat(ctx context.Context, id uuid.UUID) (Heartbeat, er
 		&i.TokenCreatedAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.HistoryRetentionDays,
 	)
 	return i, err
 }
@@ -186,7 +190,7 @@ func (q *Queries) GetHeartbeatByTokenPrefix(ctx context.Context, tokenPrefix str
 }
 
 const getHeartbeatForUpdate = `-- name: GetHeartbeatForUpdate :one
-SELECT id, name, expected_interval_seconds, grace_seconds, status, state, last_success_at, next_expected_deadline, token_prefix, token_hash, token_created_at, created_at, updated_at FROM heartbeats
+SELECT id, name, expected_interval_seconds, grace_seconds, status, state, last_success_at, next_expected_deadline, token_prefix, token_hash, token_created_at, created_at, updated_at, history_retention_days FROM heartbeats
 WHERE id = $1
 FOR UPDATE
 `
@@ -208,12 +212,13 @@ func (q *Queries) GetHeartbeatForUpdate(ctx context.Context, id uuid.UUID) (Hear
 		&i.TokenCreatedAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.HistoryRetentionDays,
 	)
 	return i, err
 }
 
 const listDueHeartbeats = `-- name: ListDueHeartbeats :many
-SELECT id, name, expected_interval_seconds, grace_seconds, status, state, last_success_at, next_expected_deadline, token_prefix, token_hash, token_created_at, created_at, updated_at FROM heartbeats
+SELECT id, name, expected_interval_seconds, grace_seconds, status, state, last_success_at, next_expected_deadline, token_prefix, token_hash, token_created_at, created_at, updated_at, history_retention_days FROM heartbeats
 WHERE status = 'active'
   AND state = 'up'
   AND next_expected_deadline <= now()
@@ -245,6 +250,7 @@ func (q *Queries) ListDueHeartbeats(ctx context.Context, limit int32) ([]Heartbe
 			&i.TokenCreatedAt,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.HistoryRetentionDays,
 		); err != nil {
 			return nil, err
 		}
@@ -257,7 +263,7 @@ func (q *Queries) ListDueHeartbeats(ctx context.Context, limit int32) ([]Heartbe
 }
 
 const listHeartbeats = `-- name: ListHeartbeats :many
-SELECT id, name, expected_interval_seconds, grace_seconds, status, state, last_success_at, next_expected_deadline, token_prefix, token_hash, token_created_at, created_at, updated_at FROM heartbeats
+SELECT id, name, expected_interval_seconds, grace_seconds, status, state, last_success_at, next_expected_deadline, token_prefix, token_hash, token_created_at, created_at, updated_at, history_retention_days FROM heartbeats
 ORDER BY created_at DESC
 LIMIT $1 OFFSET $2
 `
@@ -290,6 +296,7 @@ func (q *Queries) ListHeartbeats(ctx context.Context, arg ListHeartbeatsParams) 
 			&i.TokenCreatedAt,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.HistoryRetentionDays,
 		); err != nil {
 			return nil, err
 		}
@@ -305,7 +312,7 @@ const markHeartbeatDown = `-- name: MarkHeartbeatDown :one
 UPDATE heartbeats
 SET state = 'down', updated_at = now()
 WHERE id = $1 AND state = 'up'
-RETURNING id, name, expected_interval_seconds, grace_seconds, status, state, last_success_at, next_expected_deadline, token_prefix, token_hash, token_created_at, created_at, updated_at
+RETURNING id, name, expected_interval_seconds, grace_seconds, status, state, last_success_at, next_expected_deadline, token_prefix, token_hash, token_created_at, created_at, updated_at, history_retention_days
 `
 
 // Missed-run transition used by the evaluator sweep. The WHERE state='up' guard
@@ -328,6 +335,7 @@ func (q *Queries) MarkHeartbeatDown(ctx context.Context, id uuid.UUID) (Heartbea
 		&i.TokenCreatedAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.HistoryRetentionDays,
 	)
 	return i, err
 }
@@ -345,7 +353,7 @@ SET
     updated_at = now()
 FROM prev
 WHERE h.id = $1
-RETURNING h.id, h.name, h.expected_interval_seconds, h.grace_seconds, h.status, h.state, h.last_success_at, h.next_expected_deadline, h.token_prefix, h.token_hash, h.token_created_at, h.created_at, h.updated_at, prev.previous_state
+RETURNING h.id, h.name, h.expected_interval_seconds, h.grace_seconds, h.status, h.state, h.last_success_at, h.next_expected_deadline, h.token_prefix, h.token_hash, h.token_created_at, h.created_at, h.updated_at, h.history_retention_days, prev.previous_state
 `
 
 type MarkHeartbeatFailRow struct {
@@ -362,6 +370,7 @@ type MarkHeartbeatFailRow struct {
 	TokenCreatedAt          time.Time          `db:"token_created_at" json:"token_created_at"`
 	CreatedAt               time.Time          `db:"created_at" json:"created_at"`
 	UpdatedAt               time.Time          `db:"updated_at" json:"updated_at"`
+	HistoryRetentionDays    int32              `db:"history_retention_days" json:"history_retention_days"`
 	PreviousState           string             `db:"previous_state" json:"previous_state"`
 }
 
@@ -384,6 +393,7 @@ func (q *Queries) MarkHeartbeatFail(ctx context.Context, id uuid.UUID) (MarkHear
 		&i.TokenCreatedAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.HistoryRetentionDays,
 		&i.PreviousState,
 	)
 	return i, err
@@ -404,7 +414,7 @@ SET
     updated_at             = now()
 FROM prev
 WHERE h.id = $1
-RETURNING h.id, h.name, h.expected_interval_seconds, h.grace_seconds, h.status, h.state, h.last_success_at, h.next_expected_deadline, h.token_prefix, h.token_hash, h.token_created_at, h.created_at, h.updated_at, prev.previous_state
+RETURNING h.id, h.name, h.expected_interval_seconds, h.grace_seconds, h.status, h.state, h.last_success_at, h.next_expected_deadline, h.token_prefix, h.token_hash, h.token_created_at, h.created_at, h.updated_at, h.history_retention_days, prev.previous_state
 `
 
 type MarkHeartbeatUpParams struct {
@@ -427,6 +437,7 @@ type MarkHeartbeatUpRow struct {
 	TokenCreatedAt          time.Time          `db:"token_created_at" json:"token_created_at"`
 	CreatedAt               time.Time          `db:"created_at" json:"created_at"`
 	UpdatedAt               time.Time          `db:"updated_at" json:"updated_at"`
+	HistoryRetentionDays    int32              `db:"history_retention_days" json:"history_retention_days"`
 	PreviousState           string             `db:"previous_state" json:"previous_state"`
 }
 
@@ -450,6 +461,7 @@ func (q *Queries) MarkHeartbeatUp(ctx context.Context, arg MarkHeartbeatUpParams
 		&i.TokenCreatedAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.HistoryRetentionDays,
 		&i.PreviousState,
 	)
 	return i, err
@@ -463,7 +475,7 @@ SET
     token_created_at = now(),
     updated_at       = now()
 WHERE id = $1
-RETURNING id, name, expected_interval_seconds, grace_seconds, status, state, last_success_at, next_expected_deadline, token_prefix, token_hash, token_created_at, created_at, updated_at
+RETURNING id, name, expected_interval_seconds, grace_seconds, status, state, last_success_at, next_expected_deadline, token_prefix, token_hash, token_created_at, created_at, updated_at, history_retention_days
 `
 
 type RotateHeartbeatTokenParams struct {
@@ -489,6 +501,7 @@ func (q *Queries) RotateHeartbeatToken(ctx context.Context, arg RotateHeartbeatT
 		&i.TokenCreatedAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.HistoryRetentionDays,
 	)
 	return i, err
 }
@@ -501,7 +514,7 @@ SET
     next_expected_deadline = $4,
     updated_at             = now()
 WHERE id = $1
-RETURNING id, name, expected_interval_seconds, grace_seconds, status, state, last_success_at, next_expected_deadline, token_prefix, token_hash, token_created_at, created_at, updated_at
+RETURNING id, name, expected_interval_seconds, grace_seconds, status, state, last_success_at, next_expected_deadline, token_prefix, token_hash, token_created_at, created_at, updated_at, history_retention_days
 `
 
 type UpdateHeartbeatDeadlineParams struct {
@@ -535,6 +548,7 @@ func (q *Queries) UpdateHeartbeatDeadline(ctx context.Context, arg UpdateHeartbe
 		&i.TokenCreatedAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.HistoryRetentionDays,
 	)
 	return i, err
 }
@@ -542,18 +556,19 @@ func (q *Queries) UpdateHeartbeatDeadline(ctx context.Context, arg UpdateHeartbe
 const upsertHeartbeat = `-- name: UpsertHeartbeat :one
 INSERT INTO heartbeats (
     id, name, expected_interval_seconds, grace_seconds,
-    status, state, token_prefix, token_hash
+    status, state, token_prefix, token_hash, history_retention_days
 ) VALUES (
     $1, $2, $3, $4,
-    $5, 'new', $6, $7
+    $5, 'new', $6, $7, $8
 )
 ON CONFLICT (id) DO UPDATE SET
     name                      = EXCLUDED.name,
     expected_interval_seconds = EXCLUDED.expected_interval_seconds,
     grace_seconds             = EXCLUDED.grace_seconds,
     status                    = EXCLUDED.status,
+    history_retention_days    = EXCLUDED.history_retention_days,
     updated_at                = now()
-RETURNING id, name, expected_interval_seconds, grace_seconds, status, state, last_success_at, next_expected_deadline, token_prefix, token_hash, token_created_at, created_at, updated_at
+RETURNING id, name, expected_interval_seconds, grace_seconds, status, state, last_success_at, next_expected_deadline, token_prefix, token_hash, token_created_at, created_at, updated_at, history_retention_days
 `
 
 type UpsertHeartbeatParams struct {
@@ -564,6 +579,7 @@ type UpsertHeartbeatParams struct {
 	Status                  string    `db:"status" json:"status"`
 	TokenPrefix             string    `db:"token_prefix" json:"token_prefix"`
 	TokenHash               string    `db:"token_hash" json:"token_hash"`
+	HistoryRetentionDays    int32     `db:"history_retention_days" json:"history_retention_days"`
 }
 
 // Idempotent create-or-update for PUT. On conflict it updates only the
@@ -578,6 +594,7 @@ func (q *Queries) UpsertHeartbeat(ctx context.Context, arg UpsertHeartbeatParams
 		arg.Status,
 		arg.TokenPrefix,
 		arg.TokenHash,
+		arg.HistoryRetentionDays,
 	)
 	var i Heartbeat
 	err := row.Scan(
@@ -594,6 +611,7 @@ func (q *Queries) UpsertHeartbeat(ctx context.Context, arg UpsertHeartbeatParams
 		&i.TokenCreatedAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.HistoryRetentionDays,
 	)
 	return i, err
 }

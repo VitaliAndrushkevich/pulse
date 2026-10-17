@@ -1493,7 +1493,8 @@ paths:
                   - $ref: "#/components/schemas/HeartbeatCreateResponse"
         "400":
           description: >
-            Validation error. Error codes: INVALID_ID, VALIDATION_ERROR, INVALID_TAGS.
+            Validation error. Error codes: INVALID_ID, VALIDATION_ERROR, INVALID_TAGS,
+            INVALID_RETENTION_PERIOD (history_retention_days outside range 1–365).
           content:
             application/json:
               schema:
@@ -3907,8 +3908,9 @@ components:
         reflects a presentation mapping — when status is "paused" the observed
         state is reported as "paused".
       required:
-        [id, name, expected_interval_seconds, grace_seconds, status, state, tags,
-         token_prefix, token_created_at, created_at, updated_at]
+        [id, name, expected_interval_seconds, grace_seconds, status, state,
+         history_retention_days, tags, token_prefix, token_created_at,
+         created_at, updated_at]
       properties:
         id:
           type: string
@@ -3939,6 +3941,13 @@ components:
           type: string
           format: date-time
           nullable: true
+        history_retention_days:
+          type: integer
+          minimum: 1
+          maximum: 365
+          description: >
+            Number of days heartbeat history (events) are retained before being
+            pruned. Defaults to 30. Mirrors the per-monitor retention setting.
         tags:
           type: array
           items:
@@ -4037,6 +4046,14 @@ components:
           type: string
           enum: [active, paused]
           default: active
+        history_retention_days:
+          type: integer
+          minimum: 1
+          maximum: 365
+          default: 30
+          description: >
+            Number of days heartbeat history (events) are retained before being
+            pruned. Must be between 1 and 365. Defaults to 30 when omitted.
         tags:
           type: array
           items:

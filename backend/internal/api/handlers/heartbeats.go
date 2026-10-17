@@ -57,6 +57,7 @@ type createHeartbeatRequest struct {
 	ExpectedIntervalSeconds *int32            `json:"expected_interval_seconds"`
 	GraceSeconds            *int32            `json:"grace_seconds"`
 	Status                  *string           `json:"status,omitempty"`
+	HistoryRetentionDays    *int32            `json:"history_retention_days,omitempty"`
 	Tags                    []tags.TagRequest `json:"tags,omitempty"`
 }
 
@@ -74,6 +75,7 @@ type heartbeatResponse struct {
 	LastSuccessAt           *time.Time    `json:"last_success_at,omitempty"`
 	NextExpectedDeadline    *time.Time    `json:"next_expected_deadline,omitempty"`
 	Tags                    []tagResponse `json:"tags"`
+	HistoryRetentionDays    int32         `json:"history_retention_days"`
 	TokenPrefix             string        `json:"token_prefix"`
 	TokenCreatedAt          time.Time     `json:"token_created_at"`
 	CreatedAt               time.Time     `json:"created_at"`
@@ -139,6 +141,12 @@ func (h *HeartbeatHandler) Create(c *gin.Context) {
 		return
 	}
 
+	retentionDays, rerr := validateHeartbeatRetentionDays(req.HistoryRetentionDays)
+	if rerr != nil {
+		apiError(c, http.StatusBadRequest, "INVALID_RETENTION_PERIOD", rerr.Error())
+		return
+	}
+
 	if req.Tags != nil {
 		if err := tags.ValidateTags(req.Tags); err != nil {
 			apiError(c, http.StatusBadRequest, "INVALID_TAGS", err.Error())
@@ -171,6 +179,7 @@ func (h *HeartbeatHandler) Create(c *gin.Context) {
 		ExpectedIntervalSeconds: interval,
 		GraceSeconds:            grace,
 		Status:                  status,
+		HistoryRetentionDays:    retentionDays,
 		TokenPrefix:             prefix,
 		TokenHash:               tokenHash,
 	})
@@ -306,6 +315,12 @@ func (h *HeartbeatHandler) Put(c *gin.Context) {
 		return
 	}
 
+	retentionDays, rerr := validateHeartbeatRetentionDays(req.HistoryRetentionDays)
+	if rerr != nil {
+		apiError(c, http.StatusBadRequest, "INVALID_RETENTION_PERIOD", rerr.Error())
+		return
+	}
+
 	if req.Tags != nil {
 		if err := tags.ValidateTags(req.Tags); err != nil {
 			apiError(c, http.StatusBadRequest, "INVALID_TAGS", err.Error())
@@ -363,6 +378,7 @@ func (h *HeartbeatHandler) Put(c *gin.Context) {
 		ExpectedIntervalSeconds: interval,
 		GraceSeconds:            grace,
 		Status:                  status,
+		HistoryRetentionDays:    retentionDays,
 		TokenPrefix:             tokenPrefix,
 		TokenHash:               tokenHash,
 	})
@@ -544,6 +560,20 @@ func validateHeartbeatFields(name string, intervalPtr, gracePtr *int32, statusPt
 	return interval, grace, status, ""
 }
 
+// validateHeartbeatRetentionDays validates the optional history_retention_days
+// field, mirroring the monitor path's validateRetentionDays. Returns the
+// effective retention period: default 30 if nil, the provided value if in
+// [1, 365], or an error if out of range.
+func validateHeartbeatRetentionDays(days *int32) (int32, error) {
+	if days == nil {
+		return 30, nil
+	}
+	if *days < 1 || *days > 365 {
+		return 0, fmt.Errorf("history_retention_days must be between 1 and 365, got %d", *days)
+	}
+	return *days, nil
+}
+
 // pingURLs builds the success + failure ping URLs from the configured base URL.
 // When baseURL is empty both are empty (the raw token is still returned).
 func (h *HeartbeatHandler) pingURLs(raw string) (pingURL, pingFailURL string) {
@@ -565,6 +595,7 @@ func toHeartbeatResponse(hb db.Heartbeat, hbTags []db.HeartbeatTag) heartbeatRes
 		GraceSeconds:            hb.GraceSeconds,
 		Status:                  hb.Status,
 		State:                   hb.State,
+		HistoryRetentionDays:    hb.HistoryRetentionDays,
 		Tags:                    []tagResponse{},
 		TokenPrefix:             hb.TokenPrefix,
 		TokenCreatedAt:          hb.TokenCreatedAt,

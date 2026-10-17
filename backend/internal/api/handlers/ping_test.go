@@ -1,8 +1,11 @@
 package handlers_test
 
 import (
+	"context"
+	"errors"
 	"net/http"
 	"net/http/httptest"
+	"sync"
 	"testing"
 	"time"
 
@@ -13,6 +16,7 @@ import (
 	"github.com/VitaliAndrushkevich/pulse/internal/api/handlers"
 	"github.com/VitaliAndrushkevich/pulse/internal/heartbeat"
 	db "github.com/VitaliAndrushkevich/pulse/internal/store/postgres"
+	"github.com/VitaliAndrushkevich/pulse/internal/store/timescale"
 	"github.com/VitaliAndrushkevich/pulse/internal/token"
 )
 
@@ -32,12 +36,46 @@ func (d *recordingPingDispatcher) DispatchHeartbeat(_ *gin.Context, hb db.Heartb
 	d.calls = append(d.calls, pingDispatchCall{id: hb.ID, newState: newState, prevState: previousState})
 }
 
+// recordingEventWriter captures WriteHeartbeatEvent calls so tests can assert the
+// ping path records exactly one timeline event with the right type/previous_state.
+type recordingEventWriter struct {
+	mu    sync.Mutex
+	calls []timescale.HeartbeatEvent
+}
+
+func (w *recordingEventWriter) WriteHeartbeatEvent(_ context.Context, ev timescale.HeartbeatEvent) error {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	w.calls = append(w.calls, ev)
+	return nil
+}
+
+func (w *recordingEventWriter) snapshot() []timescale.HeartbeatEvent {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	out := make([]timescale.HeartbeatEvent, len(w.calls))
+	copy(out, w.calls)
+	return out
+}
+
+// erroringEventWriter always fails, to prove a write error is swallowed and the
+// ping still returns 200.
+type erroringEventWriter struct{}
+
+func (erroringEventWriter) WriteHeartbeatEvent(_ context.Context, _ timescale.HeartbeatEvent) error {
+	return errors.New("boom")
+}
+
 func setupPingRouter(fdb *heartbeatFakeDB, disp handlers.PingDispatcher) *gin.Engine {
+	return setupPingRouterWithEvents(fdb, disp, nil)
+}
+
+func setupPingRouterWithEvents(fdb *heartbeatFakeDB, disp handlers.PingDispatcher, events timescale.HeartbeatEventWriter) *gin.Engine {
 	gin.SetMode(gin.TestMode)
 	r := gin.New()
 	// A fresh private registry avoids clashing with other tests' metrics.
 	metrics := heartbeat.NewMetrics(prometheus.NewRegistry())
-	ph := handlers.NewPingHandler(db.New(fdb), nil, metrics, disp)
+	ph := handlers.NewPingHandler(db.New(fdb), nil, metrics, disp, events)
 	ph.RegisterPingRoutes(r)
 	return r
 }
@@ -222,5 +260,92 @@ func TestPingSuccess_PausedHeartbeatStillRecords(t *testing.T) {
 	fdb.mu.Unlock()
 	if !updated.LastSuccessAt.Valid {
 		t.Fatal("paused heartbeat success ping should still record last_success_at")
+	}
+}
+
+func TestPingSuccess_WritesSuccessEvent(t *testing.T) {
+	fdb := newHeartbeatFakeDB()
+	hb, raw := seedHeartbeatWithToken(t, fdb, "active", "down")
+	events := &recordingEventWriter{}
+	router := setupPingRouterWithEvents(fdb, &recordingPingDispatcher{}, events)
+
+	req := httptest.NewRequest(http.MethodGet, "/ping/"+raw, nil)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", w.Code)
+	}
+	calls := events.snapshot()
+	if len(calls) != 1 {
+		t.Fatalf("expected exactly 1 event write, got %d", len(calls))
+	}
+	ev := calls[0]
+	if ev.HeartbeatID != hb.ID {
+		t.Errorf("event HeartbeatID = %s; want %s", ev.HeartbeatID, hb.ID)
+	}
+	if ev.EventType != "success" {
+		t.Errorf("event EventType = %q; want success", ev.EventType)
+	}
+	if ev.PreviousState == nil || *ev.PreviousState != "down" {
+		t.Errorf("event PreviousState = %v; want down", ev.PreviousState)
+	}
+	if ev.OccurredAt.IsZero() {
+		t.Error("event OccurredAt should be set")
+	}
+}
+
+func TestPingFail_WritesFailEvent(t *testing.T) {
+	fdb := newHeartbeatFakeDB()
+	hb, raw := seedHeartbeatWithToken(t, fdb, "active", "up")
+	events := &recordingEventWriter{}
+	router := setupPingRouterWithEvents(fdb, &recordingPingDispatcher{}, events)
+
+	req := httptest.NewRequest(http.MethodGet, "/ping/"+raw+"/fail", nil)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", w.Code)
+	}
+	calls := events.snapshot()
+	if len(calls) != 1 {
+		t.Fatalf("expected exactly 1 event write, got %d", len(calls))
+	}
+	ev := calls[0]
+	if ev.HeartbeatID != hb.ID || ev.EventType != "fail" {
+		t.Errorf("event = %+v; want id=%s type=fail", ev, hb.ID)
+	}
+	if ev.PreviousState == nil || *ev.PreviousState != "up" {
+		t.Errorf("event PreviousState = %v; want up", ev.PreviousState)
+	}
+}
+
+func TestPingSuccess_NilEventWriterIsNoOp(t *testing.T) {
+	fdb := newHeartbeatFakeDB()
+	_, raw := seedHeartbeatWithToken(t, fdb, "active", "up")
+	// Explicit nil writer — the ping must still succeed with no panic.
+	router := setupPingRouterWithEvents(fdb, &recordingPingDispatcher{}, nil)
+
+	req := httptest.NewRequest(http.MethodGet, "/ping/"+raw, nil)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK || w.Body.String() != "OK" {
+		t.Fatalf("nil event writer: expected 200 OK, got %d %q", w.Code, w.Body.String())
+	}
+}
+
+func TestPingSuccess_EventWriterErrorStillReturns200(t *testing.T) {
+	fdb := newHeartbeatFakeDB()
+	_, raw := seedHeartbeatWithToken(t, fdb, "active", "up")
+	router := setupPingRouterWithEvents(fdb, &recordingPingDispatcher{}, erroringEventWriter{})
+
+	req := httptest.NewRequest(http.MethodGet, "/ping/"+raw, nil)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK || w.Body.String() != "OK" {
+		t.Fatalf("event writer error should be swallowed: expected 200 OK, got %d %q", w.Code, w.Body.String())
 	}
 }

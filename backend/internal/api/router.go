@@ -46,9 +46,10 @@ type Deps struct {
 
 	// Heartbeat subsystem (heartbeat-monitoring). All may be nil, in which case
 	// heartbeat routes are still registered but metrics/dispatch are skipped.
-	HeartbeatMetrics    *heartbeat.Metrics             // shared Prometheus gauges
-	HeartbeatStateClear handlers.HeartbeatStateClearer // notification dedup state clearer (StateTracker)
-	PingDispatcher      handlers.PingDispatcher        // heartbeat ping notification seam (Phase 4)
+	HeartbeatMetrics     *heartbeat.Metrics             // shared Prometheus gauges
+	HeartbeatStateClear  handlers.HeartbeatStateClearer // notification dedup state clearer (StateTracker)
+	PingDispatcher       handlers.PingDispatcher        // heartbeat ping notification seam (Phase 4)
+	HeartbeatEventWriter timescale.HeartbeatEventWriter // heartbeat timeline event writer (may be nil)
 }
 
 func NewRouter(deps Deps) *gin.Engine {
@@ -165,7 +166,7 @@ func NewRouter(deps Deps) *gin.Engine {
 	// Root-level heartbeat ping ingestion (heartbeat-monitoring). These sit
 	// OUTSIDE /api/v1 (like /ws): authorization is possession of the unguessable
 	// token in the URL, not a Bearer/JWT header. Registered directly on the engine.
-	pingHandler := handlers.NewPingHandler(deps.Queries, deps.Hub, deps.HeartbeatMetrics, deps.PingDispatcher)
+	pingHandler := handlers.NewPingHandler(deps.Queries, deps.Hub, deps.HeartbeatMetrics, deps.PingDispatcher, deps.HeartbeatEventWriter)
 	pingHandler.RegisterPingRoutes(r)
 
 	// Proto source management (grpc-proto-payload).

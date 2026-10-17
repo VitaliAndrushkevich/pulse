@@ -6,6 +6,7 @@ import (
 	"io"
 	"log/slog"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -105,12 +106,20 @@ func TestRunCycle_ConsecutiveBatchErrorsAbort(t *testing.T) {
 	slog.SetDefault(slog.New(slog.NewTextHandler(io.Discard, nil)))
 	defer slog.SetDefault(slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelInfo})))
 
-	callCount := 0
+	monitorCalls := 0
+	heartbeatCalls := 0
 	errBatch := errors.New("persistent DB failure")
 
 	mock := &mockDBTX{
 		queryFn: func(ctx context.Context, sql string, args ...interface{}) (pgx.Rows, error) {
-			callCount++
+			// runCycle prunes monitors first, then heartbeats, in two independent
+			// loops that each own a maxConsecutiveBatchErrors budget. Count each
+			// loop separately so the per-loop abort behavior is asserted precisely.
+			if strings.Contains(sql, "name: ListHeartbeats") {
+				heartbeatCalls++
+				return nil, errBatch
+			}
+			monitorCalls++
 			return nil, errBatch
 		},
 	}
@@ -129,9 +138,12 @@ func TestRunCycle_ConsecutiveBatchErrorsAbort(t *testing.T) {
 		t.Fatalf("runCycle should not return error (aborts gracefully after max errors), got: %v", err)
 	}
 
-	// Should abort after maxConsecutiveBatchErrors (3) attempts
-	if callCount != 3 {
-		t.Errorf("expected 3 calls before aborting, got %d", callCount)
+	// Each loop aborts after maxConsecutiveBatchErrors (3) attempts.
+	if monitorCalls != 3 {
+		t.Errorf("expected 3 ListMonitors calls before aborting, got %d", monitorCalls)
+	}
+	if heartbeatCalls != 3 {
+		t.Errorf("expected 3 ListHeartbeats calls before aborting, got %d", heartbeatCalls)
 	}
 }
 

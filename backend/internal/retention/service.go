@@ -189,11 +189,103 @@ func (s *RetentionService) runCycle(ctx context.Context) error {
 		offset += int32(s.batchSize)
 	}
 
+	// Prune expired heartbeat_events in the same cycle. This is a structural copy
+	// of the monitor loop above — same paging, same len(page) < batchSize
+	// termination, same maxConsecutiveBatchErrors tolerance, same per-item
+	// log-and-continue isolation — differing only in the list query, the delete
+	// query, and the per-item retention field.
+	offset = int32(0)
+	consecutiveErrors = 0
+	for {
+		if ctx.Err() != nil {
+			return ctx.Err()
+		}
+
+		heartbeats, err := s.queries.ListHeartbeats(ctx, db.ListHeartbeatsParams{
+			Limit:  int32(s.batchSize),
+			Offset: offset,
+		})
+		if err != nil {
+			consecutiveErrors++
+			slog.Error("retention batch failed: listing heartbeats",
+				"offset", offset,
+				"error", err,
+				"consecutive_errors", consecutiveErrors,
+			)
+			if consecutiveErrors >= maxConsecutiveBatchErrors {
+				slog.Warn("retention cycle aborting after consecutive batch errors",
+					"consecutive_errors", consecutiveErrors,
+				)
+				break
+			}
+			offset += int32(s.batchSize)
+			continue
+		}
+
+		consecutiveErrors = 0
+
+		if len(heartbeats) == 0 {
+			break
+		}
+
+		for _, hb := range heartbeats {
+			if ctx.Err() != nil {
+				return ctx.Err()
+			}
+
+			deleted, err := s.deleteExpiredHeartbeatEvents(ctx, hb)
+			if err != nil {
+				// Log and continue — don't let one heartbeat's failure block others.
+				slog.Error("retention delete failed",
+					"heartbeat_id", hb.ID,
+					"error", err,
+				)
+				continue
+			}
+
+			if deleted > 0 {
+				totalDeleted += deleted
+				s.rowsDeleted.Add(float64(deleted))
+				slog.Debug("retention deleted heartbeat event rows",
+					"heartbeat_id", hb.ID,
+					"rows_deleted", deleted,
+				)
+			}
+		}
+
+		if len(heartbeats) < s.batchSize {
+			break
+		}
+		offset += int32(s.batchSize)
+	}
+
 	slog.Info("retention cycle completed",
 		"total_deleted", totalDeleted,
 		"duration", time.Since(startTime),
 	)
 	return nil
+}
+
+// deleteExpiredHeartbeatEvents removes heartbeat_events rows older than the
+// heartbeat's retention period, capped at deleteLimit rows per call.
+func (s *RetentionService) deleteExpiredHeartbeatEvents(ctx context.Context, hb db.Heartbeat) (int64, error) {
+	cutoff := time.Now().Add(-time.Duration(hb.HistoryRetentionDays) * 24 * time.Hour)
+
+	tag, err := s.pool.Exec(ctx,
+		`DELETE FROM heartbeat_events
+		 WHERE id IN (
+		   SELECT id FROM heartbeat_events
+		   WHERE heartbeat_id = $1
+		     AND occurred_at < $2
+		   LIMIT $3
+		 )`,
+		hb.ID, cutoff, s.deleteLimit,
+	)
+	if err != nil {
+		return 0, err
+	}
+
+	return tag.RowsAffected(), nil
 }
 
 // deleteExpiredRows removes check_result rows older than the monitor's retention
