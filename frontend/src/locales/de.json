@@ -6,6 +6,7 @@
   "nav": {
     "dashboard": "Übersicht",
     "monitors": "Monitore",
+    "heartbeats": "Heartbeats",
     "notifications": "Benachrichtigungen",
     "settings": "Einstellungen",
     "logout": "Abmelden",
@@ -23,6 +24,7 @@
     "error": "Etwas ist schiefgelaufen",
     "copy": "Kopieren",
     "copied": "Kopiert!",
+    "close": "Schließen",
     "remove": "Entfernen",
     "replace": "Ersetzen",
     "add": "Hinzufügen",
@@ -330,14 +332,14 @@
       "loading": "Verarbeitung…",
       "error": "Fehler",
       "sourceUpload": "Hochgeladene Proto-Quelle",
-      "sourceReflection": "Server Reflection",
+      "sourceReflection": "Serverreflexion",
       "files": "Dateien",
       "services": "Dienste",
       "replace": "Ersetzen",
       "remove": "Entfernen",
       "selectMethod": "Service-Methode auswählen",
       "payloadFormat": "Payload-Format",
-      "payloadFormatRaw": "Raw (Base64)",
+      "payloadFormatRaw": "Rohdaten (Base64)",
       "payloadFormatProtoJson": "Proto JSON",
       "saveFirst": "Speichern Sie den Monitor zuerst, um Proto-Quelle und Request-Payload zu konfigurieren."
     }
@@ -420,8 +422,8 @@
     "authType": "Authentifizierungstyp",
     "types": {
       "none": "Keine",
-      "bearer": "Bearer Token",
-      "basic": "Basic Auth",
+      "bearer": "Bearer-Token",
+      "basic": "Basisauthentifizierung",
       "header": "Benutzerdefinierter Header"
     },
     "fields": {
@@ -499,7 +501,7 @@
       "currentSource": "Proto-Quelle",
       "sourceType": "Quelle",
       "sourceTypeUpload": "Datei-Upload",
-      "sourceTypeReflection": "Server Reflection",
+      "sourceTypeReflection": "Serverreflexion",
       "filenames": "Dateien",
       "serviceCount": "{count} Service(s) entdeckt",
       "replace": "Ersetzen",
@@ -546,6 +548,86 @@
       "checksUp": "{count} Checks erfolgreich"
     }
   },
+  "heartbeats": {
+    "title": "Heartbeats",
+    "subtitle": "Überwache geplante Jobs anhand des erwarteten Check-ins",
+    "empty": "Noch keine Heartbeats",
+    "create": "Neuer Heartbeat",
+    "edit": "Heartbeat bearbeiten",
+    "delete": "Heartbeat löschen",
+    "deleteConfirm": "Diesen Heartbeat löschen? Seine Ping-URL funktioniert dann nicht mehr.",
+    "loading": "Heartbeats werden geladen…",
+    "loadFailed": "Heartbeats konnten nicht geladen werden",
+    "notFoundTitle": "Heartbeat nicht gefunden",
+    "notFoundDescription": "Der gesuchte Heartbeat existiert nicht oder wurde gelöscht.",
+    "notFoundAction": "Zurück zu den Heartbeats",
+    "state": {
+      "up": "Aktiv",
+      "down": "Verpasst",
+      "paused": "Pausiert",
+      "new": "Warten auf ersten Ping"
+    },
+    "fields": {
+      "name": "Name",
+      "expectedInterval": "Erwartetes Intervall",
+      "grace": "Kulanzzeit",
+      "status": "Status",
+      "lastSuccess": "Letzter Erfolg",
+      "nextDeadline": "Nächster erwarteter Check-in bis",
+      "tags": "Tags"
+    },
+    "form": {
+      "nameRequired": "Name ist erforderlich",
+      "intervalInvalid": "Das erwartete Intervall muss eine positive Anzahl von Sekunden sein",
+      "graceInvalid": "Die Kulanzzeit muss null oder eine positive Anzahl von Sekunden sein",
+      "intervalHelp": "Wie oft dieser Job sich voraussichtlich melden soll",
+      "graceHelp": "Zusätzliche Zeit, bevor ein verpasster Check-in Alarm auslöst"
+    },
+    "token": {
+      "title": "Ping-URL",
+      "showOnce": "Jetzt kopieren — sie wird nur einmal angezeigt",
+      "copy": "Ping-URL kopieren",
+      "copyFail": "Fehler-URL kopieren",
+      "copied": "Kopiert",
+      "rotate": "Token rotieren",
+      "rotateConfirm": "Token rotieren? Bestehende Ping-URLs funktionieren dann nicht mehr.",
+      "prefix": "Token-Präfix"
+    },
+    "ping": {
+      "successUrl": "Ping-URL für Erfolg",
+      "failUrl": "Ping-URL für Fehler"
+    },
+    "examples": {
+      "title": "Verwendungsbeispiele",
+      "shell": "Shell",
+      "cron": "Cron",
+      "ci": "CI",
+      "note": "Ein Erfolgs-Ping belegt, dass der Befehl ausgeführt wurde, nicht dass seine Ausgabe gültig oder wiederherstellbar ist."
+    },
+    "bindings": {
+      "title": "Benachrichtigungen",
+      "add": "Benachrichtigung hinzufügen",
+      "triggerMissed": "Verpasster Lauf oder expliziter Fehler",
+      "triggerRecovered": "Wiederhergestellt",
+      "empty": "Keine Benachrichtigungen konfiguriert"
+    },
+    "timeline": {
+      "title": "Statusverlauf (24 Std.)",
+      "uptime": "Verfügbarkeit",
+      "uptimeTooltip": "Anteil erfolgreicher Rückmeldungen im ausgewählten Zeitraum",
+      "missed": "Verpasste Ausführungen",
+      "legendSuccess": "Erfolgreich",
+      "legendMissed": "Verpasst",
+      "legendFail": "Fehlgeschlagen",
+      "loading": "Verlauf wird geladen…",
+      "loadFailed": "Heartbeat-Verlauf konnte nicht geladen werden",
+      "empty": "Noch kein Heartbeat-Verlauf vorhanden",
+      "emptyHint": "Ereignisse erscheinen nach dem nächsten Ping oder der nächsten verpassten Ausführung.",
+      "eventSuccessAt": "Erfolgreich um {time}",
+      "eventMissedAt": "Verpasste Ausführung um {time}",
+      "eventFailAt": "Explizite Fehlermeldung um {time}"
+    }
+  },
   "errors": {
     "generic": "Etwas ist schiefgelaufen",
     "network": "Dienst nicht verfügbar. Bitte später erneut versuchen.",
@@ -576,7 +658,7 @@
     "portHelp": "SMTP-Server-Port (25, 587, 465)",
     "starttls": "STARTTLS",
     "starttlsHelp": "STARTTLS-Upgrade nach EHLO versuchen (wird ignoriert, wenn Implicit TLS aktiviert ist)",
-    "implicitTls": "Implicit TLS (SMTPS)",
+    "implicitTls": "Implizites TLS (SMTPS)",
     "implicitTlsHelp": "Von Beginn an mit TLS verbinden (Port 465). Verwenden Sie dies anstelle von STARTTLS für SMTPS-Server.",
     "ehloDomain": "EHLO-Domain",
     "ehloDomainPlaceholder": "pulse.local",
@@ -589,7 +671,7 @@
     "placeholder": "JSON-Payload eingeben (z.B. {\"name\": \"value\"})",
     "label": "Request-Payload (JSON)",
     "jsonHint": "Schreiben Sie den gRPC-Request-Body als JSON. Verwenden Sie die Formatieren-Schaltfläche für die Darstellung.",
-    "rawHint": "Enter JSON payload for the gRPC request. Load a proto source above for schema validation.",
+    "rawHint": "Geben Sie die JSON-Nutzdaten für die gRPC-Anfrage ein. Laden Sie oben eine Proto-Quelle, um die Daten anhand des Schemas zu validieren.",
     "format": "Formatieren",
     "minify": "Minifizieren"
   },
@@ -815,5 +897,44 @@
       "smtpFromRequired": "Absenderadresse ist erforderlich.",
       "smtpFromInvalid": "Ungültiges E-Mail-Adressformat."
     }
+  },
+  "shell": {
+    "workspace": "Betrieb",
+    "navigation": "Hauptnavigation",
+    "signature": "Monitoring auf dem eigenen Server",
+    "skipToContent": "Zum Inhalt springen",
+    "overview": "Systemübersicht",
+    "collapseNavigation": "Navigation einklappen",
+    "expandNavigation": "Navigation ausklappen",
+    "monitorsOverview": "Dienstüberwachung",
+    "settingsOverview": "Konfiguration"
+  },
+  "users": {
+    "title": "Benutzer",
+    "description": "Verwalten Sie den Zugriff auf diese Pulse-Instanz.",
+    "email": "E-Mail",
+    "temporaryPassword": "Temporäres Passwort",
+    "role": "Rolle",
+    "admin": "Administrator",
+    "readOnly": "Nur lesen",
+    "create": "Benutzer erstellen",
+    "created": "Benutzer erstellt. Übermitteln Sie das temporäre Passwort auf sicherem Weg.",
+    "updated": "Benutzer aktualisiert.",
+    "passwordReset": "Passwort zurückgesetzt. Übermitteln Sie das neue temporäre Passwort auf sicherem Weg.",
+    "failed": "Benutzer konnten nicht aktualisiert werden.",
+    "loading": "Benutzer werden geladen…",
+    "enabled": "Aktiviert",
+    "disabled": "Deaktiviert",
+    "enable": "Aktivieren",
+    "disable": "Deaktivieren",
+    "resetPassword": "Passwort zurücksetzen",
+    "makeAdmin": "Zum Administrator machen",
+    "makeReadOnly": "Auf Lesezugriff beschränken",
+    "you": "Sie",
+    "passwordPending": "Passwortänderung erforderlich",
+    "passwordHint": "Verwenden Sie ein temporäres Passwort mit 8–72 UTF-8-Bytes. Benutzer müssen es vor dem Zugriff auf Pulse ändern. Administratoren haben vollen Zugriff; Benutzer mit Lesezugriff können Überwachungsdaten ansehen und ihr eigenes Passwort sowie ihre Einstellungen verwalten.",
+    "firstLoginTitle": "Passwort wählen",
+    "firstLoginDescription": "Geben Sie das temporäre Passwort Ihres Administrators ein und wählen Sie dann ein anderes Passwort, um fortzufahren.",
+    "sessionError": "Ihre Sitzung konnte nicht überprüft werden. Versuchen Sie es erneut, um fortzufahren."
   }
 }

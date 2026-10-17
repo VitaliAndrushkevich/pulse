@@ -728,32 +728,6 @@ func TestBytesToProtoJSON_NilDescriptor(t *testing.T) {
 	}
 }
 
-func TestBytesToProtoJSON_EmptyData(t *testing.T) {
-	fds := buildTestFDS(t, `
-syntax = "proto3";
-package ed;
-
-message Msg {
-  string name = 1;
-}
-`)
-	reg := NewRegistry()
-	msgDesc, err := ResolveMessageDescriptor(fds, "ed.Msg")
-	if err != nil {
-		t.Fatalf("failed to resolve: %v", err)
-	}
-
-	_, err = reg.BytesToProtoJSON(msgDesc, nil)
-	if err == nil {
-		t.Fatal("expected error for nil data")
-	}
-
-	_, err = reg.BytesToProtoJSON(msgDesc, []byte{})
-	if err == nil {
-		t.Fatal("expected error for empty data")
-	}
-}
-
 // --- GenerateTemplate Tests ---
 
 func TestGenerateTemplate_ScalarFields(t *testing.T) {

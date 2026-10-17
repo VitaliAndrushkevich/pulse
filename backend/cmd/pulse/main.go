@@ -14,6 +14,7 @@ import (
 	"github.com/VitaliAndrushkevich/pulse/internal/api"
 	"github.com/VitaliAndrushkevich/pulse/internal/config"
 	"github.com/VitaliAndrushkevich/pulse/internal/crypto"
+	"github.com/VitaliAndrushkevich/pulse/internal/heartbeat"
 	"github.com/VitaliAndrushkevich/pulse/internal/hub"
 	"github.com/VitaliAndrushkevich/pulse/internal/monitor"
 	"github.com/VitaliAndrushkevich/pulse/internal/notification"
@@ -174,6 +175,19 @@ func main() {
 
 	go retentionSvc.Start(appCtx)
 
+	// Heartbeat subsystem (heartbeat-monitoring): metrics on the shared registry
+	// plus the periodic-sweep evaluator detecting missed runs. The dispatch helper
+	// reuses the existing notification dispatcher/StateTracker/retry/delivery-logs
+	// unchanged — it is the single additive notification entry point (design §5.3).
+	heartbeatMetrics := heartbeat.NewMetrics(promRegistry)
+	heartbeatDispatch := heartbeat.NewDispatch(queries, dispatcher, cfg.BaseURL)
+	heartbeatWorkers := getEnvInt("PULSE_HEARTBEAT_WORKERS", heartbeat.DefaultWorkers)
+	heartbeatEvaluator := heartbeat.NewEvaluator(heartbeat.Config{
+		Workers: heartbeatWorkers,
+	}, queries, heartbeatMetrics, wsHub, heartbeatDispatch, timescaleStore)
+	go heartbeatEvaluator.Run(appCtx)
+	log.Printf("startup: heartbeat evaluator started (%d workers)", heartbeatWorkers)
+
 	r := api.NewRouter(api.Deps{
 		Queries:         queries,
 		Pool:            pool,
@@ -191,6 +205,11 @@ func main() {
 		MetricsUser:     cfg.MetricsUser,
 		MetricsPassword: cfg.MetricsPassword,
 		ResetAdmin:      cfg.ResetAdmin,
+
+		HeartbeatMetrics:     heartbeatMetrics,
+		HeartbeatStateClear:  stateTracker,
+		PingDispatcher:       heartbeatDispatch,
+		HeartbeatEventWriter: timescaleStore,
 	})
 	addr := ":" + cfg.Port
 	if cfg.DevMode {

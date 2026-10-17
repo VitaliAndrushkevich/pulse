@@ -13,34 +13,38 @@ import { render, screen, cleanup } from '@testing-library/svelte';
 import HistoryChartExplorer from './HistoryChartExplorer.svelte';
 
 // Mock ResizeObserver (not available in jsdom)
-const mockResizeObserver = vi.fn().mockImplementation(() => ({
-  observe: vi.fn(),
-  unobserve: vi.fn(),
-  disconnect: vi.fn(),
-}));
+const mockResizeObserver = vi.fn().mockImplementation(function () {
+  return {
+    observe: vi.fn(),
+    unobserve: vi.fn(),
+    disconnect: vi.fn(),
+  };
+});
 vi.stubGlobal('ResizeObserver', mockResizeObserver);
 
 // Mock uPlot — it requires real canvas/DOM with dimensions
 vi.mock('uplot', () => {
   return {
-    default: vi.fn().mockImplementation(() => ({
-      destroy: vi.fn(),
-      setSize: vi.fn(),
-      setScale: vi.fn(),
-      setSelect: vi.fn(),
-      cursor: { idx: null, left: 0, top: 0 },
-      bbox: { left: 0, top: 0, width: 600, height: 250 },
-      data: [],
-      select: { left: 0, width: 0, top: 0, height: 0 },
-      valToPos: vi.fn(() => 0),
-      posToVal: vi.fn(() => 0),
-      ctx: {
-        save: vi.fn(),
-        restore: vi.fn(),
-        fillRect: vi.fn(),
-        fillStyle: '',
-      },
-    })),
+    default: vi.fn().mockImplementation(function () {
+      return {
+        destroy: vi.fn(),
+        setSize: vi.fn(),
+        setScale: vi.fn(),
+        setSelect: vi.fn(),
+        cursor: { idx: null, left: 0, top: 0 },
+        bbox: { left: 0, top: 0, width: 600, height: 250 },
+        data: [],
+        select: { left: 0, width: 0, top: 0, height: 0 },
+        valToPos: vi.fn(() => 0),
+        posToVal: vi.fn(() => 0),
+        ctx: {
+          save: vi.fn(),
+          restore: vi.fn(),
+          fillRect: vi.fn(),
+          fillStyle: '',
+        },
+      };
+    }),
   };
 });
 

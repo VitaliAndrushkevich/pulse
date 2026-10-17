@@ -14,6 +14,7 @@
   import { t } from '$lib/i18n';
   import type { MonitorPatch } from '$lib/types';
 
+  import PageHeader from '../components/PageHeader.svelte';
   import FleetHealth from '../components/dashboard/FleetHealth.svelte';
   import IncidentsPanel from '../components/dashboard/IncidentsPanel.svelte';
   import InsightsPanel from '../components/dashboard/InsightsPanel.svelte';
@@ -86,16 +87,17 @@
   }
 </script>
 
-<section class="space-y-6 overflow-x-hidden">
-  <div class="flex items-center justify-between">
-    <h1 class="text-3xl font-bold tracking-tight text-primary">{t('dashboard.title')}</h1>
-    <DataFreshness lastUpdated={dashboardStore.lastUpdated} stale={dashboardStore.stale} />
-  </div>
+<section class="dashboard space-y-6">
+  <PageHeader eyebrow={t('shell.overview')} title={t('dashboard.title')}>
+    {#snippet actions()}
+      <DataFreshness lastUpdated={dashboardStore.lastUpdated} stale={dashboardStore.stale} />
+    {/snippet}
+  </PageHeader>
 
   <!-- Responsive grid: 3 columns at >= 768px, single-column below (Req 8.1, 8.7) -->
   <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
     <!-- UptimeHeatmap — full width at top for at-a-glance history -->
-    <div class="rounded-xl border border-[var(--color-border)] bg-surface shadow-sm md:col-span-3">
+    <div class="pulse-panel md:col-span-3">
       <UptimeHeatmap
         data={dashboardStore.heatmap}
         loading={dashboardStore.isWidgetLoading('heatmap')}
@@ -105,7 +107,7 @@
     </div>
 
     <!-- FleetHealth — combined health score + status distribution -->
-    <div class="rounded-xl border border-[var(--color-border)] bg-surface shadow-sm">
+    <div class="pulse-panel fleet-panel">
       <FleetHealth
         healthData={dashboardStore.healthScore}
         distributionData={dashboardStore.statusDistribution}
@@ -116,7 +118,7 @@
     </div>
 
     <!-- IncidentsPanel -->
-    <div class="rounded-xl border border-[var(--color-border)] bg-surface shadow-sm md:col-span-2">
+    <div class="pulse-panel md:col-span-2">
       <IncidentsPanel
         incidents={dashboardStore.activeIncidents}
         loading={dashboardStore.isWidgetLoading('incidents')}
@@ -126,7 +128,7 @@
     </div>
 
     <!-- InsightsPanel — tabbed: Response Time, SSL, Events -->
-    <div class="rounded-xl border border-[var(--color-border)] bg-surface shadow-sm md:col-span-3">
+    <div class="pulse-panel md:col-span-3">
       <InsightsPanel
         monitors={dashboardStore.topLatencyMonitors}
         sslEntries={dashboardStore.sslExpiry}
@@ -138,3 +140,7 @@
     </div>
   </div>
 </section>
+
+<style>
+  .fleet-panel { border-block-start: 3px solid var(--color-brand-primary); }
+</style>

@@ -58,6 +58,48 @@ type DeliveryLog struct {
 	CreatedAt   time.Time   `db:"created_at" json:"created_at"`
 }
 
+type Heartbeat struct {
+	ID                      uuid.UUID          `db:"id" json:"id"`
+	Name                    string             `db:"name" json:"name"`
+	ExpectedIntervalSeconds int32              `db:"expected_interval_seconds" json:"expected_interval_seconds"`
+	GraceSeconds            int32              `db:"grace_seconds" json:"grace_seconds"`
+	Status                  string             `db:"status" json:"status"`
+	State                   string             `db:"state" json:"state"`
+	LastSuccessAt           pgtype.Timestamptz `db:"last_success_at" json:"last_success_at"`
+	NextExpectedDeadline    pgtype.Timestamptz `db:"next_expected_deadline" json:"next_expected_deadline"`
+	TokenPrefix             string             `db:"token_prefix" json:"token_prefix"`
+	TokenHash               string             `db:"token_hash" json:"token_hash"`
+	TokenCreatedAt          time.Time          `db:"token_created_at" json:"token_created_at"`
+	CreatedAt               time.Time          `db:"created_at" json:"created_at"`
+	UpdatedAt               time.Time          `db:"updated_at" json:"updated_at"`
+	HistoryRetentionDays    int32              `db:"history_retention_days" json:"history_retention_days"`
+}
+
+type HeartbeatBinding struct {
+	ID                      uuid.UUID       `db:"id" json:"id"`
+	ChannelID               uuid.UUID       `db:"channel_id" json:"channel_id"`
+	HeartbeatID             uuid.UUID       `db:"heartbeat_id" json:"heartbeat_id"`
+	Triggers                json.RawMessage `db:"triggers" json:"triggers"`
+	ReminderIntervalMinutes *int32          `db:"reminder_interval_minutes" json:"reminder_interval_minutes"`
+	CreatedAt               time.Time       `db:"created_at" json:"created_at"`
+	UpdatedAt               time.Time       `db:"updated_at" json:"updated_at"`
+}
+
+type HeartbeatEvent struct {
+	ID            uuid.UUID `db:"id" json:"id"`
+	HeartbeatID   uuid.UUID `db:"heartbeat_id" json:"heartbeat_id"`
+	OccurredAt    time.Time `db:"occurred_at" json:"occurred_at"`
+	EventType     string    `db:"event_type" json:"event_type"`
+	PreviousState *string   `db:"previous_state" json:"previous_state"`
+	CreatedAt     time.Time `db:"created_at" json:"created_at"`
+}
+
+type HeartbeatTag struct {
+	HeartbeatID uuid.UUID `db:"heartbeat_id" json:"heartbeat_id"`
+	Key         string    `db:"key" json:"key"`
+	Value       string    `db:"value" json:"value"`
+}
+
 type Incident struct {
 	ID         uuid.UUID          `db:"id" json:"id"`
 	MonitorID  uuid.UUID          `db:"monitor_id" json:"monitor_id"`
@@ -141,9 +183,13 @@ type SmtpSetting struct {
 }
 
 type User struct {
-	ID           uuid.UUID `db:"id" json:"id"`
-	Email        string    `db:"email" json:"email"`
-	PasswordHash string    `db:"password_hash" json:"password_hash"`
-	CreatedAt    time.Time `db:"created_at" json:"created_at"`
-	UpdatedAt    time.Time `db:"updated_at" json:"updated_at"`
+	ID                 uuid.UUID `db:"id" json:"id"`
+	Email              string    `db:"email" json:"email"`
+	PasswordHash       string    `db:"password_hash" json:"password_hash"`
+	CreatedAt          time.Time `db:"created_at" json:"created_at"`
+	UpdatedAt          time.Time `db:"updated_at" json:"updated_at"`
+	Role               string    `db:"role" json:"role"`
+	Enabled            bool      `db:"enabled" json:"enabled"`
+	MustChangePassword bool      `db:"must_change_password" json:"must_change_password"`
+	SessionVersion     int64     `db:"session_version" json:"session_version"`
 }

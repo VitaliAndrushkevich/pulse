@@ -1,12 +1,13 @@
 // API client — fetch wrapper with auth, timeout, and error handling
 
-import { getToken, clearToken } from '$lib/stores/auth.svelte';
+import { getToken, clearToken, setSession, requirePasswordChange } from '$lib/stores/auth.svelte';
 import { toastStore } from '$lib/stores/toast.svelte';
 import type {
-  Monitor, PaginatedList, HistoryPoint, Incident, Secret, Tag, DashboardSummary, ProtoSourceMeta,
+  User, UserRole, Monitor, PaginatedList, HistoryPoint, Incident, Secret, Tag, DashboardSummary, ProtoSourceMeta,
   NotificationChannel, NotificationChannelType, ChannelBinding, TriggerCondition,
   TemplateVariableGroup, SMTPSettings, SMTPSettingsRequest, TestChannelResult, TestSMTPResult,
-  EmailChannelConfig, WebhookChannelConfig
+  EmailChannelConfig, WebhookChannelConfig,
+  Heartbeat, HeartbeatBinding, HeartbeatTriggerCondition, HeartbeatHistoryResponse
 } from '$lib/types';
 
 // ---------------------------------------------------------------------------
@@ -29,6 +30,8 @@ export interface LoginRequest {
 
 export interface LoginResponse {
   token: string;
+  expires_at: string;
+  user: User;
 }
 
 export interface CreateMonitorRequest {
@@ -190,7 +193,7 @@ export async function apiRequest<T>(
 
   // Handle 401 — clear JWT, redirect, suppress toast (unless skipped for login page)
   if (response.status === 401) {
-    if (!options?.skipUnauthorizedHandler) {
+    if (!options?.skipUnauthorizedHandler && getToken() === token) {
       onUnauthorized();
     }
     throw new ApiRequestError(401, { code: 'UNAUTHORIZED', message: 'Authentication required' }, requestId);
@@ -207,6 +210,10 @@ export async function apiRequest<T>(
       }
     } catch {
       // Response body isn't valid JSON or doesn't match envelope
+    }
+
+    if (apiError?.code === 'PASSWORD_CHANGE_REQUIRED' && getToken() === token) {
+      requirePasswordChange();
     }
 
     if (apiError) {
@@ -278,8 +285,32 @@ export interface ChangePasswordRequest {
 }
 
 /** PUT /api/v1/auth/password — change current user password */
-export async function changePassword(data: ChangePasswordRequest): Promise<{ message: string }> {
-  return apiRequest<{ message: string }>('PUT', '/auth/password', data, { skipToast: true });
+export async function changePassword(data: ChangePasswordRequest): Promise<LoginResponse> {
+  const session = await apiRequest<LoginResponse>('PUT', '/auth/password', data, { skipToast: true, skipUnauthorizedHandler: true });
+  setSession(session);
+  return session;
+}
+
+export async function getCurrentUser(): Promise<User> {
+  const response = await apiRequest<{ user: User }>('GET', '/auth/me', undefined, { skipToast: true });
+  return response.user;
+}
+
+export interface UserList {
+  data: User[];
+  page: number; limit: number; total: number; total_pages: number;
+}
+export function listUsers(page = 1, limit = 20): Promise<UserList> {
+  return apiRequest('GET', `/users?page=${page}&limit=${limit}`);
+}
+export function createUser(data: { email: string; password: string; role: UserRole }): Promise<User> {
+  return apiRequest('POST', '/users', data, { skipToast: true });
+}
+export function updateUser(id: string, data: { role?: UserRole; enabled?: boolean }): Promise<User> {
+  return apiRequest('PATCH', `/users/${id}`, data, { skipToast: true });
+}
+export function resetUserPassword(id: string, password: string): Promise<User> {
+  return apiRequest('POST', `/users/${id}/reset-password`, { password }, { skipToast: true });
 }
 
 /** GET /api/v1/monitors?page=&limit=&type=&tag=key:value */
@@ -876,5 +907,145 @@ export async function listMonitorDeliveryLogs(
   return apiRequest<PaginatedList<DeliveryLogEntry>>(
     'GET',
     `/monitors/${monitorId}/delivery-logs?page=${page}&limit=${limit}`
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Heartbeats
+// ---------------------------------------------------------------------------
+
+export interface CreateHeartbeatRequest {
+  name: string;
+  expected_interval_seconds: number;
+  grace_seconds?: number;
+  status?: 'active' | 'paused';
+  tags?: Tag[];
+  history_retention_days?: number;
+}
+
+export type UpdateHeartbeatRequest = CreateHeartbeatRequest;
+
+/**
+ * Response returned once on heartbeat create (and PUT-as-create). It is one of the
+ * only two responses carrying the raw ping token; ping_url/ping_fail_url are omitted
+ * when PULSE_BASE_URL is not configured on the server.
+ */
+export interface HeartbeatCreateResponse extends Heartbeat {
+  ping_token: string;
+  ping_url?: string;
+  ping_fail_url?: string;
+}
+
+/** Response returned once on rotate-token — carries the new raw ping token. */
+export interface RotateHeartbeatTokenResponse {
+  id: string;
+  token_prefix: string;
+  ping_token: string;
+  ping_url?: string;
+  ping_fail_url?: string;
+  token_created_at: string;
+}
+
+export interface CreateHeartbeatBindingRequest {
+  channel_id: string;
+  triggers: HeartbeatTriggerCondition[];
+  reminder_interval_minutes?: number | null;
+}
+
+export interface UpdateHeartbeatBindingRequest {
+  triggers: HeartbeatTriggerCondition[];
+  reminder_interval_minutes?: number | null;
+}
+
+/** GET /api/v1/heartbeats?page=&limit= */
+export async function getHeartbeats(
+  page: number = 1,
+  limit: number = 20
+): Promise<PaginatedList<Heartbeat>> {
+  return apiRequest<PaginatedList<Heartbeat>>('GET', `/heartbeats?page=${page}&limit=${limit}`);
+}
+
+/** GET /api/v1/heartbeats/:id */
+export async function getHeartbeat(id: string): Promise<Heartbeat> {
+  return apiRequest<Heartbeat>('GET', `/heartbeats/${id}`);
+}
+
+/** GET /api/v1/heartbeats/:id/history?from=&to= */
+export async function getHeartbeatHistory(
+  id: string,
+  from: string,
+  to: string
+): Promise<HeartbeatHistoryResponse> {
+  const params = new URLSearchParams({ from, to });
+  return apiRequest<HeartbeatHistoryResponse>('GET', `/heartbeats/${id}/history?${params.toString()}`);
+}
+
+/** POST /api/v1/heartbeats — returns the raw ping token exactly once */
+export async function createHeartbeat(
+  data: CreateHeartbeatRequest
+): Promise<HeartbeatCreateResponse> {
+  return apiRequest<HeartbeatCreateResponse>('POST', '/heartbeats', data);
+}
+
+/** PUT /api/v1/heartbeats/:id — idempotent create-or-update (never rotates the token) */
+export async function updateHeartbeat(
+  id: string,
+  data: UpdateHeartbeatRequest
+): Promise<Heartbeat> {
+  return apiRequest<Heartbeat>('PUT', `/heartbeats/${id}`, data);
+}
+
+/** DELETE /api/v1/heartbeats/:id */
+export async function deleteHeartbeat(id: string): Promise<void> {
+  return apiRequest<void>('DELETE', `/heartbeats/${id}`);
+}
+
+/** POST /api/v1/heartbeats/:id/rotate-token — returns a new raw ping token once */
+export async function rotateHeartbeatToken(id: string): Promise<RotateHeartbeatTokenResponse> {
+  return apiRequest<RotateHeartbeatTokenResponse>('POST', `/heartbeats/${id}/rotate-token`);
+}
+
+/** GET /api/v1/heartbeats/:id/notification-bindings */
+export async function listHeartbeatBindings(heartbeatId: string): Promise<HeartbeatBinding[]> {
+  const result = await apiRequest<PaginatedList<HeartbeatBinding>>(
+    'GET',
+    `/heartbeats/${heartbeatId}/notification-bindings`
+  );
+  return result.data;
+}
+
+/** POST /api/v1/heartbeats/:id/notification-bindings */
+export async function createHeartbeatBinding(
+  heartbeatId: string,
+  data: CreateHeartbeatBindingRequest
+): Promise<HeartbeatBinding> {
+  return apiRequest<HeartbeatBinding>(
+    'POST',
+    `/heartbeats/${heartbeatId}/notification-bindings`,
+    data
+  );
+}
+
+/** PUT /api/v1/heartbeats/:id/notification-bindings/:bindingId */
+export async function updateHeartbeatBinding(
+  heartbeatId: string,
+  bindingId: string,
+  data: UpdateHeartbeatBindingRequest
+): Promise<HeartbeatBinding> {
+  return apiRequest<HeartbeatBinding>(
+    'PUT',
+    `/heartbeats/${heartbeatId}/notification-bindings/${bindingId}`,
+    data
+  );
+}
+
+/** DELETE /api/v1/heartbeats/:id/notification-bindings/:bindingId */
+export async function deleteHeartbeatBinding(
+  heartbeatId: string,
+  bindingId: string
+): Promise<void> {
+  return apiRequest<void>(
+    'DELETE',
+    `/heartbeats/${heartbeatId}/notification-bindings/${bindingId}`
   );
 }

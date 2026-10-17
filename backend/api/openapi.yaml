@@ -1,7 +1,16 @@
 openapi: 3.0.3
 info:
   title: Pulse API
-  description: Self-hosted uptime monitoring platform API.
+  description: >
+    Self-hosted uptime monitoring platform API. Administrators have full access.
+    Read-only users can view monitoring data and change their own password; all
+    writes, user/token administration, credentials and notification configuration
+    require an administrator. Authentication reads the current account role and
+    enabled status on every request. Disabled accounts and revoked sessions get
+    401. Temporary-password sessions can only access JWT-only /auth/me and
+    /auth/password; other requests get 403 PASSWORD_CHANGE_REQUIRED. API tokens
+    inherit their owner permissions and cannot be used while a password change is
+    required. Existing WebSocket sessions are revalidated at most every 54 seconds.
   version: 1.0.0
   contact:
     name: Pulse
@@ -14,6 +23,155 @@ security:
   - bearerAuth: []
 
 paths:
+  /auth/me:
+    get:
+      operationId: getCurrentUser
+      summary: Get current session identity
+      description: JWT only; available while a temporary password change is required.
+      tags: [Auth]
+      responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "200":
+          description: Current user identity
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [user]
+                properties:
+                  user:
+                    $ref: "#/components/schemas/User"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /users:
+    get:
+      operationId: listUsers
+      summary: List user accounts (administrator only)
+      tags: [Users]
+      parameters:
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "200":
+          description: Paginated users
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserList"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    post:
+      operationId: createUser
+      summary: Create user with temporary password (administrator only)
+      description: Account is enabled and must replace its temporary password at first login.
+      tags: [Users]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateUserRequest"
+      responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "201":
+          description: User created; password is never returned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "409":
+          description: EMAIL_EXISTS
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /users/{id}:
+    patch:
+      operationId: updateUser
+      summary: Update role or enabled status (administrator only)
+      description: >
+        Self-disable and self-demotion are rejected. Changes serialize to protect
+        the last enabled administrator. Role changes and disable revoke sessions.
+      tags: [Users]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateUserRequest"
+      responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "200":
+          description: Updated user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: SELF_UPDATE_FORBIDDEN or LAST_ADMIN
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /users/{id}/reset-password:
+    post:
+      operationId: resetUserPassword
+      summary: Assign a new temporary password (administrator only)
+      description: Revokes existing sessions and requires password change at next login.
+      tags: [Users]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResetUserPasswordRequest"
+      responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "200":
+          description: Updated user; password is never returned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
   /auth/login:
     post:
       operationId: login
@@ -35,6 +193,12 @@ paths:
                 $ref: "#/components/schemas/LoginResponse"
         "401":
           $ref: "#/components/responses/Unauthorized"
+        "500":
+          description: Authentication storage is unavailable or inconsistent (INTERNAL_ERROR); credentials are not rejected as invalid.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
   /auth/password:
     put:
@@ -48,16 +212,18 @@ paths:
             schema:
               $ref: "#/components/schemas/ChangePasswordRequest"
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "200":
           description: Password updated successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ChangePasswordResponse"
+                $ref: "#/components/schemas/LoginResponse"
         "400":
           description: >
             Validation error. Possible error codes: VALIDATION_ERROR (missing fields,
-            password too short < 8 characters, or too long > 72 bytes).
+            password shorter than 8 bytes, longer than 72 bytes, or unchanged).
           content:
             application/json:
               schema:
@@ -131,7 +297,7 @@ paths:
           description: >
             Validation error. Error code: VALIDATION_ERROR.
             Returned when email or password is missing, or when the password
-            is shorter than 8 characters.
+            is shorter than 8 bytes or longer than 72 bytes.
           content:
             application/json:
               schema:
@@ -171,6 +337,8 @@ paths:
           style: form
           explode: true
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "200":
           description: Paginated list of monitors
           content:
@@ -203,6 +371,8 @@ paths:
                   authorization: "Bearer token123"
                 expected_statuses: [0]
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "201":
           description: Monitor created
           content:
@@ -229,6 +399,8 @@ paths:
       parameters:
         - $ref: "#/components/parameters/MonitorID"
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "200":
           description: Monitor details
           content:
@@ -250,6 +422,8 @@ paths:
             schema:
               $ref: "#/components/schemas/PutMonitorRequest"
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "200":
           description: Monitor created or updated
           content:
@@ -274,6 +448,8 @@ paths:
       parameters:
         - $ref: "#/components/parameters/MonitorID"
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "204":
           description: Monitor deleted
         "401":
@@ -316,6 +492,8 @@ paths:
             minimum: 60
             maximum: 86400
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "200":
           description: Check history points (raw or aggregated depending on step)
           content:
@@ -337,6 +515,8 @@ paths:
         - $ref: "#/components/parameters/Page"
         - $ref: "#/components/parameters/Limit"
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "200":
           description: Paginated list of incidents
           content:
@@ -354,6 +534,8 @@ paths:
       parameters:
         - $ref: "#/components/parameters/MonitorID"
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "200":
           description: Monitor statistics
           content:
@@ -389,6 +571,8 @@ paths:
                     format: binary
                   description: ".proto files or a single .desc (FileDescriptorSet) file"
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "200":
           description: Proto source uploaded and parsed successfully
           content:
@@ -417,6 +601,8 @@ paths:
       parameters:
         - $ref: "#/components/parameters/MonitorID"
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "200":
           description: Proto source metadata
           content:
@@ -444,6 +630,8 @@ paths:
       parameters:
         - $ref: "#/components/parameters/MonitorID"
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "200":
           description: Proto source deleted (or did not exist)
           content:
@@ -477,6 +665,8 @@ paths:
             schema:
               type: object
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "200":
           description: Reflection succeeded, proto source updated
           content:
@@ -555,6 +745,8 @@ paths:
                     grpc.reflection.v1.ServerReflection) in the discovered service list.
                     By default these are filtered out to show only application services.
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "200":
           description: Reflection succeeded
           content:
@@ -613,6 +805,8 @@ paths:
                     One or more .proto, .desc, or .bin files to parse.
                     Maximum 5MB total.
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "200":
           description: Proto files parsed successfully
           content:
@@ -649,6 +843,8 @@ paths:
             schema:
               $ref: "#/components/schemas/CreateMonitorCredentialRequest"
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "201":
           description: Credential created (secret values not returned)
           content:
@@ -677,6 +873,8 @@ paths:
       parameters:
         - $ref: "#/components/parameters/MonitorID"
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "200":
           description: List of credential metadata
           content:
@@ -712,6 +910,8 @@ paths:
             schema:
               $ref: "#/components/schemas/UpdateMonitorCredentialRequest"
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "200":
           description: Credential updated (secret values not returned)
           content:
@@ -741,6 +941,8 @@ paths:
         - $ref: "#/components/parameters/MonitorID"
         - $ref: "#/components/parameters/CredentialID"
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "204":
           description: Credential deleted
         "401":
@@ -761,6 +963,8 @@ paths:
       description: Returns all distinct tag keys currently in use across all monitors. Used for frontend autocomplete.
       tags: [Tags]
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "200":
           description: List of distinct tag keys
           content:
@@ -785,6 +989,8 @@ paths:
             type: string
             pattern: "^[a-z][a-z0-9_-]{0,63}$"
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "200":
           description: List of distinct values for the tag key
           content:
@@ -809,6 +1015,8 @@ paths:
             type: string
             enum: [open]
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "200":
           description: Paginated list of incidents
           content:
@@ -827,6 +1035,8 @@ paths:
         - $ref: "#/components/parameters/Page"
         - $ref: "#/components/parameters/Limit"
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "200":
           description: Paginated list of tokens
           content:
@@ -846,6 +1056,8 @@ paths:
             schema:
               $ref: "#/components/schemas/CreateTokenRequest"
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "201":
           description: Token created (raw value shown only at creation)
           content:
@@ -874,6 +1086,8 @@ paths:
             type: string
             enum: ["true"]
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "200":
           description: Token revoked or deleted
           content:
@@ -897,6 +1111,8 @@ paths:
         failures are reflected via the `partial_data` flag in the health score.
       tags: [Dashboard]
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "200":
           description: Aggregated dashboard summary
           content:
@@ -921,6 +1137,8 @@ paths:
         - $ref: "#/components/parameters/Page"
         - $ref: "#/components/parameters/Limit"
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "200":
           description: Paginated list of notification channels
           headers:
@@ -943,6 +1161,8 @@ paths:
             schema:
               $ref: "#/components/schemas/CreateNotificationChannelRequest"
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "201":
           description: Channel created
           headers:
@@ -965,6 +1185,8 @@ paths:
       parameters:
         - $ref: "#/components/parameters/NotificationChannelID"
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "200":
           description: Channel details (header values redacted)
           headers:
@@ -991,6 +1213,8 @@ paths:
             schema:
               $ref: "#/components/schemas/CreateNotificationChannelRequest"
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "200":
           description: Channel updated
           headers:
@@ -1014,6 +1238,8 @@ paths:
       parameters:
         - $ref: "#/components/parameters/NotificationChannelID"
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "204":
           description: Channel deleted
           headers:
@@ -1034,6 +1260,8 @@ paths:
         - $ref: "#/components/parameters/Page"
         - $ref: "#/components/parameters/Limit"
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "200":
           description: Paginated list of bindings for the monitor
           headers:
@@ -1063,6 +1291,8 @@ paths:
             schema:
               $ref: "#/components/schemas/CreateNotificationBindingRequest"
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "201":
           description: Binding created
           headers:
@@ -1100,6 +1330,8 @@ paths:
             schema:
               $ref: "#/components/schemas/UpdateNotificationBindingRequest"
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "200":
           description: Binding updated
           headers:
@@ -1123,6 +1355,8 @@ paths:
         - $ref: "#/components/parameters/MonitorID"
         - $ref: "#/components/parameters/BindingID"
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "204":
           description: Binding deleted
           headers:
@@ -1132,6 +1366,509 @@ paths:
           $ref: "#/components/responses/NotFound"
         "401":
           $ref: "#/components/responses/Unauthorized"
+
+  /heartbeats:
+    get:
+      operationId: listHeartbeats
+      summary: List heartbeats
+      tags: [Heartbeats]
+      parameters:
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "200":
+          description: Paginated list of heartbeats
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/X-Request-ID"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HeartbeatListResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    post:
+      operationId: createHeartbeat
+      summary: Create a heartbeat
+      description: >
+        Creates a heartbeat and its scoped ping ingestion token. The raw ping
+        token (ping_token) and the derived ping_url / ping_fail_url are returned
+        ONLY in this response (and in the rotate-token response). They are never
+        returned on GET or LIST. ping_url / ping_fail_url are omitted when
+        PULSE_BASE_URL is not configured.
+      tags: [Heartbeats]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateHeartbeatRequest"
+      responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "201":
+          description: Heartbeat created; raw ping token returned once
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/X-Request-ID"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HeartbeatCreateResponse"
+        "400":
+          description: >
+            Validation error. Error codes: VALIDATION_ERROR (missing/invalid name,
+            expected_interval_seconds, grace_seconds, or status); INVALID_TAGS.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /heartbeats/{id}:
+    get:
+      operationId: getHeartbeat
+      summary: Get a heartbeat
+      tags: [Heartbeats]
+      parameters:
+        - $ref: "#/components/parameters/HeartbeatID"
+      responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "200":
+          description: Heartbeat details (no raw token or hash)
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/X-Request-ID"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Heartbeat"
+        "400":
+          description: "Invalid UUID. Error code: INVALID_ID."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    put:
+      operationId: putHeartbeat
+      summary: Create or update a heartbeat (idempotent)
+      description: >
+        Idempotent create-or-update. PUT never rotates the ping token. When
+        expected_interval_seconds or grace_seconds change while a last_success_at
+        exists, the next_expected_deadline is recomputed. If the PUT creates a new
+        heartbeat, the raw ping token is returned once (HeartbeatCreateResponse);
+        otherwise the standard Heartbeat is returned.
+      tags: [Heartbeats]
+      parameters:
+        - $ref: "#/components/parameters/HeartbeatID"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateHeartbeatRequest"
+      responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "200":
+          description: >
+            Heartbeat created or updated. On create via PUT the body is a
+            HeartbeatCreateResponse (raw token once); on update it is a Heartbeat.
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/X-Request-ID"
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/Heartbeat"
+                  - $ref: "#/components/schemas/HeartbeatCreateResponse"
+        "400":
+          description: >
+            Validation error. Error codes: INVALID_ID, VALIDATION_ERROR, INVALID_TAGS,
+            INVALID_RETENTION_PERIOD (history_retention_days outside range 1–365).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: >
+            Concurrent modification detected (serialization/lock failure).
+            Error code: CONFLICT.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    delete:
+      operationId: deleteHeartbeat
+      summary: Delete a heartbeat
+      description: >
+        Deletes the heartbeat and cascades its tags and notification bindings.
+        The ping URL stops working immediately.
+      tags: [Heartbeats]
+      parameters:
+        - $ref: "#/components/parameters/HeartbeatID"
+      responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "204":
+          description: Heartbeat deleted
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/X-Request-ID"
+        "400":
+          description: "Invalid UUID. Error code: INVALID_ID."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /heartbeats/{id}/rotate-token:
+    post:
+      operationId: rotateHeartbeatToken
+      summary: Rotate a heartbeat's ping token
+      description: >
+        Issues a new ping token, invalidating all existing ping URLs immediately.
+        The new raw ping token is returned once in this response.
+      tags: [Heartbeats]
+      parameters:
+        - $ref: "#/components/parameters/HeartbeatID"
+      responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "200":
+          description: New ping token issued; raw token returned once
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/X-Request-ID"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HeartbeatRotateTokenResponse"
+        "400":
+          description: "Invalid UUID. Error code: INVALID_ID."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /heartbeats/{id}/history:
+    get:
+      operationId: getHeartbeatHistory
+      summary: Get the event timeline for a heartbeat
+      description: >
+        Returns the historical event timeline (success, fail, missed episodes)
+        for the specified heartbeat within the given time range, plus a summary
+        (uptime %, per-type counts, total). Events are returned as discrete rows,
+        not time-bucketed samples. The time range is clamped to the heartbeat's
+        configured `history_retention_days`; if clamping occurs, `truncated` is
+        set to true. Defaults to the last 24 hours when `from`/`to` are omitted.
+        Available only when the TimescaleDB history store is configured.
+      tags: [Heartbeats]
+      parameters:
+        - $ref: "#/components/parameters/HeartbeatID"
+        - name: from
+          in: query
+          description: Start of time range (RFC 3339). Defaults to 24h ago.
+          schema:
+            type: string
+            format: date-time
+        - name: to
+          in: query
+          description: End of time range (RFC 3339). Defaults to now.
+          schema:
+            type: string
+            format: date-time
+        - name: step
+          in: query
+          description: >
+            Aggregation interval in seconds. Accepted for symmetry with monitor
+            history and validated (60–86400), but inert in v1: there is no
+            server-side bucketing, so the value is ignored.
+          schema:
+            type: integer
+            minimum: 60
+            maximum: 86400
+      responses:
+        "200":
+          description: Heartbeat event timeline and summary
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/X-Request-ID"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HeartbeatHistoryResponse"
+        "400":
+          description: >
+            Invalid UUID, time range, or step. Error codes: INVALID_ID,
+            INVALID_STEP, VALIDATION_ERROR.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /heartbeats/{id}/notification-bindings:
+    get:
+      operationId: listHeartbeatBindings
+      summary: List notification bindings for a heartbeat
+      tags: [Heartbeats]
+      parameters:
+        - $ref: "#/components/parameters/HeartbeatID"
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "200":
+          description: Paginated list of bindings for the heartbeat
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/X-Request-ID"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HeartbeatBindingListResponse"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    post:
+      operationId: createHeartbeatBinding
+      summary: Create a notification binding for a heartbeat
+      description: >
+        Binds a notification channel to a heartbeat with heartbeat trigger
+        conditions. Allowed triggers are heartbeat_missed and heartbeat_recovered;
+        monitor trigger types are rejected with VALIDATION_ERROR and field details.
+        Each channel-heartbeat pair can have at most one binding.
+      tags: [Heartbeats]
+      parameters:
+        - $ref: "#/components/parameters/HeartbeatID"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateHeartbeatBindingRequest"
+      responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "201":
+          description: Binding created
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/X-Request-ID"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HeartbeatBinding"
+        "400":
+          description: >
+            Validation error with field-level details. Error code: VALIDATION_ERROR
+            (missing channel_id, invalid trigger type, or reminder_interval_minutes
+            outside 30–1440).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: A binding already exists for this channel-heartbeat pair
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /heartbeats/{id}/notification-bindings/{bindingId}:
+    put:
+      operationId: updateHeartbeatBinding
+      summary: Update a heartbeat notification binding
+      tags: [Heartbeats]
+      parameters:
+        - $ref: "#/components/parameters/HeartbeatID"
+        - $ref: "#/components/parameters/BindingID"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateHeartbeatBindingRequest"
+      responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "200":
+          description: Binding updated
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/X-Request-ID"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HeartbeatBinding"
+        "400":
+          description: >
+            Validation error with field-level details. Error code: VALIDATION_ERROR.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    delete:
+      operationId: deleteHeartbeatBinding
+      summary: Delete a heartbeat notification binding
+      tags: [Heartbeats]
+      parameters:
+        - $ref: "#/components/parameters/HeartbeatID"
+        - $ref: "#/components/parameters/BindingID"
+      responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "204":
+          description: Binding deleted
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/X-Request-ID"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /ping/{token}:
+    servers:
+      - url: /
+        description: Root-level ingestion (outside /api/v1)
+    get:
+      operationId: pingHeartbeatSuccessGet
+      summary: Report a successful heartbeat run
+      description: >
+        Records a successful check-in for the heartbeat identified by the token in
+        the path. Authorization is possession of the unguessable token — NO
+        JWT/API-token/session is required or accepted. Both GET and POST are
+        accepted; request bodies are ignored. An unknown, malformed, or revoked
+        token returns a minimal 404 with no body detail. A paused heartbeat still
+        records the success but is not evaluated for missed runs.
+      tags: [Ping]
+      security: []
+      parameters:
+        - $ref: "#/components/parameters/PingToken"
+      responses:
+        "200":
+          description: Ping recorded
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: OK
+        "404":
+          description: Unknown, malformed, or revoked token
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: not found
+    post:
+      operationId: pingHeartbeatSuccessPost
+      summary: Report a successful heartbeat run (POST)
+      tags: [Ping]
+      security: []
+      parameters:
+        - $ref: "#/components/parameters/PingToken"
+      responses:
+        "200":
+          description: Ping recorded
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: OK
+        "404":
+          description: Unknown, malformed, or revoked token
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: not found
+
+  /ping/{token}/fail:
+    servers:
+      - url: /
+        description: Root-level ingestion (outside /api/v1)
+    get:
+      operationId: pingHeartbeatFailGet
+      summary: Report an explicit heartbeat failure
+      description: >
+        Records an explicit failure for the heartbeat identified by the token in
+        the path, transitioning it to down without advancing last_success_at.
+        Authorization is possession of the unguessable token — NO
+        JWT/API-token/session is required or accepted. Both GET and POST are
+        accepted; request bodies are ignored.
+      tags: [Ping]
+      security: []
+      parameters:
+        - $ref: "#/components/parameters/PingToken"
+      responses:
+        "200":
+          description: Failure recorded
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: OK
+        "404":
+          description: Unknown, malformed, or revoked token
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: not found
+    post:
+      operationId: pingHeartbeatFailPost
+      summary: Report an explicit heartbeat failure (POST)
+      tags: [Ping]
+      security: []
+      parameters:
+        - $ref: "#/components/parameters/PingToken"
+      responses:
+        "200":
+          description: Failure recorded
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: OK
+        "404":
+          description: Unknown, malformed, or revoked token
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: not found
 
   /notifications/template-variables:
     get:
@@ -1143,6 +1880,8 @@ paths:
         prefix (monitor, Incident, top-level).
       tags: [Notifications]
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "200":
           description: Template variable reference grouped by prefix
           headers:
@@ -1168,6 +1907,8 @@ paths:
       parameters:
         - $ref: "#/components/parameters/NotificationChannelID"
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "200":
           description: Test result (success or failure with error detail)
           headers:
@@ -1198,6 +1939,8 @@ paths:
         configured, returns `{ "configured": false }`.
       tags: [Notifications]
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "200":
           description: SMTP configuration (password redacted)
           headers:
@@ -1224,6 +1967,8 @@ paths:
             schema:
               $ref: "#/components/schemas/SMTPSettingsRequest"
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "200":
           description: SMTP settings saved
           headers:
@@ -1248,6 +1993,8 @@ paths:
         Deletes the SMTP configuration row, disabling email notifications.
       tags: [Notifications]
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "204":
           description: SMTP settings deleted
           headers:
@@ -1269,6 +2016,8 @@ paths:
         - $ref: "#/components/parameters/Page"
         - $ref: "#/components/parameters/Limit"
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "200":
           description: Paginated list of delivery logs
           headers:
@@ -1293,6 +2042,8 @@ paths:
         Returns the result synchronously.
       tags: [Notifications]
       responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "200":
           description: Test result (success or failure with error detail)
           headers:
@@ -1376,8 +2127,31 @@ components:
       schema:
         type: string
         format: uuid
+    HeartbeatID:
+      name: id
+      in: path
+      required: true
+      description: Heartbeat UUID
+      schema:
+        type: string
+        format: uuid
+    PingToken:
+      name: token
+      in: path
+      required: true
+      description: Raw heartbeat ping token (unguessable secret in the URL)
+      schema:
+        type: string
 
   responses:
+    Forbidden:
+      description: >
+        FORBIDDEN (administrator role or JWT session required) or
+        PASSWORD_CHANGE_REQUIRED (replace the temporary password first).
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
     BadRequest:
       description: Validation error
       content:
@@ -1406,6 +2180,74 @@ components:
         example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
 
   schemas:
+    User:
+      type: object
+      required: [id, email, role, enabled, must_change_password, created_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        role:
+          type: string
+          enum: [admin, read_only]
+        enabled:
+          type: boolean
+        must_change_password:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+    UserList:
+      type: object
+      required: [data, page, limit, total, total_pages]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/User"
+        page:
+          type: integer
+        limit:
+          type: integer
+        total:
+          type: integer
+          format: int64
+        total_pages:
+          type: integer
+    CreateUserRequest:
+      type: object
+      required: [email, password, role]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+          description: Administrator-assigned temporary password, 8–72 bytes
+        role:
+          type: string
+          enum: [admin, read_only]
+    UpdateUserRequest:
+      type: object
+      minProperties: 1
+      properties:
+        role:
+          type: string
+          enum: [admin, read_only]
+        enabled:
+          type: boolean
+    ResetUserPasswordRequest:
+      type: object
+      required: [password]
+      properties:
+        password:
+          type: string
+          minLength: 8
+          description: Administrator-assigned temporary password, 8–72 bytes
     ErrorResponse:
       type: object
       required: [error]
@@ -1419,6 +2261,11 @@ components:
               description: >
                 Machine-readable error code. Known codes include:
                 VALIDATION_ERROR - general field validation failure;
+                FORBIDDEN - administrator role or a user session is required;
+                PASSWORD_CHANGE_REQUIRED - replace temporary password before accessing the application;
+                EMAIL_EXISTS - email already belongs to an account;
+                SELF_UPDATE_FORBIDDEN - cannot disable or demote own account;
+                LAST_ADMIN - cannot remove the last active administrator;
                 TEMPLATE_ERROR - webhook template parsing or unknown variable error;
                 NOT_FOUND - referenced resource does not exist;
                 CONFLICT - duplicate resource (e.g., binding for same channel-monitor pair);
@@ -1455,11 +2302,13 @@ components:
 
     LoginResponse:
       type: object
-      required: [token, expires_at]
+      required: [token, expires_at, user]
       properties:
         token:
           type: string
-          description: JWT token
+          description: JWT token; previous sessions are revoked after password changes
+        user:
+          $ref: "#/components/schemas/User"
         expires_at:
           type: string
           format: date-time
@@ -1475,15 +2324,7 @@ components:
           type: string
           minLength: 8
           description: >
-            New password (minimum 8 characters, maximum 72 bytes due to bcrypt limit)
-
-    ChangePasswordResponse:
-      type: object
-      required: [message]
-      properties:
-        message:
-          type: string
-          example: "password updated successfully"
+            New password (8–72 bytes, must differ from the current password)
 
     SetupRequest:
       type: object
@@ -1496,7 +2337,7 @@ components:
         password:
           type: string
           minLength: 8
-          description: Admin user password (minimum 8 characters)
+          description: Admin user password (8–72 bytes)
 
     SetupStatusResponse:
       type: object
@@ -1553,7 +2394,7 @@ components:
           nullable: true
         settings:
           type: object
-          description: "Type-specific settings. For type=http/http3/quic, see HTTPSettings. For type=websocket, see WebSocketSettings. For type=grpc, see GRPCSettings. For type=dns, see DNSSettings. For type=icmp, see ICMPSettings. For type=smtp, see SMTPSettings."
+          description: "Type-specific settings. For type=http/http3/quic, see HTTPSettings. For type=websocket, see WebSocketSettings. For type=grpc, see GRPCSettings. For type=dns, see DNSSettings. For type=icmp, see ICMPSettings. For type=smtp, see SMTPSettings. Empty object for read-only accounts to avoid revealing embedded credentials."
         history_retention_days:
           type: integer
           minimum: 1
@@ -3068,6 +3909,373 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/DeliveryLog"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+        total_pages:
+          type: integer
+
+    # --- Heartbeat monitoring (heartbeat-monitoring) ---
+
+    ValidationErrorResponse:
+      type: object
+      description: >
+        A validation error carrying field-level details. Used by heartbeat
+        notification-binding endpoints. Error code is VALIDATION_ERROR.
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+              example: VALIDATION_ERROR
+            message:
+              type: string
+            details:
+              type: array
+              items:
+                $ref: "#/components/schemas/FieldError"
+
+    FieldError:
+      type: object
+      required: [field, message]
+      properties:
+        field:
+          type: string
+          description: The offending field path (e.g. "triggers[0].type")
+        message:
+          type: string
+
+    HeartbeatTag:
+      type: object
+      required: [key, value]
+      properties:
+        key:
+          type: string
+        value:
+          type: string
+
+    Heartbeat:
+      type: object
+      description: >
+        A heartbeat resource. This DTO never includes the raw ping token or its
+        hash; it exposes only token_prefix and token_created_at. The state field
+        reflects a presentation mapping — when status is "paused" the observed
+        state is reported as "paused".
+      required:
+        [id, name, expected_interval_seconds, grace_seconds, status, state,
+         history_retention_days, tags, token_prefix, token_created_at,
+         created_at, updated_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        expected_interval_seconds:
+          type: integer
+          minimum: 1
+          maximum: 31536000
+        grace_seconds:
+          type: integer
+          minimum: 0
+          maximum: 31536000
+        status:
+          type: string
+          enum: [active, paused]
+          description: Operator-controlled lifecycle status
+        state:
+          type: string
+          enum: [up, down, paused, new]
+          description: Observed state (paused is a presentation mapping of status=paused)
+        last_success_at:
+          type: string
+          format: date-time
+          nullable: true
+        next_expected_deadline:
+          type: string
+          format: date-time
+          nullable: true
+        history_retention_days:
+          type: integer
+          minimum: 1
+          maximum: 365
+          description: >
+            Number of days heartbeat history (events) are retained before being
+            pruned. Defaults to 30. Mirrors the per-monitor retention setting.
+        tags:
+          type: array
+          items:
+            $ref: "#/components/schemas/HeartbeatTag"
+        token_prefix:
+          type: string
+          description: Lookup prefix of the ping token (not the token itself)
+        token_created_at:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    HeartbeatCreateResponse:
+      allOf:
+        - $ref: "#/components/schemas/Heartbeat"
+        - type: object
+          description: >
+            Create response. Carries the raw ping token exactly once. ping_url and
+            ping_fail_url are omitted when PULSE_BASE_URL is not configured.
+          required: [ping_token]
+          properties:
+            ping_token:
+              type: string
+              description: Raw ping token — shown only on create and rotate-token
+            ping_url:
+              type: string
+              description: Success ping URL (PULSE_BASE_URL + /ping/<token>)
+            ping_fail_url:
+              type: string
+              description: Failure ping URL (PULSE_BASE_URL + /ping/<token>/fail)
+
+    HeartbeatEvent:
+      type: object
+      description: A single heartbeat timeline event.
+      required: [event_type, occurred_at]
+      properties:
+        event_type:
+          type: string
+          enum: [success, fail, missed]
+          description: >
+            success = a received ping; fail = an explicit failure ping;
+            missed = a missed-run transition detected by the sweep evaluator.
+        previous_state:
+          type: string
+          enum: [up, down, paused, new]
+          nullable: true
+          description: >
+            The heartbeat's state immediately before this event, used to label
+            recoveries. Omitted when not applicable.
+        occurred_at:
+          type: string
+          format: date-time
+
+    HeartbeatHistorySummary:
+      type: object
+      required: [missed_count, fail_count, success_count, total_events]
+      properties:
+        uptime_percent:
+          type: number
+          format: float
+          nullable: true
+          description: >
+            success_count / total_events * 100, rounded to one decimal. Null when
+            there are no events in the range. Both fail and missed reduce uptime.
+        missed_count:
+          type: integer
+          format: int64
+        fail_count:
+          type: integer
+          format: int64
+        success_count:
+          type: integer
+          format: int64
+        total_events:
+          type: integer
+          format: int64
+
+    HeartbeatHistoryResponse:
+      type: object
+      required: [heartbeat_id, from, to, truncated, summary, events]
+      properties:
+        heartbeat_id:
+          type: string
+          format: uuid
+        from:
+          type: string
+          format: date-time
+          description: Effective start of the range after retention clamping.
+        to:
+          type: string
+          format: date-time
+        truncated:
+          type: boolean
+          description: >
+            True when the requested `from` was clamped to the heartbeat's
+            retention window.
+        summary:
+          $ref: "#/components/schemas/HeartbeatHistorySummary"
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/HeartbeatEvent"
+
+    HeartbeatRotateTokenResponse:
+      type: object
+      description: >
+        Rotate-token response. Carries the new raw ping token exactly once. ping_url
+        and ping_fail_url are omitted when PULSE_BASE_URL is not configured.
+      required: [id, token_prefix, ping_token, token_created_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        token_prefix:
+          type: string
+        ping_token:
+          type: string
+          description: New raw ping token — shown only once
+        ping_url:
+          type: string
+        ping_fail_url:
+          type: string
+        token_created_at:
+          type: string
+          format: date-time
+
+    HeartbeatListResponse:
+      type: object
+      required: [data, total, page, limit, total_pages]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Heartbeat"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+        total_pages:
+          type: integer
+
+    CreateHeartbeatRequest:
+      type: object
+      required: [name, expected_interval_seconds]
+      properties:
+        name:
+          type: string
+          minLength: 1
+        expected_interval_seconds:
+          type: integer
+          minimum: 1
+          maximum: 31536000
+          description: How often the job is expected to check in
+        grace_seconds:
+          type: integer
+          minimum: 0
+          maximum: 31536000
+          default: 0
+          description: Extra time allowed before a missed check-in alerts
+        status:
+          type: string
+          enum: [active, paused]
+          default: active
+        history_retention_days:
+          type: integer
+          minimum: 1
+          maximum: 365
+          default: 30
+          description: >
+            Number of days heartbeat history (events) are retained before being
+            pruned. Must be between 1 and 365. Defaults to 30 when omitted.
+        tags:
+          type: array
+          items:
+            $ref: "#/components/schemas/HeartbeatTag"
+
+    HeartbeatTriggerCondition:
+      type: object
+      description: A heartbeat trigger condition.
+      required: [type]
+      properties:
+        type:
+          type: string
+          enum: [heartbeat_missed, heartbeat_recovered]
+          description: >
+            heartbeat_missed fires on a missed run or explicit failure;
+            heartbeat_recovered fires on recovery.
+
+    HeartbeatBinding:
+      type: object
+      description: A binding between a notification channel and a heartbeat.
+      required: [id, channel_id, heartbeat_id, triggers, created_at, updated_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        channel_id:
+          type: string
+          format: uuid
+        heartbeat_id:
+          type: string
+          format: uuid
+        triggers:
+          type: array
+          items:
+            $ref: "#/components/schemas/HeartbeatTriggerCondition"
+          minItems: 1
+        reminder_interval_minutes:
+          type: integer
+          minimum: 30
+          maximum: 1440
+          nullable: true
+          description: Reminder interval in minutes (30–1440). Null means disabled.
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    CreateHeartbeatBindingRequest:
+      type: object
+      required: [channel_id, triggers]
+      properties:
+        channel_id:
+          type: string
+          format: uuid
+        triggers:
+          type: array
+          items:
+            $ref: "#/components/schemas/HeartbeatTriggerCondition"
+          minItems: 1
+        reminder_interval_minutes:
+          type: integer
+          minimum: 30
+          maximum: 1440
+          nullable: true
+
+    UpdateHeartbeatBindingRequest:
+      type: object
+      required: [triggers]
+      properties:
+        triggers:
+          type: array
+          items:
+            $ref: "#/components/schemas/HeartbeatTriggerCondition"
+          minItems: 1
+        reminder_interval_minutes:
+          type: integer
+          minimum: 30
+          maximum: 1440
+          nullable: true
+
+    HeartbeatBindingListResponse:
+      type: object
+      required: [data, total, page, limit, total_pages]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/HeartbeatBinding"
         total:
           type: integer
         page:

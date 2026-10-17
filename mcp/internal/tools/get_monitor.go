@@ -16,7 +16,7 @@ type GetMonitorInput struct {
 	Monitor string `json:"monitor" jsonschema:"Monitor UUID or exact name (1-255 chars)"`
 }
 
-// GetMonitorOutput contains the full monitor configuration and current status.
+// GetMonitorOutput contains non-secret monitor configuration and current status.
 type GetMonitorOutput struct {
 	ID              string   `json:"id"`
 	Name            string   `json:"name"`
@@ -33,7 +33,7 @@ type GetMonitorOutput struct {
 	UpdatedAt       string   `json:"updated_at"`
 }
 
-// HandleGetMonitor resolves a monitor reference and returns its full configuration
+// HandleGetMonitor resolves a monitor reference and returns its visible configuration
 // and current status, including the latest check state and most recent check timestamp.
 func HandleGetMonitor(ctx context.Context, deps Deps, input GetMonitorInput) (*GetMonitorOutput, error) {
 	// Validate input: monitor reference must not be empty.
@@ -56,7 +56,8 @@ func HandleGetMonitor(ctx context.Context, deps Deps, input GetMonitorInput) (*G
 		return nil, mapPulseError(err)
 	}
 
-	// Project non-secret fields into the output.
+	// Project non-secret fields only. Pulse may redact settings for read-only users;
+	// tool output deliberately does not depend on or reconstruct those settings.
 	output := projectMonitor(monitor)
 	return output, nil
 }
@@ -101,5 +102,3 @@ func formatTags(tags []pulseapi.Tag) []string {
 	}
 	return result
 }
-
-

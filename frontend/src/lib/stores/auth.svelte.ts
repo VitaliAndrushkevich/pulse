@@ -1,3 +1,5 @@
+import type { User } from '$lib/types';
+
 /**
  * AuthStore — JWT session management using Svelte 5 runes.
  *
@@ -42,6 +44,8 @@ function removeTokenFromStorage(): void {
 
 // --- Reactive state (Svelte 5 runes) ---
 
+let user = $state<User | null>(null);
+
 let token = $state<string | null>(readTokenFromStorage());
 const authenticated = $derived(token !== null);
 
@@ -67,6 +71,7 @@ export function getToken(): string | null {
  * Called after successful login.
  */
 export function setToken(newToken: string): void {
+  user = null;
   token = newToken;
   writeTokenToStorage(newToken);
 }
@@ -77,5 +82,19 @@ export function setToken(newToken: string): void {
  */
 export function clearToken(): void {
   token = null;
+  user = null;
   removeTokenFromStorage();
+}
+
+/** The server remains the authority for role and password-change restrictions. */
+export function getUser(): User | null { return user; }
+export function setUser(value: User): void { user = value; }
+export function isAdmin(): boolean { return user?.enabled === true && user.role === 'admin' && !user.must_change_password; }
+export function mustChangePassword(): boolean { return user?.must_change_password === true; }
+export function setSession(session: { token: string; user: User }): void {
+  setToken(session.token);
+  setUser(session.user);
+}
+export function requirePasswordChange(): void {
+  if (user) user = { ...user, must_change_password: true };
 }

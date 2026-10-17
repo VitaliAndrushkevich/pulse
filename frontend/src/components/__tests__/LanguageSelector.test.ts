@@ -52,7 +52,7 @@ describe('LanguageSelector', () => {
 
     it('renders select with aria-labelledby="language-select-label"', () => {
       const { container } = render(LanguageSelector);
-      const select = container.querySelector('select');
+      const select = container.querySelector('[role=combobox]');
 
       expect(select).not.toBeNull();
       expect(select?.getAttribute('aria-labelledby')).toBe('language-select-label');
@@ -60,7 +60,7 @@ describe('LanguageSelector', () => {
 
     it('renders select with id="language-select"', () => {
       const { container } = render(LanguageSelector);
-      const select = container.querySelector('select');
+      const select = container.querySelector('[role=combobox]');
 
       expect(select?.getAttribute('id')).toBe('language-select');
     });

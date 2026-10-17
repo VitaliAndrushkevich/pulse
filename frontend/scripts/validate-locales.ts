@@ -14,21 +14,9 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-// --- Configuration (mirrors src/lib/i18n/config.ts) ---
+import { SUPPORTED_LOCALES } from '../src/lib/i18n/config';
 
-const SUPPORTED_LOCALES = [
-  { code: 'en', name: 'English' },
-  { code: 'ru', name: 'Русский' },
-  { code: 'es', name: 'Español' },
-  { code: 'fr', name: 'Français' },
-  { code: 'pt', name: 'Português' },
-  { code: 'de', name: 'Deutsch' },
-  { code: 'zh', name: '中文' },
-  { code: 'ja', name: '日本語' },
-  { code: 'ko', name: '한국어' },
-  { code: 'tr', name: 'Türkçe' },
-  { code: 'it', name: 'Italiano' },
-] as const;
+// --- Configuration ---
 
 const LOCALES_DIR = path.resolve(import.meta.dirname, '../src/locales');
 const MAX_NESTING_DEPTH = 4;

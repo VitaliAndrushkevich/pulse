@@ -29,12 +29,35 @@ type BindingWithChannel struct {
 //   - monitorID: the monitor that produced the check result
 //   - result: the check result to evaluate triggers against
 //   - bindings: all bindings for this monitor with their trigger conditions
+//
+// It delegates to EvaluateAndDispatchWithPayload using the standard buildPayload,
+// so monitor behavior is identical to building the payload inline.
 func (d *Dispatcher) EvaluateAndDispatch(ctx context.Context, monitorID uuid.UUID, result CheckResult, bindings []BindingWithChannel) {
+	d.EvaluateAndDispatchWithPayload(ctx, monitorID, result, bindings, buildPayload)
+}
+
+// EvaluateAndDispatchWithPayload is the payload-injecting sibling of
+// EvaluateAndDispatch. It performs the identical trigger evaluation and fan-out,
+// but lets the caller supply a payloadBuilder so the enqueued DeliveryJob can
+// carry a fully-populated TemplateData. When the builder pre-fills
+// Payload.Monitor.Name, the delivery path skips enrichPayload's GetMonitor
+// lookup — which is required for heartbeat resources whose IDs are not in the
+// monitors table (design §5.3, HIGH-1).
+//
+// resourceID is the opaque resource key (a monitor ID or a heartbeat ID) used
+// both as the StateTracker dedup key and as DeliveryJob.MonitorID.
+func (d *Dispatcher) EvaluateAndDispatchWithPayload(
+	ctx context.Context,
+	resourceID uuid.UUID,
+	result CheckResult,
+	bindings []BindingWithChannel,
+	payloadBuilder func(uuid.UUID, CheckResult) TemplateData,
+) {
 	// Collect all trigger conditions from all bindings for state evaluation.
 	allConditions := extractTriggerConditions(bindings)
 
 	// Evaluate which triggers fire based on state transitions and deduplication.
-	events := d.state.Evaluate(monitorID, result, allConditions)
+	events := d.state.Evaluate(resourceID, result, allConditions)
 
 	if len(events) == 0 {
 		return
@@ -48,12 +71,12 @@ func (d *Dispatcher) EvaluateAndDispatch(ctx context.Context, monitorID uuid.UUI
 				job := DeliveryJob{
 					ID:          uuid.New(),
 					ChannelID:   bindings[i].ChannelID,
-					MonitorID:   monitorID,
+					MonitorID:   resourceID,
 					BindingID:   bindings[i].ID,
 					TriggerType: event.Type,
 					Attempt:     1,
 					MaxAttempts: DefaultMaxAttempts,
-					Payload:     buildPayload(monitorID, result),
+					Payload:     payloadBuilder(resourceID, result),
 					ScheduledAt: time.Now(),
 				}
 				// Each Enqueue is independent — if one fails (buffer full),

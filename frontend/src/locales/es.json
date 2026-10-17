@@ -6,6 +6,7 @@
   "nav": {
     "dashboard": "Panel",
     "monitors": "Monitores",
+    "heartbeats": "Heartbeats",
     "notifications": "Notificaciones",
     "settings": "Configuración",
     "logout": "Cerrar sesión",
@@ -23,6 +24,7 @@
     "error": "Algo salió mal",
     "copy": "Copiar",
     "copied": "¡Copiado!",
+    "close": "Cerrar",
     "remove": "Quitar",
     "replace": "Reemplazar",
     "add": "Añadir",
@@ -330,14 +332,14 @@
       "loading": "Procesando...",
       "error": "Error",
       "sourceUpload": "Fuente Proto subida",
-      "sourceReflection": "Server Reflection",
+      "sourceReflection": "Reflexión del servidor",
       "files": "Archivos",
       "services": "Servicios",
       "replace": "Reemplazar",
       "remove": "Quitar",
       "selectMethod": "Seleccione un método de servicio",
       "payloadFormat": "Formato de payload",
-      "payloadFormatRaw": "Raw (Base64)",
+      "payloadFormatRaw": "Datos sin procesar (Base64)",
       "payloadFormatProtoJson": "Proto JSON",
       "saveFirst": "Guarde el monitor primero para configurar la fuente proto y el payload de solicitud."
     }
@@ -420,8 +422,8 @@
     "authType": "Tipo de autenticación",
     "types": {
       "none": "Ninguno",
-      "bearer": "Bearer Token",
-      "basic": "Basic Auth",
+      "bearer": "Token de Bearer",
+      "basic": "Autenticación básica",
       "header": "Header personalizado"
     },
     "fields": {
@@ -499,7 +501,7 @@
       "currentSource": "Fuente Proto",
       "sourceType": "Fuente",
       "sourceTypeUpload": "Subida de archivo",
-      "sourceTypeReflection": "Server Reflection",
+      "sourceTypeReflection": "Reflexión del servidor",
       "filenames": "Archivos",
       "serviceCount": "{count} servicio(s) descubierto(s)",
       "replace": "Reemplazar",
@@ -546,6 +548,86 @@
       "checksUp": "{count} checks activos"
     }
   },
+  "heartbeats": {
+    "title": "Heartbeats",
+    "subtitle": "Supervisa tareas programadas por el registro de actividad esperado",
+    "empty": "Aún no hay heartbeats",
+    "create": "Nuevo heartbeat",
+    "edit": "Editar heartbeat",
+    "delete": "Eliminar heartbeat",
+    "deleteConfirm": "¿Eliminar este heartbeat? Su URL de ping dejará de funcionar.",
+    "loading": "Cargando heartbeats…",
+    "loadFailed": "No se pudieron cargar los heartbeats",
+    "notFoundTitle": "Heartbeat no encontrado",
+    "notFoundDescription": "El heartbeat que buscas no existe o fue eliminado.",
+    "notFoundAction": "Volver a los heartbeats",
+    "state": {
+      "up": "Activo",
+      "down": "Omitido",
+      "paused": "Pausado",
+      "new": "Esperando el primer ping"
+    },
+    "fields": {
+      "name": "Nombre",
+      "expectedInterval": "Intervalo esperado",
+      "grace": "Período de gracia",
+      "status": "Estado",
+      "lastSuccess": "Último éxito",
+      "nextDeadline": "Próximo esperado antes de",
+      "tags": "Etiquetas"
+    },
+    "form": {
+      "nameRequired": "El nombre es obligatorio",
+      "intervalInvalid": "El intervalo esperado debe ser un número positivo de segundos",
+      "graceInvalid": "El período de gracia debe ser cero o un número positivo de segundos",
+      "intervalHelp": "Con qué frecuencia se espera que esta tarea registre actividad",
+      "graceHelp": "Tiempo adicional permitido antes de que un registro omitido genere alerta"
+    },
+    "token": {
+      "title": "URL de ping",
+      "showOnce": "Cópiala ahora — solo se muestra una vez",
+      "copy": "Copiar URL de ping",
+      "copyFail": "Copiar URL de fallo",
+      "copied": "Copiado",
+      "rotate": "Rotar token",
+      "rotateConfirm": "¿Rotar el token? Las URL de ping existentes dejarán de funcionar.",
+      "prefix": "Prefijo del token"
+    },
+    "ping": {
+      "successUrl": "URL de ping de éxito",
+      "failUrl": "URL de ping de fallo"
+    },
+    "examples": {
+      "title": "Ejemplos de uso",
+      "shell": "Shell",
+      "cron": "Cron",
+      "ci": "CI",
+      "note": "Un ping de éxito prueba que el comando se ejecutó, no que su salida sea válida o restaurable."
+    },
+    "bindings": {
+      "title": "Notificaciones",
+      "add": "Agregar notificación",
+      "triggerMissed": "Ejecución omitida o fallo explícito",
+      "triggerRecovered": "Recuperado",
+      "empty": "No hay notificaciones configuradas"
+    },
+    "timeline": {
+      "title": "Historial de estado (24 h)",
+      "uptime": "Disponibilidad",
+      "uptimeTooltip": "Proporción de señales recibidas correctamente durante el período seleccionado",
+      "missed": "Ejecuciones omitidas",
+      "legendSuccess": "Correcto",
+      "legendMissed": "Omitido",
+      "legendFail": "Fallido",
+      "loading": "Cargando historial…",
+      "loadFailed": "No se pudo cargar el historial de señales de actividad",
+      "empty": "Aún no hay historial de señales de actividad",
+      "emptyHint": "Los eventos aparecerán tras la siguiente señal o ejecución omitida.",
+      "eventSuccessAt": "Éxito a las {time}",
+      "eventMissedAt": "Ejecución omitida a las {time}",
+      "eventFailAt": "Fallo explícito a las {time}"
+    }
+  },
   "errors": {
     "generic": "Algo salió mal",
     "network": "Servicio no disponible. Intente de nuevo más tarde.",
@@ -589,7 +671,7 @@
     "placeholder": "Ingrese payload JSON (ej. {\"name\": \"value\"})",
     "label": "Payload de solicitud (JSON)",
     "jsonHint": "Escriba el cuerpo de solicitud gRPC como JSON. Use el botón Formatear para formateo legible.",
-    "rawHint": "Enter JSON payload for the gRPC request. Load a proto source above for schema validation.",
+    "rawHint": "Introduce los datos JSON para la solicitud gRPC. Carga una fuente proto arriba para validarlos según el esquema.",
     "format": "Formatear",
     "minify": "Minificar"
   },
@@ -815,5 +897,44 @@
       "smtpFromRequired": "La dirección de remitente es requerida.",
       "smtpFromInvalid": "Formato de dirección de correo inválido."
     }
+  },
+  "shell": {
+    "workspace": "Operaciones",
+    "navigation": "Navegación principal",
+    "signature": "Monitorización en tu propio servidor",
+    "skipToContent": "Ir al contenido",
+    "overview": "Resumen del sistema",
+    "collapseNavigation": "Contraer navegación",
+    "expandNavigation": "Expandir navegación",
+    "monitorsOverview": "Monitorización de servicios",
+    "settingsOverview": "Configuración"
+  },
+  "users": {
+    "title": "Usuarios",
+    "description": "Gestiona quién puede acceder a esta instancia de Pulse.",
+    "email": "Correo electrónico",
+    "temporaryPassword": "Contraseña temporal",
+    "role": "Rol",
+    "admin": "Administrador",
+    "readOnly": "Solo lectura",
+    "create": "Crear usuario",
+    "created": "Usuario creado. Comparte la contraseña temporal de forma segura.",
+    "updated": "Usuario actualizado.",
+    "passwordReset": "Contraseña restablecida. Comparte la nueva contraseña temporal de forma segura.",
+    "failed": "No se pudieron actualizar los usuarios.",
+    "loading": "Cargando usuarios…",
+    "enabled": "Habilitado",
+    "disabled": "Deshabilitado",
+    "enable": "Habilitar",
+    "disable": "Deshabilitar",
+    "resetPassword": "Restablecer contraseña",
+    "makeAdmin": "Nombrar administrador",
+    "makeReadOnly": "Asignar solo lectura",
+    "you": "tú",
+    "passwordPending": "Es necesario cambiar la contraseña",
+    "passwordHint": "Usa una contraseña temporal de 8–72 bytes en UTF-8. Los usuarios deben cambiarla antes de acceder a Pulse. Los administradores tienen acceso completo; los usuarios de solo lectura pueden consultar la monitorización y gestionar su propia contraseña y preferencias.",
+    "firstLoginTitle": "Elige tu contraseña",
+    "firstLoginDescription": "Introduce la contraseña temporal que te proporcionó el administrador y elige una contraseña diferente para continuar.",
+    "sessionError": "No se pudo verificar tu sesión. Vuelve a intentarlo para continuar."
   }
 }

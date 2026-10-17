@@ -1,7 +1,10 @@
 <script lang="ts">
   import { changePassword, ApiRequestError, NetworkError } from '$lib/api';
   import { toastStore } from '$lib/stores/toast.svelte';
+  import { goto } from '$app/navigation';
   import { t } from '$lib/i18n/locale.svelte';
+
+  let { forced = false }: { forced?: boolean } = $props();
 
   // Form state
   let currentPassword = $state('');
@@ -21,9 +24,11 @@
 
   let canSubmit = $derived(
     !submitting &&
-    currentPassword.trim().length > 0 &&
-    newPassword.trim().length > 0 &&
-    confirmPassword.trim().length > 0 &&
+    currentPassword.length > 0 &&
+    newPassword.length >= 8 &&
+    new TextEncoder().encode(newPassword).length <= 72 &&
+    newPassword !== currentPassword &&
+    confirmPassword.length > 0 &&
     newPassword === confirmPassword
   );
 
@@ -43,6 +48,8 @@
         current_password: currentPassword,
         new_password: newPassword,
       });
+
+      if (forced) await goto('/');
 
       // Success: show toast, clear fields
       toastStore.addToast({
@@ -93,8 +100,10 @@
         </label>
         <input
           id="current-password"
+          autocomplete="current-password"
           type="password"
-          maxlength={128}
+          required
+          maxlength={72}
           bind:value={currentPassword}
           placeholder={t('settings.password.currentPasswordPlaceholder')}
           class="mt-1 block w-full rounded-md border border-[var(--color-border)] bg-[var(--color-bg-surface)] px-3 py-2 text-sm text-[var(--color-text-primary)] shadow-sm placeholder:text-[var(--color-text-muted)] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
@@ -108,8 +117,10 @@
         </label>
         <input
           id="new-password"
+          autocomplete="new-password"
           type="password"
-          maxlength={128}
+          required
+          maxlength={72}
           bind:value={newPassword}
           oninput={handleNewPasswordInput}
           placeholder={t('settings.password.newPasswordPlaceholder')}
@@ -128,8 +139,10 @@
         </label>
         <input
           id="confirm-password"
+          autocomplete="new-password"
           type="password"
-          maxlength={128}
+          required
+          maxlength={72}
           bind:value={confirmPassword}
           placeholder={t('settings.password.confirmPasswordPlaceholder')}
           class="mt-1 block w-full rounded-md border border-[var(--color-border)] bg-[var(--color-bg-surface)] px-3 py-2 text-sm text-[var(--color-text-primary)] shadow-sm placeholder:text-[var(--color-text-muted)] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"

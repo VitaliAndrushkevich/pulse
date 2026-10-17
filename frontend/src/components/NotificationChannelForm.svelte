@@ -1,4 +1,5 @@
 <script lang="ts">
+  import SelectField from './SelectField.svelte';
   import type {
     NotificationChannelType,
     NotificationChannel,
@@ -323,7 +324,7 @@
     <label for="channel-type" class="block text-sm font-medium text-primary">
       {t('notifications.form.type')}
     </label>
-    <select
+    <SelectField
       id="channel-type"
       bind:value={channelType}
       onblur={() => markTouched('type')}
@@ -332,7 +333,7 @@
     >
       <option value="email">{t('notifications.channels.types.email')}</option>
       <option value="webhook">{t('notifications.channels.types.webhook')}</option>
-    </select>
+    </SelectField>
   </div>
 
   <!-- Email Configuration -->
@@ -426,16 +427,16 @@
         <label for="webhook-method" class="block text-sm font-medium text-primary">
           {t('notifications.form.webhook.method')}
         </label>
-        <select
+        <SelectField
           id="webhook-method"
           bind:value={webhookMethod}
-          class="mt-1 block w-full rounded-md border border-[var(--color-border)] bg-surface px-3 py-2 text-sm text-primary shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          class="mt-1 w-full"
           data-testid="input-webhook-method"
         >
           {#each WEBHOOK_METHODS as method}
             <option value={method}>{method}</option>
           {/each}
-        </select>
+        </SelectField>
         <p class="mt-1 text-xs text-secondary">{t('notifications.form.webhook.methodHelp')}</p>
         {#if methodError}
           <p class="mt-1 text-xs text-rose-600" data-testid="error-method">{methodError}</p>

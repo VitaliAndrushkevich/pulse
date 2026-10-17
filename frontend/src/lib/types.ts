@@ -166,6 +166,72 @@ export interface MonitorStats {
   last_error?: LastErrorInfo;
 }
 
+// ─── Heartbeat Types ────────────────────────────────────────────────────────
+
+/** Observed heartbeat state (derived from pings + evaluator + paused mapping) */
+export type HeartbeatState = 'up' | 'down' | 'paused' | 'new';
+
+/** Heartbeat — matches OpenAPI Heartbeat schema (GET/LIST — never carries a raw token) */
+export interface Heartbeat {
+  id: string;
+  name: string;
+  expected_interval_seconds: number;
+  grace_seconds: number;
+  status: 'active' | 'paused';
+  state: HeartbeatState;
+  last_success_at: string | null;
+  next_expected_deadline: string | null;
+  tags: Tag[];
+  token_prefix: string;
+  token_created_at: string;
+  history_retention_days: number;
+  created_at: string;
+  updated_at: string;
+}
+
+/** Heartbeat timeline event kind — matches heartbeat_events.event_type */
+export type HeartbeatEventType = 'success' | 'fail' | 'missed';
+
+/** A single discrete heartbeat episode — from GET /heartbeats/{id}/history */
+export interface HeartbeatEvent {
+  event_type: HeartbeatEventType;
+  previous_state?: 'up' | 'down' | 'paused' | 'new';
+  occurred_at: string; // RFC3339
+}
+
+/** Summary block of GET /heartbeats/{id}/history */
+export interface HeartbeatHistorySummary {
+  uptime_percent: number | null;
+  missed_count: number;
+  fail_count: number;
+  success_count: number;
+  total_events: number;
+}
+
+/** Response of GET /heartbeats/{id}/history */
+export interface HeartbeatHistoryResponse {
+  heartbeat_id: string;
+  from: string;
+  to: string;
+  truncated: boolean;
+  summary: HeartbeatHistorySummary;
+  events: HeartbeatEvent[];
+}
+
+/**
+ * HeartbeatStatusPayload — patch payload from WebSocket heartbeat_status messages.
+ *
+ * The field set differs from MonitorPatch: heartbeats have no probe check time, so
+ * there is no checked_at/latency_ms. Only state and the two timestamps are merged.
+ */
+export interface HeartbeatStatusPayload {
+  heartbeat_id: string;
+  state: HeartbeatState;
+  last_success_at?: string | null;
+  next_expected_deadline?: string | null;
+  timestamp: string;
+}
+
 // ─── Dashboard Summary Types ────────────────────────────────────────────────
 
 /** Dashboard summary response from GET /api/v1/dashboard/summary */
@@ -297,6 +363,25 @@ export interface ChannelBinding {
   updated_at: string;
 }
 
+/** Heartbeat trigger types — the allowed set for heartbeat bindings */
+export type HeartbeatTriggerType = 'heartbeat_missed' | 'heartbeat_recovered';
+
+/** A single trigger condition in a heartbeat binding */
+export interface HeartbeatTriggerCondition {
+  type: HeartbeatTriggerType;
+}
+
+/** Heartbeat binding — links a channel to a heartbeat with triggers */
+export interface HeartbeatBinding {
+  id: string;
+  channel_id: string;
+  heartbeat_id: string;
+  triggers: HeartbeatTriggerCondition[];
+  reminder_interval_minutes: number | null;
+  created_at: string;
+  updated_at: string;
+}
+
 /** Template variable reference — returned by template-variables endpoint */
 export interface TemplateVariable {
   name: string;
@@ -396,4 +481,14 @@ export interface ProtoField {
   enum_values?: string[];
   message_fields?: ProtoField[];
   comment?: string;
+}
+
+export type UserRole = 'admin' | 'read_only';
+export interface User {
+  id: string;
+  email: string;
+  role: UserRole;
+  enabled: boolean;
+  must_change_password: boolean;
+  created_at: string;
 }

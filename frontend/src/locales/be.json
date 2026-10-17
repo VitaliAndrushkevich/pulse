@@ -6,6 +6,7 @@
   "nav": {
     "dashboard": "Панэль",
     "monitors": "Маніторы",
+    "heartbeats": "Хартбіты",
     "notifications": "Апавяшчэнні",
     "settings": "Налады",
     "logout": "Выйсці",
@@ -23,6 +24,7 @@
     "error": "Нешта пайшло не так",
     "copy": "Капіраваць",
     "copied": "Скапіравана!",
+    "close": "Закрыць",
     "remove": "Прыбраць",
     "replace": "Замяніць",
     "add": "Дадаць",
@@ -330,14 +332,14 @@
       "loading": "Апрацоўка...",
       "error": "Памылка",
       "sourceUpload": "Загружаная Proto-крыніца",
-      "sourceReflection": "Server Reflection",
+      "sourceReflection": "Рэфлексія сервера",
       "files": "Файлы",
       "services": "Сэрвісы",
       "replace": "Замяніць",
       "remove": "Прыбраць",
       "selectMethod": "Абярыце метад сэрвісу",
       "payloadFormat": "Фармат нагрузкі",
-      "payloadFormatRaw": "Raw (Base64)",
+      "payloadFormatRaw": "Неапрацаваныя даныя (Base64)",
       "payloadFormatProtoJson": "Proto JSON",
       "saveFirst": "Спачатку захавайце манітор, каб наладзіць proto-крыніцу і карысную нагрузку запыту."
     }
@@ -420,8 +422,8 @@
     "authType": "Тып аўтэнтыфікацыі",
     "types": {
       "none": "Няма",
-      "bearer": "Bearer Token",
-      "basic": "Basic Auth",
+      "bearer": "Токен Bearer",
+      "basic": "Базавая аўтэнтыфікацыя",
       "header": "Карыстальніцкі загаловак"
     },
     "fields": {
@@ -499,7 +501,7 @@
       "currentSource": "Proto-крыніца",
       "sourceType": "Крыніца",
       "sourceTypeUpload": "Загрузка файла",
-      "sourceTypeReflection": "Server Reflection",
+      "sourceTypeReflection": "Рэфлексія сервера",
       "filenames": "Файлы",
       "serviceCount": "{count} сэрвіс(аў) выяўлена",
       "replace": "Замяніць",
@@ -546,6 +548,86 @@
       "checksUp": "{count} праверак уверх"
     }
   },
+  "heartbeats": {
+    "title": "Хартбіты",
+    "subtitle": "Сачыце за запланаванымі заданнямі па чаканай адзнацы",
+    "empty": "Хартбітаў пакуль няма",
+    "create": "Новы хартбіт",
+    "edit": "Рэдагаваць хартбіт",
+    "delete": "Выдаліць хартбіт",
+    "deleteConfirm": "Выдаліць гэты хартбіт? Яго ping URL перастане працаваць.",
+    "loading": "Загрузка хартбітаў…",
+    "loadFailed": "Не ўдалося загрузіць хартбіты",
+    "notFoundTitle": "Хартбіт не знойдзены",
+    "notFoundDescription": "Хартбіт, які вы шукаеце, не існуе або быў выдалены.",
+    "notFoundAction": "Назад да хартбітаў",
+    "state": {
+      "up": "Актыўны",
+      "down": "Прапушчаны",
+      "paused": "Прыпынены",
+      "new": "Чаканне першага пінга"
+    },
+    "fields": {
+      "name": "Назва",
+      "expectedInterval": "Чаканы інтэрвал",
+      "grace": "Льготны перыяд",
+      "status": "Стан",
+      "lastSuccess": "Апошні поспех",
+      "nextDeadline": "Наступны чаканы да",
+      "tags": "Тэгі"
+    },
+    "form": {
+      "nameRequired": "Назва абавязковая",
+      "intervalInvalid": "Чаканы інтэрвал павінен быць дадатным лікам секунд",
+      "graceInvalid": "Льготны перыяд павінен быць нулём або дадатным лікам секунд",
+      "intervalHelp": "Як часта чакаецца адзнака гэтага задання",
+      "graceHelp": "Дадатковы час перад абвесткай пра прапушчаную адзнаку"
+    },
+    "token": {
+      "title": "URL сігналу",
+      "showOnce": "Скапіруйце зараз — паказваецца толькі адзін раз",
+      "copy": "Скапіраваць ping URL",
+      "copyFail": "Скапіраваць URL памылкі",
+      "copied": "Скапіравана",
+      "rotate": "Абнавіць токен",
+      "rotateConfirm": "Абнавіць токен? Існуючыя ping URL перастануць працаваць.",
+      "prefix": "Прэфікс токена"
+    },
+    "ping": {
+      "successUrl": "Ping URL поспеху",
+      "failUrl": "Ping URL памылкі"
+    },
+    "examples": {
+      "title": "Прыклады выкарыстання",
+      "shell": "Shell",
+      "cron": "Cron",
+      "ci": "CI",
+      "note": "Паспяховы пінг пацвярджае, што каманда выканалася, а не тое, што яе вынік слушны ці аднаўляльны."
+    },
+    "bindings": {
+      "title": "Апавяшчэнні",
+      "add": "Дадаць апавяшчэнне",
+      "triggerMissed": "Прапушчаны запуск або яўная памылка",
+      "triggerRecovered": "Адноўлена",
+      "empty": "Апавяшчэнні не наладжаны"
+    },
+    "timeline": {
+      "title": "Гісторыя станаў (24 г)",
+      "uptime": "Даступнасць",
+      "uptimeTooltip": "Доля паспяховых сігналаў за выбраны перыяд",
+      "missed": "Прапушчаныя запускі",
+      "legendSuccess": "Паспяхова",
+      "legendMissed": "Прапушчана",
+      "legendFail": "Збой",
+      "loading": "Загрузка гісторыі…",
+      "loadFailed": "Не ўдалося загрузіць гісторыю сігналаў",
+      "empty": "Гісторыі сігналаў пакуль няма",
+      "emptyHint": "Падзеі з’явяцца пасля наступнага сігналу або прапушчанага запуску.",
+      "eventSuccessAt": "Паспяхова ў {time}",
+      "eventMissedAt": "Прапушчаны запуск у {time}",
+      "eventFailAt": "Яўны сігнал збою ў {time}"
+    }
+  },
   "errors": {
     "generic": "Нешта пайшло не так",
     "network": "Сэрвіс недаступны. Паспрабуйце пазней.",
@@ -576,7 +658,7 @@
     "portHelp": "Порт SMTP-сервера (25, 587, 465)",
     "starttls": "STARTTLS",
     "starttlsHelp": "Спрабаваць абнавіць злучэнне праз STARTTLS пасля EHLO",
-    "implicitTls": "Implicit TLS (SMTPS)",
+    "implicitTls": "Няяўны TLS (SMTPS)",
     "implicitTlsHelp": "Падключацца з TLS з самага пачатку (порт 465). Выкарыстоўвайце замест STARTTLS для SMTPS-сервераў.",
     "ehloDomain": "Дамен EHLO",
     "ehloDomainPlaceholder": "pulse.local",
@@ -589,7 +671,7 @@
     "placeholder": "Увядзіце JSON (напр. {\"name\": \"value\"})",
     "label": "Карысная нагрузка запыту (JSON)",
     "jsonHint": "Напішыце цела gRPC-запыту як JSON. Кнопка «Фарматаваць» для прыгожага выгляду.",
-    "rawHint": "Увядзіце JSON-дадзеныя для gRPC-запыту. Загрузіце proto-крыніцу вышэй для валідацыі па схеме.",
+    "rawHint": "Увядзіце JSON-дадзеныя для gRPC-запыту. Загрузіце proto-крыніцу вышэй для праверкі па схеме.",
     "format": "Фарматаваць",
     "minify": "Мініфіцыраваць"
   },
@@ -613,7 +695,7 @@
         "actions": "Дзеянні"
       },
       "types": {
-        "email": "Email",
+        "email": "Электронная пошта",
         "webhook": "Webhook"
       },
       "deleteConfirm": {
@@ -804,16 +886,55 @@
       "smtpFromInvalid": "Няправільны фармат адрасу электроннай пошты."
     },
     "deliveryLogs": {
-      "title": "Delivery History",
-      "empty": "No delivery logs yet. Notifications will appear here once triggered.",
-      "status": "Status",
-      "trigger": "Trigger",
-      "attempt": "Attempt",
-      "error": "Error",
-      "time": "Time",
-      "statusSuccess": "Sent",
-      "statusFailure": "Failed",
-      "total": "{count} total deliveries"
+      "title": "Гісторыя дастаўкі",
+      "empty": "Журнал дастаўкі пакуль пусты. Апавяшчэнні з’явяцца тут пасля спрацоўвання.",
+      "status": "Стан",
+      "trigger": "Умова спрацоўвання",
+      "attempt": "Спроба",
+      "error": "Памылка",
+      "time": "Час",
+      "statusSuccess": "Адпраўлена",
+      "statusFailure": "Збой",
+      "total": "Усяго даставак: {count}"
     }
+  },
+  "shell": {
+    "workspace": "Аперацыі",
+    "navigation": "Асноўная навігацыя",
+    "signature": "Маніторынг на ўласным серверы",
+    "skipToContent": "Перайсці да змесціва",
+    "overview": "Агляд сістэмы",
+    "collapseNavigation": "Згарнуць навігацыю",
+    "expandNavigation": "Разгарнуць навігацыю",
+    "monitorsOverview": "Маніторынг сэрвісаў",
+    "settingsOverview": "Налады"
+  },
+  "users": {
+    "title": "Карыстальнікі",
+    "description": "Кіруйце доступам да гэтага асобніка Pulse.",
+    "email": "Электронная пошта",
+    "temporaryPassword": "Часовы пароль",
+    "role": "Роля",
+    "admin": "Адміністратар",
+    "readOnly": "Толькі чытанне",
+    "create": "Стварыць карыстальніка",
+    "created": "Карыстальнік створаны. Перадайце часовы пароль бяспечным спосабам.",
+    "updated": "Карыстальнік абноўлены.",
+    "passwordReset": "Пароль скінуты. Перадайце новы часовы пароль бяспечным спосабам.",
+    "failed": "Не ўдалося абнавіць карыстальнікаў.",
+    "loading": "Загрузка карыстальнікаў…",
+    "enabled": "Уключаны",
+    "disabled": "Адключаны",
+    "enable": "Уключыць",
+    "disable": "Адключыць",
+    "resetPassword": "Скінуць пароль",
+    "makeAdmin": "Прызначыць адміністратарам",
+    "makeReadOnly": "Дазволіць толькі чытанне",
+    "you": "вы",
+    "passwordPending": "Патрабуецца змена пароля",
+    "passwordHint": "Выкарыстоўвайце часовы пароль даўжынёй 8–72 байты ў UTF-8. Карыстальнікі павінны змяніць яго перад доступам да Pulse. Адміністратары маюць поўны доступ; карыстальнікі з правам толькі чытання могуць праглядаць даныя маніторынгу, змяняць свой пароль і налады.",
+    "firstLoginTitle": "Выберыце пароль",
+    "firstLoginDescription": "Увядзіце часовы пароль ад адміністратара, затым выберыце іншы пароль, каб працягнуць.",
+    "sessionError": "Не ўдалося праверыць сеанс. Паўтарыце спробу, каб працягнуць."
   }
 }

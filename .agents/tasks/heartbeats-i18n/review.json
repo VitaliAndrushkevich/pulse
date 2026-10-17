@@ -1,0 +1,12 @@
+{
+  "verdict": "APPROVED",
+  "findings": [
+    {
+      "severity": "info",
+      "scope": "out-of-scope",
+      "label": "Unrelated English in other sections",
+      "detail": "nav.workspace, nav.signature, nav.overview, nav.collapseNavigation and the entire users.* section remain English across non-English locales. These belong to other features on the same branch and are outside this task's scope (heartbeats + nav.heartbeats only). Non-blocking; may warrant a separate translation pass."
+    }
+  ],
+  "reviewDoc": "/Users/vandrushkevich/workdir/personal/pulse/.agents/tasks/heartbeats-i18n/review.md"
+}

@@ -33,10 +33,11 @@ type Message struct {
 
 // Client represents a single WebSocket connection managed by the Hub.
 type Client struct {
-	ID   string
-	hub  *Hub
-	conn *websocket.Conn
-	send chan []byte
+	ID       string
+	validate func() bool
+	hub      *Hub
+	conn     *websocket.Conn
+	send     chan []byte
 }
 
 // Hub maintains the set of active clients and broadcasts messages to them.
@@ -132,7 +133,7 @@ func (h *Hub) ClientCount() int {
 // RegisterClient upgrades an HTTP connection to WebSocket and registers it with the hub.
 // Returns the new client or an error. The caller is responsible for calling
 // this after authentication has been verified.
-func (h *Hub) RegisterClient(conn *websocket.Conn) *Client {
+func (h *Hub) RegisterClient(conn *websocket.Conn, validators ...func() bool) *Client {
 	client := &Client{
 		ID:   uuid.NewString(),
 		hub:  h,
@@ -140,6 +141,13 @@ func (h *Hub) RegisterClient(conn *websocket.Conn) *Client {
 		send: make(chan []byte, sendBufferSize),
 	}
 
+	if len(validators) > 0 {
+		client.validate = validators[0]
+	}
+	// Queue the handshake before registration so status broadcasts cannot race
+	// the initial frame. The write pump is the connection's only data writer.
+	initial, _ := json.Marshal(NewConnectedMessage(client.ID))
+	client.send <- initial
 	h.register <- client
 
 	// Start write and read pumps for this client.
@@ -185,6 +193,10 @@ func (c *Client) writePump() {
 			}
 
 		case <-ticker.C:
+			if c.validate != nil && !c.validate() {
+				_ = c.conn.WriteControl(websocket.CloseMessage, websocket.FormatCloseMessage(4401, "session expired"), time.Now().Add(writeWait))
+				return
+			}
 			c.conn.SetWriteDeadline(time.Now().Add(writeWait))
 			if err := c.conn.WriteMessage(websocket.PingMessage, nil); err != nil {
 				return

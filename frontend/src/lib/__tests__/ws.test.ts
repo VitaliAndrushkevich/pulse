@@ -351,6 +351,69 @@ describe('WebSocket Client', () => {
 	// Reconnection
 	// -----------------------------------------------------------------------
 
+	describe('session replacement', () => {
+		it('ignores a delayed auth-expired close from the previous connection', () => {
+			const client = createWsClient({ url: '/ws' });
+			client.connect();
+			const oldSocket = MockWebSocket.instances[0];
+			client.disconnect();
+			mockToken = 'replacement-token';
+			client.connect();
+			const replacement = MockWebSocket.instances[1];
+			replacement.simulateOpen();
+			replacement.simulateMessage(JSON.stringify({ type: 'connected', payload: {} }));
+
+			oldSocket.simulateClose(4401);
+			expect(mockClearToken).not.toHaveBeenCalled();
+			expect(mockToken).toBe('replacement-token');
+			expect(client.status).toBe('connected');
+			vi.advanceTimersByTime(60000);
+			expect(MockWebSocket.instances).toHaveLength(2);
+			expect(replacement.readyState).toBe(MockWebSocket.OPEN);
+		});
+
+		it('does not let an old close cancel the replacement connection timeout', () => {
+			const client = createWsClient({ url: '/ws' });
+			client.connect();
+			const oldSocket = MockWebSocket.instances[0];
+			client.disconnect();
+			mockToken = 'replacement-token';
+			client.connect();
+			const replacement = MockWebSocket.instances[1];
+			oldSocket.simulateClose(1000);
+			vi.advanceTimersByTime(5000);
+			expect(MockWebSocket.instances).toHaveLength(2);
+			expect(replacement.readyState).toBe(MockWebSocket.CLOSED);
+		});
+
+		it('discards late messages from a replaced connection', () => {
+			const onMessage = vi.fn();
+			const client = createWsClient({ url: '/ws', onMessage });
+			client.connect();
+			const oldSocket = MockWebSocket.instances[0];
+			client.disconnect();
+			mockToken = 'replacement-token';
+			client.connect();
+			oldSocket.simulateMessage(JSON.stringify({ type: 'connected', payload: {} }));
+			oldSocket.simulateMessage(JSON.stringify({ type: 'monitor_status', payload: { monitor_id: 'old' } }));
+			expect(client.status).toBe('connecting');
+			expect(mockApplyPatch).not.toHaveBeenCalled();
+			expect(onMessage).not.toHaveBeenCalled();
+		});
+
+		it('preserves a refreshed token when its previous socket expires before reconnect', () => {
+			const client = createWsClient({ url: '/ws' });
+			client.connect();
+			const oldSocket = MockWebSocket.instances[0];
+			mockToken = 'replacement-token';
+			oldSocket.simulateClose(4401);
+			expect(mockClearToken).not.toHaveBeenCalled();
+			vi.advanceTimersByTime(1300);
+			expect(MockWebSocket.instances).toHaveLength(2);
+			expect(MockWebSocket.instances[1].url).toContain('token=replacement-token');
+		});
+	});
+
 	describe('reconnection', () => {
 		it('schedules reconnection after unexpected close', () => {
 			const client = createWsClient({ url: '/ws' });

@@ -6,6 +6,7 @@
   "nav": {
     "dashboard": "Pannello",
     "monitors": "Monitor",
+    "heartbeats": "Heartbeats",
     "notifications": "Notifiche",
     "settings": "Impostazioni",
     "logout": "Esci",
@@ -23,6 +24,7 @@
     "error": "Qualcosa è andato storto",
     "copy": "Copia",
     "copied": "Copiato!",
+    "close": "Chiudi",
     "remove": "Rimuovi",
     "replace": "Sostituisci",
     "add": "Aggiungi",
@@ -330,14 +332,14 @@
       "loading": "Elaborazione...",
       "error": "Errore",
       "sourceUpload": "Sorgente Proto caricata",
-      "sourceReflection": "Server Reflection",
+      "sourceReflection": "Riflessione del server",
       "files": "File",
       "services": "Servizi",
       "replace": "Sostituisci",
       "remove": "Rimuovi",
       "selectMethod": "Seleziona un metodo di servizio",
       "payloadFormat": "Formato payload",
-      "payloadFormatRaw": "Raw (Base64)",
+      "payloadFormatRaw": "Dati grezzi (Base64)",
       "payloadFormatProtoJson": "Proto JSON",
       "saveFirst": "Salva prima il monitor per configurare la sorgente proto e il payload della richiesta."
     }
@@ -420,8 +422,8 @@
     "authType": "Tipo di autenticazione",
     "types": {
       "none": "Nessuno",
-      "bearer": "Bearer Token",
-      "basic": "Basic Auth",
+      "bearer": "Token Bearer",
+      "basic": "Autenticazione di base",
       "header": "Header personalizzato"
     },
     "fields": {
@@ -499,7 +501,7 @@
       "currentSource": "Sorgente Proto",
       "sourceType": "Sorgente",
       "sourceTypeUpload": "Caricamento file",
-      "sourceTypeReflection": "Server Reflection",
+      "sourceTypeReflection": "Riflessione del server",
       "filenames": "File",
       "serviceCount": "{count} servizio/i individuati",
       "replace": "Sostituisci",
@@ -528,7 +530,7 @@
     "placeholder": "Inserisci payload JSON (es. {\"name\": \"value\"})",
     "label": "Payload richiesta (JSON)",
     "jsonHint": "Scrivi il body della richiesta gRPC in formato JSON. Usa il pulsante Formatta per la formattazione.",
-    "rawHint": "Enter JSON payload for the gRPC request. Load a proto source above for schema validation.",
+    "rawHint": "Inserisci i dati JSON per la richiesta gRPC. Carica una sorgente proto qui sopra per convalidarli in base allo schema.",
     "format": "Formatta",
     "minify": "Minimizza"
   },
@@ -556,7 +558,7 @@
     "portHelp": "Porta del server SMTP (25, 587, 465)",
     "starttls": "STARTTLS",
     "starttlsHelp": "Tenta l'upgrade STARTTLS dopo EHLO (ignorato quando Implicit TLS è abilitato)",
-    "implicitTls": "Implicit TLS (SMTPS)",
+    "implicitTls": "TLS implicito (SMTPS)",
     "implicitTlsHelp": "Connetti con TLS dall'inizio (porta 465). Usa questo al posto di STARTTLS per i server SMTPS.",
     "ehloDomain": "Dominio EHLO",
     "ehloDomainPlaceholder": "pulse.local",
@@ -722,7 +724,7 @@
       "title": "Cronologia consegne",
       "empty": "Nessun registro di consegna. Le notifiche appariranno qui una volta attivate.",
       "status": "Stato",
-      "trigger": "Trigger",
+      "trigger": "Condizione di attivazione",
       "attempt": "Tentativo",
       "error": "Errore",
       "time": "Ora",
@@ -810,10 +812,129 @@
       "smtpFromInvalid": "Formato indirizzo email non valido."
     }
   },
+  "heartbeats": {
+    "title": "Heartbeats",
+    "subtitle": "Monitora i job pianificati in base al check-in previsto",
+    "empty": "Ancora nessun heartbeat",
+    "create": "Nuovo heartbeat",
+    "edit": "Modifica heartbeat",
+    "delete": "Elimina heartbeat",
+    "deleteConfirm": "Eliminare questo heartbeat? Il suo URL di ping smetterà di funzionare.",
+    "loading": "Caricamento degli heartbeat…",
+    "loadFailed": "Impossibile caricare gli heartbeat",
+    "notFoundTitle": "Heartbeat non trovato",
+    "notFoundDescription": "L’heartbeat che stai cercando non esiste o è stato eliminato.",
+    "notFoundAction": "Torna agli heartbeat",
+    "state": {
+      "up": "Attivo",
+      "down": "Mancato",
+      "paused": "In pausa",
+      "new": "In attesa del primo ping"
+    },
+    "fields": {
+      "name": "Nome",
+      "expectedInterval": "Intervallo previsto",
+      "grace": "Periodo di tolleranza",
+      "status": "Stato",
+      "lastSuccess": "Ultimo successo",
+      "nextDeadline": "Prossimo previsto entro",
+      "tags": "Tag"
+    },
+    "form": {
+      "nameRequired": "Il nome è obbligatorio",
+      "intervalInvalid": "L’intervallo previsto deve essere un numero positivo di secondi",
+      "graceInvalid": "Il periodo di tolleranza deve essere zero o un numero positivo di secondi",
+      "intervalHelp": "Con quale frequenza si prevede che questo job effettui il check-in",
+      "graceHelp": "Tempo aggiuntivo consentito prima che un check-in mancato generi un avviso"
+    },
+    "token": {
+      "title": "URL di ping",
+      "showOnce": "Copialo ora — viene mostrato una sola volta",
+      "copy": "Copia URL di ping",
+      "copyFail": "Copia URL di errore",
+      "copied": "Copiato",
+      "rotate": "Ruota token",
+      "rotateConfirm": "Ruotare il token? Gli URL di ping esistenti smetteranno di funzionare.",
+      "prefix": "Prefisso del token"
+    },
+    "ping": {
+      "successUrl": "URL di ping di successo",
+      "failUrl": "URL di ping di errore"
+    },
+    "examples": {
+      "title": "Esempi di utilizzo",
+      "shell": "Shell",
+      "cron": "Cron",
+      "ci": "CI",
+      "note": "Un ping di successo dimostra che il comando è stato eseguito, non che il suo output sia valido o ripristinabile."
+    },
+    "bindings": {
+      "title": "Notifiche",
+      "add": "Aggiungi notifica",
+      "triggerMissed": "Esecuzione mancata o errore esplicito",
+      "triggerRecovered": "Ripristinato",
+      "empty": "Nessuna notifica configurata"
+    },
+    "timeline": {
+      "title": "Cronologia degli stati (24 h)",
+      "uptime": "Disponibilità",
+      "uptimeTooltip": "Percentuale di segnali ricevuti con successo nel periodo selezionato",
+      "missed": "Esecuzioni mancate",
+      "legendSuccess": "Riuscita",
+      "legendMissed": "Mancata",
+      "legendFail": "Fallita",
+      "loading": "Caricamento della cronologia…",
+      "loadFailed": "Impossibile caricare la cronologia dei segnali di attività",
+      "empty": "Nessuna cronologia dei segnali di attività",
+      "emptyHint": "Gli eventi appariranno dopo il prossimo segnale o la prossima esecuzione mancata.",
+      "eventSuccessAt": "Riuscita alle {time}",
+      "eventMissedAt": "Esecuzione mancata alle {time}",
+      "eventFailAt": "Errore esplicito alle {time}"
+    }
+  },
   "errors": {
     "generic": "Qualcosa è andato storto",
     "network": "Servizio non disponibile. Riprova più tardi.",
     "unexpected": "Si è verificato un errore imprevisto.",
     "notFound": "Non trovato"
+  },
+  "shell": {
+    "workspace": "Operazioni",
+    "navigation": "Navigazione principale",
+    "signature": "Monitoraggio su server proprio",
+    "skipToContent": "Vai al contenuto",
+    "overview": "Panoramica del sistema",
+    "collapseNavigation": "Comprimi navigazione",
+    "expandNavigation": "Espandi navigazione",
+    "monitorsOverview": "Monitoraggio dei servizi",
+    "settingsOverview": "Configurazione"
+  },
+  "users": {
+    "title": "Utenti",
+    "description": "Gestisci chi può accedere a questa istanza di Pulse.",
+    "email": "E-mail",
+    "temporaryPassword": "Password temporanea",
+    "role": "Ruolo",
+    "admin": "Amministratore",
+    "readOnly": "Sola lettura",
+    "create": "Crea utente",
+    "created": "Utente creato. Condividi la password temporanea in modo sicuro.",
+    "updated": "Utente aggiornato.",
+    "passwordReset": "Password reimpostata. Condividi la nuova password temporanea in modo sicuro.",
+    "failed": "Impossibile aggiornare gli utenti.",
+    "loading": "Caricamento degli utenti…",
+    "enabled": "Abilitato",
+    "disabled": "Disabilitato",
+    "enable": "Abilita",
+    "disable": "Disabilita",
+    "resetPassword": "Reimposta password",
+    "makeAdmin": "Nomina amministratore",
+    "makeReadOnly": "Imposta sola lettura",
+    "you": "tu",
+    "passwordPending": "È necessario cambiare la password",
+    "passwordHint": "Usa una password temporanea di 8–72 byte in UTF-8. Gli utenti devono cambiarla prima di accedere a Pulse. Gli amministratori hanno accesso completo; gli utenti in sola lettura possono consultare il monitoraggio e gestire la propria password e le preferenze.",
+    "firstLoginTitle": "Scegli la tua password",
+    "firstLoginDescription": "Inserisci la password temporanea fornita dall’amministratore, poi scegli una password diversa per continuare.",
+    "sessionError": "Impossibile verificare la sessione. Riprova per continuare."
   }
 }

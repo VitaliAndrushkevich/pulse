@@ -6,6 +6,7 @@
   "nav": {
     "dashboard": "ダッシュボード",
     "monitors": "モニター",
+    "heartbeats": "ハートビート",
     "notifications": "通知",
     "settings": "設定",
     "logout": "ログアウト",
@@ -23,6 +24,7 @@
     "error": "エラーが発生しました",
     "copy": "コピー",
     "copied": "コピーしました！",
+    "close": "閉じる",
     "remove": "除去",
     "replace": "置換",
     "add": "追加",
@@ -330,14 +332,14 @@
       "loading": "処理中...",
       "error": "エラー",
       "sourceUpload": "アップロード済みProtoソース",
-      "sourceReflection": "Server Reflection",
+      "sourceReflection": "サーバーリフレクション",
       "files": "ファイル",
       "services": "サービス",
       "replace": "置換",
       "remove": "削除",
       "selectMethod": "サービスメソッドを選択",
       "payloadFormat": "ペイロード形式",
-      "payloadFormatRaw": "Raw (Base64)",
+      "payloadFormatRaw": "生データ（Base64）",
       "payloadFormatProtoJson": "Proto JSON",
       "saveFirst": "Protoソースとリクエストペイロードを設定するには、まずモニターを保存してください。"
     }
@@ -499,7 +501,7 @@
       "currentSource": "Protoソース",
       "sourceType": "ソース",
       "sourceTypeUpload": "ファイルアップロード",
-      "sourceTypeReflection": "Server Reflection",
+      "sourceTypeReflection": "サーバーリフレクション",
       "filenames": "ファイル",
       "serviceCount": "{count}個のサービスを検出",
       "replace": "置換",
@@ -546,6 +548,86 @@
       "checksUp": "{count} 件のチェック成功"
     }
   },
+  "heartbeats": {
+    "title": "ハートビート",
+    "subtitle": "期待されるチェックインでスケジュールされたジョブを監視します",
+    "empty": "ハートビートはまだありません",
+    "create": "新しいハートビート",
+    "edit": "ハートビートを編集",
+    "delete": "ハートビートを削除",
+    "deleteConfirm": "このハートビートを削除しますか？ ping URL は動作しなくなります。",
+    "loading": "ハートビートを読み込んでいます…",
+    "loadFailed": "ハートビートの読み込みに失敗しました",
+    "notFoundTitle": "ハートビートが見つかりません",
+    "notFoundDescription": "お探しのハートビートは存在しないか、削除されました。",
+    "notFoundAction": "ハートビートに戻る",
+    "state": {
+      "up": "正常",
+      "down": "未達",
+      "paused": "一時停止",
+      "new": "最初の ping を待機中"
+    },
+    "fields": {
+      "name": "名前",
+      "expectedInterval": "想定間隔",
+      "grace": "猶予期間",
+      "status": "ステータス",
+      "lastSuccess": "最後の成功",
+      "nextDeadline": "次回の想定期限",
+      "tags": "タグ"
+    },
+    "form": {
+      "nameRequired": "名前は必須です",
+      "intervalInvalid": "想定間隔は正の秒数である必要があります",
+      "graceInvalid": "猶予期間はゼロまたは正の秒数である必要があります",
+      "intervalHelp": "このジョブがチェックインすると想定される頻度",
+      "graceHelp": "チェックイン未達の通知までに許容される追加時間"
+    },
+    "token": {
+      "title": "ping URL",
+      "showOnce": "今すぐコピーしてください — 一度だけ表示されます",
+      "copy": "ping URL をコピー",
+      "copyFail": "失敗 URL をコピー",
+      "copied": "コピーしました",
+      "rotate": "トークンをローテーション",
+      "rotateConfirm": "トークンをローテーションしますか？ 既存の ping URL は動作しなくなります。",
+      "prefix": "トークンのプレフィックス"
+    },
+    "ping": {
+      "successUrl": "成功時の ping URL",
+      "failUrl": "失敗時の ping URL"
+    },
+    "examples": {
+      "title": "使用例",
+      "shell": "Shell",
+      "cron": "Cron",
+      "ci": "CI",
+      "note": "成功 ping はコマンドが実行されたことを証明するものであり、その出力が有効または復元可能であることを示すものではありません。"
+    },
+    "bindings": {
+      "title": "通知",
+      "add": "通知を追加",
+      "triggerMissed": "実行の未達または明示的な失敗",
+      "triggerRecovered": "回復",
+      "empty": "通知が設定されていません"
+    },
+    "timeline": {
+      "title": "ステータス履歴（24時間）",
+      "uptime": "稼働率",
+      "uptimeTooltip": "選択した期間内に正常に受信したチェックインの割合",
+      "missed": "未実行",
+      "legendSuccess": "成功",
+      "legendMissed": "未実行",
+      "legendFail": "失敗",
+      "loading": "履歴を読み込み中…",
+      "loadFailed": "ハートビート履歴を読み込めませんでした",
+      "empty": "ハートビート履歴はまだありません",
+      "emptyHint": "次のPingまたは未実行の検出後にイベントが表示されます。",
+      "eventSuccessAt": "{time} に成功",
+      "eventMissedAt": "{time} に未実行",
+      "eventFailAt": "{time} に明示的な失敗通知"
+    }
+  },
   "errors": {
     "generic": "エラーが発生しました",
     "network": "サービスが利用できません。後でもう一度お試しください。",
@@ -576,7 +658,7 @@
     "portHelp": "SMTPサーバーポート（25, 587, 465）",
     "starttls": "STARTTLS",
     "starttlsHelp": "EHLO後にSTARTTLSアップグレードを試行（Implicit TLS有効時は無視）",
-    "implicitTls": "Implicit TLS (SMTPS)",
+    "implicitTls": "暗黙的TLS（SMTPS）",
     "implicitTlsHelp": "接続開始時からTLSを使用（ポート465）。SMTPSサーバーにはSTARTTLSの代わりにこちらを使用してください。",
     "ehloDomain": "EHLOドメイン",
     "ehloDomainPlaceholder": "pulse.local",
@@ -589,7 +671,7 @@
     "placeholder": "JSONペイロードを入力（例：{\"name\": \"value\"}）",
     "label": "リクエストペイロード（JSON）",
     "jsonHint": "gRPCリクエストボディをJSONで記述します。整形ボタンで読みやすく表示できます。",
-    "rawHint": "gRPCリクエストのJSONペイロードを入力してください。上のprotoソースを読み込むとスキーマ検証が有効になります。",
+    "rawHint": "gRPCリクエストのJSONペイロードを入力してください。スキーマ検証を行うには、上でprotoソースを読み込んでください。",
     "format": "整形",
     "minify": "圧縮"
   },
@@ -637,7 +719,7 @@
         "removeRecipient": "受信者を削除"
       },
       "webhook": {
-        "url": "Webhook URL",
+        "url": "WebhookのURL",
         "urlPlaceholder": "https://hooks.example.com/...",
         "urlHelp": "通知を受信するHTTPまたはHTTPSエンドポイント（最大2048文字）。",
         "method": "HTTPメソッド",
@@ -815,5 +897,44 @@
       "smtpFromRequired": "送信元アドレスは必須です。",
       "smtpFromInvalid": "無効なメールアドレス形式です。"
     }
+  },
+  "shell": {
+    "workspace": "運用",
+    "navigation": "メインナビゲーション",
+    "signature": "セルフホスト型監視",
+    "skipToContent": "コンテンツへ移動",
+    "overview": "システム概要",
+    "collapseNavigation": "ナビゲーションを折りたたむ",
+    "expandNavigation": "ナビゲーションを展開",
+    "monitorsOverview": "サービス監視",
+    "settingsOverview": "設定"
+  },
+  "users": {
+    "title": "ユーザー",
+    "description": "このPulseインスタンスへのアクセスを管理します。",
+    "email": "メールアドレス",
+    "temporaryPassword": "仮パスワード",
+    "role": "ロール",
+    "admin": "管理者",
+    "readOnly": "読み取り専用",
+    "create": "ユーザーを作成",
+    "created": "ユーザーを作成しました。仮パスワードを安全な方法で共有してください。",
+    "updated": "ユーザーを更新しました。",
+    "passwordReset": "パスワードをリセットしました。新しい仮パスワードを安全な方法で共有してください。",
+    "failed": "ユーザーを更新できませんでした。",
+    "loading": "ユーザーを読み込み中…",
+    "enabled": "有効",
+    "disabled": "無効",
+    "enable": "有効にする",
+    "disable": "無効にする",
+    "resetPassword": "パスワードをリセット",
+    "makeAdmin": "管理者にする",
+    "makeReadOnly": "読み取り専用にする",
+    "you": "あなた",
+    "passwordPending": "パスワードの変更が必要です",
+    "passwordHint": "UTF-8で8～72バイトの仮パスワードを使用してください。ユーザーはPulseにアクセスする前に変更する必要があります。管理者にはすべてのアクセス権があります。読み取り専用ユーザーは監視データの閲覧と自分のパスワードや設定の管理ができます。",
+    "firstLoginTitle": "パスワードを設定",
+    "firstLoginDescription": "管理者から提供された仮パスワードを入力し、別のパスワードを設定して続行してください。",
+    "sessionError": "セッションを確認できませんでした。再試行して続行してください。"
   }
 }

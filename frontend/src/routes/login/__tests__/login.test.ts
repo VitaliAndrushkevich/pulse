@@ -6,7 +6,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/svelte';
 import LoginPage from '../+page.svelte';
 import { goto } from '$app/navigation';
-import { setToken } from '$lib/stores/auth.svelte';
+import { setSession } from '$lib/stores/auth.svelte';
 import { ApiRequestError, NetworkError } from '$lib/api';
 
 // Mock i18n to avoid $effect outside component context
@@ -37,7 +37,7 @@ vi.mock('$lib/i18n', () => ({
 
 // Mock auth store
 vi.mock('$lib/stores/auth.svelte', () => ({
-  setToken: vi.fn(),
+  setSession: vi.fn(),
   getToken: vi.fn(() => null),
   clearToken: vi.fn(),
   isAuthenticated: vi.fn(() => false),
@@ -125,7 +125,7 @@ describe('Login Page', () => {
   });
 
   it('calls login API and redirects on success', async () => {
-    mockLogin.mockResolvedValue({ token: 'jwt-token-abc' });
+    mockLogin.mockResolvedValue({ token: 'jwt-token-abc', user: { must_change_password: false } });
 
     render(LoginPage);
 
@@ -141,8 +141,22 @@ describe('Login Page', () => {
 
     await waitFor(() => {
       expect(mockLogin).toHaveBeenCalledWith({ email: 'user@example.com', password: 'secret' });
-      expect(setToken).toHaveBeenCalledWith('jwt-token-abc');
+      expect(setSession).toHaveBeenCalledWith({ token: 'jwt-token-abc', user: { must_change_password: false } });
       expect(goto).toHaveBeenCalledWith('/');
+    });
+  });
+
+
+  it('redirects a user with a temporary password to the required password change', async () => {
+    const session = { token: 'temporary-session', user: { must_change_password: true } };
+    mockLogin.mockResolvedValue(session);
+    render(LoginPage);
+    await fireEvent.input(screen.getByLabelText('Email'), { target: { value: 'reader@example.com' } });
+    await fireEvent.input(screen.getByLabelText('Password'), { target: { value: 'temporary123' } });
+    await fireEvent.click(screen.getByRole('button', { name: /sign in/i }));
+    await waitFor(() => {
+      expect(setSession).toHaveBeenCalledWith(session);
+      expect(goto).toHaveBeenCalledWith('/change-password');
     });
   });
 

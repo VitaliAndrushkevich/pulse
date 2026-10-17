@@ -1,0 +1,48 @@
+{
+  "verdict": "APPROVED",
+  "findings": [
+    {
+      "id": 1,
+      "severity": "NIT",
+      "location": "design.md §3.2 step 1",
+      "problem": "States 'Add to createHeartbeatRequest and putHeartbeatRequest' as if two structs, but heartbeats.go declares 'type putHeartbeatRequest = createHeartbeatRequest' (a type alias). Adding the field once covers both.",
+      "fix": "Reword to: add history_retention_days once to createHeartbeatRequest; putHeartbeatRequest is an alias and inherits it."
+    },
+    {
+      "id": 2,
+      "severity": "NIT",
+      "location": "design.md §2.4",
+      "problem": "The missed-event snippet uses 'strPtr(previousState)' but no strPtr helper exists in the heartbeat package, and the ping path (§2.3) uses a different inline 'if prev != \"\"' idiom for the same conversion.",
+      "fix": "Either define func strPtr(s string) *string in the heartbeat package, or inline the same guard; since sweep previousState is always 'up', &previousState is also fine. Pick one and state it."
+    },
+    {
+      "id": 3,
+      "severity": "NIT",
+      "location": "design.md §2.3 writeEvent",
+      "problem": "OccurredAt uses a fresh time.Now().UTC() computed after the state UPDATE already ran with its own now, so occurred_at is slightly later than the state row's timestamp, despite §1.2 claiming occurred_at carries 'the real event instant'.",
+      "fix": "Thread the handler's existing now (Success already computes now := time.Now().UTC()) into writeEvent so event and state share one instant, or explicitly accept the microsecond skew in one line."
+    },
+    {
+      "id": 4,
+      "severity": "NIT",
+      "location": "design.md §3.2 step 7",
+      "problem": "Claims an out-of-range retention bypassing the handler is 'mapped to a 400 by the existing check-constraint error path'. Verified in heartbeats.go Create: isCheckConstraintErr returns 400 VALIDATION_ERROR ('invalid heartbeat values...'), not INVALID_RETENTION_PERIOD. True that it is a 400, but a reader may assume the same code as the primary path.",
+      "fix": "Note that the DB backstop surfaces the generic VALIDATION_ERROR check-constraint message while the primary handler gate returns INVALID_RETENTION_PERIOD; both are 400s."
+    },
+    {
+      "id": 5,
+      "severity": "NIT",
+      "location": "design.md §5.3",
+      "problem": "The worst-of bucket color precedence (missed > fail > success) is stated for the bar but the legend/summary three-way mapping is only implied; reference component uses up|down|mixed so the adaptation ordering should be explicit.",
+      "fix": "State once in §5.3 that single-bucket worst-state ordering is missed > fail > success and the legend always lists all three regardless of presence."
+    },
+    {
+      "id": 6,
+      "severity": "NIT",
+      "location": "design.md §5.2 vs §4.2",
+      "problem": "The endpoint accepts and validates step (§4.2) but getHeartbeatHistory (§5.2) omits it entirely; the two sections should explicitly agree the frontend never sends step in v1.",
+      "fix": "Add a one-line note in §5.2 that the client intentionally omits step because v1 renders raw events; server-side step is reserved."
+    }
+  ],
+  "reviewDoc": "/Users/vandrushkevich/workdir/personal/pulse/.worktrees/heartbeat-timeline/.agents/tasks/heartbeat-timeline/design-review.md"
+}

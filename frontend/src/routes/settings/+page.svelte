@@ -1,4 +1,7 @@
 <script lang="ts">
+  import { isAdmin } from '$lib/stores/auth.svelte';
+  import UsersSection from './UsersSection.svelte';
+  import PageHeader from '../../components/PageHeader.svelte';
   import ApiTokenSection from './ApiTokenSection.svelte';
   import SmtpSettingsSection from './SmtpSettingsSection.svelte';
   import PasswordChangeSection from './PasswordChangeSection.svelte';
@@ -11,16 +14,18 @@
   <title>{t('settings.title')} — Pulse</title>
 </svelte:head>
 
-<div class="mx-auto max-w-4xl space-y-8 px-4 py-6">
-  <div>
-    <h1 class="text-2xl font-semibold tracking-tight text-[var(--color-text-primary)]">{t('settings.title')}</h1>
-    <p class="mt-1 text-sm text-[var(--color-text-secondary)]">{t('settings.description')}</p>
-  </div>
+<section class="space-y-6">
+  <PageHeader eyebrow={t('shell.settingsOverview')} title={t('settings.title')} description={t('settings.description')} />
 
-  <section class="space-y-4">
+  <section class="pulse-panel space-y-4 p-5">
     <h2 class="text-lg font-medium text-[var(--color-text-primary)]">{t('settings.language.title')}</h2>
-    <LanguageSelector />
+    <div class="max-w-xl"><LanguageSelector /></div>
   </section>
+
+  {#if isAdmin()}
+  <CollapsibleSection title={t('users.title')} description={t('users.description')} defaultOpen={true}>
+    <UsersSection />
+  </CollapsibleSection>
 
   <CollapsibleSection title={t('settings.tokens.title')} description={t('settings.tokens.description')} defaultOpen={true}>
     <ApiTokenSection />
@@ -30,7 +35,9 @@
     <SmtpSettingsSection />
   </CollapsibleSection>
 
+  {/if}
+
   <CollapsibleSection title={t('settings.password.title')} description={t('settings.password.description')}>
     <PasswordChangeSection />
   </CollapsibleSection>
-</div>
+</section>

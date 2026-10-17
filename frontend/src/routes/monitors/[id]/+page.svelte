@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { isAdmin } from '$lib/stores/auth.svelte';
   import { page } from '$app/stores';
   import { goto } from '$app/navigation';
   import { untrack } from 'svelte';
@@ -308,6 +309,7 @@
           {monitor.type === 'http' ? 'HTTP(S)' : monitor.type.toUpperCase()}
         </span>
       </div>
+      {#if isAdmin()}
       <div class="flex items-center gap-2">
         <button
           type="button"
@@ -345,6 +347,7 @@
           {deleting ? t('common.deleting') : t('monitors.detail.delete')}
         </button>
       </div>
+      {/if}
     </div>
 
     <!-- Tab bar -->
@@ -370,6 +373,7 @@
         >
           {t('monitors.detail.tabs.history')}
         </button>
+        {#if isAdmin()}
         <button
           type="button"
           onclick={() => setTab('notifications')}
@@ -380,6 +384,7 @@
         >
           {t('monitors.detail.tabs.notifications')}
         </button>
+        {/if}
       </nav>
     </div>
 
@@ -591,10 +596,10 @@
 
     <!-- Tab content: Notifications -->
     <div hidden={activeTab !== 'notifications'} role="tabpanel" data-testid="tab-panel-notifications" class="space-y-6">
-      <MonitorNotificationBindings monitorId={monitor.id} />
+      {#if isAdmin()}<MonitorNotificationBindings monitorId={monitor.id} />{/if}
       <div>
         <h3 class="text-base font-semibold text-primary mb-3">{t('notifications.deliveryLogs.title')}</h3>
-        <MonitorDeliveryLogs monitorId={monitor.id} />
+        {#if isAdmin()}<MonitorDeliveryLogs monitorId={monitor.id} />{/if}
       </div>
     </div>
 

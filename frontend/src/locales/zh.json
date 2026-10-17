@@ -6,6 +6,7 @@
   "nav": {
     "dashboard": "仪表板",
     "monitors": "监控器",
+    "heartbeats": "心跳监测",
     "notifications": "通知",
     "settings": "设置",
     "logout": "退出",
@@ -23,6 +24,7 @@
     "error": "出了点问题",
     "copy": "复制",
     "copied": "已复制！",
+    "close": "关闭",
     "remove": "移除",
     "replace": "替换",
     "add": "添加",
@@ -330,14 +332,14 @@
       "loading": "处理中...",
       "error": "错误",
       "sourceUpload": "已上传的 Proto 来源",
-      "sourceReflection": "Server Reflection",
+      "sourceReflection": "服务器反射",
       "files": "文件",
       "services": "服务",
       "replace": "替换",
       "remove": "移除",
       "selectMethod": "选择服务方法",
       "payloadFormat": "有效载荷格式",
-      "payloadFormatRaw": "Raw (Base64)",
+      "payloadFormatRaw": "原始数据（Base64）",
       "payloadFormatProtoJson": "Proto JSON",
       "saveFirst": "请先保存监控器，然后再配置 proto 来源和请求有效载荷。"
     }
@@ -499,7 +501,7 @@
       "currentSource": "Proto 来源",
       "sourceType": "来源",
       "sourceTypeUpload": "文件上传",
-      "sourceTypeReflection": "Server Reflection",
+      "sourceTypeReflection": "服务器反射",
       "filenames": "文件",
       "serviceCount": "已发现 {count} 个服务",
       "replace": "替换",
@@ -546,6 +548,86 @@
       "checksUp": "{count} 次检查正常"
     }
   },
+  "heartbeats": {
+    "title": "心跳监测",
+    "subtitle": "按预期签入监控计划任务",
+    "empty": "暂无心跳",
+    "create": "新建心跳",
+    "edit": "编辑心跳",
+    "delete": "删除心跳",
+    "deleteConfirm": "删除此心跳？其 ping URL 将停止工作。",
+    "loading": "正在加载心跳…",
+    "loadFailed": "加载心跳失败",
+    "notFoundTitle": "未找到心跳",
+    "notFoundDescription": "您查找的心跳不存在或已被删除。",
+    "notFoundAction": "返回心跳列表",
+    "state": {
+      "up": "正常",
+      "down": "错过",
+      "paused": "已暂停",
+      "new": "等待首次 ping"
+    },
+    "fields": {
+      "name": "名称",
+      "expectedInterval": "预期间隔",
+      "grace": "宽限期",
+      "status": "状态",
+      "lastSuccess": "最近成功",
+      "nextDeadline": "下次预期截止",
+      "tags": "标签"
+    },
+    "form": {
+      "nameRequired": "名称为必填项",
+      "intervalInvalid": "预期间隔必须为正的秒数",
+      "graceInvalid": "宽限期必须为零或正的秒数",
+      "intervalHelp": "此任务预期的签入频率",
+      "graceHelp": "错过签入告警前允许的额外时间"
+    },
+    "token": {
+      "title": "心跳上报 URL",
+      "showOnce": "立即复制 — 仅显示一次",
+      "copy": "复制 ping URL",
+      "copyFail": "复制失败 URL",
+      "copied": "已复制",
+      "rotate": "轮换令牌",
+      "rotateConfirm": "轮换令牌？现有的 ping URL 将停止工作。",
+      "prefix": "令牌前缀"
+    },
+    "ping": {
+      "successUrl": "成功 ping URL",
+      "failUrl": "失败 ping URL"
+    },
+    "examples": {
+      "title": "使用示例",
+      "shell": "Shell",
+      "cron": "Cron",
+      "ci": "CI",
+      "note": "成功 ping 仅证明命令已运行，并不表示其输出有效或可恢复。"
+    },
+    "bindings": {
+      "title": "通知",
+      "add": "添加通知",
+      "triggerMissed": "错过运行或明确失败",
+      "triggerRecovered": "已恢复",
+      "empty": "未配置任何通知"
+    },
+    "timeline": {
+      "title": "状态时间线（24 小时）",
+      "uptime": "可用率",
+      "uptimeTooltip": "所选时间段内成功签到的比例",
+      "missed": "错过的运行",
+      "legendSuccess": "成功",
+      "legendMissed": "错过",
+      "legendFail": "失败",
+      "loading": "正在加载历史记录…",
+      "loadFailed": "无法加载心跳历史记录",
+      "empty": "暂无心跳历史记录",
+      "emptyHint": "下一次心跳上报或错过运行后，事件将显示在此处。",
+      "eventSuccessAt": "{time} 成功",
+      "eventMissedAt": "{time} 错过运行",
+      "eventFailAt": "{time} 主动报告失败"
+    }
+  },
   "errors": {
     "generic": "出了点问题",
     "network": "服务不可用。请稍后重试。",
@@ -576,7 +658,7 @@
     "portHelp": "SMTP 服务器端口 (25, 587, 465)",
     "starttls": "STARTTLS",
     "starttlsHelp": "在 EHLO 后尝试 STARTTLS 升级（启用 Implicit TLS 时忽略）",
-    "implicitTls": "Implicit TLS (SMTPS)",
+    "implicitTls": "隐式 TLS（SMTPS）",
     "implicitTlsHelp": "从连接开始即使用 TLS（端口 465）。用于 SMTPS 服务器，替代 STARTTLS。",
     "ehloDomain": "EHLO 域名",
     "ehloDomainPlaceholder": "pulse.local",
@@ -589,7 +671,7 @@
     "placeholder": "输入 JSON 有效载荷（例如 {\"name\": \"value\"}）",
     "label": "请求有效载荷 (JSON)",
     "jsonHint": "以 JSON 格式编写 gRPC 请求体。使用「格式化」按钮美化输出。",
-    "rawHint": "输入 gRPC 请求的 JSON 载荷。上方加载 proto 源以启用架构验证。",
+    "rawHint": "输入 gRPC 请求的 JSON 数据。请在上方加载 proto 源以进行模式验证。",
     "format": "格式化",
     "minify": "压缩"
   },
@@ -613,7 +695,7 @@
         "actions": "操作"
       },
       "types": {
-        "email": "Email",
+        "email": "电子邮件",
         "webhook": "Webhook"
       },
       "deleteConfirm": {
@@ -637,7 +719,7 @@
         "removeRecipient": "移除收件人"
       },
       "webhook": {
-        "url": "Webhook URL",
+        "url": "Webhook 地址",
         "urlPlaceholder": "https://hooks.example.com/...",
         "urlHelp": "接收通知的 HTTP 或 HTTPS 端点（最多 2048 个字符）。",
         "method": "HTTP 方法",
@@ -815,5 +897,44 @@
       "smtpFromRequired": "发件人地址为必填项。",
       "smtpFromInvalid": "邮箱地址格式无效。"
     }
+  },
+  "shell": {
+    "workspace": "运维",
+    "navigation": "主导航",
+    "signature": "自托管监控",
+    "skipToContent": "跳转到内容",
+    "overview": "系统概览",
+    "collapseNavigation": "收起导航",
+    "expandNavigation": "展开导航",
+    "monitorsOverview": "服务监控",
+    "settingsOverview": "配置"
+  },
+  "users": {
+    "title": "用户",
+    "description": "管理谁可以访问此 Pulse 实例。",
+    "email": "电子邮箱",
+    "temporaryPassword": "临时密码",
+    "role": "角色",
+    "admin": "管理员",
+    "readOnly": "只读",
+    "create": "创建用户",
+    "created": "用户已创建。请安全地传递临时密码。",
+    "updated": "用户已更新。",
+    "passwordReset": "密码已重置。请安全地传递新的临时密码。",
+    "failed": "无法更新用户。",
+    "loading": "正在加载用户…",
+    "enabled": "已启用",
+    "disabled": "已禁用",
+    "enable": "启用",
+    "disable": "禁用",
+    "resetPassword": "重置密码",
+    "makeAdmin": "设为管理员",
+    "makeReadOnly": "设为只读",
+    "you": "你",
+    "passwordPending": "需要更改密码",
+    "passwordHint": "使用长度为 8–72 个 UTF-8 字节的临时密码。用户必须在访问 Pulse 前更改密码。管理员拥有完整访问权限；只读用户可以查看监控数据并管理自己的密码和偏好设置。",
+    "firstLoginTitle": "设置你的密码",
+    "firstLoginDescription": "输入管理员提供的临时密码，然后设置一个不同的密码以继续。",
+    "sessionError": "无法验证你的会话。请重试以继续。"
   }
 }

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import SelectField from '../../components/SelectField.svelte';
   import { onMount } from 'svelte';
   import {
     listApiTokens,
@@ -174,7 +175,7 @@
 <div class="space-y-6">
 
   <!-- Create Token Form -->
-  <div class="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-surface)] p-6 shadow-sm">
+  <div class="space-y-3">
     <h3 class="text-sm font-medium text-[var(--color-text-primary)]">{t('settings.tokens.createTitle')}</h3>
 
     {#if createError}
@@ -187,8 +188,8 @@
     {/if}
 
     <form onsubmit={handleCreateToken} class="mt-3 space-y-3">
-      <div class="flex items-end gap-3">
-        <div class="flex-1">
+      <div class="grid gap-4 sm:grid-cols-[minmax(0,1fr)_minmax(10rem,14rem)] xl:grid-cols-[minmax(0,1fr)_minmax(10rem,14rem)_auto] xl:items-end">
+        <div class="min-w-0">
           <label for="token-name" class="block text-sm font-medium text-[var(--color-text-secondary)]">{t('settings.tokens.createLabel')}</label>
           <input
             id="token-name"
@@ -196,15 +197,15 @@
             maxlength={128}
             bind:value={tokenName}
             placeholder={t('settings.tokens.createPlaceholder')}
-            class="mt-1 block w-full rounded-md border border-[var(--color-border)] bg-[var(--color-bg-surface)] px-3 py-2 text-sm text-[var(--color-text-primary)] shadow-sm placeholder:text-[var(--color-text-muted)] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+            class="mt-1 block min-h-10 w-full rounded-md border border-[var(--color-border)] bg-[var(--color-bg-surface)] px-3 py-2 text-sm text-[var(--color-text-primary)] shadow-sm placeholder:text-[var(--color-text-muted)] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
           />
         </div>
-        <div class="w-40">
+        <div class="min-w-0">
           <label for="token-expiration" class="block text-sm font-medium text-[var(--color-text-secondary)]">{t('settings.tokens.expirationLabel')}</label>
-          <select
+          <SelectField
             id="token-expiration"
             bind:value={tokenExpiration}
-            class="mt-1 block w-full rounded-md border border-[var(--color-border)] bg-[var(--color-bg-surface)] px-3 py-2 text-sm text-[var(--color-text-primary)] shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+            class="mt-1 w-full"
           >
             <option value="never">{t('common.never')}</option>
             <option value="7">{t('settings.tokens.expiration.7days')}</option>
@@ -213,12 +214,12 @@
             <option value="90">{t('settings.tokens.expiration.90days')}</option>
             <option value="365">{t('settings.tokens.expiration.1year')}</option>
             <option value="custom">{t('settings.tokens.expiration.custom')}</option>
-          </select>
+          </SelectField>
         </div>
         <button
           type="submit"
           disabled={creating || !tokenName.trim()}
-          class="rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+          class="min-h-10 rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {#if creating}
             {t('common.creating')}
@@ -245,7 +246,7 @@
   </div>
 
   <!-- Token List -->
-  <div class="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-surface)] p-6 shadow-sm">
+  <div class="border-t border-[var(--color-border)] pt-6">
     <h3 class="text-sm font-medium text-[var(--color-text-primary)]">{t('settings.tokens.existingTitle')}</h3>
     <p class="mt-1 text-xs text-[var(--color-text-muted)]">
       {t('settings.tokens.existingDescription')}

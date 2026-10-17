@@ -11,8 +11,8 @@
   let { title, description, defaultOpen = false, children }: Props = $props();
 </script>
 
-<details class="group rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-surface)] shadow-sm" open={defaultOpen}>
-  <summary class="flex cursor-pointer items-center justify-between px-6 py-4 select-none list-none [&::-webkit-details-marker]:hidden">
+<details class="group pulse-panel" open={defaultOpen}>
+  <summary class="flex cursor-pointer items-center justify-between gap-4 px-5 py-5 select-none list-none [&::-webkit-details-marker]:hidden">
     <div>
       <h2 class="text-lg font-medium text-[var(--color-text-primary)]">{title}</h2>
       {#if description}
@@ -29,7 +29,7 @@
       <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
     </svg>
   </summary>
-  <div class="border-t border-[var(--color-border)] px-6 py-6">
+  <div class="border-t border-[var(--color-border)] px-5 py-5">
     {@render children()}
   </div>
 </details>

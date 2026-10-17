@@ -2,6 +2,7 @@
   import type { Monitor } from '$lib/types';
   import { formatDate } from '$lib/format';
   import { t } from '$lib/i18n';
+  import { resolve } from '$app/paths';
 
   interface Props {
     monitor: Monitor;
@@ -12,9 +13,9 @@
   const isPaused = $derived(monitor.status === 'paused');
 
   const stateColors: Record<string, string> = {
-    up: 'bg-emerald-500',
-    down: 'bg-rose-500',
-    unknown: 'bg-slate-400'
+    up: 'bg-[var(--color-success)]',
+    down: 'bg-[var(--color-error)]',
+    unknown: 'bg-[var(--color-text-muted)]'
   };
 
   const stateTranslationKeys: Record<string, string> = {
@@ -22,28 +23,16 @@
     down: 'monitors.status.down',
     unknown: 'monitors.status.unknown'
   };
-
-  const typeBadgeColors: Record<string, string> = {
-    http: 'bg-blue-100 text-blue-700',
-    http3: 'bg-cyan-100 text-cyan-700',
-    tcp: 'bg-purple-100 text-purple-700',
-    udp: 'bg-amber-100 text-amber-700',
-    websocket: 'bg-pink-100 text-pink-700',
-    grpc: 'bg-indigo-100 text-indigo-700',
-    dns: 'bg-teal-100 text-teal-700',
-    icmp: 'bg-orange-100 text-orange-700',
-    smtp: 'bg-rose-100 text-rose-700'
-  };
 </script>
 
 <a
-  href="/monitors/{monitor.id}"
-  class="flex h-16 items-center gap-4 border-b border-[var(--color-border)] bg-surface px-4 transition hover:bg-[var(--color-bg-surface-hover)] {isPaused ? 'opacity-60' : ''}"
+  href={resolve('/monitors/[id]', { id: monitor.id })}
+  class="flex h-16 items-center gap-3 sm:gap-4 border-b border-[var(--color-border)] bg-surface px-4 transition hover:bg-[var(--color-bg-surface-hover)] {isPaused ? 'opacity-60' : ''}"
   data-testid="monitor-row"
 >
   <!-- State indicator dot -->
   <span
-    class="h-3 w-3 flex-shrink-0 rounded-full {isPaused ? 'bg-slate-400' : (stateColors[monitor.state] ?? 'bg-slate-400')}"
+    class="h-3 w-3 flex-shrink-0 rounded-full {isPaused ? 'bg-[var(--color-text-muted)]' : (stateColors[monitor.state] ?? 'bg-[var(--color-text-muted)]')}"
     title={isPaused ? t('monitors.status.paused') : t(stateTranslationKeys[monitor.state] ?? 'monitors.status.unknown')}
     data-testid="state-indicator"
     data-state={isPaused ? 'paused' : monitor.state}
@@ -57,9 +46,9 @@
   <!-- Tags (compact chips) -->
   {#if monitor.tags && monitor.tags.length > 0}
     <div class="hidden flex-shrink-0 items-center gap-1 md:flex" data-testid="monitor-tags">
-      {#each monitor.tags.slice(0, 3) as tag}
-        <span class="inline-flex items-center rounded-full bg-indigo-50 px-1.5 py-0.5 text-[10px] leading-none">
-          <span class="font-medium text-indigo-700">{tag.key}</span><span class="text-indigo-400">:</span><span class="text-indigo-600">{tag.value}</span>
+      {#each monitor.tags.slice(0, 3) as tag (tag.key)}
+        <span class="pulse-tag">
+          <span class="font-medium">{tag.key}</span><span class="opacity-50">:</span><span>{tag.value}</span>
         </span>
       {/each}
       {#if monitor.tags.length > 3}
@@ -71,7 +60,7 @@
   <!-- Paused badge -->
   {#if isPaused}
     <span
-      class="flex-shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600"
+      class="pulse-protocol"
       data-testid="paused-badge"
     >
       {t('monitors.status.paused')}
@@ -80,19 +69,19 @@
 
   <!-- Type badge -->
   <span
-    class="flex-shrink-0 rounded-full px-2 py-0.5 text-xs font-medium {typeBadgeColors[monitor.type] ?? 'bg-[var(--color-bg-surface-hover)] text-primary'}"
+    class="pulse-protocol"
     data-testid="monitor-type"
   >
     {monitor.type === 'http' ? 'HTTP(S)' : monitor.type === 'http3' ? 'HTTP/3' : monitor.type === 'grpc' ? 'gRPC' : monitor.type.toUpperCase()}
   </span>
 
   <!-- Target -->
-  <span class="hidden min-w-0 max-w-48 flex-shrink truncate text-sm text-secondary sm:inline" data-testid="monitor-target">
+  <span class="hidden min-w-0 max-w-48 flex-shrink truncate font-mono text-xs text-secondary lg:inline" data-testid="monitor-target">
     {monitor.target}
   </span>
 
   <!-- Last checked -->
-  <span class="flex-shrink-0 text-xs text-[var(--color-text-muted)]" data-testid="monitor-last-checked">
+  <span class="hidden flex-shrink-0 font-mono text-[10px] text-[var(--color-text-muted)] sm:inline" data-testid="monitor-last-checked">
     {isPaused ? t('monitors.status.paused') : formatDate(monitor.last_checked_at)}
   </span>
 </a>

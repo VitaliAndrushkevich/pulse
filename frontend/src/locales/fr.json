@@ -6,6 +6,7 @@
   "nav": {
     "dashboard": "Tableau de bord",
     "monitors": "Moniteurs",
+    "heartbeats": "Heartbeats",
     "notifications": "Notifications",
     "settings": "Paramètres",
     "logout": "Déconnexion",
@@ -23,6 +24,7 @@
     "error": "Une erreur s'est produite",
     "copy": "Copier",
     "copied": "Copié !",
+    "close": "Fermer",
     "remove": "Retirer",
     "replace": "Remplacer",
     "add": "Ajouter",
@@ -330,14 +332,14 @@
       "loading": "Traitement...",
       "error": "Erreur",
       "sourceUpload": "Source Proto téléversée",
-      "sourceReflection": "Server Reflection",
+      "sourceReflection": "Réflexion du serveur",
       "files": "Fichiers",
       "services": "Services",
       "replace": "Remplacer",
       "remove": "Retirer",
       "selectMethod": "Sélectionner une méthode de service",
       "payloadFormat": "Format du payload",
-      "payloadFormatRaw": "Brut (Base64)",
+      "payloadFormatRaw": "Données brutes (Base64)",
       "payloadFormatProtoJson": "Proto JSON",
       "saveFirst": "Enregistrez d'abord le moniteur pour configurer la source Proto et le payload."
     }
@@ -420,8 +422,8 @@
     "authType": "Type d'authentification",
     "types": {
       "none": "Aucun",
-      "bearer": "Bearer Token",
-      "basic": "Basic Auth",
+      "bearer": "Jeton Bearer",
+      "basic": "Authentification de base",
       "header": "En-tête personnalisé"
     },
     "fields": {
@@ -499,7 +501,7 @@
       "currentSource": "Source Proto",
       "sourceType": "Source",
       "sourceTypeUpload": "Téléversement de fichiers",
-      "sourceTypeReflection": "Server Reflection",
+      "sourceTypeReflection": "Réflexion du serveur",
       "filenames": "Fichiers",
       "serviceCount": "{count} service(s) découvert(s)",
       "replace": "Remplacer",
@@ -546,6 +548,86 @@
       "checksUp": "{count} vérifications OK"
     }
   },
+  "heartbeats": {
+    "title": "Heartbeats",
+    "subtitle": "Surveillez les tâches planifiées selon l’enregistrement attendu",
+    "empty": "Aucun heartbeat pour l’instant",
+    "create": "Nouveau heartbeat",
+    "edit": "Modifier le heartbeat",
+    "delete": "Supprimer le heartbeat",
+    "deleteConfirm": "Supprimer ce heartbeat ? Son URL de ping cessera de fonctionner.",
+    "loading": "Chargement des heartbeats…",
+    "loadFailed": "Échec du chargement des heartbeats",
+    "notFoundTitle": "Heartbeat introuvable",
+    "notFoundDescription": "Le heartbeat que vous recherchez n’existe pas ou a été supprimé.",
+    "notFoundAction": "Retour aux heartbeats",
+    "state": {
+      "up": "Actif",
+      "down": "Manqué",
+      "paused": "En pause",
+      "new": "En attente du premier ping"
+    },
+    "fields": {
+      "name": "Nom",
+      "expectedInterval": "Intervalle attendu",
+      "grace": "Délai de grâce",
+      "status": "Statut",
+      "lastSuccess": "Dernier succès",
+      "nextDeadline": "Prochain attendu avant",
+      "tags": "Étiquettes"
+    },
+    "form": {
+      "nameRequired": "Le nom est obligatoire",
+      "intervalInvalid": "L’intervalle attendu doit être un nombre positif de secondes",
+      "graceInvalid": "Le délai de grâce doit être zéro ou un nombre positif de secondes",
+      "intervalHelp": "À quelle fréquence cette tâche est censée s’enregistrer",
+      "graceHelp": "Temps supplémentaire autorisé avant qu’un enregistrement manqué ne déclenche une alerte"
+    },
+    "token": {
+      "title": "URL de ping",
+      "showOnce": "Copiez-la maintenant — elle n’est affichée qu’une seule fois",
+      "copy": "Copier l’URL de ping",
+      "copyFail": "Copier l’URL d’échec",
+      "copied": "Copié",
+      "rotate": "Faire pivoter le jeton",
+      "rotateConfirm": "Faire pivoter le jeton ? Les URL de ping existantes cesseront de fonctionner.",
+      "prefix": "Préfixe du jeton"
+    },
+    "ping": {
+      "successUrl": "URL de ping de succès",
+      "failUrl": "URL de ping d’échec"
+    },
+    "examples": {
+      "title": "Exemples d’utilisation",
+      "shell": "Shell",
+      "cron": "Cron",
+      "ci": "CI",
+      "note": "Un ping de succès prouve que la commande s’est exécutée, pas que sa sortie est valide ou restaurable."
+    },
+    "bindings": {
+      "title": "Notifications",
+      "add": "Ajouter une notification",
+      "triggerMissed": "Exécution manquée ou échec explicite",
+      "triggerRecovered": "Rétabli",
+      "empty": "Aucune notification configurée"
+    },
+    "timeline": {
+      "title": "Historique des états (24 h)",
+      "uptime": "Disponibilité",
+      "uptimeTooltip": "Proportion de signaux reçus avec succès sur la période sélectionnée",
+      "missed": "Exécutions manquées",
+      "legendSuccess": "Réussite",
+      "legendMissed": "Manquée",
+      "legendFail": "Échec",
+      "loading": "Chargement de l’historique…",
+      "loadFailed": "Impossible de charger l’historique des signaux de vie",
+      "empty": "Aucun historique des signaux de vie pour le moment",
+      "emptyHint": "Les événements apparaîtront après le prochain signal ou la prochaine exécution manquée.",
+      "eventSuccessAt": "Réussite à {time}",
+      "eventMissedAt": "Exécution manquée à {time}",
+      "eventFailAt": "Échec explicite à {time}"
+    }
+  },
   "errors": {
     "generic": "Une erreur s'est produite",
     "network": "Service indisponible. Veuillez réessayer plus tard.",
@@ -589,7 +671,7 @@
     "placeholder": "Entrez le payload JSON (ex. {\"name\": \"value\"})",
     "label": "Payload de requête (JSON)",
     "jsonHint": "Écrivez le corps de votre requête gRPC en JSON. Utilisez le bouton Formater pour l'indentation.",
-    "rawHint": "Enter JSON payload for the gRPC request. Load a proto source above for schema validation.",
+    "rawHint": "Saisissez les données JSON de la requête gRPC. Chargez une source proto ci-dessus pour les valider selon le schéma.",
     "format": "Formater",
     "minify": "Minifier"
   },
@@ -815,5 +897,44 @@
       "smtpFromRequired": "L'adresse d'expéditeur est requise.",
       "smtpFromInvalid": "Format d'adresse e-mail invalide."
     }
+  },
+  "shell": {
+    "workspace": "Exploitation",
+    "navigation": "Navigation principale",
+    "signature": "Supervision auto-hébergée",
+    "skipToContent": "Aller au contenu",
+    "overview": "Vue d’ensemble du système",
+    "collapseNavigation": "Réduire la navigation",
+    "expandNavigation": "Développer la navigation",
+    "monitorsOverview": "Supervision des services",
+    "settingsOverview": "Configuration"
+  },
+  "users": {
+    "title": "Utilisateurs",
+    "description": "Gérez les accès à cette instance de Pulse.",
+    "email": "Adresse e-mail",
+    "temporaryPassword": "Mot de passe temporaire",
+    "role": "Rôle",
+    "admin": "Administrateur",
+    "readOnly": "Lecture seule",
+    "create": "Créer un utilisateur",
+    "created": "Utilisateur créé. Transmettez le mot de passe temporaire de manière sécurisée.",
+    "updated": "Utilisateur mis à jour.",
+    "passwordReset": "Mot de passe réinitialisé. Transmettez le nouveau mot de passe temporaire de manière sécurisée.",
+    "failed": "Impossible de mettre à jour les utilisateurs.",
+    "loading": "Chargement des utilisateurs…",
+    "enabled": "Activé",
+    "disabled": "Désactivé",
+    "enable": "Activer",
+    "disable": "Désactiver",
+    "resetPassword": "Réinitialiser le mot de passe",
+    "makeAdmin": "Nommer administrateur",
+    "makeReadOnly": "Passer en lecture seule",
+    "you": "vous",
+    "passwordPending": "Changement de mot de passe requis",
+    "passwordHint": "Utilisez un mot de passe temporaire de 8 à 72 octets en UTF-8. Les utilisateurs doivent le changer avant d’accéder à Pulse. Les administrateurs ont un accès complet ; les utilisateurs en lecture seule peuvent consulter la supervision et gérer leur propre mot de passe et leurs préférences.",
+    "firstLoginTitle": "Choisissez votre mot de passe",
+    "firstLoginDescription": "Saisissez le mot de passe temporaire fourni par votre administrateur, puis choisissez un mot de passe différent pour continuer.",
+    "sessionError": "Impossible de vérifier votre session. Réessayez pour continuer."
   }
 }

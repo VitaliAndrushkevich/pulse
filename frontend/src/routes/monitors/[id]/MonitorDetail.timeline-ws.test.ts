@@ -191,6 +191,7 @@ vi.mock('$lib/stores/monitors.svelte', () => ({
 vi.mock('$lib/stores/auth.svelte', () => ({
   getToken: vi.fn(() => 'test-token'),
   setToken: vi.fn(),
+  isAdmin: vi.fn(() => true),
   clearToken: vi.fn(),
   isAuthenticated: vi.fn(() => true)
 }));

@@ -6,6 +6,7 @@
   "nav": {
     "dashboard": "لوحة التحكم",
     "monitors": "المراقبات",
+    "heartbeats": "نبضات الحياة",
     "notifications": "الإشعارات",
     "settings": "الإعدادات",
     "logout": "تسجيل الخروج",
@@ -23,6 +24,7 @@
     "error": "حدث خطأ ما",
     "copy": "نسخ",
     "copied": "تم النسخ!",
+    "close": "إغلاق",
     "remove": "إزالة",
     "replace": "استبدال",
     "add": "إضافة",
@@ -330,14 +332,14 @@
       "loading": "جارٍ المعالجة...",
       "error": "خطأ",
       "sourceUpload": "مصدر Proto المرفوع",
-      "sourceReflection": "Server Reflection",
+      "sourceReflection": "انعكاس الخادم",
       "files": "الملفات",
       "services": "الخدمات",
       "replace": "استبدال",
       "remove": "إزالة",
       "selectMethod": "اختر طريقة خدمة",
       "payloadFormat": "صيغة الحمولة",
-      "payloadFormatRaw": "Raw (Base64)",
+      "payloadFormatRaw": "خام (Base64)",
       "payloadFormatProtoJson": "Proto JSON",
       "saveFirst": "احفظ المراقبة أولاً لتكوين مصدر proto وحمولة الطلب."
     }
@@ -499,7 +501,7 @@
       "currentSource": "مصدر Proto",
       "sourceType": "المصدر",
       "sourceTypeUpload": "رفع ملف",
-      "sourceTypeReflection": "Server Reflection",
+      "sourceTypeReflection": "انعكاس الخادم",
       "filenames": "الملفات",
       "serviceCount": "تم اكتشاف {count} خدمة(خدمات)",
       "replace": "استبدال",
@@ -546,6 +548,86 @@
       "checksUp": "{count} فحص ناجح"
     }
   },
+  "heartbeats": {
+    "title": "نبضات الحياة",
+    "subtitle": "راقب المهام المجدولة من خلال تسجيل الوصول المتوقع",
+    "empty": "لا توجد نبضات حياة بعد",
+    "create": "نبضة حياة جديدة",
+    "edit": "تعديل نبضة الحياة",
+    "delete": "حذف نبضة الحياة",
+    "deleteConfirm": "هل تريد حذف نبضة الحياة هذه؟ سيتوقف عنوان Ping URL الخاص بها عن العمل.",
+    "loading": "جارٍ تحميل نبضات الحياة…",
+    "loadFailed": "فشل تحميل نبضات الحياة",
+    "notFoundTitle": "نبضة الحياة غير موجودة",
+    "notFoundDescription": "نبضة الحياة التي تبحث عنها غير موجودة أو تم حذفها.",
+    "notFoundAction": "العودة إلى نبضات الحياة",
+    "state": {
+      "up": "نشطة",
+      "down": "فائتة",
+      "paused": "متوقفة مؤقتًا",
+      "new": "في انتظار أول نبضة"
+    },
+    "fields": {
+      "name": "الاسم",
+      "expectedInterval": "الفاصل الزمني المتوقع",
+      "grace": "فترة السماح",
+      "status": "الحالة",
+      "lastSuccess": "آخر نجاح",
+      "nextDeadline": "موعد الوصول المتوقع التالي",
+      "tags": "الوسوم"
+    },
+    "form": {
+      "nameRequired": "الاسم مطلوب",
+      "intervalInvalid": "يجب أن يكون الفاصل الزمني المتوقع عددًا موجبًا من الثواني",
+      "graceInvalid": "يجب أن تكون فترة السماح صفرًا أو عددًا موجبًا من الثواني",
+      "intervalHelp": "عدد مرات تسجيل وصول هذه المهمة المتوقع",
+      "graceHelp": "وقت إضافي مسموح به قبل تنبيه فوات تسجيل الوصول"
+    },
+    "token": {
+      "title": "عنوان Ping URL",
+      "showOnce": "انسخه الآن — يُعرض مرة واحدة فقط",
+      "copy": "نسخ عنوان Ping URL",
+      "copyFail": "نسخ عنوان الفشل",
+      "copied": "تم النسخ",
+      "rotate": "تدوير الرمز",
+      "rotateConfirm": "هل تريد تدوير الرمز؟ ستتوقف عناوين Ping URL الحالية عن العمل.",
+      "prefix": "بادئة الرمز"
+    },
+    "ping": {
+      "successUrl": "عنوان Ping URL للنجاح",
+      "failUrl": "عنوان Ping URL للفشل"
+    },
+    "examples": {
+      "title": "أمثلة الاستخدام",
+      "shell": "Shell",
+      "cron": "Cron",
+      "ci": "CI",
+      "note": "تثبت نبضة النجاح أن الأمر قد تم تشغيله، وليس أن مخرجاته صالحة أو قابلة للاستعادة."
+    },
+    "bindings": {
+      "title": "الإشعارات",
+      "add": "إضافة إشعار",
+      "triggerMissed": "تشغيل فائت أو فشل صريح",
+      "triggerRecovered": "تم التعافي",
+      "empty": "لم يتم تكوين أي إشعارات"
+    },
+    "timeline": {
+      "title": "سجل الحالة (24 ساعة)",
+      "uptime": "التوافر",
+      "uptimeTooltip": "نسبة إشارات التحقق الناجحة خلال الفترة المحددة",
+      "missed": "عمليات التشغيل الفائتة",
+      "legendSuccess": "نجاح",
+      "legendMissed": "فائتة",
+      "legendFail": "فشل",
+      "loading": "جارٍ تحميل السجل…",
+      "loadFailed": "تعذّر تحميل سجل نبضات الحياة",
+      "empty": "لا يوجد سجل لنبضات الحياة بعد",
+      "emptyHint": "ستظهر الأحداث بعد إشارة التحقق التالية أو تفويت عملية تشغيل.",
+      "eventSuccessAt": "نجاح في {time}",
+      "eventMissedAt": "عملية تشغيل فائتة في {time}",
+      "eventFailAt": "إبلاغ صريح بالفشل في {time}"
+    }
+  },
   "errors": {
     "generic": "حدث خطأ ما",
     "network": "الخدمة غير متوفرة. يرجى المحاولة لاحقاً.",
@@ -589,7 +671,7 @@
     "placeholder": "أدخل حمولة JSON (مثال: {\"name\": \"value\"})",
     "label": "حمولة الطلب (JSON)",
     "jsonHint": "اكتب جسم طلب gRPC بصيغة JSON. استخدم زر التنسيق لتحسين العرض.",
-    "rawHint": "Enter JSON payload for the gRPC request. Load a proto source above for schema validation.",
+    "rawHint": "أدخل بيانات JSON لطلب gRPC. حمّل مصدر proto أعلاه للتحقق من صحتها وفق المخطط.",
     "format": "تنسيق",
     "minify": "تصغير"
   },
@@ -815,5 +897,44 @@
       "statusFailure": "فشل",
       "total": "{count} تسليمات إجمالاً"
     }
+  },
+  "shell": {
+    "workspace": "العمليات",
+    "navigation": "التنقل الرئيسي",
+    "signature": "مراقبة مستضافة ذاتيًا",
+    "skipToContent": "انتقل إلى المحتوى",
+    "overview": "نظرة عامة على النظام",
+    "collapseNavigation": "طي قائمة التنقل",
+    "expandNavigation": "توسيع قائمة التنقل",
+    "monitorsOverview": "مراقبة الخدمات",
+    "settingsOverview": "الإعدادات"
+  },
+  "users": {
+    "title": "المستخدمون",
+    "description": "إدارة من يمكنه الوصول إلى مثيل Pulse هذا.",
+    "email": "البريد الإلكتروني",
+    "temporaryPassword": "كلمة مرور مؤقتة",
+    "role": "الدور",
+    "admin": "مسؤول",
+    "readOnly": "للقراءة فقط",
+    "create": "إنشاء مستخدم",
+    "created": "تم إنشاء المستخدم. شارك كلمة المرور المؤقتة بطريقة آمنة.",
+    "updated": "تم تحديث المستخدم.",
+    "passwordReset": "تمت إعادة تعيين كلمة المرور. شارك كلمة المرور المؤقتة الجديدة بطريقة آمنة.",
+    "failed": "تعذّر تحديث المستخدمين.",
+    "loading": "جارٍ تحميل المستخدمين…",
+    "enabled": "مفعّل",
+    "disabled": "معطّل",
+    "enable": "تفعيل",
+    "disable": "تعطيل",
+    "resetPassword": "إعادة تعيين كلمة المرور",
+    "makeAdmin": "تعيين كمسؤول",
+    "makeReadOnly": "تعيين للقراءة فقط",
+    "you": "أنت",
+    "passwordPending": "يلزم تغيير كلمة المرور",
+    "passwordHint": "استخدم كلمة مرور مؤقتة بطول 8–72 بايت بترميز UTF-8. يجب على المستخدمين تغييرها قبل الوصول إلى Pulse. يتمتع المسؤولون بوصول كامل؛ ويمكن للمستخدمين ذوي صلاحية القراءة فقط عرض بيانات المراقبة وإدارة كلمات المرور والتفضيلات الخاصة بهم.",
+    "firstLoginTitle": "اختر كلمة مرورك",
+    "firstLoginDescription": "أدخل كلمة المرور المؤقتة التي قدمها المسؤول، ثم اختر كلمة مرور مختلفة للمتابعة.",
+    "sessionError": "تعذّر التحقق من جلستك. أعد المحاولة للمتابعة."
   }
 }

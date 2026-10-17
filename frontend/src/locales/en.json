@@ -6,6 +6,7 @@
   "nav": {
     "dashboard": "Dashboard",
     "monitors": "Monitors",
+    "heartbeats": "Heartbeats",
     "notifications": "Notifications",
     "settings": "Settings",
     "logout": "Logout",
@@ -23,6 +24,7 @@
     "error": "Something went wrong",
     "copy": "Copy",
     "copied": "Copied!",
+    "close": "Close",
     "remove": "Remove",
     "replace": "Replace",
     "add": "Add",
@@ -810,10 +812,129 @@
       "smtpFromInvalid": "Invalid email address format."
     }
   },
+  "heartbeats": {
+    "title": "Heartbeats",
+    "subtitle": "Monitor scheduled jobs by expected check-in",
+    "empty": "No heartbeats yet",
+    "create": "New heartbeat",
+    "edit": "Edit heartbeat",
+    "delete": "Delete heartbeat",
+    "deleteConfirm": "Delete this heartbeat? Its ping URL will stop working.",
+    "loading": "Loading heartbeats…",
+    "loadFailed": "Failed to load heartbeats",
+    "notFoundTitle": "Heartbeat not found",
+    "notFoundDescription": "The heartbeat you are looking for does not exist or was deleted.",
+    "notFoundAction": "Back to heartbeats",
+    "state": {
+      "up": "Up",
+      "down": "Missed",
+      "paused": "Paused",
+      "new": "Awaiting first ping"
+    },
+    "fields": {
+      "name": "Name",
+      "expectedInterval": "Expected interval",
+      "grace": "Grace period",
+      "status": "Status",
+      "lastSuccess": "Last success",
+      "nextDeadline": "Next expected by",
+      "tags": "Tags"
+    },
+    "form": {
+      "nameRequired": "Name is required",
+      "intervalInvalid": "Expected interval must be a positive number of seconds",
+      "graceInvalid": "Grace period must be zero or a positive number of seconds",
+      "intervalHelp": "How often this job is expected to check in",
+      "graceHelp": "Extra time allowed before a missed check-in alerts"
+    },
+    "token": {
+      "title": "Ping URL",
+      "showOnce": "Copy this now — it is shown only once",
+      "copy": "Copy ping URL",
+      "copyFail": "Copy failure URL",
+      "copied": "Copied",
+      "rotate": "Rotate token",
+      "rotateConfirm": "Rotate the token? Existing ping URLs will stop working.",
+      "prefix": "Token prefix"
+    },
+    "ping": {
+      "successUrl": "Success ping URL",
+      "failUrl": "Failure ping URL"
+    },
+    "examples": {
+      "title": "Usage examples",
+      "shell": "Shell",
+      "cron": "Cron",
+      "ci": "CI",
+      "note": "A success ping proves the command ran, not that its output is valid or restorable."
+    },
+    "bindings": {
+      "title": "Notifications",
+      "add": "Add notification",
+      "triggerMissed": "Missed run or explicit failure",
+      "triggerRecovered": "Recovered",
+      "empty": "No notifications configured"
+    },
+    "timeline": {
+      "title": "Status Timeline (24h)",
+      "uptime": "Uptime",
+      "uptimeTooltip": "Share of successful check-ins over the selected window",
+      "missed": "Missed runs",
+      "legendSuccess": "Success",
+      "legendMissed": "Missed",
+      "legendFail": "Failed",
+      "loading": "Loading history…",
+      "loadFailed": "Failed to load heartbeat history",
+      "empty": "No heartbeat history yet",
+      "emptyHint": "Events will appear here after the next ping or missed run.",
+      "eventSuccessAt": "Success at {time}",
+      "eventMissedAt": "Missed run at {time}",
+      "eventFailAt": "Explicit failure at {time}"
+    }
+  },
   "errors": {
     "generic": "Something went wrong",
     "network": "Service unavailable. Please try again later.",
     "unexpected": "An unexpected error occurred.",
     "notFound": "Not found"
+  },
+  "shell": {
+    "workspace": "Operations",
+    "navigation": "Main navigation",
+    "signature": "Self-hosted monitoring",
+    "skipToContent": "Skip to content",
+    "overview": "System overview",
+    "collapseNavigation": "Collapse navigation",
+    "expandNavigation": "Expand navigation",
+    "monitorsOverview": "Service monitoring",
+    "settingsOverview": "Configuration"
+  },
+  "users": {
+    "title": "Users",
+    "description": "Manage who can access this Pulse instance.",
+    "email": "Email",
+    "temporaryPassword": "Temporary password",
+    "role": "Role",
+    "admin": "Administrator",
+    "readOnly": "Read only",
+    "create": "Create user",
+    "created": "User created. Share the temporary password securely.",
+    "updated": "User updated.",
+    "passwordReset": "Password reset. Share the new temporary password securely.",
+    "failed": "Unable to update users.",
+    "loading": "Loading users…",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "enable": "Enable",
+    "disable": "Disable",
+    "resetPassword": "Reset password",
+    "makeAdmin": "Make administrator",
+    "makeReadOnly": "Make read only",
+    "you": "you",
+    "passwordPending": "Password change required",
+    "passwordHint": "Use a temporary password of 8–72 UTF-8 bytes. Users must replace it before accessing Pulse. Administrators have full access; read-only users can view monitoring and manage their own password and preferences.",
+    "firstLoginTitle": "Choose your password",
+    "firstLoginDescription": "Enter the temporary password provided by your administrator, then choose a different password to continue.",
+    "sessionError": "Unable to verify your session. Retry to continue."
   }
 }

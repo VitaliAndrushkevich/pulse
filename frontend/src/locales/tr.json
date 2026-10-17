@@ -6,6 +6,7 @@
   "nav": {
     "dashboard": "Gösterge Paneli",
     "monitors": "Monitörler",
+    "heartbeats": "Yaşam sinyalleri",
     "notifications": "Bildirimler",
     "settings": "Ayarlar",
     "logout": "Çıkış",
@@ -23,6 +24,7 @@
     "error": "Bir hata oluştu",
     "copy": "Kopyala",
     "copied": "Kopyalandı!",
+    "close": "Kapat",
     "remove": "Kaldır",
     "replace": "Değiştir",
     "add": "Ekle",
@@ -330,14 +332,14 @@
       "loading": "İşleniyor...",
       "error": "Hata",
       "sourceUpload": "Yüklenen Proto Kaynağı",
-      "sourceReflection": "Server Reflection",
+      "sourceReflection": "Sunucu yansıması",
       "files": "Dosyalar",
       "services": "Servisler",
       "replace": "Değiştir",
       "remove": "Kaldır",
       "selectMethod": "Servis metodu seçin",
       "payloadFormat": "Veri Yükü Formatı",
-      "payloadFormatRaw": "Raw (Base64)",
+      "payloadFormatRaw": "Ham veri (Base64)",
       "payloadFormatProtoJson": "Proto JSON",
       "saveFirst": "Proto kaynağını ve istek veri yükünü yapılandırmak için önce monitörü kaydedin."
     }
@@ -420,8 +422,8 @@
     "authType": "Kimlik doğrulama türü",
     "types": {
       "none": "Yok",
-      "bearer": "Bearer Token",
-      "basic": "Basic Auth",
+      "bearer": "Bearer belirteci",
+      "basic": "Temel kimlik doğrulama",
       "header": "Özel Başlık"
     },
     "fields": {
@@ -499,7 +501,7 @@
       "currentSource": "Proto Kaynağı",
       "sourceType": "Kaynak",
       "sourceTypeUpload": "Dosya Yükleme",
-      "sourceTypeReflection": "Server Reflection",
+      "sourceTypeReflection": "Sunucu yansıması",
       "filenames": "Dosyalar",
       "serviceCount": "{count} servis keşfedildi",
       "replace": "Değiştir",
@@ -546,6 +548,86 @@
       "checksUp": "{count} kontrol başarılı"
     }
   },
+  "heartbeats": {
+    "title": "Heartbeat’ler",
+    "subtitle": "Zamanlanmış işleri beklenen bildirime göre izleyin",
+    "empty": "Henüz heartbeat yok",
+    "create": "Yeni heartbeat",
+    "edit": "Heartbeat’i düzenle",
+    "delete": "Heartbeat’i sil",
+    "deleteConfirm": "Bu heartbeat silinsin mi? Ping URL’si çalışmayı durduracak.",
+    "loading": "Heartbeat’ler yükleniyor…",
+    "loadFailed": "Heartbeat’ler yüklenemedi",
+    "notFoundTitle": "Heartbeat bulunamadı",
+    "notFoundDescription": "Aradığınız heartbeat mevcut değil veya silinmiş.",
+    "notFoundAction": "Heartbeat’lere dön",
+    "state": {
+      "up": "Çalışıyor",
+      "down": "Kaçırıldı",
+      "paused": "Duraklatıldı",
+      "new": "İlk ping bekleniyor"
+    },
+    "fields": {
+      "name": "Ad",
+      "expectedInterval": "Beklenen aralık",
+      "grace": "Tolerans süresi",
+      "status": "Durum",
+      "lastSuccess": "Son başarı",
+      "nextDeadline": "Sonraki beklenen süre",
+      "tags": "Etiketler"
+    },
+    "form": {
+      "nameRequired": "Ad gereklidir",
+      "intervalInvalid": "Beklenen aralık pozitif bir saniye sayısı olmalıdır",
+      "graceInvalid": "Tolerans süresi sıfır veya pozitif bir saniye sayısı olmalıdır",
+      "intervalHelp": "Bu işin ne sıklıkta bildirim yapması beklendiği",
+      "graceHelp": "Kaçırılan bir bildirim uyarı vermeden önce izin verilen ek süre"
+    },
+    "token": {
+      "title": "Ping URL’si",
+      "showOnce": "Şimdi kopyalayın — yalnızca bir kez gösterilir",
+      "copy": "Ping URL’sini kopyala",
+      "copyFail": "Hata URL’sini kopyala",
+      "copied": "Kopyalandı",
+      "rotate": "Token’ı değiştir",
+      "rotateConfirm": "Token değiştirilsin mi? Mevcut ping URL’leri çalışmayı durduracak.",
+      "prefix": "Token ön eki"
+    },
+    "ping": {
+      "successUrl": "Başarı ping URL’si",
+      "failUrl": "Hata ping URL’si"
+    },
+    "examples": {
+      "title": "Kullanım örnekleri",
+      "shell": "Shell",
+      "cron": "Cron",
+      "ci": "CI",
+      "note": "Başarı ping’i komutun çalıştığını kanıtlar, çıktısının geçerli veya geri yüklenebilir olduğunu değil."
+    },
+    "bindings": {
+      "title": "Bildirimler",
+      "add": "Bildirim ekle",
+      "triggerMissed": "Kaçırılan çalıştırma veya açık hata",
+      "triggerRecovered": "Kurtarıldı",
+      "empty": "Yapılandırılmış bildirim yok"
+    },
+    "timeline": {
+      "title": "Durum geçmişi (24 sa.)",
+      "uptime": "Kullanılabilirlik",
+      "uptimeTooltip": "Seçilen zaman aralığındaki başarılı bildirimlerin oranı",
+      "missed": "Kaçırılan çalıştırmalar",
+      "legendSuccess": "Başarılı",
+      "legendMissed": "Kaçırıldı",
+      "legendFail": "Başarısız",
+      "loading": "Geçmiş yükleniyor…",
+      "loadFailed": "Yaşam sinyali geçmişi yüklenemedi",
+      "empty": "Henüz yaşam sinyali geçmişi yok",
+      "emptyHint": "Olaylar bir sonraki ping veya kaçırılan çalıştırmadan sonra görünecek.",
+      "eventSuccessAt": "{time} tarihinde başarılı",
+      "eventMissedAt": "{time} tarihinde kaçırılan çalıştırma",
+      "eventFailAt": "{time} tarihinde açık hata bildirimi"
+    }
+  },
   "errors": {
     "generic": "Bir hata oluştu",
     "network": "Hizmet kullanılamıyor. Lütfen daha sonra tekrar deneyin.",
@@ -576,7 +658,7 @@
     "portHelp": "SMTP sunucu portu (25, 587, 465)",
     "starttls": "STARTTLS",
     "starttlsHelp": "EHLO sonrası STARTTLS yükseltmesi dene (Implicit TLS etkinken yok sayılır)",
-    "implicitTls": "Implicit TLS (SMTPS)",
+    "implicitTls": "Örtük TLS (SMTPS)",
     "implicitTlsHelp": "Başlangıçtan itibaren TLS ile bağlan (port 465). SMTPS sunucuları için STARTTLS yerine bunu kullanın.",
     "ehloDomain": "EHLO Alan Adı",
     "ehloDomainPlaceholder": "pulse.local",
@@ -589,7 +671,7 @@
     "placeholder": "JSON veri yükü girin (ör. {\"name\": \"value\"})",
     "label": "İstek Veri Yükü (JSON)",
     "jsonHint": "gRPC istek gövdenizi JSON olarak yazın. Güzel biçimlendirme için Format düğmesini kullanın.",
-    "rawHint": "gRPC isteği için JSON yükünü girin. Şema doğrulaması için yukarıdan proto kaynağı yükleyin.",
+    "rawHint": "gRPC isteği için JSON verilerini girin. Şemaya göre doğrulama için yukarıdan bir proto kaynağı yükleyin.",
     "format": "Biçimlendir",
     "minify": "Küçült"
   },
@@ -815,5 +897,44 @@
       "smtpFromRequired": "Gönderen adresi gereklidir.",
       "smtpFromInvalid": "Geçersiz e-posta adresi formatı."
     }
+  },
+  "shell": {
+    "workspace": "İşlemler",
+    "navigation": "Ana gezinme",
+    "signature": "Kendi sunucunuzda izleme",
+    "skipToContent": "İçeriğe geç",
+    "overview": "Sisteme genel bakış",
+    "collapseNavigation": "Gezinmeyi daralt",
+    "expandNavigation": "Gezinmeyi genişlet",
+    "monitorsOverview": "Hizmet izleme",
+    "settingsOverview": "Yapılandırma"
+  },
+  "users": {
+    "title": "Kullanıcılar",
+    "description": "Bu Pulse örneğine kimlerin erişebileceğini yönetin.",
+    "email": "E-posta",
+    "temporaryPassword": "Geçici parola",
+    "role": "Rol",
+    "admin": "Yönetici",
+    "readOnly": "Salt okunur",
+    "create": "Kullanıcı oluştur",
+    "created": "Kullanıcı oluşturuldu. Geçici parolayı güvenli bir şekilde paylaşın.",
+    "updated": "Kullanıcı güncellendi.",
+    "passwordReset": "Parola sıfırlandı. Yeni geçici parolayı güvenli bir şekilde paylaşın.",
+    "failed": "Kullanıcılar güncellenemedi.",
+    "loading": "Kullanıcılar yükleniyor…",
+    "enabled": "Etkin",
+    "disabled": "Devre dışı",
+    "enable": "Etkinleştir",
+    "disable": "Devre dışı bırak",
+    "resetPassword": "Parolayı sıfırla",
+    "makeAdmin": "Yönetici yap",
+    "makeReadOnly": "Salt okunur yap",
+    "you": "siz",
+    "passwordPending": "Parola değişikliği gerekli",
+    "passwordHint": "UTF-8 olarak 8–72 bayt uzunluğunda geçici bir parola kullanın. Kullanıcılar Pulse’a erişmeden önce parolayı değiştirmelidir. Yöneticiler tam erişime sahiptir; salt okunur kullanıcılar izleme verilerini görüntüleyebilir, kendi parolalarını ve tercihlerini yönetebilir.",
+    "firstLoginTitle": "Parolanızı seçin",
+    "firstLoginDescription": "Yöneticinizin verdiği geçici parolayı girin, ardından devam etmek için farklı bir parola seçin.",
+    "sessionError": "Oturumunuz doğrulanamadı. Devam etmek için tekrar deneyin."
   }
 }

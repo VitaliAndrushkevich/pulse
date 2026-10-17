@@ -9,6 +9,7 @@ Pulse is a self-hosted uptime monitoring platform. It ships as a single binary w
 ## Key Features
 
 - **Multi-protocol monitoring** — HTTP/HTTPS, HTTP/3, QUIC, TCP, UDP, WebSocket, gRPC, DNS, ICMP, SMTP
+- **Heartbeat (push) monitoring** — dead-man's-switch checks for cron jobs and scheduled tasks via a token-scoped ping URL; flips to `down` when a run is missed within the grace window
 - **Notifications** — Email (SMTP) and webhook channels with trigger-based rules, deduplication, retry with exponential backoff, and reminders
 - **Single deployable container** — Go binary with embedded SvelteKit frontend
 - **Real-time updates** — WebSocket diff/patch messages for instant UI sync
@@ -18,9 +19,29 @@ Pulse is a self-hosted uptime monitoring platform. It ships as a single binary w
 - **MCP server** — manage monitors and get the status via AI assistants (Kiro, Copilot, Claude, Cursor) through the Model Context Protocol
 - **Prometheus metrics** — built-in `/metrics` endpoint with optional Basic Auth protection
 - **Security** — AES-256-GCM secret encryption, JWT + API token auth, per-monitor credentials
+- **User management** — admin-created accounts, admin and read-only roles, required temporary-password replacement on first login; [access guide](docs/MULTIUSER.md)
 - **Scalable** — bounded worker pools, designed for 500+ concurrent monitors
 - **Light/Dark/System theming** — CSS custom properties with tri-state cycling, OS preference tracking, WCAG AA contrast
-- **Brand identity** — ECG-inspired logo mark with responsive lockup, self-hosted Inter typography
+- **Pulse UI** — blue instrument-panel design, collapsible navigation with a saved preference, sidebar status/theme/account controls, consistent page headers, and themed keyboard-accessible dropdowns
+- **Brand identity** — ECG-inspired logo mark with responsive lockup, self-hosted Inter typography and tabular operational data
+
+## Frontend experience
+
+Pulse uses a blue instrument-panel design with bright blue-white surfaces in light
+mode and navy surfaces in dark mode. Status colors stay distinct from action
+colors so failures remain easy to spot. Flat panels, compact metadata labels, and
+monospace operational values keep the interface focused on monitoring.
+
+The desktop sidebar can collapse to icons with hover and keyboard-focus labels;
+its state is saved in this browser. Live connection status, the theme switcher,
+and Logout stay in the sidebar footer. Mobile retains labeled navigation and
+visible controls. Dashboard, Monitors, and Settings share an eyebrow/title header
+and workspace alignment. Shared dropdowns use the active theme and support arrow
+keys, Home/End, typing to find an option, Enter to select, and Escape to dismiss.
+
+See [UI design conventions](docs/UI-DESIGN.md) for component and theme guidance.
+For frontend development use Node 22.12+ (or a newer supported LTS) and the pnpm
+version pinned in `frontend/package.json`.
 
 ## Architecture
 
@@ -101,6 +122,7 @@ On first launch you'll be guided through initial setup to create your admin acco
 | `PULSE_PORT` | HTTP port the server listens on | `8080` |
 | `PULSE_DEV` | Enable dev mode (Swagger UI, debug logging) | `false` |
 | `PULSE_SCHEDULER_WORKERS` | Number of concurrent check workers | `200` |
+| `PULSE_HEARTBEAT_WORKERS` | Number of concurrent heartbeat missed-run sweep workers | `50` |
 | `PULSE_SECRET_KEY` | AES-256-GCM key for secrets at rest (base64, 32 bytes) | **required** |
 | `PULSE_JWT_SECRET` | Secret for signing JWT tokens | **required** |
 | `PULSE_JWT_EXPIRY` | JWT token expiry duration (Go duration) | `24h` |
@@ -207,6 +229,54 @@ curl -X POST http://localhost:8080/api/v1/monitors/<monitor-id>/notification-bin
   }'
 ```
 
+## Heartbeat Monitoring
+
+Active probes catch a host going offline, but they can't see a cron job that silently stops firing — a backup, invoice run, certificate renewal, or nightly import. Heartbeat monitoring inverts the direction: instead of Pulse calling out to a target, your scheduled job calls *in* to Pulse at the end of a successful run (a "dead man's switch"). Pulse records the arrival, computes when the next ping is expected (`last success + interval + grace`), and flips the heartbeat to `down` when that deadline passes with no ping. A job can also report an explicit failure.
+
+Each heartbeat has its own unguessable ping token embedded in a URL. The token authorizes reporting for exactly one heartbeat and carries no administrative capability, so you can safely drop a ping URL into a cron host or CI pipeline. The raw token is shown only once, at creation and on rotation.
+
+Missed-run and recovery alerts flow through the same notification channels and bindings as monitor alerts (see [Notifications](#notifications)).
+
+### Shell
+
+Send a success ping at the end of a job, and report an explicit failure when the preceding command fails:
+
+```sh
+# Ping on success at the end of a job:
+curl -fsS -m 10 --retry 3 https://pulse.example.com/ping/<TOKEN>
+
+# Report failure when the preceding command exits non-zero:
+run_backup || curl -fsS -m 10 https://pulse.example.com/ping/<TOKEN>/fail
+```
+
+### Cron
+
+Ping only *after* the command succeeds — pinging before the work completes defeats the purpose:
+
+```cron
+# Pinging BEFORE the work defeats the purpose — ping only on success.
+0 2 * * * /usr/local/bin/backup.sh && curl -fsS -m 10 https://pulse.example.com/ping/<TOKEN>
+```
+
+### CI
+
+Ping on job success from a scheduled pipeline (e.g. a nightly GitHub Actions workflow):
+
+```yaml
+# GitHub Actions, scheduled workflow
+- name: Notify Pulse on success
+  if: success()
+  run: curl -fsS -m 10 https://pulse.example.com/ping/<TOKEN>
+```
+
+Replace `<TOKEN>` with the ping token shown when you create the heartbeat. The heartbeat detail page renders these same snippets pre-filled with the real ping URL and a copy-to-clipboard control.
+
+### What a green heartbeat does — and doesn't — prove
+
+A success ping proves the command *ran* and exited successfully. It does **not** prove its output is valid or restorable — a backup command can succeed while producing an unusable archive. Verify restore separately.
+
+Independence matters: a heartbeat receiver hosted independently from the job's host can detect loss of the host itself (or of Pulse), while a receiver running on the same host that failed cannot report its own outage. Keep the receiver separate from what it watches.
+
 ## MCP Server (AI Integration)
 
 Pulse includes an MCP server for managing monitors through AI assistants (Kiro, Claude, Codex, Cursor). For setup instructions and available tools, see [`mcp/README.md`](mcp/README.md).
@@ -267,7 +337,7 @@ Docker Compose automatically merges this with the base file.
 | Layer | Technology |
 |-------|-----------|
 | Backend | Go 1.26, Gin, pgx/v5, sqlc, gorilla/websocket, golang-jwt/jwt/v5 |
-| Frontend | Svelte 5, SvelteKit, TypeScript strict, Tailwind CSS 3.4, uPlot |
+| Frontend | Svelte 5, SvelteKit 2, Vite 8, TypeScript strict, Tailwind CSS 3.4, uPlot |
 | Database | PostgreSQL 16 + TimescaleDB 2.17 |
 | Protocols | HTTP/HTTPS, HTTP/3 (QUIC), TCP, UDP, WebSocket, gRPC, DNS, ICMP (raw sockets), SMTP |
 | Observability | Prometheus client_golang |

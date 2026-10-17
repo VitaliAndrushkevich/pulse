@@ -1,7 +1,9 @@
 <script lang="ts">
+  import { isAdmin } from '$lib/stores/auth.svelte';
   import { untrack } from 'svelte';
   import { getMonitors } from '$lib/api';
   import type { Monitor, MonitorType, PaginatedList, Tag } from '$lib/types';
+  import PageHeader from '../../components/PageHeader.svelte';
   import MonitorRow from '../../components/MonitorRow.svelte';
   import Pagination from '../../components/Pagination.svelte';
   import FilterBar from '../../components/FilterBar.svelte';
@@ -117,15 +119,16 @@
 
 <section class="space-y-6">
   <!-- Header -->
-  <div class="flex items-center justify-between">
-    <h1 class="text-2xl font-bold tracking-tight text-primary">{t('monitors.title')}</h1>
-    <a
+  <PageHeader eyebrow={t('shell.monitorsOverview')} title={t('monitors.title')}>
+    {#snippet actions()}
+    {#if isAdmin()}<a
       href="/monitors/create"
       class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
     >
       {t('monitors.create')}
-    </a>
-  </div>
+    </a>{/if}
+    {/snippet}
+  </PageHeader>
 
   <!-- Filter Bar -->
   <FilterBar
@@ -163,12 +166,12 @@
   {:else if total === 0}
     <div class="rounded-xl border border-dashed border-[var(--color-border)] bg-surface p-12 text-center" data-testid="empty-state">
       <p class="text-secondary">{t('monitors.empty.title')}</p>
-      <a
+      {#if isAdmin()}<a
         href="/monitors/create"
         class="mt-3 inline-block text-sm font-medium text-indigo-600 hover:text-indigo-700"
       >
         {t('monitors.empty.action')}
-      </a>
+      </a>{/if}
     </div>
 
   <!-- Monitor list -->

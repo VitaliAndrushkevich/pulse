@@ -7,9 +7,15 @@
 
 import { getToken, clearToken } from '$lib/stores/auth.svelte';
 import { monitorStore } from '$lib/stores/monitors.svelte';
+import { heartbeatStore } from '$lib/stores/heartbeats.svelte';
 import { connectionStore, type ConnectionStatus } from '$lib/stores/connection.svelte';
 import { patchBus } from '$lib/stores/patchBus.svelte';
-import type { MonitorPatch, MonitorTagsChangedPayload, WsEnvelope } from '$lib/types';
+import type {
+	MonitorPatch,
+	MonitorTagsChangedPayload,
+	HeartbeatStatusPayload,
+	WsEnvelope
+} from '$lib/types';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -23,8 +29,12 @@ export interface WsClientOptions {
 }
 
 export interface WsMessage {
-	type: 'connected' | 'monitor_status' | 'monitor_tags_changed';
-	payload: ConnectedPayload | MonitorStatusPayload | MonitorTagsChangedPayload;
+	type: 'connected' | 'monitor_status' | 'monitor_tags_changed' | 'heartbeat_status';
+	payload:
+		| ConnectedPayload
+		| MonitorStatusPayload
+		| MonitorTagsChangedPayload
+		| HeartbeatStatusPayload;
 }
 
 export interface ConnectedPayload {
@@ -108,7 +118,6 @@ export function createWsClient(options: WsClientOptions): WsClient {
 	let reconnectAttempt = 0;
 	let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
 	let connectTimer: ReturnType<typeof setTimeout> | null = null;
-	let intentionalClose = false;
 
 	function setStatus(status: ConnectionStatus): void {
 		currentStatus = status;
@@ -126,6 +135,8 @@ export function createWsClient(options: WsClientOptions): WsClient {
 		if (ws && (ws.readyState === WebSocket.CONNECTING || ws.readyState === WebSocket.OPEN)) {
 			return;
 		}
+		clearReconnectTimer();
+		clearConnectTimeout();
 
 		// Build URL with token
 		const token = getToken();
@@ -134,35 +145,37 @@ export function createWsClient(options: WsClientOptions): WsClient {
 			return;
 		}
 
-		intentionalClose = false;
 		setStatus('connecting');
 
 		const url = buildWsUrl(options.url, token);
-		ws = new WebSocket(url);
+		const socket = new WebSocket(url);
+		ws = socket;
 
 		// Connect timeout — if we don't get the 'connected' message within timeout,
 		// treat as failed and trigger reconnection
 		connectTimer = setTimeout(() => {
-			if (currentStatus === 'connecting') {
+			if (ws === socket && currentStatus === 'connecting') {
 				// Force close the socket to trigger onclose → reconnection
-				ws?.close();
+				socket.close();
 			}
 		}, connectTimeout);
 
-		ws.onopen = () => {
+		socket.onopen = () => {
 			// Connection opened, but we wait for the 'connected' message
 			// before marking as fully connected (timeout still active)
 		};
 
-		ws.onmessage = (event: MessageEvent) => {
+		socket.onmessage = (event: MessageEvent) => {
+			if (ws !== socket || getToken() !== token) return;
 			handleMessage(event.data);
 		};
 
-		ws.onclose = (event: CloseEvent) => {
+		socket.onclose = (event: CloseEvent) => {
+			if (ws !== socket) return;
 			clearConnectTimeout();
 			ws = null;
 
-			if (event.code === AUTH_EXPIRED_CODE) {
+			if (event.code === AUTH_EXPIRED_CODE && getToken() === token) {
 				// Auth expired: clear token, redirect to login, NO reconnect
 				setStatus('auth_expired');
 				clearToken();
@@ -172,32 +185,27 @@ export function createWsClient(options: WsClientOptions): WsClient {
 				return;
 			}
 
-			if (intentionalClose) {
-				// Clean disconnect (user logout)
-				setStatus('disconnected');
-				return;
-			}
-
 			// Unexpected close — start reconnection
 			setStatus('disconnected');
 			scheduleReconnect();
 		};
 
-		ws.onerror = () => {
+		socket.onerror = () => {
 			// The close event will fire after error, so reconnection is handled there
 		};
 	}
 
 	function disconnect(code: number = NORMAL_CLOSURE): void {
-		intentionalClose = true;
 		clearReconnectTimer();
 		clearConnectTimeout();
 
 		if (ws) {
-			if (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING) {
-				ws.close(code);
-			}
+			const socket = ws;
+			// Invalidate callbacks before close, including synchronous test sockets.
 			ws = null;
+			if (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING) {
+				socket.close(code);
+			}
 		}
 
 		setStatus('disconnected');
@@ -242,6 +250,12 @@ export function createWsClient(options: WsClientOptions): WsClient {
 				monitorStore.applyTagsChange(tagsPayload.monitor_id, tagsPayload.tags);
 				break;
 			}
+
+			case 'heartbeat_status': {
+				const hbPatch = envelope.payload as HeartbeatStatusPayload;
+				heartbeatStore.applyPatch(hbPatch);
+				break;
+			}
 		}
 
 		// Forward to optional external handler
@@ -253,10 +267,12 @@ export function createWsClient(options: WsClientOptions): WsClient {
 		const delay = getBackoffDelay(reconnectAttempt);
 		reconnectAttempt++;
 
-		reconnectTimer = setTimeout(() => {
+		const pending = setTimeout(() => {
+			if (reconnectTimer !== pending) return;
 			reconnectTimer = null;
 			connect();
 		}, delay);
+		reconnectTimer = pending;
 	}
 
 	function clearReconnectTimer(): void {

@@ -3,10 +3,12 @@
 ## Prerequisites
 
 - Go 1.26+
-- Node.js 22+
+- Node.js 22.12+ (or a newer supported LTS; Vite 8)
 - pnpm 9+ (install via `corepack enable` or [pnpm.io/installation](https://pnpm.io/installation))
 - PostgreSQL 16 with TimescaleDB 2.17+
 - Make
+
+UI conventions and the current visual direction are documented in [UI Design](UI-DESIGN.md).
 
 ## Make Targets
 

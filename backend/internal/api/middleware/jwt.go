@@ -12,13 +12,14 @@ import (
 
 // JWTClaims defines the custom claims for Pulse JWTs.
 type JWTClaims struct {
-	UserID string `json:"user_id"`
-	Email  string `json:"email"`
+	UserID         string `json:"user_id"`
+	Email          string `json:"email"`
+	SessionVersion int64  `json:"session_version"`
 	jwt.RegisteredClaims
 }
 
 // GenerateJWT creates a signed JWT for the given user.
-func GenerateJWT(secret []byte, userID uuid.UUID, email string, expiry time.Duration) (string, time.Time, error) {
+func GenerateJWT(secret []byte, userID uuid.UUID, email string, expiry time.Duration, version ...int64) (string, time.Time, error) {
 	expiresAt := time.Now().Add(expiry)
 	claims := JWTClaims{
 		UserID: userID.String(),
@@ -30,6 +31,9 @@ func GenerateJWT(secret []byte, userID uuid.UUID, email string, expiry time.Dura
 		},
 	}
 
+	if len(version) > 0 {
+		claims.SessionVersion = version[0]
+	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	signed, err := token.SignedString(secret)
 	if err != nil {

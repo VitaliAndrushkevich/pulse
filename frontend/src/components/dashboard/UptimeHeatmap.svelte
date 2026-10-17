@@ -139,18 +139,18 @@
 </script>
 
 <WidgetShell {loading} {error} {onRetry}>
-  <div class="flex flex-col gap-2 p-4" data-testid="uptime-heatmap">
-    <h3 class="text-sm font-medium" style="color: var(--color-text-secondary)">
+  <div class="flex flex-col gap-4 p-5 pb-8" data-testid="uptime-heatmap">
+    <h3 class="pulse-eyebrow">
       {t('dashboard.heatmap.title')}
     </h3>
 
     <div class="relative">
       <!-- Heatmap blocks -->
-      <div class="flex gap-0.5" role="img" aria-label={t('dashboard.heatmap.ariaLabel')}>
+      <div class="flex gap-1" role="img" aria-label={t('dashboard.heatmap.ariaLabel')}>
         {#each normalizedData as hour, i (i)}
           <button
             type="button"
-            class="h-8 flex-1 rounded-sm transition-opacity hover:opacity-80"
+            class="h-10 min-w-0 flex-1 rounded-sm transition-opacity hover:opacity-80"
             style="background-color: {getBlockColor(hour)}"
             data-testid="heatmap-block"
             aria-label={t('dashboard.heatmap.blockAria', {
@@ -171,8 +171,8 @@
       <div class="relative mt-1 flex" aria-hidden="true">
         {#each axisLabels as label (label.index)}
           <span
-            class="absolute text-[10px]"
-            style="left: {(label.index / 24) * 100}%; color: var(--color-text-secondary)"
+            class="axis-label absolute font-mono text-[10px]"
+            style="inset-inline-start: {(label.index / 24) * 100}%; color: var(--color-text-secondary)"
           >
             {label.text}
           </span>
@@ -200,3 +200,9 @@
     </div>
   </div>
 </WidgetShell>
+
+<style>
+  @media (max-width: 639px) {
+    .axis-label:nth-child(even) { display: none; }
+  }
+</style>

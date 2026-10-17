@@ -20,6 +20,26 @@ type CheckPoint struct {
 	CheckedAt        time.Time
 }
 
+// HeartbeatEvent is a single discrete heartbeat episode stored in TimescaleDB.
+// It is written on every ping success, every explicit fail ping, and every
+// missed-run sweep transition.
+type HeartbeatEvent struct {
+	HeartbeatID   uuid.UUID
+	EventType     string  // "success" | "fail" | "missed"
+	PreviousState *string // observed state before the event, nil if unknown
+	OccurredAt    time.Time
+}
+
+// HeartbeatEventWriter records heartbeat timeline events. A nil writer is valid
+// and simply skips the write (the DB state update, metric, broadcast, and
+// dispatch still happen) — matching how a nil hub/dispatcher is tolerated today.
+// It is declared here, in the timescale package, so both the handlers and
+// heartbeat packages (which already import timescale) can reference it without
+// an import cycle; *Store is the sole production implementer.
+type HeartbeatEventWriter interface {
+	WriteHeartbeatEvent(ctx context.Context, ev HeartbeatEvent) error
+}
+
 // AggregatedPoint represents a time-bucketed aggregation of check results.
 type AggregatedPoint struct {
 	Timestamp   time.Time
@@ -173,4 +193,102 @@ func (s *Store) QueryHistoryAggregated(
 	}
 
 	return points, nil
+}
+
+// WriteHeartbeatEvent appends one event row into the heartbeat_events hypertable.
+func (s *Store) WriteHeartbeatEvent(ctx context.Context, ev HeartbeatEvent) error {
+	_, err := s.pool.Exec(
+		ctx,
+		`INSERT INTO heartbeat_events (heartbeat_id, occurred_at, event_type, previous_state)
+		 VALUES ($1, $2, $3, $4)`,
+		ev.HeartbeatID,
+		ev.OccurredAt,
+		ev.EventType,
+		ev.PreviousState,
+	)
+	if err != nil {
+		return fmt.Errorf("timescaledb heartbeat event write: %w", err)
+	}
+
+	return nil
+}
+
+// QueryHeartbeatEvents returns events for one heartbeat in [start, end),
+// ordered by occurred_at ascending. Mirrors QueryHistory.
+func (s *Store) QueryHeartbeatEvents(ctx context.Context, heartbeatID uuid.UUID, start, end time.Time) ([]HeartbeatEvent, error) {
+	rows, err := s.pool.Query(
+		ctx,
+		`SELECT heartbeat_id, event_type, previous_state, occurred_at
+		 FROM heartbeat_events
+		 WHERE heartbeat_id = $1
+		   AND occurred_at >= $2
+		   AND occurred_at < $3
+		 ORDER BY occurred_at ASC`,
+		heartbeatID,
+		start,
+		end,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("timescaledb heartbeat events query: %w", err)
+	}
+	defer rows.Close()
+
+	events := make([]HeartbeatEvent, 0)
+	for rows.Next() {
+		var ev HeartbeatEvent
+		if err := rows.Scan(
+			&ev.HeartbeatID,
+			&ev.EventType,
+			&ev.PreviousState,
+			&ev.OccurredAt,
+		); err != nil {
+			return nil, fmt.Errorf("timescaledb heartbeat events scan: %w", err)
+		}
+		events = append(events, ev)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("timescaledb heartbeat events rows: %w", err)
+	}
+
+	return events, nil
+}
+
+// CountHeartbeatEventsByType returns per-type counts for one heartbeat in
+// [start, end). Backs the summary (missed-run count, uptime) in a single
+// round-trip so the handler can read counts["missed"] without materializing
+// every row twice.
+func (s *Store) CountHeartbeatEventsByType(ctx context.Context, heartbeatID uuid.UUID, start, end time.Time) (map[string]int64, error) {
+	rows, err := s.pool.Query(
+		ctx,
+		`SELECT event_type, COUNT(*)
+		 FROM heartbeat_events
+		 WHERE heartbeat_id = $1
+		   AND occurred_at >= $2
+		   AND occurred_at < $3
+		 GROUP BY event_type`,
+		heartbeatID,
+		start,
+		end,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("timescaledb heartbeat events count query: %w", err)
+	}
+	defer rows.Close()
+
+	counts := make(map[string]int64)
+	for rows.Next() {
+		var (
+			eventType string
+			count     int64
+		)
+		if err := rows.Scan(&eventType, &count); err != nil {
+			return nil, fmt.Errorf("timescaledb heartbeat events count scan: %w", err)
+		}
+		counts[eventType] = count
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("timescaledb heartbeat events count rows: %w", err)
+	}
+
+	return counts, nil
 }
