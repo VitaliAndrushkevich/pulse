@@ -696,7 +696,10 @@
       },
       "types": {
         "email": "メール",
-        "webhook": "Webhook"
+        "webhook": "Webhook",
+        "slack": "Slack",
+        "matrix": "Matrix",
+        "telegram": "Telegram"
       },
       "deleteConfirm": {
         "title": "チャンネルを削除",
@@ -733,6 +736,23 @@
         "bodyTemplate": "ボディテンプレート",
         "bodyTemplatePlaceholder": "{ \"text\": \"{{.Monitor.Name}} is {{.Status}}\" }",
         "bodyTemplateHelp": "Webhookリクエストボディ用のGoテンプレート。以下のテンプレート変数を使用してください。"
+      },
+      "savedSecret": "値は保存されています。そのまま保持するには変更せず、置き換えるには新しい値を入力してください。",
+      "slack": {
+        "webhookUrl": "受信Webhook URL",
+        "help": "Slackアプリで受信Webhookを作成し、送信先チャンネルを選択してください。Pulseは監視対象の詳細を含む整形済みアラートを送信します。"
+      },
+      "matrix": {
+        "homeserverUrl": "ホームサーバーURL",
+        "roomId": "ルームID",
+        "accessToken": "アクセストークン",
+        "help": "ボットをルームに招待し、アクセストークンとルームIDを入力してください。この連携は暗号化されていないルームのみ対応しています。"
+      },
+      "telegram": {
+        "botToken": "ボットトークン",
+        "chatId": "チャットID",
+        "threadId": "トピックID（任意）",
+        "help": "BotFatherでボットを作成してチャットに追加し、チャットIDを入力してください。フォーラムのトピックに送信する場合は、必要に応じてトピックIDを入力してください。"
       }
     },
     "triggers": {
@@ -794,7 +814,8 @@
       "button": "テスト",
       "sending": "送信中...",
       "success": "テスト通知を送信しました。",
-      "failure": "テスト通知に失敗しました：{error}"
+      "failure": "テスト通知に失敗しました：{error}",
+      "draftHelp": "テストでは変更を保存せずに、現在のフォームの値を使って実際の通知を送信します。"
     },
     "toast": {
       "channelCreated": "チャンネル「{name}」を作成しました。",
@@ -837,7 +858,11 @@
         "incidentDuration": "インシデント期間",
         "incidentId": "インシデント固有ID",
         "timestamp": "イベントタイムスタンプ"
-      }
+      },
+      "loadError": "テンプレート変数を読み込めませんでした。",
+      "variable": "変数",
+      "type": "型",
+      "example": "例"
     },
     "smtpSettings": {
       "title": "SMTP設定",
@@ -895,7 +920,13 @@
       "smtpHostRequired": "SMTPホストは必須です。",
       "smtpPortRange": "ポートは1〜65535の範囲で指定してください。",
       "smtpFromRequired": "送信元アドレスは必須です。",
-      "smtpFromInvalid": "無効なメールアドレス形式です。"
+      "smtpFromInvalid": "無効なメールアドレス形式です。",
+      "recipientDuplicate": "この受信者はすでに追加されています: {email}",
+      "headerRenameRequiresValue": "保存済みのヘッダー名を変更する場合は、置き換える値を入力してください。",
+      "secretPlaceholder": "伏せ字のプレースホルダーではなく、実際の値を入力してください。",
+      "slackWebhookRequired": "Slackの受信Webhook URLをHTTPSで入力してください。",
+      "telegramRequired": "ボットトークンとチャットIDを入力してください。トピックIDは正の整数である必要があります。",
+      "matrixRequired": "有効なホームサーバーURL、!で始まるルームID、アクセストークンを入力してください。"
     }
   },
   "shell": {

@@ -696,7 +696,10 @@
       },
       "types": {
         "email": "E-posta",
-        "webhook": "Webhook"
+        "webhook": "Webhook",
+        "slack": "Slack",
+        "matrix": "Matrix",
+        "telegram": "Telegram"
       },
       "deleteConfirm": {
         "title": "Kanalı Sil",
@@ -733,6 +736,23 @@
         "bodyTemplate": "Gövde Şablonu",
         "bodyTemplatePlaceholder": "{ \"text\": \"{{.Monitor.Name}} is {{.Status}}\" }",
         "bodyTemplateHelp": "Webhook istek gövdesi için Go şablonu. Aşağıdaki şablon değişkenlerini kullanın."
+      },
+      "savedSecret": "Bir değer kaydedilmiş. Korumak için değiştirmeyin; değiştirmek için yeni bir değer girin.",
+      "slack": {
+        "webhookUrl": "Gelen webhook URL’si",
+        "help": "Slack uygulamanızda bir gelen webhook oluşturun ve hedef kanalı seçin. Pulse, izleyici ayrıntılarını içeren biçimlendirilmiş uyarılar gönderir."
+      },
+      "matrix": {
+        "homeserverUrl": "Ana sunucu URL’si",
+        "roomId": "Oda kimliği",
+        "accessToken": "Erişim belirteci",
+        "help": "Botunuzu odaya davet edin ve erişim belirtecini ve oda kimliğini girin. Bu entegrasyon yalnızca şifrelenmemiş odaları destekler."
+      },
+      "telegram": {
+        "botToken": "Bot belirteci",
+        "chatId": "Sohbet kimliği",
+        "threadId": "Konu kimliği (isteğe bağlı)",
+        "help": "BotFather ile bir bot oluşturun, sohbetinize ekleyin ve sohbet kimliğini girin. Forum konuları için isteğe bağlı olarak bir konu kimliği girin."
       }
     },
     "triggers": {
@@ -794,7 +814,8 @@
       "button": "Test",
       "sending": "Gönderiliyor...",
       "success": "Test bildirimi başarıyla gönderildi.",
-      "failure": "Test bildirimi başarısız: {error}"
+      "failure": "Test bildirimi başarısız: {error}",
+      "draftHelp": "Test, değişiklikleri kaydetmeden geçerli form değerlerini kullanarak gerçek bir bildirim gönderir."
     },
     "toast": {
       "channelCreated": "\"{name}\" kanalı başarıyla oluşturuldu.",
@@ -837,7 +858,11 @@
         "incidentDuration": "Olay süresi",
         "incidentId": "Olay benzersiz kimliği",
         "timestamp": "Olay zaman damgası"
-      }
+      },
+      "loadError": "Şablon değişkenleri yüklenemedi.",
+      "variable": "Değişken",
+      "type": "Tür",
+      "example": "Örnek"
     },
     "smtpSettings": {
       "title": "SMTP Ayarları",
@@ -895,7 +920,13 @@
       "smtpHostRequired": "SMTP sunucusu gereklidir.",
       "smtpPortRange": "Port 1 ile 65535 arasında olmalıdır.",
       "smtpFromRequired": "Gönderen adresi gereklidir.",
-      "smtpFromInvalid": "Geçersiz e-posta adresi formatı."
+      "smtpFromInvalid": "Geçersiz e-posta adresi formatı.",
+      "recipientDuplicate": "Bu alıcı zaten eklenmiş: {email}",
+      "headerRenameRequiresValue": "Kaydedilmiş bir başlığın adını değiştirirken yeni bir değer girin.",
+      "secretPlaceholder": "Gizleme amaçlı yer tutucu yerine gerçek bir değer girin.",
+      "slackWebhookRequired": "HTTPS kullanan bir Slack gelen webhook URL’si girin.",
+      "telegramRequired": "Bot belirtecini ve sohbet kimliğini girin. Konu kimliği pozitif bir tam sayı olmalıdır.",
+      "matrixRequired": "Geçerli bir ana sunucu URL’si, ! ile başlayan bir oda kimliği ve bir erişim belirteci girin."
     }
   },
   "shell": {

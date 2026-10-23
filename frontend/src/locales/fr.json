@@ -696,7 +696,10 @@
       },
       "types": {
         "email": "E-mail",
-        "webhook": "Webhook"
+        "webhook": "Webhook",
+        "slack": "Slack",
+        "matrix": "Matrix",
+        "telegram": "Telegram"
       },
       "deleteConfirm": {
         "title": "Supprimer le canal",
@@ -733,6 +736,23 @@
         "bodyTemplate": "Modèle de corps",
         "bodyTemplatePlaceholder": "{ \"text\": \"{{.Monitor.Name}} is {{.Status}}\" }",
         "bodyTemplateHelp": "Modèle Go pour le corps de la requête Webhook. Utilisez les variables ci-dessous."
+      },
+      "savedSecret": "Une valeur est enregistrée. Laissez le champ inchangé pour la conserver ou saisissez une nouvelle valeur pour la remplacer.",
+      "slack": {
+        "webhookUrl": "URL du webhook entrant",
+        "help": "Créez un webhook entrant dans votre application Slack et choisissez son canal de destination. Pulse envoie des alertes mises en forme avec les détails du moniteur."
+      },
+      "matrix": {
+        "homeserverUrl": "URL du serveur Matrix",
+        "roomId": "Identifiant du salon",
+        "accessToken": "Jeton d’accès",
+        "help": "Invitez votre bot dans le salon et saisissez son jeton d’accès ainsi que l’identifiant du salon. Cette intégration prend uniquement en charge les salons non chiffrés."
+      },
+      "telegram": {
+        "botToken": "Jeton du bot",
+        "chatId": "Identifiant de la discussion",
+        "threadId": "Identifiant du sujet (facultatif)",
+        "help": "Créez un bot avec BotFather, ajoutez-le à votre discussion et saisissez son identifiant de discussion. Pour les sujets de forum, vous pouvez également saisir un identifiant de sujet."
       }
     },
     "triggers": {
@@ -794,7 +814,8 @@
       "button": "Tester",
       "sending": "Envoi...",
       "success": "Notification de test envoyée avec succès.",
-      "failure": "Échec de la notification de test : {error}"
+      "failure": "Échec de la notification de test : {error}",
+      "draftHelp": "Le test envoie une véritable notification avec les valeurs actuelles du formulaire, sans enregistrer les modifications."
     },
     "toast": {
       "channelCreated": "Canal « {name} » créé avec succès.",
@@ -837,7 +858,11 @@
         "incidentDuration": "Durée de l'incident",
         "incidentId": "ID unique de l'incident",
         "timestamp": "Horodatage de l'événement"
-      }
+      },
+      "loadError": "Impossible de charger les variables de modèle.",
+      "variable": "Variable",
+      "type": "Type",
+      "example": "Exemple"
     },
     "smtpSettings": {
       "title": "Paramètres SMTP",
@@ -895,7 +920,13 @@
       "smtpHostRequired": "L'hôte SMTP est requis.",
       "smtpPortRange": "Le port doit être compris entre 1 et 65535.",
       "smtpFromRequired": "L'adresse d'expéditeur est requise.",
-      "smtpFromInvalid": "Format d'adresse e-mail invalide."
+      "smtpFromInvalid": "Format d'adresse e-mail invalide.",
+      "recipientDuplicate": "Ce destinataire a déjà été ajouté : {email}",
+      "headerRenameRequiresValue": "Saisissez une nouvelle valeur lorsque vous renommez un en-tête enregistré.",
+      "secretPlaceholder": "Saisissez une valeur réelle à la place du texte de masquage.",
+      "slackWebhookRequired": "Saisissez une URL HTTPS de webhook entrant Slack.",
+      "telegramRequired": "Saisissez un jeton de bot et un identifiant de discussion. L’identifiant du sujet doit être un entier strictement positif.",
+      "matrixRequired": "Saisissez une URL de serveur Matrix valide, un identifiant de salon commençant par ! et un jeton d’accès."
     }
   },
   "shell": {

@@ -45,10 +45,10 @@ type Scheduler struct {
 	queries       *db.Queries
 	tsStore       *timescale.Store
 	dynMetrics    *DynamicMetrics
-	hub           *hub.Hub                    // WebSocket broadcast hub (may be nil)
-	dispatcher    *notification.Dispatcher    // Notification dispatcher (may be nil)
-	encryptionKey []byte                      // AES-256-GCM key for credential decryption
-	wakeupCh      chan struct{}               // signals immediate re-poll (from LISTEN/NOTIFY)
+	hub           *hub.Hub                 // WebSocket broadcast hub (may be nil)
+	dispatcher    *notification.Dispatcher // Notification dispatcher (may be nil)
+	encryptionKey []byte                   // AES-256-GCM key for credential decryption
+	wakeupCh      chan struct{}            // signals immediate re-poll (from LISTEN/NOTIFY)
 	stopOnce      sync.Once
 }
 
@@ -397,10 +397,11 @@ func (s *Scheduler) dispatchNotifications(ctx context.Context, m db.Monitor, res
 			continue
 		}
 		bindings = append(bindings, notification.BindingWithChannel{
-			ID:        b.ID,
-			ChannelID: b.ChannelID,
-			MonitorID: b.MonitorID,
-			Triggers:  triggers,
+			ID:          b.ID,
+			ChannelID:   b.ChannelID,
+			ChannelType: b.ChannelType,
+			MonitorID:   b.MonitorID,
+			Triggers:    triggers,
 		})
 	}
 	if len(bindings) == 0 {

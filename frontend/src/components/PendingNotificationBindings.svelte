@@ -191,7 +191,7 @@
               <div class="flex items-center gap-2">
                 <span class="text-sm font-medium text-primary">{binding.channel_name}</span>
                 <span class="rounded-full px-2 py-0.5 text-[10px] font-medium bg-[var(--color-bg-surface-hover)] text-secondary">
-                  {binding.channel_type}
+                  {t(`notifications.channels.types.${binding.channel_type}`)}
                 </span>
               </div>
               <div class="mt-1.5 flex flex-wrap gap-1">
@@ -249,7 +249,7 @@
           >
             <option value="">{t('notifications.bindings.channelPlaceholder')}</option>
             {#each availableChannels() as channel}
-              <option value={channel.id}>{channel.name} ({channel.type})</option>
+              <option value={channel.id}>{channel.name} ({t(`notifications.channels.types.${channel.type}`)})</option>
             {/each}
           </SelectField>
         </div>

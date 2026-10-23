@@ -234,6 +234,7 @@ An unknown, malformed, or rotated token returns a minimal `404`.
 | `PUT` | `/api/v1/notifications/channels/{id}` | Update channel |
 | `DELETE` | `/api/v1/notifications/channels/{id}` | Delete channel |
 | `POST` | `/api/v1/notifications/channels/{id}/test` | Send test notification |
+| `POST` | `/api/v1/notifications/channels/test` | Test unsaved channel configuration without persistence |
 | `GET` | `/api/v1/notifications/channels/{id}/delivery-logs` | Delivery log for channel |
 | `GET` | `/api/v1/notifications/template-variables` | Available template variables |
 | `GET` | `/api/v1/notifications/smtp-settings` | Get SMTP config |
@@ -248,6 +249,52 @@ An unknown, malformed, or rotated token returns a minimal `404`.
 | `GET` | `/metrics` | Prometheus metrics (optional Basic Auth) |
 
 Full API reference: [`backend/api/openapi.yaml`](../backend/api/openapi.yaml)
+
+### Native notification configuration and secret updates
+
+Channel types are `email`, `webhook`, `slack`, `telegram`, and `matrix`.
+Create with `POST /api/v1/notifications/channels` and update with
+`PUT /api/v1/notifications/channels/{id}`. Example request bodies (dummy secrets):
+
+```json
+{"name":"Operations Slack","type":"slack","config":{"webhook_url":"https://hooks.slack.com/services/T000/B000/EXAMPLE"}}
+```
+
+```json
+{"name":"Operations Telegram","type":"telegram","config":{"bot_token":"123456:EXAMPLE","chat_id":"-100123456789","message_thread_id":7}}
+```
+
+```json
+{"name":"Operations Matrix","type":"matrix","config":{"homeserver_url":"https://matrix.example.org","room_id":"!operations:example.org","access_token":"EXAMPLE"}}
+```
+
+Native read responses omit secret fields and include `webhook_url_configured`,
+`bot_token_configured`, or `access_token_configured`. On updates, omit a secret
+to preserve it; send a new nonempty string to replace it. Creation or changing
+channel type requires the new type's secret. Public config fields are replaced.
+
+Webhook read responses return header `name` and `value_configured`, omitting
+`value`. In an update, a header with omitted `value` preserves the existing
+case-insensitive name's secret; a string replaces it (including `""`); an absent
+row removes the header. Duplicate names are rejected. A renamed/new header
+requires a value. `[REDACTED]` is reserved for compatibility: it preserves an
+existing matching value and is rejected for a new header.
+
+For a draft test, POST the same body to `/api/v1/notifications/channels/test`.
+Include `existing_channel_id` when resolving retained secrets during editing:
+
+```json
+{"name":"Operations Telegram","type":"telegram","existing_channel_id":"11111111-1111-4111-8111-111111111111","config":{"chat_id":"-100987654321"}}
+```
+
+Tests return `{"success":true,"channel_type":"telegram"}` or a result with
+`success:false` and a sanitized `error`. Saved-channel tests also include
+`channel_id`; draft tests omit it. Validation/authentication errors use the API
+error envelope. Four concurrent test slots are available; a busy server returns
+HTTP 429 with code `TEST_BUSY`. Tests send real messages, have a 10-second deadline,
+and do not persist configuration, create delivery logs, or schedule retries.
+
+See [provider setup, limitations, and recovery](NOTIFICATIONS.md).
 
 ## Metrics Authentication
 

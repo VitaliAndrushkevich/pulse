@@ -12,6 +12,7 @@ import (
 	"time"
 
 	db "github.com/VitaliAndrushkevich/pulse/internal/store/postgres"
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -63,14 +64,18 @@ func (a *webhookDeliverAdapter) Deliver(ctx context.Context, config interface{},
 // Dispatcher is the main notification orchestrator. It manages a buffered
 // channel of delivery jobs and a pool of worker goroutines that process them.
 type Dispatcher struct {
-	cfg        DispatcherConfig
-	queries    *db.Queries
-	pool       *pgxpool.Pool
-	jobs       chan DeliveryJob
-	metrics    *Metrics
-	state      *StateTracker
-	done       chan struct{}
-	wg         sync.WaitGroup
+	cfg       DispatcherConfig
+	queries   *db.Queries
+	pool      *pgxpool.Pool
+	jobs      chan DeliveryJob
+	metrics   *Metrics
+	state     *StateTracker
+	done      chan struct{}
+	wg        sync.WaitGroup
+	stopOnce  sync.Once
+	runCtx    context.Context
+	cancelRun context.CancelFunc
+	retries   *RetryQueue
 
 	// stopping is set to 1 when shutdown is initiated.
 	// Used by Enqueue to reject new jobs during shutdown.
@@ -84,6 +89,7 @@ type Dispatcher struct {
 	smtpClient   EmailDeliverer
 	smtpMu       sync.RWMutex
 	webhookDelFn func(ctx context.Context, rawConfig json.RawMessage, secretKey []byte, data TemplateData) error
+	nativeDelFn  func(context.Context, string, json.RawMessage, []byte, TemplateData, uuid.UUID) error
 	secretKey    []byte
 	logLevel     LogLevel
 }
@@ -101,17 +107,23 @@ func NewDispatcher(cfg DispatcherConfig, queries *db.Queries, pool *pgxpool.Pool
 		cfg.DrainTimeout = 30 * time.Second
 	}
 
-	return &Dispatcher{
+	runCtx, cancelRun := context.WithCancel(context.Background())
+	d := &Dispatcher{
 		cfg:       cfg,
 		queries:   queries,
 		pool:      pool,
 		jobs:      make(chan DeliveryJob, cfg.BufferSize),
-		metrics:    metrics,
-		state:      state,
-		done:       make(chan struct{}),
-		secretKey:  secretKey,
-		logLevel:   ParseLogLevel(),
+		metrics:   metrics,
+		state:     state,
+		done:      make(chan struct{}),
+		secretKey: secretKey,
+		logLevel:  ParseLogLevel(),
+		runCtx:    runCtx,
+		cancelRun: cancelRun,
 	}
+	d.retries = NewRetryQueue(d.jobs, metrics.RetryQueueSize)
+	d.retries.onDrop = func(job DeliveryJob) { metrics.DroppedTotal.WithLabelValues(classifyChannelType(job)).Inc() }
+	return d
 }
 
 // SetSMTPClient sets the SMTP delivery client. Thread-safe — can be updated
@@ -134,6 +146,11 @@ func (d *Dispatcher) SetWebhookDeliverFn(fn func(ctx context.Context, rawConfig 
 	d.webhookDelFn = fn
 }
 
+// SetNativeDeliverFn wires native providers without a dependency cycle.
+func (d *Dispatcher) SetNativeDeliverFn(fn func(context.Context, string, json.RawMessage, []byte, TemplateData, uuid.UUID) error) {
+	d.nativeDelFn = fn
+}
+
 // Start launches the worker goroutines. Each worker reads from the jobs channel,
 // dispatches the delivery, and logs the result.
 func (d *Dispatcher) Start() {
@@ -147,7 +164,12 @@ func (d *Dispatcher) Start() {
 // Stop signals all workers to stop and waits for them to finish.
 // Deprecated: Use Shutdown for graceful drain with timeout.
 func (d *Dispatcher) Stop() {
-	close(d.done)
+	d.stopOnce.Do(func() {
+		d.stopping.Store(1)
+		d.retries.Stop()
+		close(d.done)
+		d.cancelRun()
+	})
 	d.wg.Wait()
 	log.Printf("notification: dispatcher stopped")
 }
@@ -159,53 +181,24 @@ func (d *Dispatcher) Stop() {
 //  4. Waits for all in-flight deliveries to complete within DrainTimeout.
 //  5. If the timeout expires, logs the count of abandoned notifications and returns.
 func (d *Dispatcher) Shutdown(ctx context.Context) {
-	// Step 1: Mark as stopping — Enqueue will reject new jobs from this point.
-	d.stopping.Store(1)
-
-	// Step 2: Signal workers to stop picking up new jobs from the channel.
-	close(d.done)
-
-	// Step 3: Drain remaining buffered jobs. Workers have already exited or are
-	// finishing their current job, so we drain what's left in the channel ourselves.
-	drainTimeout := d.cfg.DrainTimeout
-	drainCtx, drainCancel := context.WithTimeout(ctx, drainTimeout)
-	defer drainCancel()
-
-	drained := 0
-	for {
-		select {
-		case job, ok := <-d.jobs:
-			if !ok {
-				// Channel was closed (shouldn't happen in normal flow, but handle gracefully).
-				goto waitWorkers
-			}
-			d.wg.Add(1)
-			go func(j DeliveryJob) {
-				defer d.wg.Done()
-				d.processJob(drainCtx, -1, j)
-			}(job)
-			drained++
-		default:
-			// No more buffered jobs.
-			goto waitWorkers
-		}
-	}
-
-waitWorkers:
-	// Step 4: Wait for all in-flight deliveries (workers + drain goroutines) to complete.
+	d.stopOnce.Do(func() {
+		d.stopping.Store(1)
+		d.retries.Stop()
+		close(d.done)
+	})
+	drainCtx, cancel := context.WithTimeout(ctx, d.cfg.DrainTimeout)
+	defer cancel()
+	stopCancel := context.AfterFunc(drainCtx, d.cancelRun)
+	defer stopCancel()
 	waitDone := make(chan struct{})
-	go func() {
-		d.wg.Wait()
-		close(waitDone)
-	}()
-
+	go func() { d.wg.Wait(); close(waitDone) }()
 	select {
 	case <-waitDone:
-		log.Printf("notification: shutdown complete, drained %d jobs", drained)
+		d.cancelRun()
+		log.Printf("notification: shutdown complete")
 	case <-drainCtx.Done():
-		// Step 5: Timeout expired — count remaining jobs as abandoned.
-		abandoned := len(d.jobs)
-		log.Printf("notification: shutdown timeout, %d jobs abandoned", abandoned)
+		d.cancelRun()
+		log.Printf("notification: shutdown timeout, %d jobs abandoned", len(d.jobs))
 	}
 }
 
@@ -243,16 +236,32 @@ func (d *Dispatcher) worker(id int) {
 			if !ok {
 				return
 			}
-			d.processJob(context.Background(), id, job)
+			d.processJob(d.runCtx, id, job)
 
 		case <-d.done:
-			return
+			// Drain with the existing bounded workers, never one goroutine per job.
+			for {
+				select {
+				case <-d.runCtx.Done():
+					return
+				case job := <-d.jobs:
+					d.processJob(d.runCtx, id, job)
+				default:
+					return
+				}
+			}
 		}
 	}
 }
 
 // processJob handles a single delivery job with panic recovery and metric tracking.
 func (d *Dispatcher) processJob(ctx context.Context, workerID int, job DeliveryJob) {
+	if delay := d.retries.Cooldown(job.ChannelID); delay > 0 {
+		if d.stopping.Load() == 0 {
+			d.retries.Defer(job, delay)
+		}
+		return
+	}
 	channelType := classifyChannelType(job)
 
 	// Increment in-flight gauge.
@@ -274,7 +283,8 @@ func (d *Dispatcher) processJob(ctx context.Context, workerID int, job DeliveryJ
 	}()
 
 	// Dispatch the job to the appropriate delivery channel.
-	err := d.dispatch(job)
+	err := d.dispatchContext(ctx, &job)
+	channelType = classifyChannelType(job)
 
 	if err != nil {
 		d.metrics.DeliveriesTotal.WithLabelValues(channelType, "failure").Inc()
@@ -284,6 +294,9 @@ func (d *Dispatcher) processJob(ctx context.Context, workerID int, job DeliveryJ
 		// Record failure in delivery_logs.
 		d.LogDelivery(ctx, job.ChannelID, job.MonitorID, job.BindingID,
 			job.TriggerType, job.Attempt, "failure", err.Error())
+		if d.stopping.Load() == 0 {
+			d.retries.Schedule(job, err)
+		}
 	} else {
 		d.metrics.DeliveriesTotal.WithLabelValues(channelType, "success").Inc()
 		log.Printf("notification: delivery success worker=%d monitor=%s channel=%s trigger=%s attempt=%d",
@@ -297,12 +310,16 @@ func (d *Dispatcher) processJob(ctx context.Context, workerID int, job DeliveryJ
 
 // dispatch routes the job to the appropriate delivery method based on channel type.
 func (d *Dispatcher) dispatch(job DeliveryJob) error {
+	return d.dispatchContext(d.runCtx, &job)
+}
+
+func (d *Dispatcher) dispatchContext(parent context.Context, job *DeliveryJob) error {
 	// Allow test injection of dispatch behavior.
 	if d.dispatchFn != nil {
-		return d.dispatchFn(job)
+		return d.dispatchFn(*job)
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	ctx, cancel := context.WithTimeout(parent, 30*time.Second)
 	defer cancel()
 
 	// Load the channel from DB to determine type and config.
@@ -311,16 +328,23 @@ func (d *Dispatcher) dispatch(job DeliveryJob) error {
 		return NewNonRetryableError(fmt.Errorf("dispatch: failed to load channel %s: %w", job.ChannelID, err))
 	}
 
+	job.ChannelType = channel.ChannelType
+	job.Payload.TriggerType = job.TriggerType
 	// Enrich payload with monitor details if not already populated.
 	if job.Payload.Monitor.Name == "" {
-		d.enrichPayload(ctx, &job)
+		d.enrichPayload(ctx, job)
 	}
 
 	switch channel.ChannelType {
 	case "email":
-		return d.deliverEmail(ctx, channel, job)
+		return d.deliverEmail(ctx, channel, *job)
 	case "webhook":
-		return d.deliverWebhook(ctx, channel, job)
+		return d.deliverWebhook(ctx, channel, *job)
+	case "slack", "matrix", "telegram":
+		if d.nativeDelFn == nil {
+			return NewNonRetryableError(fmt.Errorf("dispatch: native provider not configured"))
+		}
+		return d.nativeDelFn(ctx, channel.ChannelType, channel.Config, d.secretKey, job.Payload, job.ID)
 	default:
 		return NewNonRetryableError(fmt.Errorf("dispatch: unsupported channel type %q", channel.ChannelType))
 	}
@@ -397,12 +421,12 @@ func (d *Dispatcher) enrichPayload(ctx context.Context, job *DeliveryJob) {
 	// the template will hide the section.
 }
 
-// classifyChannelType returns the channel type label for metrics.
-// Resolves actual channel type from the database for accurate metric labeling.
+// classifyChannelType uses a bounded set of metric labels.
 func classifyChannelType(job DeliveryJob) string {
-	// For now, we cannot look up from DB here without a reference to queries.
-	// Return "unknown" — metrics are still tracked by outcome.
-	// The actual channel type is logged in the delivery methods.
-	_ = job
-	return "unknown"
+	switch job.ChannelType {
+	case "email", "webhook", "slack", "matrix", "telegram":
+		return job.ChannelType
+	default:
+		return "unknown"
+	}
 }

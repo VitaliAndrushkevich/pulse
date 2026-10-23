@@ -16,7 +16,7 @@ Build Pulse into a self-hosted tool that helps small engineering teams verify th
 
 Make that evidence easy to configure, share, and act on through the UI, versioned API, and existing MCP server. The proposed positioning is **self-hosted availability and workflow monitoring for teams that want control over their infrastructure and configuration**.
 
-Pulse already has broad protocol support, encrypted credentials, notifications, tags, history, dashboards, localization, and API/MCP integration. The opportunity is to turn those capabilities into repeatable operational workflows. Additional protocols should follow concrete user demand.
+Pulse already has broad protocol support, encrypted credentials, notifications, tags, history, dashboards, localization, and API/MCP integration. Native Slack, Matrix (unencrypted rooms), and Telegram channels now complement email/webhook, with safe credential editing and testing unsaved settings. See [notification setup](NOTIFICATIONS.md). The opportunity is to turn those capabilities into repeatable operational workflows. Additional protocols should follow concrete user demand.
 
 Keep the core local-first and deployable as one Go application with embedded UI and PostgreSQL/TimescaleDB. Optional remote probes or browser runners would be deliberate architecture extensions requiring a separate design. Team access within one installation does not require multi-tenant SaaS infrastructure.
 

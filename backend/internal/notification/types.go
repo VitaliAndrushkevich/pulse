@@ -22,6 +22,7 @@ type DispatcherConfig struct {
 type DeliveryJob struct {
 	ID          uuid.UUID
 	ChannelID   uuid.UUID
+	ChannelType string
 	MonitorID   uuid.UUID
 	BindingID   uuid.UUID
 	TriggerType string
@@ -33,6 +34,8 @@ type DeliveryJob struct {
 
 // TemplateData holds all template variables available for rendering.
 type TemplateData struct {
+	ResourceKind   string // monitor (default) or heartbeat
+	TriggerType    string
 	Monitor        MonitorData
 	Status         string
 	PreviousStatus string

@@ -14,11 +14,11 @@ import (
 // fakeBindingQueries returns a fixed set of heartbeat bindings for every
 // heartbeat id, satisfying the narrow dispatchQueries surface.
 type fakeBindingQueries struct {
-	bindings []db.HeartbeatBinding
+	bindings []db.ListBindingsByHeartbeatRow
 	err      error
 }
 
-func (f fakeBindingQueries) ListBindingsByHeartbeat(_ context.Context, _ uuid.UUID) ([]db.HeartbeatBinding, error) {
+func (f fakeBindingQueries) ListBindingsByHeartbeat(_ context.Context, _ uuid.UUID) ([]db.ListBindingsByHeartbeatRow, error) {
 	if f.err != nil {
 		return nil, f.err
 	}
@@ -88,13 +88,13 @@ func (r *recordingNotifier) countFor(id uuid.UUID, trigger string) int {
 }
 
 // heartbeatBinding builds a binding row with the given heartbeat trigger types.
-func heartbeatBinding(hbID uuid.UUID, triggerTypes ...string) db.HeartbeatBinding {
+func heartbeatBinding(hbID uuid.UUID, triggerTypes ...string) db.ListBindingsByHeartbeatRow {
 	conds := make([]notification.TriggerCondition, 0, len(triggerTypes))
 	for _, tt := range triggerTypes {
 		conds = append(conds, notification.TriggerCondition{Type: tt})
 	}
 	raw, _ := json.Marshal(conds)
-	return db.HeartbeatBinding{
+	return db.ListBindingsByHeartbeatRow{
 		ID:          uuid.New(),
 		ChannelID:   uuid.New(),
 		HeartbeatID: hbID,
@@ -105,7 +105,7 @@ func heartbeatBinding(hbID uuid.UUID, triggerTypes ...string) db.HeartbeatBindin
 func TestDispatch_MissedRunFiresOncePerEpisode(t *testing.T) {
 	hbID := uuid.New()
 	hb := db.Heartbeat{ID: hbID, Name: "nightly-backup"}
-	queries := fakeBindingQueries{bindings: []db.HeartbeatBinding{
+	queries := fakeBindingQueries{bindings: []db.ListBindingsByHeartbeatRow{
 		heartbeatBinding(hbID, "heartbeat_missed", "heartbeat_recovered"),
 	}}
 	notifier := newRecordingNotifier()
@@ -137,7 +137,7 @@ func TestDispatch_MissedRunFiresOncePerEpisode(t *testing.T) {
 func TestDispatch_RecoveryFiresOncePerTransition(t *testing.T) {
 	hbID := uuid.New()
 	hb := db.Heartbeat{ID: hbID, Name: "cert-renewal"}
-	queries := fakeBindingQueries{bindings: []db.HeartbeatBinding{
+	queries := fakeBindingQueries{bindings: []db.ListBindingsByHeartbeatRow{
 		heartbeatBinding(hbID, "heartbeat_missed", "heartbeat_recovered"),
 	}}
 	notifier := newRecordingNotifier()
@@ -168,8 +168,8 @@ func TestDispatch_KeyedByHeartbeatUUID(t *testing.T) {
 	hbB := db.Heartbeat{ID: uuid.New(), Name: "job-b"}
 	notifier := newRecordingNotifier()
 
-	queriesA := fakeBindingQueries{bindings: []db.HeartbeatBinding{heartbeatBinding(hbA.ID, "heartbeat_missed")}}
-	queriesB := fakeBindingQueries{bindings: []db.HeartbeatBinding{heartbeatBinding(hbB.ID, "heartbeat_missed")}}
+	queriesA := fakeBindingQueries{bindings: []db.ListBindingsByHeartbeatRow{heartbeatBinding(hbA.ID, "heartbeat_missed")}}
+	queriesB := fakeBindingQueries{bindings: []db.ListBindingsByHeartbeatRow{heartbeatBinding(hbB.ID, "heartbeat_missed")}}
 
 	ctx := context.Background()
 	NewDispatch(queriesA, notifier, "").DispatchMissedRun(ctx, hbA, "up")
@@ -197,7 +197,7 @@ func TestDispatch_NoBindingsNoDispatch(t *testing.T) {
 
 func TestDispatch_NilDispatcherIsNoop(t *testing.T) {
 	hb := db.Heartbeat{ID: uuid.New(), Name: "nil-dispatcher"}
-	queries := fakeBindingQueries{bindings: []db.HeartbeatBinding{heartbeatBinding(hb.ID, "heartbeat_missed")}}
+	queries := fakeBindingQueries{bindings: []db.ListBindingsByHeartbeatRow{heartbeatBinding(hb.ID, "heartbeat_missed")}}
 	d := NewDispatch(queries, nil, "")
 
 	// Must not panic.

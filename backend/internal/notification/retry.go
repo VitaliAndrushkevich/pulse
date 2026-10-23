@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
@@ -26,8 +27,9 @@ const (
 
 // DeliveryError wraps an underlying error with retry classification.
 type DeliveryError struct {
-	Err       error
-	Retryable bool
+	Err        error
+	Retryable  bool
+	RetryAfter time.Duration // provider minimum delay; never sleep in a delivery worker
 }
 
 func (e *DeliveryError) Error() string {
@@ -41,6 +43,11 @@ func (e *DeliveryError) Unwrap() error {
 // NewRetryableError creates a DeliveryError marked as retryable.
 func NewRetryableError(err error) *DeliveryError {
 	return &DeliveryError{Err: err, Retryable: true}
+}
+
+// NewRateLimitError requests a retry after the provider's cooldown.
+func NewRateLimitError(err error, delay time.Duration) *DeliveryError {
+	return &DeliveryError{Err: err, Retryable: true, RetryAfter: delay}
 }
 
 // NewNonRetryableError creates a DeliveryError marked as non-retryable.
@@ -87,6 +94,9 @@ type RetryQueue struct {
 	pending        int
 	timers         []*time.Timer
 	closed         bool
+	backoff        func(int) time.Duration // optional clock seam for tests
+	cooldowns      map[uuid.UUID]time.Time
+	onDrop         func(DeliveryJob)
 }
 
 // NewRetryQueue creates a RetryQueue that re-enqueues failed jobs onto the
@@ -109,6 +119,26 @@ func (rq *RetryQueue) Schedule(job DeliveryJob, err error) bool {
 		return false
 	}
 
+	var deliveryErr *DeliveryError
+	errors.As(err, &deliveryErr)
+	if deliveryErr != nil && deliveryErr.RetryAfter > 0 {
+		rq.mu.Lock()
+		if rq.cooldowns == nil {
+			rq.cooldowns = make(map[uuid.UUID]time.Time)
+		}
+		for id, until := range rq.cooldowns {
+			if !until.After(time.Now()) {
+				delete(rq.cooldowns, id)
+			}
+		}
+		until := time.Now().Add(deliveryErr.RetryAfter)
+		current, exists := rq.cooldowns[job.ChannelID]
+		if !rq.closed && (exists || len(rq.cooldowns) < 1024) && until.After(current) {
+			rq.cooldowns[job.ChannelID] = until
+		}
+		rq.mu.Unlock()
+	}
+
 	// All retries exhausted → permanent failure.
 	if job.Attempt >= job.MaxAttempts {
 		log.Printf("notification: permanently failed (max retries exhausted) monitor=%s trigger=%s attempts=%d/%d err=%v",
@@ -120,36 +150,83 @@ func (rq *RetryQueue) Schedule(job DeliveryJob, err error) bool {
 	// Attempt starts at 1 (initial), so retryNumber = current attempt (which becomes the Nth retry).
 	retryNumber := job.Attempt // attempt 1 → retry 1 (30s), attempt 2 → retry 2 (60s), etc.
 	delay := BackoffDelay(retryNumber)
+	if rq.backoff != nil {
+		delay = rq.backoff(retryNumber)
+	}
+	if deliveryErr != nil && deliveryErr.RetryAfter > delay {
+		delay = deliveryErr.RetryAfter
+	}
+
+	return rq.scheduleAfter(job, delay, true)
+}
+
+// Cooldown returns the remaining provider cooldown for this destination.
+func (rq *RetryQueue) Cooldown(id uuid.UUID) time.Duration {
+	rq.mu.Lock()
+	defer rq.mu.Unlock()
+	delay := time.Until(rq.cooldowns[id])
+	if delay <= 0 {
+		delete(rq.cooldowns, id)
+		return 0
+	}
+	return delay
+}
+
+// Defer delays an unsent job without spending an attempt or occupying a worker.
+func (rq *RetryQueue) Defer(job DeliveryJob, delay time.Duration) bool {
+	return rq.scheduleAfter(job, delay, false)
+}
+
+func (rq *RetryQueue) scheduleAfter(job DeliveryJob, delay time.Duration, increment bool) bool {
 
 	rq.mu.Lock()
-	if rq.closed {
+	if rq.closed || rq.pending >= 1024 {
 		rq.mu.Unlock()
-		log.Printf("notification: retry skipped (queue closed) monitor=%s trigger=%s", job.MonitorID, job.TriggerType)
+		if rq.onDrop != nil {
+			rq.onDrop(job)
+		}
+		log.Printf("notification: retry skipped (queue closed or full) monitor=%s trigger=%s", job.MonitorID, job.TriggerType)
 		return false
 	}
 	rq.pending++
 	rq.retryQueueSize.Set(float64(rq.pending))
 
-	timer := time.AfterFunc(delay, func() {
+	var timer *time.Timer
+	timer = time.AfterFunc(delay, func() {
+		retryJob := job
+		rq.mu.Lock()
+		defer rq.mu.Unlock()
+		if rq.closed {
+			return
+		}
 		// Increment the attempt counter for the next delivery.
-		job.Attempt++
-		job.ScheduledAt = time.Now()
+		if increment {
+			retryJob.Attempt++
+		}
+		retryJob.ScheduledAt = time.Now()
 
 		// Re-enqueue onto the dispatcher's jobs channel.
 		select {
-		case rq.jobs <- job:
+		case rq.jobs <- retryJob:
 			log.Printf("notification: retry re-enqueued monitor=%s trigger=%s attempt=%d/%d",
-				job.MonitorID, job.TriggerType, job.Attempt, job.MaxAttempts)
+				job.MonitorID, job.TriggerType, retryJob.Attempt, job.MaxAttempts)
 		default:
+			if rq.onDrop != nil {
+				rq.onDrop(retryJob)
+			}
 			// Buffer full — drop the retry.
 			log.Printf("notification: retry dropped (buffer full) monitor=%s trigger=%s attempt=%d/%d",
-				job.MonitorID, job.TriggerType, job.Attempt, job.MaxAttempts)
+				job.MonitorID, job.TriggerType, retryJob.Attempt, job.MaxAttempts)
 		}
 
-		rq.mu.Lock()
 		rq.pending--
 		rq.retryQueueSize.Set(float64(rq.pending))
-		rq.mu.Unlock()
+		for i, active := range rq.timers {
+			if active == timer {
+				rq.timers = append(rq.timers[:i], rq.timers[i+1:]...)
+				break
+			}
+		}
 	})
 
 	rq.timers = append(rq.timers, timer)
@@ -170,6 +247,7 @@ func (rq *RetryQueue) Stop() {
 		t.Stop()
 	}
 	rq.timers = nil
+	rq.cooldowns = nil
 	rq.pending = 0
 	rq.retryQueueSize.Set(0)
 }

@@ -18,6 +18,7 @@ import (
 	"github.com/VitaliAndrushkevich/pulse/internal/hub"
 	"github.com/VitaliAndrushkevich/pulse/internal/monitor"
 	"github.com/VitaliAndrushkevich/pulse/internal/notification"
+	"github.com/VitaliAndrushkevich/pulse/internal/notification/native"
 	smtpclient "github.com/VitaliAndrushkevich/pulse/internal/notification/smtp"
 	"github.com/VitaliAndrushkevich/pulse/internal/notification/webhook"
 	"github.com/VitaliAndrushkevich/pulse/internal/retention"
@@ -145,6 +146,7 @@ func main() {
 		log.Printf("startup: SMTP client configured for notification dispatcher")
 	}
 	dispatcher.SetWebhookDeliverFn(webhook.DeliverFromRaw)
+	dispatcher.SetNativeDeliverFn(native.Deliver)
 
 	dispatcher.Start()
 	log.Printf("startup: notification dispatcher started (%d workers, drain timeout %s)", notifWorkers, notifDrainTimeout)

@@ -156,6 +156,13 @@ Pulse includes a built-in notification system that alerts you when monitors chan
 
 - **Email (SMTP)** — Branded HTML emails with monitor status, response time, and incident links. Configure SMTP settings in the UI (Settings → SMTP) or via the API.
 - **Webhook** — HTTP callbacks to any URL. Customizable request method, headers (encrypted at rest), and body template using Go `text/template` syntax.
+- **Slack** — Pulse-formatted Block Kit messages via an encrypted incoming webhook URL.
+- **Telegram** — Bot messages to a chat, group, or optional forum topic.
+- **Matrix** — Bot notices to unencrypted rooms on your homeserver; encrypted rooms are rejected.
+
+See [notification setup and troubleshooting](docs/NOTIFICATIONS.md) for credentials,
+branding, permissions, secret editing, and provider limitations. Use **Test** in
+the create/edit form to send current unsaved settings without saving them.
 
 ### Trigger Conditions
 
@@ -173,11 +180,17 @@ Notifications are deduplicated — a trigger fires once per state transition, no
 
 ### Reminders
 
-Bindings support optional reminders (`reminder_interval_minutes`: 30–1440) that re-send notifications at configurable intervals while a condition persists.
+Bindings accept optional reminder intervals (`reminder_interval_minutes`: 30–1440),
+but reminder activation is not yet wired end to end (TD-004); reminders do not fire.
 
 ### Retry & Delivery Logs
 
 Failed deliveries are retried with exponential backoff (30s → 60s → 120s, max 4 attempts). Non-retryable errors (malformed templates, oversized payloads) fail immediately. All delivery attempts are recorded in the delivery log, accessible per-channel via the API.
+
+Native providers honor rate-limit cooldowns. Jobs and retries remain in memory;
+restart or queue overload can lose pending deliveries. Test sends are neither
+logged nor retried. Previously overwritten webhook tokens must be re-entered once
+after upgrading; future edits retain unchanged secrets safely.
 
 ### Webhook Template Variables
 

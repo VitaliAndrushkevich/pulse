@@ -307,7 +307,7 @@ export type WidgetId =
 // ─── Notification Channel Types ─────────────────────────────────────────────
 
 /** Notification channel type */
-export type NotificationChannelType = 'email' | 'webhook';
+export type NotificationChannelType = 'email' | 'webhook' | 'slack' | 'matrix' | 'telegram';
 
 /** HTTP methods allowed for webhook channels */
 export type WebhookMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
@@ -315,7 +315,8 @@ export type WebhookMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 /** Custom header for webhook channels */
 export interface WebhookHeader {
   name: string;
-  value: string;
+  value?: string;
+  value_configured?: boolean;
 }
 
 /** Email channel configuration */
@@ -331,12 +332,33 @@ export interface WebhookChannelConfig {
   headers?: WebhookHeader[];
 }
 
+export interface SlackChannelConfig {
+  webhook_url?: string;
+  webhook_url_configured?: boolean;
+}
+
+export interface TelegramChannelConfig {
+  bot_token?: string;
+  bot_token_configured?: boolean;
+  chat_id: string;
+  message_thread_id?: number;
+}
+
+export interface MatrixChannelConfig {
+  homeserver_url: string;
+  room_id: string;
+  access_token?: string;
+  access_token_configured?: boolean;
+}
+
+export type NotificationChannelConfig = EmailChannelConfig | WebhookChannelConfig | SlackChannelConfig | TelegramChannelConfig | MatrixChannelConfig;
+
 /** Notification channel — from channel CRUD API */
 export interface NotificationChannel {
   id: string;
   name: string;
   type: NotificationChannelType;
-  config: EmailChannelConfig | WebhookChannelConfig;
+  config: NotificationChannelConfig;
   created_at: string;
   updated_at: string;
 }
@@ -420,7 +442,7 @@ export interface SMTPSettingsRequest {
 export interface TestChannelResult {
   success: boolean;
   channel_type: NotificationChannelType;
-  channel_id: string;
+  channel_id?: string;
   error?: string;
 }
 

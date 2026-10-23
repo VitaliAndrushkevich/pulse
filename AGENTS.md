@@ -54,7 +54,7 @@ Core outcomes:
 - Sanitize logs: strip auth headers and known secret fields.
 - Combined auth: endpoints accept both JWT (session) and Bearer API token (programmatic) — `combinedAuth` in `backend/internal/api/router.go`.
 - WS auth uses constant-time comparison with dummy bcrypt hash on failure (timing-safe).
-- `make rotate-key` re-encrypts legacy secrets and monitor credentials only; SMTP password and webhook headers are NOT rotated yet (TD-008 in `docs/TECHNICAL-DEBT.md`).
+- `make rotate-key` re-encrypts legacy secrets, monitor credentials, SMTP passwords, webhook headers, and native channel credentials in one transaction. Stop all Pulse writers before rotation; see `docs/NOTIFICATIONS.md`.
 
 ## Performance Requirements
 - Design for 500+ monitors from the start.
@@ -124,7 +124,7 @@ MVP is complete. Detail and history live in `.kiro/specs/<name>/`; roadmap in `d
 | History & retention | History query with `from`/`to`/`step` (default last 24h); per-monitor retention 1–365 days (default 30); retention service | `monitor-history-explorer` |
 | Dashboard | `/dashboard/summary` + widgets in `frontend/src/components/dashboard/` | `dashboard-refactor` |
 | Status timeline | Check bar with failure details | `status-timeline-failure-details` |
-| Notifications | Email (SMTP) + webhook channels, bindings, triggers, retry, delivery logs. Reminders are NOT wired end-to-end (TD-004) | `notification-channels` |
+| Notifications | Email (SMTP), webhook, Slack, Matrix, and Telegram channels; safe secret editing; unsaved configuration tests; bindings, triggers, bounded retry, delivery logs. Reminders are NOT wired end-to-end (TD-004) | `notification-channels` |
 | Auth | JWT + API tokens, first-run setup, password change, `PULSE_RESET_ADMIN` | `password-reset` |
 | Realtime | WS hub, diff/patch messages | — |
 | Frontend | Routes: `/`, `/login`, `/setup`, `/monitors` (+ create, `[id]`, `[id]/edit`), `/heartbeats` (+ create, `[id]`, `[id]/edit`), `/notifications` (+ create, `[id]/edit`), `/settings` (tokens, password, language) | `frontend-product` |
@@ -242,12 +242,15 @@ When adding an env var, update this table, `.env.example`, and README in the sam
 ## Notifications
 Asynchronous, non-blocking pipeline in `backend/internal/notification/`, with its own bounded worker pool independent from monitoring workers. Routes: `/api/v1/notifications/{channels,template-variables,smtp-settings}`, `/api/v1/monitors/{id}/notification-bindings`, `/api/v1/monitors/{id}/delivery-logs` — full contract in `backend/api/openapi.yaml`.
 
+- **Native channels:** Slack incoming webhooks (whole URL encrypted), Telegram bot token/chat ID/optional thread, and Matrix homeserver/room ID/access token (unencrypted rooms only). Secrets are omitted on reads with configured flags; omitted update secrets retain ciphertext. Setup: `docs/NOTIFICATIONS.md`.
+- **Draft tests:** `POST /api/v1/notifications/channels/test` accepts current config and optional `existing_channel_id`; no persistence, delivery logs, or retries; 10s deadline; four concurrent slots (`TEST_BUSY` on HTTP 429).
+- **Webhook secret updates:** reads omit header values and expose `value_configured`; omitted values preserve matching case-insensitive names, explicit strings replace (including empty), removed rows delete. Reject duplicates; renamed headers need values.
 - **Channels:** Email (SMTP; instance-wide SMTP settings encrypted in DB; TLS, PLAIN auth; branded HTML) and Webhook (method GET/POST/PUT/PATCH/DELETE; Go `text/template` body; headers encrypted at rest; 1 MB rendered body limit).
 - **Triggers** (per binding): `monitor_down` (once on transition to down), `monitor_up` (once on recovery), `degraded` (`threshold_ms` 1–60000), `ssl_expiring` (`days_before` 1–365), `n_failures_in_row` (`count` 1–100). State deduplication prevents repeated alerts for the same ongoing condition.
-- **Pipeline:** scheduler check → `EvaluateAndDispatch` fan-out → one `DeliveryJob` per matching binding, enqueued non-blocking (`select/default`, dropped when full) → worker with panic recovery → row in `delivery_logs` (error detail ≤1024 chars) → retryable failures go to backoff retry (30s → 60s → 120s, max 4 attempts total); non-retryable errors (template parse, oversized body, decryption) fail permanently.
+- **Pipeline:** scheduler check → `EvaluateAndDispatch` fan-out → one `DeliveryJob` per matching binding, enqueued non-blocking (`select/default`, dropped when full) → worker with panic recovery → row in `delivery_logs` (error detail ≤1024 chars) → retryable failures go to backoff retry (30s → 60s → 120s, max 4 attempts total); non-retryable errors (template parse, oversized body, decryption) fail permanently. Retries are wired to production, capped at 1024 pending timers, honor native provider cooldowns, and are canceled at shutdown; jobs remain in memory. Shutdown drains with the bounded worker pool.
 - **Reminders:** bindings accept a 30–1440 min reminder interval and `ReminderScheduler` exists, but nothing calls `ActivateReminder` in production — reminders do not fire yet (TD-004).
 - **Webhook template variables:** `.Monitor.ID`, `.Monitor.Name`, `.Monitor.URL`, `.Monitor.Target`, `.Status`, `.PreviousStatus`, `.ResponseTime`, `.Incident.ID`, `.Incident.StartedAt`, `.Incident.Duration`, `.Timestamp`, `.BaseURL`.
-- **Metrics:** `pulse_notification_deliveries_total{channel_type, outcome}`, `pulse_notification_dropped_total{channel_type}`, `pulse_notification_in_flight`, `pulse_notification_retry_queue_size`. Monitor metrics: `pulse_monitor_up`, `pulse_monitor_response_time_seconds`, `pulse_monitors_total`.
+- **Metrics:** `pulse_notification_deliveries_total{channel_type, outcome}`, `pulse_notification_dropped_total{channel_type}`, `pulse_notification_in_flight`, `pulse_notification_retry_queue_size`. Provider type labels are carried with dispatch bindings; no per-drop DB lookup. Monitor metrics: `pulse_monitor_up`, `pulse_monitor_response_time_seconds`, `pulse_monitors_total`.
 - Other known gaps: per-binding condition isolation (TD-003), persisted jobs/retries (TD-005).
 
 ## Localization (i18n)

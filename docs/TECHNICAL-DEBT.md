@@ -73,6 +73,8 @@ Start with TD-001, TD-003, TD-006, TD-007, and TD-008. Design TD-002 and TD-005 
 
 ## TD-005: Persist notification jobs and retries
 
+**Implementation update (2026-10-23):** Retry scheduling is now connected to production failures, with native provider cooldowns and bounded shutdown. Persistence remains deferred.
+
 **Evidence:** [dispatcher.go](../backend/internal/notification/dispatcher.go) drops jobs when the channel is full; [retry.go](../backend/internal/notification/retry.go) uses in-memory timers and can drop a retry when re-enqueueing. Pending jobs and timers do not survive process loss.
 
 **Impact:** A widespread outage is precisely when many notifications may be generated. Delivery can be lost under that load or across a deployment. Delivery logs alone do not recover pending work.
@@ -103,9 +105,9 @@ Start with TD-001, TD-003, TD-006, TD-007, and TD-008. Design TD-002 and TD-005 
 
 ## TD-008: Rotate every encrypted credential type
 
-**Evidence:** [The rotation command](../backend/cmd/rotate/main.go) handles legacy secrets and monitor credentials, but does not include SMTP passwords or encrypted webhook headers.
+**Implementation update (2026-10-23):** [The rotation command](../backend/cmd/rotate/main.go) now includes SMTP passwords, webhook headers, Slack webhook URLs, Telegram bot tokens, and Matrix access tokens alongside legacy secrets and monitor credentials. Channel ciphertext round trips and failure paths have regression coverage. [The runbook](NOTIFICATIONS.md#upgrade-and-key-rotation) requires stopping all Pulse writers. Database-backed tests now apply all migrations, execute the actual rotation binary for all seven encrypted types, reject the old key, deliver a webhook using persisted new-key credentials, and verify complete rollback on a late malformed SMTP value.
 
-**Impact:** Switching to the new key can leave notification credentials unreadable and break alerts.
+**Status:** Credential coverage and atomic failure behavior verified against disposable PostgreSQL. Concurrent rotation with running writers remains unsupported; the runbook requires downtime. A full application restart with real provider accounts remains an operational smoke test.
 
 **Work:** Inventory encrypted fields and rotate them as a complete operation. Document whether rotation requires downtime and how concurrent writes are prevented or handled. Define rollback and key replacement order; avoid printing secrets or decrypted values.
 

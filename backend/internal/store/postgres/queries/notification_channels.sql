@@ -38,9 +38,10 @@ SELECT * FROM channel_bindings
 WHERE id = $1;
 
 -- name: ListBindingsByMonitor :many
-SELECT * FROM channel_bindings
-WHERE monitor_id = $1
-ORDER BY created_at DESC;
+SELECT b.*, c.channel_type FROM channel_bindings b
+JOIN notification_channels c ON c.id = b.channel_id
+WHERE b.monitor_id = $1
+ORDER BY b.created_at DESC;
 
 -- name: ListBindingsByMonitorPaginated :many
 SELECT * FROM channel_bindings
@@ -113,3 +114,9 @@ LIMIT 1;
 
 -- name: DeleteSMTPSettings :exec
 DELETE FROM smtp_settings;
+
+-- name: GetChannelForUpdate :one
+SELECT * FROM notification_channels WHERE id = $1 FOR UPDATE;
+
+-- name: ListChannelsForRotation :many
+SELECT * FROM notification_channels ORDER BY id FOR UPDATE;

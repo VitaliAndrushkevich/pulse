@@ -158,7 +158,7 @@
           <span class="text-sm font-medium text-primary truncate">{channel.name}</span>
 
           <!-- Type badge -->
-          <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium {channel.type === 'email' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'}">
+          <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-[var(--color-brand-100)] text-[var(--color-brand-primary)]">
             {t(`notifications.channels.types.${channel.type}`)}
           </span>
 
