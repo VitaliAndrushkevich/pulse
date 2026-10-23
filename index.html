@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Pulse — Open-source, self-hosted uptime monitoring</title>
-  <meta name="description" content="Monitor websites, APIs and infrastructure with Pulse: open-source, self-hosted uptime monitoring, multi-protocol checks, email alerts and a real-time dashboard.">
+  <meta name="description" content="Open-source, self-hosted uptime monitoring for websites, APIs and infrastructure: multi-protocol checks, cron job heartbeats, email and webhook alerts.">
   <meta name="author" content="Vitali Andrushkevich">
   <meta name="robots" content="index, follow, max-image-preview:large">
   <link rel="canonical" href="https://uptime-pulse.com/">
@@ -14,11 +14,12 @@
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://uptime-pulse.com/">
   <meta property="og:title" content="Pulse — Open-source, self-hosted uptime monitoring">
-  <meta property="og:description" content="Monitor websites, APIs and infrastructure with Pulse: open-source, self-hosted uptime monitoring, multi-protocol checks, email alerts and a real-time dashboard.">
+  <meta property="og:description" content="Open-source, self-hosted uptime monitoring for websites, APIs and infrastructure: multi-protocol checks, cron job heartbeats, email and webhook alerts.">
   <meta property="og:site_name" content="Pulse">
   <meta property="og:image" content="https://uptime-pulse.com/og.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
+  <meta property="og:image:type" content="image/png">
 
   <meta property="og:locale" content="en_US">
   <meta property="og:image:alt" content="Pulse self-hosted uptime monitoring">
@@ -26,11 +27,16 @@
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Pulse — Open-source, self-hosted uptime monitoring">
-  <meta name="twitter:description" content="Monitor websites, APIs and infrastructure with Pulse: open-source, self-hosted uptime monitoring, multi-protocol checks, email alerts and a real-time dashboard.">
+  <meta name="twitter:description" content="Open-source, self-hosted uptime monitoring for websites, APIs and infrastructure: multi-protocol checks, cron job heartbeats, email and webhook alerts.">
   <meta name="twitter:image" content="https://uptime-pulse.com/og.png">
   <meta name="twitter:image:alt" content="Pulse self-hosted uptime monitoring">
-  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
-  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="icon" href="/favicon.ico" sizes="16x16 32x32 48x48">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="icon" type="image/png" sizes="48x48" href="/favicon.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <meta name="theme-color" content="#f8fafc" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)">
   <style>
     :root, [data-theme="light"] {
       color-scheme: light;
@@ -621,24 +627,51 @@
   "@context": "https://schema.org",
   "@graph": [
     {
+      "@type": "Organization",
+      "@id": "https://uptime-pulse.com/#organization",
+      "name": "Pulse",
+      "url": "https://uptime-pulse.com/",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://uptime-pulse.com/icon-512.png",
+        "width": 512,
+        "height": 512
+      },
+      "sameAs": [
+        "https://github.com/VitaliAndrushkevich/pulse"
+      ]
+    },
+    {
       "@type": "WebSite",
       "@id": "https://uptime-pulse.com/#website",
       "url": "https://uptime-pulse.com/",
       "name": "Pulse",
       "alternateName": "Pulse uptime monitoring",
-      "inLanguage": "en"
+      "inLanguage": "en",
+      "publisher": {
+        "@id": "https://uptime-pulse.com/#organization"
+      }
     },
     {
       "@type": "SoftwareApplication",
       "@id": "https://uptime-pulse.com/#software",
       "name": "Pulse",
       "url": "https://uptime-pulse.com/",
-      "description": "Monitor websites, APIs and infrastructure with Pulse: open-source, self-hosted uptime monitoring, multi-protocol checks, email alerts and a real-time dashboard.",
+      "description": "Open-source, self-hosted uptime monitoring for websites, APIs and infrastructure: multi-protocol checks, cron job heartbeats, email and webhook alerts.",
       "applicationCategory": "DeveloperApplication",
-      "operatingSystem": "Linux, macOS, Windows",
+      "operatingSystem": "Any OCI-compatible container runtime (Docker)",
       "license": "https://www.apache.org/licenses/LICENSE-2.0",
       "isAccessibleForFree": true,
       "sameAs": "https://github.com/VitaliAndrushkevich/pulse",
+      "installUrl": "https://uptime-pulse.com/get-started/",
+      "softwareHelp": {
+        "@type": "WebPage",
+        "url": "https://github.com/VitaliAndrushkevich/pulse/blob/main/README.md"
+      },
+      "image": "https://uptime-pulse.com/og.png",
+      "publisher": {
+        "@id": "https://uptime-pulse.com/#organization"
+      },
       "offers": {
         "@type": "Offer",
         "price": "0",
@@ -648,12 +681,23 @@
         "REST API & MCP server",
         "History & incident investigation",
         "13 interface languages",
-        "Multi-protocol monitoring and heartbeat checks",
+        "Multi-protocol monitoring (HTTP/S, HTTP/3, TCP, UDP, WebSocket, gRPC, DNS, ICMP, SMTP, QUIC)",
         "Heartbeat monitoring for cron jobs",
         "Admin and read-only user roles",
         "Email and webhook alerts",
         "Prometheus metrics"
       ]
+    },
+    {
+      "@type": "SoftwareSourceCode",
+      "@id": "https://uptime-pulse.com/#source",
+      "name": "Pulse source code",
+      "codeRepository": "https://github.com/VitaliAndrushkevich/pulse",
+      "license": "https://www.apache.org/licenses/LICENSE-2.0",
+      "programmingLanguage": "Go",
+      "targetProduct": {
+        "@id": "https://uptime-pulse.com/#software"
+      }
     }
   ]
 }
@@ -864,7 +908,7 @@
     </details>
     <details class="faq-item">
       <summary>Is Pulse free to self-host?</summary>
-      <p>Pulse is available under the Apache License 2.0. You can run it on your own infrastructure. You provide the server and database, plus an SMTP server or webhook destination if you want notifications.</p>
+      <p>Pulse is available under the Apache License 2.0. You can run it on your own infrastructure. You provide the server and database, plus an SMTP server or webhook destination if you want notifications. See <a href="/get-started/">how to get started with Pulse</a>.</p>
     </details>
     <details class="faq-item">
       <summary>Which protocols can Pulse monitor?</summary>
@@ -872,7 +916,7 @@
     </details>
     <details class="faq-item">
       <summary>Does Pulse need an external database?</summary>
-      <p>Yes. Pulse serves its API and embedded web UI from one application binary or container, and requires PostgreSQL with TimescaleDB for configuration and time-series history. The Docker Compose file includes the database service.</p>
+      <p>Yes. Pulse serves its API and embedded web UI from one application binary or container, and requires PostgreSQL with TimescaleDB for configuration and time-series history. Follow the <a href="/get-started/">Docker Compose installation guide</a>; the Compose file includes the database service.</p>
     </details>
     <details class="faq-item">
       <summary>Can I monitor cron jobs and scheduled backups?</summary>

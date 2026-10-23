@@ -19,6 +19,7 @@
   <meta property="og:image" content="https://uptime-pulse.com/og.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
+  <meta property="og:image:type" content="image/png">
 
   <meta property="og:locale" content="en_US">
   <meta property="og:image:alt" content="Pulse self-hosted uptime monitoring">
@@ -29,8 +30,13 @@
   <meta name="twitter:description" content="Install Pulse with Docker Compose: configure secrets, start the application and TimescaleDB, then create your first uptime monitor or cron job heartbeat.">
   <meta name="twitter:image" content="https://uptime-pulse.com/og.png">
   <meta name="twitter:image:alt" content="Pulse self-hosted uptime monitoring">
-  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
-  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="icon" href="/favicon.ico" sizes="16x16 32x32 48x48">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="icon" type="image/png" sizes="48x48" href="/favicon.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <meta name="theme-color" content="#f8fafc" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)">
   <style>
     :root, [data-theme="light"] {
       color-scheme: light;
@@ -629,18 +635,43 @@
   <script type="application/ld+json">
 {
   "@context": "https://schema.org",
-  "@type": "WebPage",
-  "@id": "https://uptime-pulse.com/get-started/#webpage",
-  "url": "https://uptime-pulse.com/get-started/",
-  "name": "Get started with Pulse \u2014 Docker Compose installation",
-  "description": "Install Pulse with Docker Compose: configure secrets, start the application and TimescaleDB, then create your first uptime monitor or cron job heartbeat.",
-  "inLanguage": "en",
-  "isPartOf": {
-    "@id": "https://uptime-pulse.com/#website"
-  },
-  "about": {
-    "@id": "https://uptime-pulse.com/#software"
-  }
+  "@graph": [
+    {
+      "@type": "WebPage",
+      "@id": "https://uptime-pulse.com/get-started/#webpage",
+      "url": "https://uptime-pulse.com/get-started/",
+      "name": "Get started with Pulse \u2014 Docker Compose installation",
+      "description": "Install Pulse with Docker Compose: configure secrets, start the application and TimescaleDB, then create your first uptime monitor or cron job heartbeat.",
+      "inLanguage": "en",
+      "isPartOf": {
+        "@id": "https://uptime-pulse.com/#website"
+      },
+      "about": {
+        "@id": "https://uptime-pulse.com/#software"
+      },
+      "breadcrumb": {
+        "@id": "https://uptime-pulse.com/get-started/#breadcrumb"
+      }
+    },
+    {
+      "@type": "BreadcrumbList",
+      "@id": "https://uptime-pulse.com/get-started/#breadcrumb",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Pulse",
+          "item": "https://uptime-pulse.com/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Get started",
+          "item": "https://uptime-pulse.com/get-started/"
+        }
+      ]
+    }
+  ]
 }
   </script>
 </head>
