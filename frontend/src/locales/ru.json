@@ -737,22 +737,22 @@
         "bodyTemplatePlaceholder": "{ \"text\": \"{{.Monitor.Name}} is {{.Status}}\" }",
         "bodyTemplateHelp": "Go-шаблон тела webhook-запроса. Используйте переменные шаблона ниже."
       },
-      "savedSecret": "A value is saved. Leave unchanged to keep it; enter a new value to replace it.",
+      "savedSecret": "Значение сохранено. Оставьте поле без изменений, чтобы сохранить его, или введите новое значение для замены.",
       "slack": {
-        "webhookUrl": "Incoming webhook URL",
-        "help": "Create an incoming webhook in your Slack app and choose its destination channel. Pulse sends formatted alerts with monitor details."
+        "webhookUrl": "URL входящего вебхука",
+        "help": "Создайте входящий вебхук в приложении Slack и выберите канал назначения. Pulse отправляет форматированные уведомления с данными монитора."
       },
       "matrix": {
-        "homeserverUrl": "Homeserver URL",
-        "roomId": "Room ID",
-        "accessToken": "Access token",
-        "help": "Invite your bot to the room and enter its access token and room ID. This integration supports unencrypted rooms only."
+        "homeserverUrl": "URL домашнего сервера",
+        "roomId": "ID комнаты",
+        "accessToken": "Токен доступа",
+        "help": "Пригласите бота в комнату и введите его токен доступа и ID комнаты. Эта интеграция поддерживает только незашифрованные комнаты."
       },
       "telegram": {
-        "botToken": "Bot token",
-        "chatId": "Chat ID",
-        "threadId": "Topic ID (optional)",
-        "help": "Create a bot with BotFather, add it to your chat, and enter the chat ID. For forum topics, optionally enter a topic ID."
+        "botToken": "Токен бота",
+        "chatId": "ID чата",
+        "threadId": "ID темы (необязательно)",
+        "help": "Создайте бота через BotFather, добавьте его в чат и введите ID чата. Для тем форума можно также указать ID темы."
       }
     },
     "triggers": {
@@ -815,7 +815,7 @@
       "sending": "Отправка...",
       "success": "Тестовое уведомление успешно отправлено.",
       "failure": "Тестовое уведомление не удалось: {error}",
-      "draftHelp": "Test sends a real notification using the current form values without saving changes."
+      "draftHelp": "Тест отправляет настоящее уведомление с текущими значениями формы без сохранения изменений."
     },
     "toast": {
       "channelCreated": "Канал «{name}» успешно создан.",
@@ -859,10 +859,10 @@
         "incidentId": "Уникальный ID инцидента",
         "timestamp": "Временная метка события"
       },
-      "loadError": "Failed to load template variables.",
-      "variable": "Variable",
-      "type": "Type",
-      "example": "Example"
+      "loadError": "Не удалось загрузить переменные шаблона.",
+      "variable": "Переменная",
+      "type": "Тип",
+      "example": "Пример"
     },
     "smtpSettings": {
       "title": "Настройки SMTP",
@@ -921,12 +921,12 @@
       "smtpPortRange": "Порт должен быть от 1 до 65535.",
       "smtpFromRequired": "Адрес отправителя обязателен.",
       "smtpFromInvalid": "Некорректный формат email-адреса.",
-      "recipientDuplicate": "This recipient is already added: {email}",
-      "headerRenameRequiresValue": "Enter a replacement value when renaming a saved header.",
-      "secretPlaceholder": "Enter an actual value instead of a redaction placeholder.",
-      "slackWebhookRequired": "Enter an HTTPS Slack incoming webhook URL.",
-      "telegramRequired": "Enter a bot token and chat ID. Topic ID must be a positive whole number.",
-      "matrixRequired": "Enter a valid homeserver URL, room ID beginning with !, and access token."
+      "recipientDuplicate": "Этот получатель уже добавлен: {email}",
+      "headerRenameRequiresValue": "При переименовании сохранённого заголовка введите новое значение.",
+      "secretPlaceholder": "Введите настоящее значение вместо заглушки скрытого секрета.",
+      "slackWebhookRequired": "Введите HTTPS-адрес входящего вебхука Slack.",
+      "telegramRequired": "Введите токен бота и ID чата. ID темы должен быть положительным целым числом.",
+      "matrixRequired": "Введите корректный URL домашнего сервера, ID комнаты, начинающийся с !, и токен доступа."
     }
   },
   "shell": {

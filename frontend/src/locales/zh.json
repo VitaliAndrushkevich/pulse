@@ -737,22 +737,22 @@
         "bodyTemplatePlaceholder": "{ \"text\": \"{{.Monitor.Name}} is {{.Status}}\" }",
         "bodyTemplateHelp": "Webhook 请求体的 Go 模板。使用下方的模板变量。"
       },
-      "savedSecret": "A value is saved. Leave unchanged to keep it; enter a new value to replace it.",
+      "savedSecret": "已保存此值。如需保留，请勿修改；如需替换，请输入新值。",
       "slack": {
-        "webhookUrl": "Incoming webhook URL",
-        "help": "Create an incoming webhook in your Slack app and choose its destination channel. Pulse sends formatted alerts with monitor details."
+        "webhookUrl": "传入 Webhook URL",
+        "help": "在 Slack 应用中创建传入 Webhook，并选择目标频道。Pulse 会发送包含监控详情的格式化告警。"
       },
       "matrix": {
-        "homeserverUrl": "Homeserver URL",
-        "roomId": "Room ID",
-        "accessToken": "Access token",
-        "help": "Invite your bot to the room and enter its access token and room ID. This integration supports unencrypted rooms only."
+        "homeserverUrl": "主服务器 URL",
+        "roomId": "房间 ID",
+        "accessToken": "访问令牌",
+        "help": "邀请机器人加入房间，并输入其访问令牌和房间 ID。此集成仅支持未加密的房间。"
       },
       "telegram": {
-        "botToken": "Bot token",
-        "chatId": "Chat ID",
-        "threadId": "Topic ID (optional)",
-        "help": "Create a bot with BotFather, add it to your chat, and enter the chat ID. For forum topics, optionally enter a topic ID."
+        "botToken": "机器人令牌",
+        "chatId": "聊天 ID",
+        "threadId": "话题 ID（可选）",
+        "help": "通过 BotFather 创建机器人，将其添加到聊天中，然后输入聊天 ID。如需向论坛话题发送通知，可输入话题 ID。"
       }
     },
     "triggers": {
@@ -815,7 +815,7 @@
       "sending": "发送中...",
       "success": "测试通知发送成功。",
       "failure": "测试通知发送失败：{error}",
-      "draftHelp": "Test sends a real notification using the current form values without saving changes."
+      "draftHelp": "测试会使用表单中的当前值发送真实通知，但不会保存更改。"
     },
     "toast": {
       "channelCreated": "渠道「{name}」创建成功。",
@@ -859,10 +859,10 @@
         "incidentId": "事件唯一 ID",
         "timestamp": "事件时间戳"
       },
-      "loadError": "Failed to load template variables.",
-      "variable": "Variable",
-      "type": "Type",
-      "example": "Example"
+      "loadError": "无法加载模板变量。",
+      "variable": "变量",
+      "type": "类型",
+      "example": "示例"
     },
     "smtpSettings": {
       "title": "SMTP 设置",
@@ -921,12 +921,12 @@
       "smtpPortRange": "端口必须在 1 到 65535 之间。",
       "smtpFromRequired": "发件人地址为必填项。",
       "smtpFromInvalid": "邮箱地址格式无效。",
-      "recipientDuplicate": "This recipient is already added: {email}",
-      "headerRenameRequiresValue": "Enter a replacement value when renaming a saved header.",
-      "secretPlaceholder": "Enter an actual value instead of a redaction placeholder.",
-      "slackWebhookRequired": "Enter an HTTPS Slack incoming webhook URL.",
-      "telegramRequired": "Enter a bot token and chat ID. Topic ID must be a positive whole number.",
-      "matrixRequired": "Enter a valid homeserver URL, room ID beginning with !, and access token."
+      "recipientDuplicate": "此收件人已添加：{email}",
+      "headerRenameRequiresValue": "重命名已保存的请求头时，请输入替换值。",
+      "secretPlaceholder": "请输入实际值，而非用于隐藏敏感信息的占位符。",
+      "slackWebhookRequired": "请输入 HTTPS 格式的 Slack 传入 Webhook URL。",
+      "telegramRequired": "请输入机器人令牌和聊天 ID。话题 ID 必须为正整数。",
+      "matrixRequired": "请输入有效的主服务器 URL、以 ! 开头的房间 ID 和访问令牌。"
     }
   },
   "shell": {

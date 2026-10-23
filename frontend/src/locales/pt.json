@@ -737,22 +737,22 @@
         "bodyTemplatePlaceholder": "{ \"text\": \"{{.Monitor.Name}} is {{.Status}}\" }",
         "bodyTemplateHelp": "Template Go para o corpo da requisição do webhook. Use as variáveis de template abaixo."
       },
-      "savedSecret": "A value is saved. Leave unchanged to keep it; enter a new value to replace it.",
+      "savedSecret": "Há um valor salvo. Deixe o campo inalterado para mantê-lo ou insira um novo valor para substituí-lo.",
       "slack": {
-        "webhookUrl": "Incoming webhook URL",
-        "help": "Create an incoming webhook in your Slack app and choose its destination channel. Pulse sends formatted alerts with monitor details."
+        "webhookUrl": "URL do webhook de entrada",
+        "help": "Crie um webhook de entrada no seu aplicativo Slack e escolha o canal de destino. O Pulse envia alertas formatados com os detalhes do monitor."
       },
       "matrix": {
-        "homeserverUrl": "Homeserver URL",
-        "roomId": "Room ID",
-        "accessToken": "Access token",
-        "help": "Invite your bot to the room and enter its access token and room ID. This integration supports unencrypted rooms only."
+        "homeserverUrl": "URL do servidor principal",
+        "roomId": "ID da sala",
+        "accessToken": "Token de acesso",
+        "help": "Convide seu bot para a sala e insira o token de acesso dele e o ID da sala. Esta integração oferece suporte apenas a salas sem criptografia."
       },
       "telegram": {
-        "botToken": "Bot token",
-        "chatId": "Chat ID",
-        "threadId": "Topic ID (optional)",
-        "help": "Create a bot with BotFather, add it to your chat, and enter the chat ID. For forum topics, optionally enter a topic ID."
+        "botToken": "Token do bot",
+        "chatId": "ID do chat",
+        "threadId": "ID do tópico (opcional)",
+        "help": "Crie um bot com o BotFather, adicione-o ao seu chat e insira o ID do chat. Para tópicos de fórum, você também pode inserir o ID do tópico."
       }
     },
     "triggers": {
@@ -815,7 +815,7 @@
       "sending": "Enviando...",
       "success": "Notificação de teste enviada com sucesso.",
       "failure": "Falha na notificação de teste: {error}",
-      "draftHelp": "Test sends a real notification using the current form values without saving changes."
+      "draftHelp": "O teste envia uma notificação real usando os valores atuais do formulário sem salvar as alterações."
     },
     "toast": {
       "channelCreated": "Canal \"{name}\" criado com sucesso.",
@@ -859,10 +859,10 @@
         "incidentId": "ID único do incidente",
         "timestamp": "Timestamp do evento"
       },
-      "loadError": "Failed to load template variables.",
-      "variable": "Variable",
-      "type": "Type",
-      "example": "Example"
+      "loadError": "Não foi possível carregar as variáveis do modelo.",
+      "variable": "Variável",
+      "type": "Tipo",
+      "example": "Exemplo"
     },
     "smtpSettings": {
       "title": "Configurações SMTP",
@@ -921,12 +921,12 @@
       "smtpPortRange": "A porta deve estar entre 1 e 65535.",
       "smtpFromRequired": "O endereço de remetente é obrigatório.",
       "smtpFromInvalid": "Formato de endereço de e-mail inválido.",
-      "recipientDuplicate": "This recipient is already added: {email}",
-      "headerRenameRequiresValue": "Enter a replacement value when renaming a saved header.",
-      "secretPlaceholder": "Enter an actual value instead of a redaction placeholder.",
-      "slackWebhookRequired": "Enter an HTTPS Slack incoming webhook URL.",
-      "telegramRequired": "Enter a bot token and chat ID. Topic ID must be a positive whole number.",
-      "matrixRequired": "Enter a valid homeserver URL, room ID beginning with !, and access token."
+      "recipientDuplicate": "Este destinatário já foi adicionado: {email}",
+      "headerRenameRequiresValue": "Insira um novo valor ao renomear um cabeçalho salvo.",
+      "secretPlaceholder": "Insira o valor real em vez do texto usado para ocultá-lo.",
+      "slackWebhookRequired": "Insira uma URL HTTPS de webhook de entrada do Slack.",
+      "telegramRequired": "Insira o token do bot e o ID do chat. O ID do tópico deve ser um número inteiro positivo.",
+      "matrixRequired": "Insira uma URL válida do servidor principal, um ID de sala que comece com ! e um token de acesso."
     }
   },
   "shell": {

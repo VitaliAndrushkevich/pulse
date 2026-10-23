@@ -737,22 +737,22 @@
         "bodyTemplatePlaceholder": "{ \"text\": \"{{.Monitor.Name}} is {{.Status}}\" }",
         "bodyTemplateHelp": "Webhookリクエストボディ用のGoテンプレート。以下のテンプレート変数を使用してください。"
       },
-      "savedSecret": "A value is saved. Leave unchanged to keep it; enter a new value to replace it.",
+      "savedSecret": "値は保存されています。そのまま保持するには変更せず、置き換えるには新しい値を入力してください。",
       "slack": {
-        "webhookUrl": "Incoming webhook URL",
-        "help": "Create an incoming webhook in your Slack app and choose its destination channel. Pulse sends formatted alerts with monitor details."
+        "webhookUrl": "受信Webhook URL",
+        "help": "Slackアプリで受信Webhookを作成し、送信先チャンネルを選択してください。Pulseは監視対象の詳細を含む整形済みアラートを送信します。"
       },
       "matrix": {
-        "homeserverUrl": "Homeserver URL",
-        "roomId": "Room ID",
-        "accessToken": "Access token",
-        "help": "Invite your bot to the room and enter its access token and room ID. This integration supports unencrypted rooms only."
+        "homeserverUrl": "ホームサーバーURL",
+        "roomId": "ルームID",
+        "accessToken": "アクセストークン",
+        "help": "ボットをルームに招待し、アクセストークンとルームIDを入力してください。この連携は暗号化されていないルームのみ対応しています。"
       },
       "telegram": {
-        "botToken": "Bot token",
-        "chatId": "Chat ID",
-        "threadId": "Topic ID (optional)",
-        "help": "Create a bot with BotFather, add it to your chat, and enter the chat ID. For forum topics, optionally enter a topic ID."
+        "botToken": "ボットトークン",
+        "chatId": "チャットID",
+        "threadId": "トピックID（任意）",
+        "help": "BotFatherでボットを作成してチャットに追加し、チャットIDを入力してください。フォーラムのトピックに送信する場合は、必要に応じてトピックIDを入力してください。"
       }
     },
     "triggers": {
@@ -815,7 +815,7 @@
       "sending": "送信中...",
       "success": "テスト通知を送信しました。",
       "failure": "テスト通知に失敗しました：{error}",
-      "draftHelp": "Test sends a real notification using the current form values without saving changes."
+      "draftHelp": "テストでは変更を保存せずに、現在のフォームの値を使って実際の通知を送信します。"
     },
     "toast": {
       "channelCreated": "チャンネル「{name}」を作成しました。",
@@ -859,10 +859,10 @@
         "incidentId": "インシデント固有ID",
         "timestamp": "イベントタイムスタンプ"
       },
-      "loadError": "Failed to load template variables.",
-      "variable": "Variable",
-      "type": "Type",
-      "example": "Example"
+      "loadError": "テンプレート変数を読み込めませんでした。",
+      "variable": "変数",
+      "type": "型",
+      "example": "例"
     },
     "smtpSettings": {
       "title": "SMTP設定",
@@ -921,12 +921,12 @@
       "smtpPortRange": "ポートは1〜65535の範囲で指定してください。",
       "smtpFromRequired": "送信元アドレスは必須です。",
       "smtpFromInvalid": "無効なメールアドレス形式です。",
-      "recipientDuplicate": "This recipient is already added: {email}",
-      "headerRenameRequiresValue": "Enter a replacement value when renaming a saved header.",
-      "secretPlaceholder": "Enter an actual value instead of a redaction placeholder.",
-      "slackWebhookRequired": "Enter an HTTPS Slack incoming webhook URL.",
-      "telegramRequired": "Enter a bot token and chat ID. Topic ID must be a positive whole number.",
-      "matrixRequired": "Enter a valid homeserver URL, room ID beginning with !, and access token."
+      "recipientDuplicate": "この受信者はすでに追加されています: {email}",
+      "headerRenameRequiresValue": "保存済みのヘッダー名を変更する場合は、置き換える値を入力してください。",
+      "secretPlaceholder": "伏せ字のプレースホルダーではなく、実際の値を入力してください。",
+      "slackWebhookRequired": "Slackの受信Webhook URLをHTTPSで入力してください。",
+      "telegramRequired": "ボットトークンとチャットIDを入力してください。トピックIDは正の整数である必要があります。",
+      "matrixRequired": "有効なホームサーバーURL、!で始まるルームID、アクセストークンを入力してください。"
     }
   },
   "shell": {

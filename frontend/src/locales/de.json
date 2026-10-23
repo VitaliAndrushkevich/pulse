@@ -737,22 +737,22 @@
         "bodyTemplatePlaceholder": "{ \"text\": \"{{.Monitor.Name}} is {{.Status}}\" }",
         "bodyTemplateHelp": "Go-Template für den Webhook-Request-Body. Verwenden Sie die unten aufgeführten Template-Variablen."
       },
-      "savedSecret": "A value is saved. Leave unchanged to keep it; enter a new value to replace it.",
+      "savedSecret": "Ein Wert ist gespeichert. Lassen Sie das Feld unverändert, um ihn beizubehalten, oder geben Sie einen neuen Wert ein, um ihn zu ersetzen.",
       "slack": {
-        "webhookUrl": "Incoming webhook URL",
-        "help": "Create an incoming webhook in your Slack app and choose its destination channel. Pulse sends formatted alerts with monitor details."
+        "webhookUrl": "URL des eingehenden Webhooks",
+        "help": "Erstellen Sie einen eingehenden Webhook in Ihrer Slack-App und wählen Sie den Zielkanal. Pulse sendet formatierte Warnmeldungen mit Details zum Monitor."
       },
       "matrix": {
-        "homeserverUrl": "Homeserver URL",
-        "roomId": "Room ID",
-        "accessToken": "Access token",
-        "help": "Invite your bot to the room and enter its access token and room ID. This integration supports unencrypted rooms only."
+        "homeserverUrl": "Homeserver-URL",
+        "roomId": "Raum-ID",
+        "accessToken": "Zugriffstoken",
+        "help": "Laden Sie Ihren Bot in den Raum ein und geben Sie sein Zugriffstoken und die Raum-ID ein. Diese Integration unterstützt nur unverschlüsselte Räume."
       },
       "telegram": {
-        "botToken": "Bot token",
-        "chatId": "Chat ID",
-        "threadId": "Topic ID (optional)",
-        "help": "Create a bot with BotFather, add it to your chat, and enter the chat ID. For forum topics, optionally enter a topic ID."
+        "botToken": "Bot-Token",
+        "chatId": "Chat-ID",
+        "threadId": "Themen-ID (optional)",
+        "help": "Erstellen Sie einen Bot mit BotFather, fügen Sie ihn Ihrem Chat hinzu und geben Sie die Chat-ID ein. Für Forenthemen können Sie zusätzlich eine Themen-ID angeben."
       }
     },
     "triggers": {
@@ -815,7 +815,7 @@
       "sending": "Senden…",
       "success": "Testbenachrichtigung erfolgreich gesendet.",
       "failure": "Testbenachrichtigung fehlgeschlagen: {error}",
-      "draftHelp": "Test sends a real notification using the current form values without saving changes."
+      "draftHelp": "Der Test sendet eine echte Benachrichtigung mit den aktuellen Formularwerten, ohne die Änderungen zu speichern."
     },
     "toast": {
       "channelCreated": "Kanal \"{name}\" erfolgreich erstellt.",
@@ -859,10 +859,10 @@
         "incidentId": "Eindeutige Vorfalls-ID",
         "timestamp": "Ereignis-Zeitstempel"
       },
-      "loadError": "Failed to load template variables.",
+      "loadError": "Die Vorlagenvariablen konnten nicht geladen werden.",
       "variable": "Variable",
-      "type": "Type",
-      "example": "Example"
+      "type": "Typ",
+      "example": "Beispiel"
     },
     "smtpSettings": {
       "title": "SMTP-Einstellungen",
@@ -921,12 +921,12 @@
       "smtpPortRange": "Port muss zwischen 1 und 65535 liegen.",
       "smtpFromRequired": "Absenderadresse ist erforderlich.",
       "smtpFromInvalid": "Ungültiges E-Mail-Adressformat.",
-      "recipientDuplicate": "This recipient is already added: {email}",
-      "headerRenameRequiresValue": "Enter a replacement value when renaming a saved header.",
-      "secretPlaceholder": "Enter an actual value instead of a redaction placeholder.",
-      "slackWebhookRequired": "Enter an HTTPS Slack incoming webhook URL.",
-      "telegramRequired": "Enter a bot token and chat ID. Topic ID must be a positive whole number.",
-      "matrixRequired": "Enter a valid homeserver URL, room ID beginning with !, and access token."
+      "recipientDuplicate": "Dieser Empfänger wurde bereits hinzugefügt: {email}",
+      "headerRenameRequiresValue": "Geben Sie beim Umbenennen eines gespeicherten Headers einen neuen Wert ein.",
+      "secretPlaceholder": "Geben Sie einen tatsächlichen Wert statt eines Platzhalters für ausgeblendete Daten ein.",
+      "slackWebhookRequired": "Geben Sie eine HTTPS-URL für einen eingehenden Slack-Webhook ein.",
+      "telegramRequired": "Geben Sie ein Bot-Token und eine Chat-ID ein. Die Themen-ID muss eine positive ganze Zahl sein.",
+      "matrixRequired": "Geben Sie eine gültige Homeserver-URL, eine mit ! beginnende Raum-ID und ein Zugriffstoken ein."
     }
   },
   "shell": {

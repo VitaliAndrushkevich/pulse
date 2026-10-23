@@ -737,22 +737,22 @@
         "bodyTemplatePlaceholder": "{ \"text\": \"{{.Monitor.Name}} is {{.Status}}\" }",
         "bodyTemplateHelp": "Webhook 요청 본문의 Go 템플릿. 아래 템플릿 변수를 사용하세요."
       },
-      "savedSecret": "A value is saved. Leave unchanged to keep it; enter a new value to replace it.",
+      "savedSecret": "저장된 값이 있습니다. 유지하려면 변경하지 말고, 교체하려면 새 값을 입력하세요.",
       "slack": {
-        "webhookUrl": "Incoming webhook URL",
-        "help": "Create an incoming webhook in your Slack app and choose its destination channel. Pulse sends formatted alerts with monitor details."
+        "webhookUrl": "수신 웹훅 URL",
+        "help": "Slack 앱에서 수신 웹훅을 만들고 대상 채널을 선택하세요. Pulse는 모니터 세부 정보가 포함된 서식 있는 알림을 전송합니다."
       },
       "matrix": {
-        "homeserverUrl": "Homeserver URL",
-        "roomId": "Room ID",
-        "accessToken": "Access token",
-        "help": "Invite your bot to the room and enter its access token and room ID. This integration supports unencrypted rooms only."
+        "homeserverUrl": "홈서버 URL",
+        "roomId": "방 ID",
+        "accessToken": "액세스 토큰",
+        "help": "봇을 방에 초대하고 액세스 토큰과 방 ID를 입력하세요. 이 연동은 암호화되지 않은 방만 지원합니다."
       },
       "telegram": {
-        "botToken": "Bot token",
-        "chatId": "Chat ID",
-        "threadId": "Topic ID (optional)",
-        "help": "Create a bot with BotFather, add it to your chat, and enter the chat ID. For forum topics, optionally enter a topic ID."
+        "botToken": "봇 토큰",
+        "chatId": "채팅 ID",
+        "threadId": "주제 ID (선택 사항)",
+        "help": "BotFather로 봇을 만들고 채팅에 추가한 다음 채팅 ID를 입력하세요. 포럼 주제에 전송하려면 필요에 따라 주제 ID를 입력하세요."
       }
     },
     "triggers": {
@@ -815,7 +815,7 @@
       "sending": "전송 중...",
       "success": "테스트 알림이 성공적으로 전송되었습니다.",
       "failure": "테스트 알림 실패: {error}",
-      "draftHelp": "Test sends a real notification using the current form values without saving changes."
+      "draftHelp": "테스트는 변경 사항을 저장하지 않고 현재 양식의 값으로 실제 알림을 전송합니다."
     },
     "toast": {
       "channelCreated": "채널 \"{name}\"이(가) 성공적으로 생성되었습니다.",
@@ -859,10 +859,10 @@
         "incidentId": "인시던트 고유 ID",
         "timestamp": "이벤트 타임스탬프"
       },
-      "loadError": "Failed to load template variables.",
-      "variable": "Variable",
-      "type": "Type",
-      "example": "Example"
+      "loadError": "템플릿 변수를 불러오지 못했습니다.",
+      "variable": "변수",
+      "type": "유형",
+      "example": "예시"
     },
     "smtpSettings": {
       "title": "SMTP 설정",
@@ -921,12 +921,12 @@
       "smtpPortRange": "포트는 1에서 65535 사이여야 합니다.",
       "smtpFromRequired": "발신자 주소는 필수입니다.",
       "smtpFromInvalid": "잘못된 이메일 주소 형식입니다.",
-      "recipientDuplicate": "This recipient is already added: {email}",
-      "headerRenameRequiresValue": "Enter a replacement value when renaming a saved header.",
-      "secretPlaceholder": "Enter an actual value instead of a redaction placeholder.",
-      "slackWebhookRequired": "Enter an HTTPS Slack incoming webhook URL.",
-      "telegramRequired": "Enter a bot token and chat ID. Topic ID must be a positive whole number.",
-      "matrixRequired": "Enter a valid homeserver URL, room ID beginning with !, and access token."
+      "recipientDuplicate": "이미 추가된 수신자입니다: {email}",
+      "headerRenameRequiresValue": "저장된 헤더의 이름을 변경하려면 교체할 값을 입력하세요.",
+      "secretPlaceholder": "가려진 자리 표시자 대신 실제 값을 입력하세요.",
+      "slackWebhookRequired": "HTTPS 형식의 Slack 수신 웹훅 URL을 입력하세요.",
+      "telegramRequired": "봇 토큰과 채팅 ID를 입력하세요. 주제 ID는 양의 정수여야 합니다.",
+      "matrixRequired": "유효한 홈서버 URL, !로 시작하는 방 ID, 액세스 토큰을 입력하세요."
     }
   },
   "shell": {
