@@ -696,7 +696,10 @@
       },
       "types": {
         "email": "이메일",
-        "webhook": "Webhook"
+        "webhook": "Webhook",
+        "slack": "Slack",
+        "matrix": "Matrix",
+        "telegram": "Telegram"
       },
       "deleteConfirm": {
         "title": "채널 삭제",
@@ -733,6 +736,23 @@
         "bodyTemplate": "본문 템플릿",
         "bodyTemplatePlaceholder": "{ \"text\": \"{{.Monitor.Name}} is {{.Status}}\" }",
         "bodyTemplateHelp": "Webhook 요청 본문의 Go 템플릿. 아래 템플릿 변수를 사용하세요."
+      },
+      "savedSecret": "A value is saved. Leave unchanged to keep it; enter a new value to replace it.",
+      "slack": {
+        "webhookUrl": "Incoming webhook URL",
+        "help": "Create an incoming webhook in your Slack app and choose its destination channel. Pulse sends formatted alerts with monitor details."
+      },
+      "matrix": {
+        "homeserverUrl": "Homeserver URL",
+        "roomId": "Room ID",
+        "accessToken": "Access token",
+        "help": "Invite your bot to the room and enter its access token and room ID. This integration supports unencrypted rooms only."
+      },
+      "telegram": {
+        "botToken": "Bot token",
+        "chatId": "Chat ID",
+        "threadId": "Topic ID (optional)",
+        "help": "Create a bot with BotFather, add it to your chat, and enter the chat ID. For forum topics, optionally enter a topic ID."
       }
     },
     "triggers": {
@@ -794,7 +814,8 @@
       "button": "테스트",
       "sending": "전송 중...",
       "success": "테스트 알림이 성공적으로 전송되었습니다.",
-      "failure": "테스트 알림 실패: {error}"
+      "failure": "테스트 알림 실패: {error}",
+      "draftHelp": "Test sends a real notification using the current form values without saving changes."
     },
     "toast": {
       "channelCreated": "채널 \"{name}\"이(가) 성공적으로 생성되었습니다.",
@@ -837,7 +858,11 @@
         "incidentDuration": "인시던트 지속 시간",
         "incidentId": "인시던트 고유 ID",
         "timestamp": "이벤트 타임스탬프"
-      }
+      },
+      "loadError": "Failed to load template variables.",
+      "variable": "Variable",
+      "type": "Type",
+      "example": "Example"
     },
     "smtpSettings": {
       "title": "SMTP 설정",
@@ -895,7 +920,13 @@
       "smtpHostRequired": "SMTP 호스트는 필수입니다.",
       "smtpPortRange": "포트는 1에서 65535 사이여야 합니다.",
       "smtpFromRequired": "발신자 주소는 필수입니다.",
-      "smtpFromInvalid": "잘못된 이메일 주소 형식입니다."
+      "smtpFromInvalid": "잘못된 이메일 주소 형식입니다.",
+      "recipientDuplicate": "This recipient is already added: {email}",
+      "headerRenameRequiresValue": "Enter a replacement value when renaming a saved header.",
+      "secretPlaceholder": "Enter an actual value instead of a redaction placeholder.",
+      "slackWebhookRequired": "Enter an HTTPS Slack incoming webhook URL.",
+      "telegramRequired": "Enter a bot token and chat ID. Topic ID must be a positive whole number.",
+      "matrixRequired": "Enter a valid homeserver URL, room ID beginning with !, and access token."
     }
   },
   "shell": {

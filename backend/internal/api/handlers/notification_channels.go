@@ -15,9 +15,11 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/VitaliAndrushkevich/pulse/internal/crypto"
 	"github.com/VitaliAndrushkevich/pulse/internal/notification"
+	"github.com/VitaliAndrushkevich/pulse/internal/notification/native"
 	smtpclient "github.com/VitaliAndrushkevich/pulse/internal/notification/smtp"
 	"github.com/VitaliAndrushkevich/pulse/internal/notification/webhook"
 	db "github.com/VitaliAndrushkevich/pulse/internal/store/postgres"
@@ -38,11 +40,13 @@ var validWebhookMethods = map[string]bool{
 // NotificationChannelHandler provides CRUD operations for notification channels.
 type NotificationChannelHandler struct {
 	queries       *db.Queries
+	pool          *pgxpool.Pool
 	secretKey     []byte
 	webhookClient *webhook.Client
 	smtpClient    *smtpclient.Client // nil if SMTP not configured
 	smtpMu        sync.RWMutex
 	baseURL       string // public base URL for notification links
+	testSlots     chan struct{}
 }
 
 // NewNotificationChannelHandler creates a handler for notification channel operations.
@@ -52,8 +56,12 @@ func NewNotificationChannelHandler(queries *db.Queries, secretKey []byte, baseUR
 		secretKey:     secretKey,
 		webhookClient: webhook.NewClient(secretKey),
 		baseURL:       baseURL,
+		testSlots:     make(chan struct{}, 4),
 	}
 }
+
+// SetPool enables atomic secret-preserving updates in production.
+func (h *NotificationChannelHandler) SetPool(pool *pgxpool.Pool) { h.pool = pool }
 
 // SetSMTPClient sets the SMTP client used for test email delivery.
 // This is optional — if not set, test notifications for email channels will
@@ -74,6 +82,7 @@ func (h *NotificationChannelHandler) getSMTPClient() *smtpclient.Client {
 // Register mounts notification channel routes on the given router group.
 func (h *NotificationChannelHandler) Register(rg *gin.RouterGroup) {
 	rg.POST("/notifications/channels", h.Create)
+	rg.POST("/notifications/channels/test", h.TestDraft)
 	rg.GET("/notifications/channels", h.List)
 	rg.GET("/notifications/channels/:id", h.Get)
 	rg.PUT("/notifications/channels/:id", h.Update)
@@ -104,8 +113,9 @@ type emailConfig struct {
 }
 
 type webhookHeader struct {
-	Name  string `json:"name"`
-	Value string `json:"value"`
+	Name            string  `json:"name"`
+	Value           *string `json:"value,omitempty"`
+	ValueConfigured bool    `json:"value_configured,omitempty"`
 }
 
 type webhookConfig struct {
@@ -157,6 +167,7 @@ type deliveryLogListResponse struct {
 // Create handles POST /notifications/channels.
 func (h *NotificationChannelHandler) Create(c *gin.Context) {
 	var req channelRequest
+	c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, 2<<20)
 	if err := c.ShouldBindJSON(&req); err != nil {
 		apiError(c, http.StatusBadRequest, "VALIDATION_ERROR", "invalid request body")
 		return
@@ -169,9 +180,9 @@ func (h *NotificationChannelHandler) Create(c *gin.Context) {
 	}
 
 	// Process config: encrypt header values for webhook channels.
-	configJSON, err := h.processConfigForStorage(req.Type, req.Config)
+	configJSON, err := h.processConfigForStorage(req.Type, req.Config, nil)
 	if err != nil {
-		apiError(c, http.StatusInternalServerError, "INTERNAL_ERROR", "failed to process channel config")
+		apiValidationError(c, "channel configuration is invalid", []fieldError{{Field: "config", Message: err.Error()}})
 		return
 	}
 
@@ -263,6 +274,7 @@ func (h *NotificationChannelHandler) Update(c *gin.Context) {
 	}
 
 	var req channelRequest
+	c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, 2<<20)
 	if err := c.ShouldBindJSON(&req); err != nil {
 		apiError(c, http.StatusBadRequest, "VALIDATION_ERROR", "invalid request body")
 		return
@@ -276,7 +288,21 @@ func (h *NotificationChannelHandler) Update(c *gin.Context) {
 
 	// Verify channel exists before updating.
 	ctx := c.Request.Context()
-	_, err = h.queries.GetChannel(ctx, id)
+	q := h.queries
+	var tx pgx.Tx
+	var existing db.NotificationChannel
+	if h.pool != nil {
+		tx, err = h.pool.Begin(ctx)
+		if err != nil {
+			apiError(c, http.StatusInternalServerError, "DB_ERROR", "failed to begin channel update")
+			return
+		}
+		defer tx.Rollback(ctx)
+		q = h.queries.WithTx(tx)
+		existing, err = q.GetChannelForUpdate(ctx, id)
+	} else {
+		existing, err = q.GetChannel(ctx, id)
+	}
 	if err != nil {
 		if isNotFound(err) {
 			apiError(c, http.StatusNotFound, "NOT_FOUND", "channel not found")
@@ -287,13 +313,17 @@ func (h *NotificationChannelHandler) Update(c *gin.Context) {
 	}
 
 	// Process config: encrypt header values for webhook channels.
-	configJSON, err := h.processConfigForStorage(req.Type, req.Config)
+	var previous json.RawMessage
+	if existing.ChannelType == req.Type {
+		previous = existing.Config
+	}
+	configJSON, err := h.processConfigForStorage(req.Type, req.Config, previous)
 	if err != nil {
-		apiError(c, http.StatusInternalServerError, "INTERNAL_ERROR", "failed to process channel config")
+		apiValidationError(c, "channel configuration is invalid", []fieldError{{Field: "config", Message: err.Error()}})
 		return
 	}
 
-	channel, err := h.queries.UpdateChannel(ctx, db.UpdateChannelParams{
+	channel, err := q.UpdateChannel(ctx, db.UpdateChannelParams{
 		ID:          id,
 		Name:        req.Name,
 		ChannelType: req.Type,
@@ -304,6 +334,12 @@ func (h *NotificationChannelHandler) Update(c *gin.Context) {
 		return
 	}
 
+	if tx != nil {
+		if err := tx.Commit(ctx); err != nil {
+			apiError(c, http.StatusInternalServerError, "DB_ERROR", "failed to commit channel update")
+			return
+		}
+	}
 	c.JSON(http.StatusOK, toChannelResponse(channel, h.secretKey))
 }
 
@@ -423,7 +459,7 @@ func (h *NotificationChannelHandler) ListDeliveryLogs(c *gin.Context) {
 type testNotificationResponse struct {
 	Success     bool   `json:"success"`
 	ChannelType string `json:"channel_type"`
-	ChannelID   string `json:"channel_id"`
+	ChannelID   string `json:"channel_id,omitempty"`
 	Error       string `json:"error,omitempty"`
 }
 
@@ -452,55 +488,90 @@ func (h *NotificationChannelHandler) Test(c *gin.Context) {
 		return
 	}
 
-	// Build sample TemplateData with test values.
-	now := time.Now()
-	sampleData := notification.TemplateData{
-		Monitor: notification.MonitorData{
-			ID:     uuid.New(),
-			Name:   "[TEST] Sample Monitor",
-			URL:    "https://example.com/health",
-			Target: "example.com",
-		},
-		Status:         "down",
-		PreviousStatus: "up",
-		ResponseTime:   1500,
-		Incident: notification.IncidentData{
-			ID:        uuid.New(),
-			StartedAt: now.Add(-5 * time.Minute),
-			Duration:  5 * time.Minute,
-		},
-		Timestamp: now,
-		BaseURL:   h.baseURL,
+	h.runTest(c, channel)
+}
+
+// TestDraft sends the submitted configuration without saving it. Stored secrets
+// may only be resolved from the explicitly selected channel of the same type.
+func (h *NotificationChannelHandler) TestDraft(c *gin.Context) {
+	var req struct {
+		channelRequest
+		ExistingChannelID string `json:"existing_channel_id"`
 	}
-
-	// Set a 10s context timeout for the test delivery.
-	testCtx, cancel := context.WithTimeout(ctx, testTimeout)
-	defer cancel()
-
-	// Dispatch to the appropriate delivery method.
-	var deliveryErr error
-	switch channel.ChannelType {
-	case "email":
-		deliveryErr = h.testEmailDelivery(testCtx, channel)
-	case "webhook":
-		deliveryErr = h.testWebhookDelivery(testCtx, channel, sampleData)
-	default:
-		apiError(c, http.StatusBadRequest, "VALIDATION_ERROR", "unsupported channel type")
+	c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, 2<<20)
+	if err := c.ShouldBindJSON(&req); err != nil {
+		apiError(c, http.StatusBadRequest, "VALIDATION_ERROR", "invalid request body")
 		return
 	}
-
-	resp := testNotificationResponse{
-		ChannelType: channel.ChannelType,
-		ChannelID:   id.String(),
+	if errs := h.validateChannelRequest(req.channelRequest); len(errs) > 0 {
+		apiValidationError(c, "channel configuration is invalid", errs)
+		return
 	}
-
-	if deliveryErr != nil {
-		resp.Success = false
-		resp.Error = deliveryErr.Error()
-	} else {
-		resp.Success = true
+	var previous json.RawMessage
+	if req.ExistingChannelID != "" {
+		id, err := uuid.Parse(req.ExistingChannelID)
+		if err != nil {
+			apiError(c, http.StatusBadRequest, "INVALID_ID", "existing_channel_id must be a valid UUID")
+			return
+		}
+		existing, err := h.queries.GetChannel(c.Request.Context(), id)
+		if err != nil {
+			if isNotFound(err) {
+				apiError(c, http.StatusNotFound, "NOT_FOUND", "channel not found")
+			} else {
+				apiError(c, http.StatusInternalServerError, "DB_ERROR", "failed to get channel")
+			}
+			return
+		}
+		if existing.ChannelType == req.Type {
+			previous = existing.Config
+		}
 	}
+	config, err := h.processConfigForStorage(req.Type, req.Config, previous)
+	if err != nil {
+		apiValidationError(c, "channel configuration is invalid", []fieldError{{Field: "config", Message: err.Error()}})
+		return
+	}
+	h.runTest(c, db.NotificationChannel{ChannelType: req.Type, Config: config})
+}
 
+func (h *NotificationChannelHandler) runTest(c *gin.Context, channel db.NotificationChannel) {
+	select {
+	case h.testSlots <- struct{}{}:
+		defer func() { <-h.testSlots }()
+	default:
+		apiError(c, http.StatusTooManyRequests, "TEST_BUSY", "too many notification tests in progress")
+		return
+	}
+	now := time.Now()
+	sampleData := notification.TemplateData{
+		Monitor: notification.MonitorData{ID: uuid.New(), Name: "[TEST] Sample Monitor", URL: "https://example.com/health", Target: "example.com"},
+		Status:  "down", PreviousStatus: "up", ResponseTime: 1500,
+		Incident:  notification.IncidentData{ID: uuid.New(), StartedAt: now.Add(-5 * time.Minute), Duration: 5 * time.Minute},
+		Timestamp: now, BaseURL: h.baseURL,
+	}
+	ctx, cancel := context.WithTimeout(c.Request.Context(), testTimeout)
+	defer cancel()
+	var err error
+	switch channel.ChannelType {
+	case "email":
+		err = h.testEmailDelivery(ctx, channel)
+	case "webhook":
+		err = h.testWebhookDelivery(ctx, channel, sampleData)
+	default:
+		if !native.IsType(channel.ChannelType) {
+			apiError(c, http.StatusBadRequest, "VALIDATION_ERROR", "unsupported channel type")
+			return
+		}
+		err = native.Deliver(ctx, channel.ChannelType, channel.Config, h.secretKey, sampleData, uuid.New())
+	}
+	resp := testNotificationResponse{Success: err == nil, ChannelType: channel.ChannelType}
+	if channel.ID != uuid.Nil {
+		resp.ChannelID = channel.ID.String()
+	}
+	if err != nil {
+		resp.Error = err.Error()
+	}
 	c.JSON(http.StatusOK, resp)
 }
 
@@ -569,8 +640,8 @@ func (h *NotificationChannelHandler) validateChannelRequest(req channelRequest) 
 	}
 
 	// Validate type.
-	if req.Type != "email" && req.Type != "webhook" {
-		errs = append(errs, fieldError{Field: "type", Message: "must be \"email\" or \"webhook\""})
+	if req.Type != "email" && req.Type != "webhook" && !native.IsType(req.Type) {
+		errs = append(errs, fieldError{Field: "type", Message: "unsupported channel type"})
 		return errs // Can't validate config without knowing type.
 	}
 
@@ -585,6 +656,10 @@ func (h *NotificationChannelHandler) validateChannelRequest(req channelRequest) 
 		errs = append(errs, h.validateEmailConfig(req.Config)...)
 	case "webhook":
 		errs = append(errs, h.validateWebhookConfig(req.Config)...)
+	default:
+		if err := native.Validate(req.Type, req.Config); err != nil {
+			errs = append(errs, fieldError{Field: "config", Message: err.Error()})
+		}
 	}
 
 	return errs
@@ -645,7 +720,7 @@ func (h *NotificationChannelHandler) validateWebhookConfig(raw json.RawMessage) 
 		errs = append(errs, fieldError{Field: "config.url", Message: "must not exceed 2048 characters"})
 	} else {
 		parsed, err := url.Parse(cfg.URL)
-		if err != nil || (parsed.Scheme != "http" && parsed.Scheme != "https") {
+		if err != nil || parsed.Host == "" || parsed.User != nil || (parsed.Scheme != "http" && parsed.Scheme != "https") {
 			errs = append(errs, fieldError{Field: "config.url", Message: "must be a valid http or https URL"})
 		}
 	}
@@ -670,6 +745,7 @@ func (h *NotificationChannelHandler) validateWebhookConfig(raw json.RawMessage) 
 	if len(cfg.Headers) > 20 {
 		errs = append(errs, fieldError{Field: "config.headers", Message: "must not exceed 20 headers"})
 	} else {
+		seen := make(map[string]bool)
 		for i, header := range cfg.Headers {
 			prefix := fmt.Sprintf("config.headers[%d]", i)
 			if header.Name == "" {
@@ -677,7 +753,15 @@ func (h *NotificationChannelHandler) validateWebhookConfig(raw json.RawMessage) 
 			} else if len(header.Name) > 128 {
 				errs = append(errs, fieldError{Field: prefix + ".name", Message: "must not exceed 128 characters"})
 			}
-			if len(header.Value) > 8192 {
+			canonical := strings.ToLower(header.Name)
+			if seen[canonical] || !validHeaderName(header.Name) {
+				errs = append(errs, fieldError{Field: prefix + ".name", Message: "must be a unique valid HTTP header name"})
+			}
+			seen[canonical] = true
+			if header.Value != nil && strings.ContainsAny(*header.Value, "\r\n") {
+				errs = append(errs, fieldError{Field: prefix + ".value", Message: "must not contain line breaks"})
+			}
+			if header.Value != nil && len(*header.Value) > 8192 {
 				errs = append(errs, fieldError{Field: prefix + ".value", Message: "must not exceed 8192 characters"})
 			}
 		}
@@ -689,32 +773,75 @@ func (h *NotificationChannelHandler) validateWebhookConfig(raw json.RawMessage) 
 // --- Config processing ---
 
 // processConfigForStorage encrypts sensitive fields in webhook config before storage.
-func (h *NotificationChannelHandler) processConfigForStorage(channelType string, raw json.RawMessage) (json.RawMessage, error) {
-	if channelType != "webhook" {
-		return raw, nil
+func (h *NotificationChannelHandler) processConfigForStorage(channelType string, raw, previous json.RawMessage) (json.RawMessage, error) {
+	if native.IsType(channelType) {
+		return native.Prepare(channelType, raw, previous, h.secretKey)
 	}
-
+	if channelType != "webhook" {
+		var cfg emailConfig
+		if json.Unmarshal(raw, &cfg) != nil {
+			return nil, fmt.Errorf("invalid email configuration")
+		}
+		return json.Marshal(cfg)
+	}
 	var cfg webhookConfig
 	if err := json.Unmarshal(raw, &cfg); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("invalid webhook configuration")
 	}
-
-	// Normalize method to uppercase.
+	var old webhookConfig
+	if len(previous) > 0 {
+		if err := json.Unmarshal(previous, &old); err != nil {
+			return nil, fmt.Errorf("stored configuration is invalid")
+		}
+	}
+	values := make(map[string]*string, len(old.Headers))
+	for _, header := range old.Headers {
+		values[strings.ToLower(header.Name)] = header.Value
+	}
 	cfg.Method = strings.ToUpper(cfg.Method)
-
-	// Encrypt header values.
+	if cfg.Headers == nil {
+		cfg.Headers = []webhookHeader{}
+	}
 	for i, header := range cfg.Headers {
-		if header.Value == "" {
+		if header.Value == nil || *header.Value == "[REDACTED]" {
+			value := values[strings.ToLower(header.Name)]
+			if value == nil {
+				return nil, fmt.Errorf("header %d requires a value", i)
+			}
+			cfg.Headers[i].Value = value
+			// Older releases stored explicit empty values without encryption.
+			if *value == "" {
+				encrypted, err := crypto.Encrypt(h.secretKey, nil)
+				if err != nil {
+					return nil, fmt.Errorf("failed to encrypt header")
+				}
+				encoded := base64.StdEncoding.EncodeToString(encrypted)
+				cfg.Headers[i].Value = &encoded
+			}
+		} else {
+			encrypted, err := crypto.Encrypt(h.secretKey, []byte(*header.Value))
+			if err != nil {
+				return nil, fmt.Errorf("failed to encrypt header")
+			}
+			value := base64.StdEncoding.EncodeToString(encrypted)
+			cfg.Headers[i].Value = &value
+		}
+		cfg.Headers[i].ValueConfigured = false
+	}
+	return json.Marshal(cfg)
+}
+
+func validHeaderName(name string) bool {
+	if name == "" {
+		return false
+	}
+	for _, ch := range name {
+		if ch >= 'a' && ch <= 'z' || ch >= 'A' && ch <= 'Z' || ch >= '0' && ch <= '9' || strings.ContainsRune("!#$%&'*+-.^_`|~", ch) {
 			continue
 		}
-		encrypted, err := crypto.Encrypt(h.secretKey, []byte(header.Value))
-		if err != nil {
-			return nil, fmt.Errorf("encrypt header %d: %w", i, err)
-		}
-		cfg.Headers[i].Value = base64.StdEncoding.EncodeToString(encrypted)
+		return false
 	}
-
-	return json.Marshal(cfg)
+	return true
 }
 
 // --- Response helpers ---
@@ -733,26 +860,38 @@ func toChannelResponse(ch db.NotificationChannel, secretKey []byte) channelRespo
 	}
 }
 
-// redactChannelConfig replaces encrypted header values with "[REDACTED]" for
-// webhook channels. Email configs are returned as-is.
+// redactChannelConfig exposes only configured metadata for webhook secrets.
+// Email configs are returned as-is.
 func redactChannelConfig(channelType string, raw json.RawMessage) json.RawMessage {
+	if native.IsType(channelType) {
+		return native.Redact(channelType, raw)
+	}
 	if channelType != "webhook" {
-		return raw
+		var cfg emailConfig
+		if channelType != "email" || json.Unmarshal(raw, &cfg) != nil {
+			return json.RawMessage(`{}`)
+		}
+		result, err := json.Marshal(cfg)
+		if err != nil {
+			return json.RawMessage(`{}`)
+		}
+		return result
 	}
 
 	var cfg webhookConfig
 	if err := json.Unmarshal(raw, &cfg); err != nil {
-		// If we can't unmarshal, return raw to avoid data loss.
-		return raw
+		// Fail closed: malformed stored configuration must never escape redaction.
+		return json.RawMessage(`{}`)
 	}
 
 	for i := range cfg.Headers {
-		cfg.Headers[i].Value = "[REDACTED]"
+		cfg.Headers[i].ValueConfigured = cfg.Headers[i].Value != nil
+		cfg.Headers[i].Value = nil
 	}
 
 	redacted, err := json.Marshal(cfg)
 	if err != nil {
-		return raw
+		return json.RawMessage(`{}`)
 	}
 	return redacted
 }

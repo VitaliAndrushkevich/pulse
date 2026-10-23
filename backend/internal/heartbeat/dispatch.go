@@ -17,7 +17,7 @@ import (
 // dispatch helper depends on. Narrowing the surface keeps the helper unit
 // testable with a focused fake and documents exactly what it touches.
 type dispatchQueries interface {
-	ListBindingsByHeartbeat(ctx context.Context, heartbeatID uuid.UUID) ([]db.HeartbeatBinding, error)
+	ListBindingsByHeartbeat(ctx context.Context, heartbeatID uuid.UUID) ([]db.ListBindingsByHeartbeatRow, error)
 }
 
 // notificationDispatcher is the slice of *notification.Dispatcher the helper
@@ -95,8 +95,9 @@ func (d *Dispatch) dispatch(ctx context.Context, hb db.Heartbeat, newState, prev
 			continue
 		}
 		bindings = append(bindings, notification.BindingWithChannel{
-			ID:        row.ID,
-			ChannelID: row.ChannelID,
+			ID:          row.ID,
+			ChannelID:   row.ChannelID,
+			ChannelType: row.ChannelType,
 			// MonitorID carries the heartbeat UUID — it is the resource key used
 			// for StateTracker dedup and for the DeliveryJob.MonitorID audit
 			// column (delivery_logs.monitor_id NOT NULL, MEDIUM-1).
@@ -127,6 +128,7 @@ func (d *Dispatch) dispatch(ctx context.Context, hb db.Heartbeat, newState, prev
 func (d *Dispatch) payloadBuilder(hb db.Heartbeat) func(uuid.UUID, notification.CheckResult) notification.TemplateData {
 	return func(id uuid.UUID, result notification.CheckResult) notification.TemplateData {
 		return notification.TemplateData{
+			ResourceKind: "heartbeat",
 			Monitor: notification.MonitorData{
 				ID:   id,
 				Name: hb.Name,

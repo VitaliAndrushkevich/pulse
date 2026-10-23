@@ -1202,7 +1202,8 @@ paths:
           $ref: "#/components/responses/Unauthorized"
     put:
       operationId: updateNotificationChannel
-      summary: Update a notification channel (full replacement)
+      summary: Update a notification channel
+      description: Replaces public configuration and the header list. Omitted secret values retain matching stored secrets for the same channel type.
       tags: [Notifications]
       parameters:
         - $ref: "#/components/parameters/NotificationChannelID"
@@ -1894,6 +1895,48 @@ paths:
         "401":
           $ref: "#/components/responses/Unauthorized"
 
+  /notifications/channels/test:
+    post:
+      operationId: testDraftNotificationChannel
+      summary: Test unsaved notification settings
+      description: >
+        Sends a clearly marked Pulse test message using the submitted configuration.
+        Optional existing_channel_id resolves retained secrets server side.
+        The draft is not saved; bindings, delivery logs, and retries are not created.
+        Delivery has a 10 second timeout. Saved and draft tests share a bounded
+        limit of four concurrent deliveries; excess tests return TEST_BUSY (429).
+      tags: [Notifications]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DraftNotificationTestRequest"
+      responses:
+        "200":
+          description: Delivery result, including timeout or provider failure; no channel_id for a draft.
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/X-Request-ID"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TestNotificationResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          description: TEST_BUSY — four tests are already in progress.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   /notifications/channels/{id}/test:
     post:
       operationId: testNotificationChannel
@@ -1920,8 +1963,10 @@ paths:
                 $ref: "#/components/schemas/TestNotificationResponse"
         "404":
           $ref: "#/components/responses/NotFound"
-        "504":
-          description: Test delivery timed out (10s exceeded)
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "429":
+          description: TEST_BUSY — four tests are already in progress.
           content:
             application/json:
               schema:
@@ -2261,6 +2306,7 @@ components:
               description: >
                 Machine-readable error code. Known codes include:
                 VALIDATION_ERROR - general field validation failure;
+                TEST_BUSY - notification test concurrency limit reached;
                 FORBIDDEN - administrator role or a user session is required;
                 PASSWORD_CHANGE_REQUIRED - replace temporary password before accessing the application;
                 EMAIL_EXISTS - email already belongs to an account;
@@ -3510,57 +3556,255 @@ components:
           description: Proto source comment associated with this field (if any)
 
     NotificationChannel:
-      type: object
-      description: >
-        A notification channel (email or webhook). Webhook header values are
-        redacted in GET responses.
-      required: [id, name, type, config, created_at, updated_at]
-      properties:
-        id:
-          type: string
-          format: uuid
-        name:
-          type: string
-          minLength: 1
-          maxLength: 100
-        type:
-          type: string
-          enum: [email, webhook]
-        config:
-          type: object
-          description: >
-            Type-specific configuration. For email: { recipients: string[] }.
-            For webhook: { url, method, body_template, headers: [{name, value}] }.
-            Header values are "[REDACTED]" in GET responses.
-        created_at:
-          type: string
-          format: date-time
-        updated_at:
-          type: string
-          format: date-time
+      allOf:
+        - type: object
+          required: [id, name, type, config, created_at, updated_at]
+          properties:
+            id: {type: string, format: uuid}
+            name: {type: string, minLength: 1, maxLength: 100}
+            created_at: {type: string, format: date-time}
+            updated_at: {type: string, format: date-time}
+        - oneOf:
+            - $ref: "#/components/schemas/EmailChannelRead"
+            - $ref: "#/components/schemas/WebhookChannelRead"
+            - $ref: "#/components/schemas/SlackChannelRead"
+            - $ref: "#/components/schemas/TelegramChannelRead"
+            - $ref: "#/components/schemas/MatrixChannelRead"
+          discriminator:
+            propertyName: type
+            mapping:
+              email: "#/components/schemas/EmailChannelRead"
+              webhook: "#/components/schemas/WebhookChannelRead"
+              slack: "#/components/schemas/SlackChannelRead"
+              telegram: "#/components/schemas/TelegramChannelRead"
+              matrix: "#/components/schemas/MatrixChannelRead"
 
     CreateNotificationChannelRequest:
+      description: >
+        Channel configuration. New channels require every secret. On update,
+        omitted secrets retain existing values only for the same channel type.
+        Provided secret values replace existing values. Credentials are encrypted
+        with AES-256-GCM and are never returned by this API.
+      oneOf:
+        - $ref: "#/components/schemas/EmailChannelWrite"
+        - $ref: "#/components/schemas/WebhookChannelWrite"
+        - $ref: "#/components/schemas/SlackChannelWrite"
+        - $ref: "#/components/schemas/TelegramChannelWrite"
+        - $ref: "#/components/schemas/MatrixChannelWrite"
+      discriminator:
+        propertyName: type
+        mapping:
+          email: "#/components/schemas/EmailChannelWrite"
+          webhook: "#/components/schemas/WebhookChannelWrite"
+          slack: "#/components/schemas/SlackChannelWrite"
+          telegram: "#/components/schemas/TelegramChannelWrite"
+          matrix: "#/components/schemas/MatrixChannelWrite"
+
+    DraftNotificationTestRequest:
+      allOf:
+        - $ref: "#/components/schemas/CreateNotificationChannelRequest"
+        - type: object
+          properties:
+            existing_channel_id:
+              type: string
+              format: uuid
+              description: Resolve omitted secrets from this existing channel if its type matches. Does not modify it.
+
+    EmailChannelWrite:
       type: object
       required: [name, type, config]
       properties:
-        name:
-          type: string
-          minLength: 1
-          maxLength: 100
-          description: Human-readable channel name
-        type:
-          type: string
-          enum: [email, webhook]
-          description: Channel type
+        name: {type: string, minLength: 1, maxLength: 100}
+        type: {type: string, enum: [email]}
         config:
-          type: object
+          $ref: "#/components/schemas/EmailChannelConfigWrite"
+
+    EmailChannelRead:
+      type: object
+      required: [name, type, config]
+      properties:
+        name: {type: string, minLength: 1, maxLength: 100}
+        type: {type: string, enum: [email]}
+        config:
+          $ref: "#/components/schemas/EmailChannelConfigRead"
+
+    WebhookChannelWrite:
+      type: object
+      required: [name, type, config]
+      properties:
+        name: {type: string, minLength: 1, maxLength: 100}
+        type: {type: string, enum: [webhook]}
+        config:
+          $ref: "#/components/schemas/WebhookChannelConfigWrite"
+
+    WebhookChannelRead:
+      type: object
+      required: [name, type, config]
+      properties:
+        name: {type: string, minLength: 1, maxLength: 100}
+        type: {type: string, enum: [webhook]}
+        config:
+          $ref: "#/components/schemas/WebhookChannelConfigRead"
+
+    SlackChannelWrite:
+      type: object
+      required: [name, type, config]
+      properties:
+        name: {type: string, minLength: 1, maxLength: 100}
+        type: {type: string, enum: [slack]}
+        config:
+          $ref: "#/components/schemas/SlackChannelConfigWrite"
+
+    SlackChannelRead:
+      type: object
+      required: [name, type, config]
+      properties:
+        name: {type: string, minLength: 1, maxLength: 100}
+        type: {type: string, enum: [slack]}
+        config:
+          $ref: "#/components/schemas/SlackChannelConfigRead"
+
+    TelegramChannelWrite:
+      type: object
+      required: [name, type, config]
+      properties:
+        name: {type: string, minLength: 1, maxLength: 100}
+        type: {type: string, enum: [telegram]}
+        config:
+          $ref: "#/components/schemas/TelegramChannelConfigWrite"
+
+    TelegramChannelRead:
+      type: object
+      required: [name, type, config]
+      properties:
+        name: {type: string, minLength: 1, maxLength: 100}
+        type: {type: string, enum: [telegram]}
+        config:
+          $ref: "#/components/schemas/TelegramChannelConfigRead"
+
+    MatrixChannelWrite:
+      type: object
+      required: [name, type, config]
+      properties:
+        name: {type: string, minLength: 1, maxLength: 100}
+        type: {type: string, enum: [matrix]}
+        config:
+          $ref: "#/components/schemas/MatrixChannelConfigWrite"
+
+    MatrixChannelRead:
+      type: object
+      required: [name, type, config]
+      properties:
+        name: {type: string, minLength: 1, maxLength: 100}
+        type: {type: string, enum: [matrix]}
+        config:
+          $ref: "#/components/schemas/MatrixChannelConfigRead"
+
+    EmailChannelConfigWrite:
+      type: object
+      required: [recipients]
+      properties:
+        recipients:
+          type: array
+          minItems: 1
+          maxItems: 50
+          items: {type: string, format: email, maxLength: 254}
+    EmailChannelConfigRead:
+      $ref: "#/components/schemas/EmailChannelConfigWrite"
+
+    WebhookChannelConfigWrite:
+      type: object
+      required: [url, method, body_template]
+      properties:
+        url: {type: string, format: uri, maxLength: 2048}
+        method: {type: string, enum: [GET, POST, PUT, PATCH, DELETE]}
+        body_template:
+          type: string
+          description: Go text/template rendered with notification template variables; maximum rendered size 1 MiB.
+        headers:
+          type: array
+          maxItems: 20
           description: >
-            Type-specific configuration.
-            Email: { "recipients": ["addr@example.com"] } (1-50 RFC 5322 addresses, max 254 chars each).
-            Webhook: { "url": "https://...", "method": "POST", "body_template": "...", "headers": [{"name": "X-Key", "value": "secret"}] }
-            (URL max 2048 chars, http/https only; method: GET/POST/PUT/PATCH/DELETE;
-            body_template: valid Go text/template with known variables; headers: 0-20 items,
-            name max 128 chars, value max 8192 chars).
+            Replaces the complete header list. Omitted headers are removed.
+            Names must be valid, unique HTTP header names (case insensitive).
+            Omitted value preserves the matching stored header. Explicit empty
+            string replaces it with an empty header value. Legacy [REDACTED]
+            preserves a matching existing header only. New headers require value.
+          items:
+            type: object
+            required: [name]
+            properties:
+              name: {type: string, minLength: 1, maxLength: 128}
+              value:
+                type: string
+                maxLength: 8192
+                writeOnly: true
+                description: Header value; CR and LF are forbidden.
+    WebhookChannelConfigRead:
+      type: object
+      required: [url, method, body_template, headers]
+      properties:
+        url: {type: string, format: uri}
+        method: {type: string, enum: [GET, POST, PUT, PATCH, DELETE]}
+        body_template: {type: string}
+        headers:
+          type: array
+          items:
+            type: object
+            required: [name, value_configured]
+            properties:
+              name: {type: string}
+              value_configured: {type: boolean, description: Whether a stored value exists. The value is never returned.}
+
+    SlackChannelConfigWrite:
+      type: object
+      properties:
+        webhook_url:
+          type: string
+          format: uri
+          writeOnly: true
+          description: HTTPS incoming webhook URL on hooks.slack.com or hooks.slack-gov.com, without query or fragment. Required on creation; omit on edit to retain it. Empty and redacted values are rejected.
+    SlackChannelConfigRead:
+      type: object
+      required: [webhook_url_configured]
+      properties:
+        webhook_url_configured: {type: boolean}
+
+    TelegramChannelConfigWrite:
+      type: object
+      required: [chat_id]
+      properties:
+        bot_token:
+          type: string
+          writeOnly: true
+          description: BotFather bot token. Required on creation; omit on edit to retain it. Empty and redacted values are rejected.
+        chat_id: {type: string, description: Destination chat ID or channel username.}
+        message_thread_id: {type: integer, minimum: 1, description: Optional forum topic ID.}
+    TelegramChannelConfigRead:
+      type: object
+      required: [chat_id, bot_token_configured]
+      properties:
+        bot_token_configured: {type: boolean}
+        chat_id: {type: string}
+        message_thread_id: {type: integer, minimum: 1}
+
+    MatrixChannelConfigWrite:
+      type: object
+      required: [homeserver_url, room_id]
+      properties:
+        homeserver_url: {type: string, format: uri, description: "HTTP(S) homeserver base URL without credentials, query, or fragment."}
+        room_id: {type: string, description: Matrix room ID; room aliases are not accepted.}
+        access_token:
+          type: string
+          writeOnly: true
+          description: Bot access token. Required on creation; omit on edit to retain it. Empty and redacted values are rejected. Encrypted rooms are unsupported.
+    MatrixChannelConfigRead:
+      type: object
+      required: [homeserver_url, room_id, access_token_configured]
+      properties:
+        homeserver_url: {type: string, format: uri}
+        room_id: {type: string}
+        access_token_configured: {type: boolean}
 
     NotificationChannelListResponse:
       type: object
@@ -3765,7 +4009,7 @@ components:
 
     TestNotificationResponse:
       type: object
-      required: [success, channel_id, channel_type]
+      required: [success, channel_type]
       properties:
         success:
           type: boolean
@@ -3773,10 +4017,10 @@ components:
         channel_id:
           type: string
           format: uuid
-          description: The channel through which the test was dispatched
+          description: The channel through which the saved test was dispatched; omitted for unsaved draft tests
         channel_type:
           type: string
-          enum: [email, webhook]
+          enum: [email, webhook, slack, telegram, matrix]
           description: The type of channel tested
         error:
           type: string

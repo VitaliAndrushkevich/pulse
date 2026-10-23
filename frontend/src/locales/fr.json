@@ -696,7 +696,10 @@
       },
       "types": {
         "email": "E-mail",
-        "webhook": "Webhook"
+        "webhook": "Webhook",
+        "slack": "Slack",
+        "matrix": "Matrix",
+        "telegram": "Telegram"
       },
       "deleteConfirm": {
         "title": "Supprimer le canal",
@@ -733,6 +736,23 @@
         "bodyTemplate": "Modèle de corps",
         "bodyTemplatePlaceholder": "{ \"text\": \"{{.Monitor.Name}} is {{.Status}}\" }",
         "bodyTemplateHelp": "Modèle Go pour le corps de la requête Webhook. Utilisez les variables ci-dessous."
+      },
+      "savedSecret": "A value is saved. Leave unchanged to keep it; enter a new value to replace it.",
+      "slack": {
+        "webhookUrl": "Incoming webhook URL",
+        "help": "Create an incoming webhook in your Slack app and choose its destination channel. Pulse sends formatted alerts with monitor details."
+      },
+      "matrix": {
+        "homeserverUrl": "Homeserver URL",
+        "roomId": "Room ID",
+        "accessToken": "Access token",
+        "help": "Invite your bot to the room and enter its access token and room ID. This integration supports unencrypted rooms only."
+      },
+      "telegram": {
+        "botToken": "Bot token",
+        "chatId": "Chat ID",
+        "threadId": "Topic ID (optional)",
+        "help": "Create a bot with BotFather, add it to your chat, and enter the chat ID. For forum topics, optionally enter a topic ID."
       }
     },
     "triggers": {
@@ -794,7 +814,8 @@
       "button": "Tester",
       "sending": "Envoi...",
       "success": "Notification de test envoyée avec succès.",
-      "failure": "Échec de la notification de test : {error}"
+      "failure": "Échec de la notification de test : {error}",
+      "draftHelp": "Test sends a real notification using the current form values without saving changes."
     },
     "toast": {
       "channelCreated": "Canal « {name} » créé avec succès.",
@@ -837,7 +858,11 @@
         "incidentDuration": "Durée de l'incident",
         "incidentId": "ID unique de l'incident",
         "timestamp": "Horodatage de l'événement"
-      }
+      },
+      "loadError": "Failed to load template variables.",
+      "variable": "Variable",
+      "type": "Type",
+      "example": "Example"
     },
     "smtpSettings": {
       "title": "Paramètres SMTP",
@@ -895,7 +920,13 @@
       "smtpHostRequired": "L'hôte SMTP est requis.",
       "smtpPortRange": "Le port doit être compris entre 1 et 65535.",
       "smtpFromRequired": "L'adresse d'expéditeur est requise.",
-      "smtpFromInvalid": "Format d'adresse e-mail invalide."
+      "smtpFromInvalid": "Format d'adresse e-mail invalide.",
+      "recipientDuplicate": "This recipient is already added: {email}",
+      "headerRenameRequiresValue": "Enter a replacement value when renaming a saved header.",
+      "secretPlaceholder": "Enter an actual value instead of a redaction placeholder.",
+      "slackWebhookRequired": "Enter an HTTPS Slack incoming webhook URL.",
+      "telegramRequired": "Enter a bot token and chat ID. Topic ID must be a positive whole number.",
+      "matrixRequired": "Enter a valid homeserver URL, room ID beginning with !, and access token."
     }
   },
   "shell": {

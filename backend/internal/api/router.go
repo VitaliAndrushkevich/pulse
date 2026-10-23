@@ -148,6 +148,7 @@ func NewRouter(deps Deps) *gin.Engine {
 
 	// Notification channels and bindings (notification-channels).
 	notifChannelHandler := handlers.NewNotificationChannelHandler(deps.Queries, deps.SecretKey, deps.BaseURL)
+	notifChannelHandler.SetPool(deps.Pool)
 	if deps.SMTPClient != nil {
 		notifChannelHandler.SetSMTPClient(deps.SMTPClient)
 	}

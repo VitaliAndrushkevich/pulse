@@ -120,13 +120,13 @@ func (c *Client) Deliver(ctx context.Context, config WebhookConfig, data notific
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
 		return notification.NewRetryableError(
-			fmt.Errorf("webhook: request failed: %w", err),
+			fmt.Errorf("webhook: request failed"),
 		)
 	}
 	defer resp.Body.Close()
 
 	// Drain body to allow connection reuse.
-	_, _ = io.Copy(io.Discard, resp.Body)
+	_, _ = io.Copy(io.Discard, io.LimitReader(resp.Body, 65536))
 
 	// 7. Check response status.
 	if resp.StatusCode >= 200 && resp.StatusCode < 300 {

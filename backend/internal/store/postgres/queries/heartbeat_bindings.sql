@@ -8,9 +8,10 @@ SELECT * FROM heartbeat_bindings
 WHERE id = $1;
 
 -- name: ListBindingsByHeartbeat :many
-SELECT * FROM heartbeat_bindings
-WHERE heartbeat_id = $1
-ORDER BY created_at DESC;
+SELECT b.*, c.channel_type FROM heartbeat_bindings b
+JOIN notification_channels c ON c.id = b.channel_id
+WHERE b.heartbeat_id = $1
+ORDER BY b.created_at DESC;
 
 -- name: ListBindingsByHeartbeatPaginated :many
 SELECT * FROM heartbeat_bindings

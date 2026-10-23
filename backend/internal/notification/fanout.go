@@ -11,10 +11,11 @@ import (
 // BindingWithChannel combines a channel binding's identifiers and trigger
 // conditions with its associated channel information needed for dispatch.
 type BindingWithChannel struct {
-	ID         uuid.UUID          // binding ID
-	ChannelID  uuid.UUID          // notification channel ID
-	MonitorID  uuid.UUID          // monitor ID
-	Triggers   []TriggerCondition // trigger conditions for this binding
+	ID          uuid.UUID // binding ID
+	ChannelID   uuid.UUID // notification channel ID
+	ChannelType string
+	MonitorID   uuid.UUID          // monitor ID
+	Triggers    []TriggerCondition // trigger conditions for this binding
 }
 
 // EvaluateAndDispatch evaluates trigger conditions for a monitor check result
@@ -71,6 +72,7 @@ func (d *Dispatcher) EvaluateAndDispatchWithPayload(
 				job := DeliveryJob{
 					ID:          uuid.New(),
 					ChannelID:   bindings[i].ChannelID,
+					ChannelType: bindings[i].ChannelType,
 					MonitorID:   resourceID,
 					BindingID:   bindings[i].ID,
 					TriggerType: event.Type,
@@ -135,6 +137,7 @@ func bindingMatchesTrigger(binding BindingWithChannel, event TriggerEvent) bool 
 // and check result.
 func buildPayload(monitorID uuid.UUID, result CheckResult) TemplateData {
 	return TemplateData{
+		ResourceKind: "monitor",
 		Monitor: MonitorData{
 			ID: monitorID,
 			// Monitor name/URL/target will be resolved at delivery time from the DB.

@@ -696,7 +696,10 @@
       },
       "types": {
         "email": "メール",
-        "webhook": "Webhook"
+        "webhook": "Webhook",
+        "slack": "Slack",
+        "matrix": "Matrix",
+        "telegram": "Telegram"
       },
       "deleteConfirm": {
         "title": "チャンネルを削除",
@@ -733,6 +736,23 @@
         "bodyTemplate": "ボディテンプレート",
         "bodyTemplatePlaceholder": "{ \"text\": \"{{.Monitor.Name}} is {{.Status}}\" }",
         "bodyTemplateHelp": "Webhookリクエストボディ用のGoテンプレート。以下のテンプレート変数を使用してください。"
+      },
+      "savedSecret": "A value is saved. Leave unchanged to keep it; enter a new value to replace it.",
+      "slack": {
+        "webhookUrl": "Incoming webhook URL",
+        "help": "Create an incoming webhook in your Slack app and choose its destination channel. Pulse sends formatted alerts with monitor details."
+      },
+      "matrix": {
+        "homeserverUrl": "Homeserver URL",
+        "roomId": "Room ID",
+        "accessToken": "Access token",
+        "help": "Invite your bot to the room and enter its access token and room ID. This integration supports unencrypted rooms only."
+      },
+      "telegram": {
+        "botToken": "Bot token",
+        "chatId": "Chat ID",
+        "threadId": "Topic ID (optional)",
+        "help": "Create a bot with BotFather, add it to your chat, and enter the chat ID. For forum topics, optionally enter a topic ID."
       }
     },
     "triggers": {
@@ -794,7 +814,8 @@
       "button": "テスト",
       "sending": "送信中...",
       "success": "テスト通知を送信しました。",
-      "failure": "テスト通知に失敗しました：{error}"
+      "failure": "テスト通知に失敗しました：{error}",
+      "draftHelp": "Test sends a real notification using the current form values without saving changes."
     },
     "toast": {
       "channelCreated": "チャンネル「{name}」を作成しました。",
@@ -837,7 +858,11 @@
         "incidentDuration": "インシデント期間",
         "incidentId": "インシデント固有ID",
         "timestamp": "イベントタイムスタンプ"
-      }
+      },
+      "loadError": "Failed to load template variables.",
+      "variable": "Variable",
+      "type": "Type",
+      "example": "Example"
     },
     "smtpSettings": {
       "title": "SMTP設定",
@@ -895,7 +920,13 @@
       "smtpHostRequired": "SMTPホストは必須です。",
       "smtpPortRange": "ポートは1〜65535の範囲で指定してください。",
       "smtpFromRequired": "送信元アドレスは必須です。",
-      "smtpFromInvalid": "無効なメールアドレス形式です。"
+      "smtpFromInvalid": "無効なメールアドレス形式です。",
+      "recipientDuplicate": "This recipient is already added: {email}",
+      "headerRenameRequiresValue": "Enter a replacement value when renaming a saved header.",
+      "secretPlaceholder": "Enter an actual value instead of a redaction placeholder.",
+      "slackWebhookRequired": "Enter an HTTPS Slack incoming webhook URL.",
+      "telegramRequired": "Enter a bot token and chat ID. Topic ID must be a positive whole number.",
+      "matrixRequired": "Enter a valid homeserver URL, room ID beginning with !, and access token."
     }
   },
   "shell": {

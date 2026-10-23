@@ -8,6 +8,7 @@ package db
 import (
 	"context"
 	"encoding/json"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -87,20 +88,32 @@ func (q *Queries) GetHeartbeatBinding(ctx context.Context, id uuid.UUID) (Heartb
 }
 
 const listBindingsByHeartbeat = `-- name: ListBindingsByHeartbeat :many
-SELECT id, channel_id, heartbeat_id, triggers, reminder_interval_minutes, created_at, updated_at FROM heartbeat_bindings
-WHERE heartbeat_id = $1
-ORDER BY created_at DESC
+SELECT b.id, b.channel_id, b.heartbeat_id, b.triggers, b.reminder_interval_minutes, b.created_at, b.updated_at, c.channel_type FROM heartbeat_bindings b
+JOIN notification_channels c ON c.id = b.channel_id
+WHERE b.heartbeat_id = $1
+ORDER BY b.created_at DESC
 `
 
-func (q *Queries) ListBindingsByHeartbeat(ctx context.Context, heartbeatID uuid.UUID) ([]HeartbeatBinding, error) {
+type ListBindingsByHeartbeatRow struct {
+	ID                      uuid.UUID       `db:"id" json:"id"`
+	ChannelID               uuid.UUID       `db:"channel_id" json:"channel_id"`
+	HeartbeatID             uuid.UUID       `db:"heartbeat_id" json:"heartbeat_id"`
+	Triggers                json.RawMessage `db:"triggers" json:"triggers"`
+	ReminderIntervalMinutes *int32          `db:"reminder_interval_minutes" json:"reminder_interval_minutes"`
+	CreatedAt               time.Time       `db:"created_at" json:"created_at"`
+	UpdatedAt               time.Time       `db:"updated_at" json:"updated_at"`
+	ChannelType             string          `db:"channel_type" json:"channel_type"`
+}
+
+func (q *Queries) ListBindingsByHeartbeat(ctx context.Context, heartbeatID uuid.UUID) ([]ListBindingsByHeartbeatRow, error) {
 	rows, err := q.db.Query(ctx, listBindingsByHeartbeat, heartbeatID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	items := []HeartbeatBinding{}
+	items := []ListBindingsByHeartbeatRow{}
 	for rows.Next() {
-		var i HeartbeatBinding
+		var i ListBindingsByHeartbeatRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.ChannelID,
@@ -109,6 +122,7 @@ func (q *Queries) ListBindingsByHeartbeat(ctx context.Context, heartbeatID uuid.
 			&i.ReminderIntervalMinutes,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.ChannelType,
 		); err != nil {
 			return nil, err
 		}

@@ -6,7 +6,7 @@ import type {
   User, UserRole, Monitor, PaginatedList, HistoryPoint, Incident, Secret, Tag, DashboardSummary, ProtoSourceMeta,
   NotificationChannel, NotificationChannelType, ChannelBinding, TriggerCondition,
   TemplateVariableGroup, SMTPSettings, SMTPSettingsRequest, TestChannelResult, TestSMTPResult,
-  EmailChannelConfig, WebhookChannelConfig,
+  EmailChannelConfig, WebhookChannelConfig, NotificationChannelConfig,
   Heartbeat, HeartbeatBinding, HeartbeatTriggerCondition, HeartbeatHistoryResponse
 } from '$lib/types';
 
@@ -731,13 +731,13 @@ export async function deleteProtoSource(monitorId: string): Promise<void> {
 export interface CreateNotificationChannelRequest {
   name: string;
   type: NotificationChannelType;
-  config: EmailChannelConfig | WebhookChannelConfig;
+  config: NotificationChannelConfig;
 }
 
 export interface UpdateNotificationChannelRequest {
   name: string;
   type: NotificationChannelType;
-  config: EmailChannelConfig | WebhookChannelConfig;
+  config: NotificationChannelConfig;
 }
 
 /** POST /api/v1/notifications/channels */
@@ -779,6 +779,13 @@ export async function deleteNotificationChannel(id: string): Promise<void> {
 /** POST /api/v1/notifications/channels/:id/test */
 export async function testNotificationChannel(id: string): Promise<TestChannelResult> {
   return apiRequest<TestChannelResult>('POST', `/notifications/channels/${id}/test`);
+}
+
+/** Test the current draft without persisting it. */
+export async function testNotificationChannelDraft(
+  data: CreateNotificationChannelRequest & { existing_channel_id?: string }
+): Promise<TestChannelResult> {
+  return apiRequest<TestChannelResult>('POST', '/notifications/channels/test', data);
 }
 
 /** GET /api/v1/notifications/template-variables */

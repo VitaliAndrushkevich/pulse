@@ -513,7 +513,7 @@
             >
               <option value="">{t('notifications.bindings.channelPlaceholder')}</option>
               {#each availableChannels() as channel}
-                <option value={channel.id}>{channel.name} ({channel.type})</option>
+                <option value={channel.id}>{channel.name} ({t(`notifications.channels.types.${channel.type}`)})</option>
               {/each}
             </SelectField>
           </div>

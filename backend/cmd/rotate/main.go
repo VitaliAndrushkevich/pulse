@@ -11,13 +11,16 @@ package main
 import (
 	"context"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"log"
 	"os"
 	"time"
 
 	"github.com/VitaliAndrushkevich/pulse/internal/crypto"
+	"github.com/VitaliAndrushkevich/pulse/internal/notification"
 	db "github.com/VitaliAndrushkevich/pulse/internal/store/postgres"
+	"github.com/jackc/pgx/v5"
 )
 
 func main() {
@@ -146,7 +149,39 @@ func main() {
 		fmt.Printf("  [%d/%d] rotated credential (%s)\n", i+1, len(credentials), c.ID)
 	}
 
-	totalRotated := len(secrets) + len(credentials)
+	channels, err := queries.ListChannelsForRotation(ctx)
+	if err != nil {
+		log.Fatalf("failed to list notification channels: %v", err)
+	}
+	for _, channel := range channels {
+		config, err := notification.RotateChannelConfig(channel.ChannelType, channel.Config, oldKey, newKey)
+		if err != nil {
+			log.Fatalf("channel %s: %v", channel.ID, err)
+		}
+		if _, err := queries.UpdateChannel(ctx, db.UpdateChannelParams{ID: channel.ID, Name: channel.Name, ChannelType: channel.ChannelType, Config: config}); err != nil {
+			log.Fatalf("channel %s: failed to update", channel.ID)
+		}
+	}
+	smtpCount := 0
+	smtp, err := queries.GetSMTPSettings(ctx)
+	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+		log.Fatal("failed to load SMTP settings")
+	}
+	if err == nil && len(smtp.PasswordEnc) > 0 {
+		plain, err := crypto.Decrypt(oldKey, smtp.PasswordEnc)
+		if err != nil {
+			log.Fatal("failed to decrypt SMTP password")
+		}
+		cipher, err := crypto.Encrypt(newKey, plain)
+		if err != nil {
+			log.Fatal("failed to encrypt SMTP password")
+		}
+		if _, err := queries.UpsertSMTPSettings(ctx, db.UpsertSMTPSettingsParams{ID: smtp.ID, Host: smtp.Host, Port: smtp.Port, Username: smtp.Username, PasswordEnc: cipher, FromAddress: smtp.FromAddress, TlsEnabled: smtp.TlsEnabled}); err != nil {
+			log.Fatal("failed to update SMTP password")
+		}
+		smtpCount = 1
+	}
+	totalRotated := len(secrets) + len(credentials) + len(channels) + smtpCount
 	if totalRotated == 0 {
 		fmt.Println("no secrets or credentials to rotate")
 		return
@@ -158,5 +193,6 @@ func main() {
 	}
 
 	fmt.Printf("\nsuccessfully rotated %d secret(s) and %d credential(s)\n", len(secrets), len(credentials))
+	fmt.Printf("rotated %d notification channel(s) and %d SMTP password(s)\n", len(channels), smtpCount)
 	fmt.Println("update PULSE_SECRET_KEY to the new key value and remove PULSE_SECRET_KEY_NEW")
 }

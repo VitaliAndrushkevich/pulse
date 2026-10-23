@@ -8,6 +8,7 @@ package db
 import (
 	"context"
 	"encoding/json"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -185,6 +186,24 @@ func (q *Queries) GetChannel(ctx context.Context, id uuid.UUID) (NotificationCha
 	return i, err
 }
 
+const getChannelForUpdate = `-- name: GetChannelForUpdate :one
+SELECT id, name, channel_type, config, created_at, updated_at FROM notification_channels WHERE id = $1 FOR UPDATE
+`
+
+func (q *Queries) GetChannelForUpdate(ctx context.Context, id uuid.UUID) (NotificationChannel, error) {
+	row := q.db.QueryRow(ctx, getChannelForUpdate, id)
+	var i NotificationChannel
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.ChannelType,
+		&i.Config,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const getSMTPSettings = `-- name: GetSMTPSettings :one
 SELECT id, host, port, username, password_enc, from_address, tls_enabled, created_at, updated_at FROM smtp_settings
 LIMIT 1
@@ -283,20 +302,32 @@ func (q *Queries) ListBindingsByChannel(ctx context.Context, channelID uuid.UUID
 }
 
 const listBindingsByMonitor = `-- name: ListBindingsByMonitor :many
-SELECT id, channel_id, monitor_id, triggers, reminder_interval_minutes, created_at, updated_at FROM channel_bindings
-WHERE monitor_id = $1
-ORDER BY created_at DESC
+SELECT b.id, b.channel_id, b.monitor_id, b.triggers, b.reminder_interval_minutes, b.created_at, b.updated_at, c.channel_type FROM channel_bindings b
+JOIN notification_channels c ON c.id = b.channel_id
+WHERE b.monitor_id = $1
+ORDER BY b.created_at DESC
 `
 
-func (q *Queries) ListBindingsByMonitor(ctx context.Context, monitorID uuid.UUID) ([]ChannelBinding, error) {
+type ListBindingsByMonitorRow struct {
+	ID                      uuid.UUID       `db:"id" json:"id"`
+	ChannelID               uuid.UUID       `db:"channel_id" json:"channel_id"`
+	MonitorID               uuid.UUID       `db:"monitor_id" json:"monitor_id"`
+	Triggers                json.RawMessage `db:"triggers" json:"triggers"`
+	ReminderIntervalMinutes *int32          `db:"reminder_interval_minutes" json:"reminder_interval_minutes"`
+	CreatedAt               time.Time       `db:"created_at" json:"created_at"`
+	UpdatedAt               time.Time       `db:"updated_at" json:"updated_at"`
+	ChannelType             string          `db:"channel_type" json:"channel_type"`
+}
+
+func (q *Queries) ListBindingsByMonitor(ctx context.Context, monitorID uuid.UUID) ([]ListBindingsByMonitorRow, error) {
 	rows, err := q.db.Query(ctx, listBindingsByMonitor, monitorID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	items := []ChannelBinding{}
+	items := []ListBindingsByMonitorRow{}
 	for rows.Next() {
-		var i ChannelBinding
+		var i ListBindingsByMonitorRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.ChannelID,
@@ -305,6 +336,7 @@ func (q *Queries) ListBindingsByMonitor(ctx context.Context, monitorID uuid.UUID
 			&i.ReminderIntervalMinutes,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.ChannelType,
 		); err != nil {
 			return nil, err
 		}
@@ -370,6 +402,37 @@ type ListChannelsParams struct {
 
 func (q *Queries) ListChannels(ctx context.Context, arg ListChannelsParams) ([]NotificationChannel, error) {
 	rows, err := q.db.Query(ctx, listChannels, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []NotificationChannel{}
+	for rows.Next() {
+		var i NotificationChannel
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.ChannelType,
+			&i.Config,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listChannelsForRotation = `-- name: ListChannelsForRotation :many
+SELECT id, name, channel_type, config, created_at, updated_at FROM notification_channels ORDER BY id FOR UPDATE
+`
+
+func (q *Queries) ListChannelsForRotation(ctx context.Context) ([]NotificationChannel, error) {
+	rows, err := q.db.Query(ctx, listChannelsForRotation)
 	if err != nil {
 		return nil, err
 	}
