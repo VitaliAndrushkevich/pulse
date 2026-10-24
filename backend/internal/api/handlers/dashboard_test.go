@@ -14,6 +14,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/jackc/pgx/v5/pgtype"
 
 	"github.com/VitaliAndrushkevich/pulse/internal/api/handlers"
 	"github.com/VitaliAndrushkevich/pulse/internal/api/middleware"
@@ -26,9 +27,9 @@ import (
 type dashboardQueryMode int
 
 const (
-	modeSuccess       dashboardQueryMode = iota // all queries succeed with mock data
-	modePartialFail                             // some queries fail
-	modeEmpty                                   // no data in any table
+	modeSuccess     dashboardQueryMode = iota // all queries succeed with mock data
+	modePartialFail                           // some queries fail
+	modeEmpty                                 // no data in any table
 )
 
 // dashboardFakeDB implements db.DBTX for dashboard handler tests.
@@ -181,15 +182,16 @@ func (r *scalarRow) Scan(dest ...interface{}) error {
 // emptyRows implements pgx.Rows with zero results.
 type emptyRows struct{}
 
-func (r *emptyRows) Close()                                        {}
-func (r *emptyRows) Err() error                                    { return nil }
-func (r *emptyRows) CommandTag() pgconn.CommandTag                 { return pgconn.NewCommandTag("") }
+func (r *emptyRows) Close()                                       {}
+func (r *emptyRows) Err() error                                   { return nil }
+func (r *emptyRows) CommandTag() pgconn.CommandTag                { return pgconn.NewCommandTag("") }
 func (r *emptyRows) FieldDescriptions() []pgconn.FieldDescription { return nil }
-func (r *emptyRows) RawValues() [][]byte                           { return nil }
+func (r *emptyRows) RawValues() [][]byte                          { return nil }
 func (r *emptyRows) Conn() *pgx.Conn                              { return nil }
-func (r *emptyRows) Next() bool                                    { return false }
-func (r *emptyRows) Scan(_ ...interface{}) error                   { return nil }
-func (r *emptyRows) Values() ([]interface{}, error)                { return nil, nil }
+func (r *emptyRows) TypeMap() *pgtype.Map                         { return pgtype.NewMap() }
+func (r *emptyRows) Next() bool                                   { return false }
+func (r *emptyRows) Scan(_ ...interface{}) error                  { return nil }
+func (r *emptyRows) Values() ([]interface{}, error)               { return nil, nil }
 
 // stateDistRows returns state distribution data.
 type stateCountRow struct {
@@ -202,13 +204,14 @@ type stateDistRows struct {
 	idx  int
 }
 
-func (r *stateDistRows) Close()                                        {}
-func (r *stateDistRows) Err() error                                    { return nil }
-func (r *stateDistRows) CommandTag() pgconn.CommandTag                 { return pgconn.NewCommandTag("") }
+func (r *stateDistRows) Close()                                       {}
+func (r *stateDistRows) Err() error                                   { return nil }
+func (r *stateDistRows) CommandTag() pgconn.CommandTag                { return pgconn.NewCommandTag("") }
 func (r *stateDistRows) FieldDescriptions() []pgconn.FieldDescription { return nil }
-func (r *stateDistRows) RawValues() [][]byte                           { return nil }
+func (r *stateDistRows) RawValues() [][]byte                          { return nil }
 func (r *stateDistRows) Conn() *pgx.Conn                              { return nil }
-func (r *stateDistRows) Values() ([]interface{}, error)                { return nil, nil }
+func (r *stateDistRows) TypeMap() *pgtype.Map                         { return pgtype.NewMap() }
+func (r *stateDistRows) Values() ([]interface{}, error)               { return nil, nil }
 
 func (r *stateDistRows) Next() bool {
 	r.idx++
@@ -235,13 +238,14 @@ type incidentRows struct {
 	idx  int
 }
 
-func (r *incidentRows) Close()                                        {}
-func (r *incidentRows) Err() error                                    { return nil }
-func (r *incidentRows) CommandTag() pgconn.CommandTag                 { return pgconn.NewCommandTag("") }
+func (r *incidentRows) Close()                                       {}
+func (r *incidentRows) Err() error                                   { return nil }
+func (r *incidentRows) CommandTag() pgconn.CommandTag                { return pgconn.NewCommandTag("") }
 func (r *incidentRows) FieldDescriptions() []pgconn.FieldDescription { return nil }
-func (r *incidentRows) RawValues() [][]byte                           { return nil }
+func (r *incidentRows) RawValues() [][]byte                          { return nil }
 func (r *incidentRows) Conn() *pgx.Conn                              { return nil }
-func (r *incidentRows) Values() ([]interface{}, error)                { return nil, nil }
+func (r *incidentRows) TypeMap() *pgtype.Map                         { return pgtype.NewMap() }
+func (r *incidentRows) Values() ([]interface{}, error)               { return nil, nil }
 
 func (r *incidentRows) Next() bool {
 	r.idx++
@@ -269,13 +273,14 @@ type latencyRows struct {
 	idx  int
 }
 
-func (r *latencyRows) Close()                                        {}
-func (r *latencyRows) Err() error                                    { return nil }
-func (r *latencyRows) CommandTag() pgconn.CommandTag                 { return pgconn.NewCommandTag("") }
+func (r *latencyRows) Close()                                       {}
+func (r *latencyRows) Err() error                                   { return nil }
+func (r *latencyRows) CommandTag() pgconn.CommandTag                { return pgconn.NewCommandTag("") }
 func (r *latencyRows) FieldDescriptions() []pgconn.FieldDescription { return nil }
-func (r *latencyRows) RawValues() [][]byte                           { return nil }
+func (r *latencyRows) RawValues() [][]byte                          { return nil }
 func (r *latencyRows) Conn() *pgx.Conn                              { return nil }
-func (r *latencyRows) Values() ([]interface{}, error)                { return nil, nil }
+func (r *latencyRows) TypeMap() *pgtype.Map                         { return pgtype.NewMap() }
+func (r *latencyRows) Values() ([]interface{}, error)               { return nil, nil }
 
 func (r *latencyRows) Next() bool {
 	r.idx++
@@ -303,13 +308,14 @@ type sslRows struct {
 	idx  int
 }
 
-func (r *sslRows) Close()                                        {}
-func (r *sslRows) Err() error                                    { return nil }
-func (r *sslRows) CommandTag() pgconn.CommandTag                 { return pgconn.NewCommandTag("") }
+func (r *sslRows) Close()                                       {}
+func (r *sslRows) Err() error                                   { return nil }
+func (r *sslRows) CommandTag() pgconn.CommandTag                { return pgconn.NewCommandTag("") }
 func (r *sslRows) FieldDescriptions() []pgconn.FieldDescription { return nil }
-func (r *sslRows) RawValues() [][]byte                           { return nil }
+func (r *sslRows) RawValues() [][]byte                          { return nil }
 func (r *sslRows) Conn() *pgx.Conn                              { return nil }
-func (r *sslRows) Values() ([]interface{}, error)                { return nil, nil }
+func (r *sslRows) TypeMap() *pgtype.Map                         { return pgtype.NewMap() }
+func (r *sslRows) Values() ([]interface{}, error)               { return nil, nil }
 
 func (r *sslRows) Next() bool {
 	r.idx++
@@ -338,13 +344,14 @@ type heatmapRows struct {
 	idx  int
 }
 
-func (r *heatmapRows) Close()                                        {}
-func (r *heatmapRows) Err() error                                    { return nil }
-func (r *heatmapRows) CommandTag() pgconn.CommandTag                 { return pgconn.NewCommandTag("") }
+func (r *heatmapRows) Close()                                       {}
+func (r *heatmapRows) Err() error                                   { return nil }
+func (r *heatmapRows) CommandTag() pgconn.CommandTag                { return pgconn.NewCommandTag("") }
 func (r *heatmapRows) FieldDescriptions() []pgconn.FieldDescription { return nil }
-func (r *heatmapRows) RawValues() [][]byte                           { return nil }
+func (r *heatmapRows) RawValues() [][]byte                          { return nil }
 func (r *heatmapRows) Conn() *pgx.Conn                              { return nil }
-func (r *heatmapRows) Values() ([]interface{}, error)                { return nil, nil }
+func (r *heatmapRows) TypeMap() *pgtype.Map                         { return pgtype.NewMap() }
+func (r *heatmapRows) Values() ([]interface{}, error)               { return nil, nil }
 
 func (r *heatmapRows) Next() bool {
 	r.idx++
@@ -374,13 +381,14 @@ type recentEventRows struct {
 	idx  int
 }
 
-func (r *recentEventRows) Close()                                        {}
-func (r *recentEventRows) Err() error                                    { return nil }
-func (r *recentEventRows) CommandTag() pgconn.CommandTag                 { return pgconn.NewCommandTag("") }
+func (r *recentEventRows) Close()                                       {}
+func (r *recentEventRows) Err() error                                   { return nil }
+func (r *recentEventRows) CommandTag() pgconn.CommandTag                { return pgconn.NewCommandTag("") }
 func (r *recentEventRows) FieldDescriptions() []pgconn.FieldDescription { return nil }
-func (r *recentEventRows) RawValues() [][]byte                           { return nil }
+func (r *recentEventRows) RawValues() [][]byte                          { return nil }
 func (r *recentEventRows) Conn() *pgx.Conn                              { return nil }
-func (r *recentEventRows) Values() ([]interface{}, error)                { return nil, nil }
+func (r *recentEventRows) TypeMap() *pgtype.Map                         { return pgtype.NewMap() }
+func (r *recentEventRows) Values() ([]interface{}, error)               { return nil, nil }
 
 func (r *recentEventRows) Next() bool {
 	r.idx++

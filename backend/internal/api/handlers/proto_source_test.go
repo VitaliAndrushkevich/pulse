@@ -17,6 +17,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/jackc/pgx/v5/pgtype"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/descriptorpb"
 
@@ -127,15 +128,16 @@ func (f *protoSourceFakeDB) QueryRow(_ context.Context, sql string, args ...inte
 
 type protoSourceEmptyRows struct{}
 
-func (r *protoSourceEmptyRows) Close()                                        {}
-func (r *protoSourceEmptyRows) Err() error                                    { return nil }
-func (r *protoSourceEmptyRows) CommandTag() pgconn.CommandTag                 { return pgconn.NewCommandTag("") }
+func (r *protoSourceEmptyRows) Close()                                       {}
+func (r *protoSourceEmptyRows) Err() error                                   { return nil }
+func (r *protoSourceEmptyRows) CommandTag() pgconn.CommandTag                { return pgconn.NewCommandTag("") }
 func (r *protoSourceEmptyRows) FieldDescriptions() []pgconn.FieldDescription { return nil }
-func (r *protoSourceEmptyRows) RawValues() [][]byte                           { return nil }
+func (r *protoSourceEmptyRows) RawValues() [][]byte                          { return nil }
 func (r *protoSourceEmptyRows) Conn() *pgx.Conn                              { return nil }
-func (r *protoSourceEmptyRows) Next() bool                                    { return false }
-func (r *protoSourceEmptyRows) Scan(_ ...interface{}) error                   { return nil }
-func (r *protoSourceEmptyRows) Values() ([]interface{}, error)                { return nil, nil }
+func (r *protoSourceEmptyRows) TypeMap() *pgtype.Map                         { return pgtype.NewMap() }
+func (r *protoSourceEmptyRows) Next() bool                                   { return false }
+func (r *protoSourceEmptyRows) Scan(_ ...interface{}) error                  { return nil }
+func (r *protoSourceEmptyRows) Values() ([]interface{}, error)               { return nil, nil }
 
 type monitorRow struct {
 	monitor db.Monitor

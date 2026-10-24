@@ -13,6 +13,7 @@ import (
 	db "github.com/VitaliAndrushkevich/pulse/internal/store/postgres"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
@@ -270,12 +271,13 @@ func TestTryRunCycle_OverlapGuard(t *testing.T) {
 // emptyRows implements pgx.Rows returning zero rows.
 type emptyRows struct{}
 
-func (r *emptyRows) Close()                                         {}
-func (r *emptyRows) Err() error                                     { return nil }
-func (r *emptyRows) CommandTag() pgconn.CommandTag                   { return pgconn.NewCommandTag("SELECT 0") }
-func (r *emptyRows) FieldDescriptions() []pgconn.FieldDescription   { return nil }
-func (r *emptyRows) Next() bool                                     { return false }
-func (r *emptyRows) Scan(dest ...interface{}) error                  { return nil }
-func (r *emptyRows) Values() ([]interface{}, error)                  { return nil, nil }
-func (r *emptyRows) RawValues() [][]byte                             { return nil }
-func (r *emptyRows) Conn() *pgx.Conn                                { return nil }
+func (r *emptyRows) Close()                                       {}
+func (r *emptyRows) Err() error                                   { return nil }
+func (r *emptyRows) CommandTag() pgconn.CommandTag                { return pgconn.NewCommandTag("SELECT 0") }
+func (r *emptyRows) FieldDescriptions() []pgconn.FieldDescription { return nil }
+func (r *emptyRows) Next() bool                                   { return false }
+func (r *emptyRows) Scan(dest ...interface{}) error               { return nil }
+func (r *emptyRows) Values() ([]interface{}, error)               { return nil, nil }
+func (r *emptyRows) RawValues() [][]byte                          { return nil }
+func (r *emptyRows) Conn() *pgx.Conn                              { return nil }
+func (r *emptyRows) TypeMap() *pgtype.Map                         { return pgtype.NewMap() }
