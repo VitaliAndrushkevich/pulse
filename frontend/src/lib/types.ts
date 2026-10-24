@@ -235,18 +235,29 @@ export interface HeartbeatStatusPayload {
 // ─── Dashboard Summary Types ────────────────────────────────────────────────
 
 /** Dashboard summary response from GET /api/v1/dashboard/summary */
+export type FleetPeriod = '1h' | '24h' | '7d' | '30d';
+
 export interface DashboardSummary {
+  incidents?: PeriodIncident[];
+  incident_count?: number;
+  period_from?: string;
+  period_to?: string;
+  partial_data?: boolean;
+  widget_errors?: Partial<Record<WidgetId, string>>;
   health_score: HealthScoreData;
   status_distribution: StatusDistribution;
   active_incidents: ActiveIncident[];
   top_latency_monitors: TopLatencyMonitor[];
   ssl_expiry: SSLExpiryEntry[];
+  ssl_checked_monitor_count?: number;
   heatmap: HeatmapHour[];
   recent_events: RecentEvent[];
   generated_at: string;
 }
 
 export interface HealthScoreData {
+  period?: FleetPeriod;
+  sampled_monitor_count?: number;
   uptime_percent: number;
   active_monitor_count: number;
   partial_data: boolean;
@@ -265,6 +276,16 @@ export interface ActiveIncident {
   started_at: string;
   cause: string | null;
   state: 'down';
+}
+
+/** Actual incident boundaries for outages overlapping the selected period. */
+export interface PeriodIncident {
+  id: string;
+  monitor_id: string;
+  monitor_name: string;
+  started_at: string;
+  resolved_at: string | null;
+  cause: string | null;
 }
 
 export interface TopLatencyMonitor {

@@ -6,16 +6,19 @@
  * widget-level state. Each widget tracks its own loading/error independently
  * via Maps keyed by WidgetId.
  *
- * The load() method uses Promise.allSettled-style error isolation so that
- * a failure in one widget's data processing does not crash the others.
+ * Authoritative server snapshots include per-widget query errors.
+ * Concurrent requests are deduplicated and older period responses are ignored.
  *
  * Requirements: 8.3, 8.4, 8.6, 9.2
  */
 
 import { getDashboardSummary } from '$lib/api';
+import { t } from '$lib/i18n';
+import type { FleetPeriod } from '$lib/types';
 import { monitorStore } from '$lib/stores/monitors.svelte';
 import type {
 	HealthScoreData,
+ PeriodIncident,
 	StatusDistribution,
 	ActiveIncident,
 	TopLatencyMonitor,
@@ -30,8 +33,13 @@ import type {
 
 let healthScore = $state<HealthScoreData | null>(null);
 let statusDistribution = $state<StatusDistribution | null>(null);
+let incidents = $state<PeriodIncident[]>([]);
+let incidentCount = $state(0);
+let periodFrom = $state<string | undefined>();
+let periodTo = $state<string | undefined>();
 let activeIncidents = $state<ActiveIncident[]>([]);
 let topLatencyMonitors = $state<TopLatencyMonitor[]>([]);
+let sslCheckedMonitorCount = $state(0);
 let sslExpiry = $state<SSLExpiryEntry[]>([]);
 let heatmap = $state<HeatmapHour[]>([]);
 let recentEvents = $state<RecentEvent[]>([]);
@@ -106,88 +114,55 @@ function setAllWidgetsLoading(loading: boolean): void {
 }
 
 // --- Internal loading guard ---
-let loadInFlight = false;
+let loadInFlight: Promise<void> | null = null;
+let requestedPeriod: FleetPeriod = '24h';
+let revision = 0;
 
 // --- Actions ---
 
-/**
- * Fetch dashboard summary from the API and populate state.
- * Uses error isolation: the single API call returns all widget data,
- * but each widget's data population is wrapped independently so that
- * a parsing or assignment error in one widget does not affect others.
- *
- * On WS reconnect, this should be called to replace local state (Requirement 9.2).
- * Concurrent calls are deduplicated — if a load is already in-flight, subsequent
- * calls are no-ops.
- */
-async function load(): Promise<void> {
-	if (loadInFlight) return;
-	loadInFlight = true;
-
-	setAllWidgetsLoading(true);
-	clearAllErrors();
-
-	try {
-		const summary = await getDashboardSummary();
-
-		// Use Promise.allSettled pattern for per-widget error isolation.
-		// Each widget population is independent — one failure won't crash others.
-		const results = await Promise.allSettled([
-			// health-score
-			Promise.resolve().then(() => {
-				healthScore = summary.health_score;
-			}),
-			// status-ring
-			Promise.resolve().then(() => {
-				statusDistribution = summary.status_distribution;
-			}),
-			// incidents
-			Promise.resolve().then(() => {
-				activeIncidents = summary.active_incidents;
-			}),
-			// sparklines
-			Promise.resolve().then(() => {
-				topLatencyMonitors = summary.top_latency_monitors;
-			}),
-			// ssl-expiry
-			Promise.resolve().then(() => {
-				sslExpiry = summary.ssl_expiry;
-			}),
-			// heatmap
-			Promise.resolve().then(() => {
-				heatmap = summary.heatmap;
-			}),
-			// events-feed
-			Promise.resolve().then(() => {
-				recentEvents = summary.recent_events;
-			})
-		]);
-
-		// Map results back to widget IDs and record errors
-		results.forEach((result, index) => {
-			const widgetId = ALL_WIDGETS[index];
-			if (result.status === 'rejected') {
-				setWidgetError(widgetId, result.reason?.message ?? 'Failed to load widget data');
-			}
-		});
-
-		lastUpdated = new Date();
-
-		// Populate per-monitor state cache from monitorStore for future applyPatch calls
-		monitorStateCache = new Map();
-		for (const monitor of monitorStore.list) {
-			monitorStateCache.set(monitor.id, monitor.state);
-		}
-	} catch (err: unknown) {
-		// Network/API-level failure — all widgets get the same error
-		const message = err instanceof Error ? err.message : 'Failed to load dashboard data';
-		for (const widgetId of ALL_WIDGETS) {
-			setWidgetError(widgetId, message);
-		}
-	} finally {
-		setAllWidgetsLoading(false);
-		loadInFlight = false;
-	}
+/** Fetch a snapshot; keep previous data during background refreshes. */
+function load(period: FleetPeriod = requestedPeriod): Promise<void> {
+ if (loadInFlight && period === requestedPeriod) return loadInFlight;
+ requestedPeriod = period;
+ const requestRevision = ++revision;
+ // Background refreshes keep the last snapshot visible. Period changes hide old values.
+ if (!healthScore || healthScore.period !== period) setAllWidgetsLoading(true);
+ const request = (async () => {
+ try {
+ const summary = await getDashboardSummary(period);
+ if (requestRevision !== revision) return;
+ clearAllErrors();
+ healthScore = { ...summary.health_score, period };
+ statusDistribution = summary.status_distribution;
+ activeIncidents = summary.active_incidents;
+ incidents = summary.incidents ?? [];
+ incidentCount = summary.incident_count ?? incidents.length;
+ periodFrom = summary.period_from;
+ periodTo = summary.period_to;
+ topLatencyMonitors = summary.top_latency_monitors;
+ sslExpiry = summary.ssl_expiry;
+ sslCheckedMonitorCount = summary.ssl_checked_monitor_count ?? sslExpiry.length;
+ heatmap = summary.heatmap;
+ recentEvents = summary.recent_events;
+ for (const widget of ALL_WIDGETS) {
+ if (summary.widget_errors?.[widget]) setWidgetError(widget, t('dashboard.loadError'));
+ }
+ lastUpdated = new Date(summary.generated_at);
+ stale = summary.partial_data === true;
+ monitorStateCache = new Map(monitorStore.list.filter(m => m.status === 'active').map(m => [m.id, m.state]));
+ } catch (err: unknown) {
+ if (requestRevision !== revision) return;
+ stale = true;
+ for (const widget of ALL_WIDGETS) setWidgetError(widget, t('dashboard.loadError'));
+ } finally {
+ if (requestRevision === revision) {
+ setAllWidgetsLoading(false);
+ loadInFlight = null;
+ }
+ }
+ })();
+ loadInFlight = request;
+ return request;
 }
 
 /**
@@ -264,19 +239,7 @@ function applyPatch(patch: MonitorPatch): void {
 		recentEvents = updatedEvents.slice(0, 10);
 	}
 
-	// --- 4. Recalculate healthScore based on updated distribution ---
-	if (statusDistribution && healthScore) {
-		const dist = statusDistribution;
-		const total = dist.total;
-		if (total > 0) {
-			// Health score = percentage of monitors that are "up"
-			const uptimePercent = Math.round((dist.up / total) * 10000) / 100;
-			healthScore = {
-				...healthScore,
-				uptime_percent: uptimePercent
-			};
-		}
-	}
+	// Historical uptime is refreshed from the server; a live state is not an uptime sample.
 
 	// --- 5. Update heatmap current hour block ---
 	if (heatmap.length > 0) {
@@ -327,11 +290,19 @@ function clearStale(): void {
  * Reset the store to initial empty state.
  */
 function reset(): void {
+ revision++;
+ loadInFlight = null;
+ requestedPeriod = '24h';
 	healthScore = null;
 	statusDistribution = null;
 	activeIncidents = [];
+ incidents = [];
+ incidentCount = 0;
+ periodFrom = undefined;
+ periodTo = undefined;
 	topLatencyMonitors = [];
 	sslExpiry = [];
+ sslCheckedMonitorCount = 0;
 	heatmap = [];
 	recentEvents = [];
 	lastUpdated = null;
@@ -363,6 +334,10 @@ function getWidgetError(widgetId: WidgetId): string | null {
 
 export const dashboardStore = {
 	// Reactive getters
+ get incidents() { return incidents; },
+ get incidentCount() { return incidentCount; },
+ get periodFrom() { return periodFrom; },
+ get periodTo() { return periodTo; },
 	get healthScore(): HealthScoreData | null {
 		return healthScore;
 	},
@@ -375,6 +350,7 @@ export const dashboardStore = {
 	get topLatencyMonitors(): TopLatencyMonitor[] {
 		return topLatencyMonitors;
 	},
+	get sslCheckedMonitorCount() { return sslCheckedMonitorCount; },
 	get sslExpiry(): SSLExpiryEntry[] {
 		return sslExpiry;
 	},

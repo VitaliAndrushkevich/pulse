@@ -7,7 +7,7 @@
    *
    * Requirements: 8.1, 8.2, 8.3, 8.4, 8.5, 8.6, 8.7, 9.1, 9.2
    */
-  import { onMount } from 'svelte';
+  import { onMount, untrack } from 'svelte';
   import { dashboardStore } from '$lib/stores/dashboard.svelte';
   import { patchBus } from '$lib/stores/patchBus.svelte';
   import { connectionStore } from '$lib/stores/connection.svelte';
@@ -17,80 +17,83 @@
   import PageHeader from '../components/PageHeader.svelte';
   import FleetHealth from '../components/dashboard/FleetHealth.svelte';
   import IncidentsPanel from '../components/dashboard/IncidentsPanel.svelte';
-  import InsightsPanel from '../components/dashboard/InsightsPanel.svelte';
+  import ResponseTimes from '../components/dashboard/ResponseSparklines.svelte';
+  import SSLWarnings from '../components/dashboard/SSLWarnings.svelte';
   import UptimeHeatmap from '../components/dashboard/UptimeHeatmap.svelte';
   import DataFreshness from '../components/dashboard/DataFreshness.svelte';
 
-  // --- Staleness timer state ---
-  let stalenessTimer: ReturnType<typeof setTimeout> | null = null;
-  const STALENESS_TIMEOUT_MS = 60_000;
+  import SelectField from '../components/SelectField.svelte';
+  import type { FleetPeriod } from '$lib/types';
+  let period = $state<FleetPeriod>('24h');
+  let mounted = false;
+  let refreshTimer: ReturnType<typeof setTimeout> | undefined;
+  let lastRefresh = 0;
 
-  // --- Track previous connection status for reconnect detection ---
-  let previousConnectionStatus = $state(connectionStore.status);
-  let initialLoadDone = $state(false);
+  function refresh(): void {
+    lastRefresh = Date.now();
+    void dashboardStore.load(period);
+  }
 
-  function resetStalenessTimer(): void {
-    if (stalenessTimer !== null) {
-      clearTimeout(stalenessTimer);
+  function handlePatch(_patch: MonitorPatch): void {
+    // Coalesce high-volume WS traffic into authoritative snapshots. This also refreshes
+    // history, latency, SSL and incidents without inventing aggregate values locally.
+    if (!refreshTimer) {
+      refreshTimer = setTimeout(() => {
+        refreshTimer = undefined;
+        refresh();
+      }, Math.max(0, 15_000 - (Date.now() - lastRefresh)));
     }
-    stalenessTimer = setTimeout(() => {
-      dashboardStore.markStale();
-    }, STALENESS_TIMEOUT_MS);
   }
 
-  function handlePatch(patch: MonitorPatch): void {
-    // Apply patch to dashboard store (Req 9.1)
-    dashboardStore.applyPatch(patch);
-    // Clear stale indicator on new WS message (Req 9.5)
-    dashboardStore.clearStale();
-    // Reset staleness timer (Req 9.4)
-    resetStalenessTimer();
-  }
-
-  // --- Watch connection status for reconnection (Req 9.2) ---
   $effect(() => {
-    const currentStatus = connectionStore.status;
-    if (initialLoadDone && previousConnectionStatus !== 'connected' && currentStatus === 'connected') {
-      // WS reconnected — re-fetch all data
-      dashboardStore.load();
-      dashboardStore.clearStale();
-      resetStalenessTimer();
-    }
-    previousConnectionStatus = currentStatus;
+    if (connectionStore.status === 'connected' && mounted) untrack(refresh);
   });
 
   onMount(() => {
-    // Load dashboard data on mount (Req 8.3)
-    dashboardStore.load();
-    initialLoadDone = true;
-
-    // Subscribe to patchBus for monitor_status messages (Req 9.1)
+    mounted = true;
+    try {
+      const saved = localStorage.getItem('pulse-fleet-period');
+      if (saved === '1h' || saved === '24h' || saved === '7d' || saved === '30d') period = saved;
+    } catch { /* Storage can be unavailable in private browsing. */ }
+    refresh();
     const unsubscribe = patchBus.subscribe(handlePatch);
-
-    // Start staleness timer
-    resetStalenessTimer();
-
+    // Poll even without WS traffic: retention, config changes and rolling windows change.
+    const interval = setInterval(refresh, 30_000);
     return () => {
+      mounted = false;
       unsubscribe();
-      if (stalenessTimer !== null) {
-        clearTimeout(stalenessTimer);
-      }
+      clearInterval(interval);
+      clearTimeout(refreshTimer);
     };
   });
 
-  // --- Per-widget retry handlers ---
-  function retryWidget(widgetId: 'health-score' | 'status-ring' | 'incidents' | 'sparklines' | 'ssl-expiry' | 'heatmap' | 'events-feed'): () => void {
-    return () => {
-      dashboardStore.setWidgetError(widgetId, null);
-      dashboardStore.load();
-    };
+  function changePeriod(): void {
+    try { localStorage.setItem('pulse-fleet-period', period); } catch { /* Optional preference. */ }
+    refresh();
   }
+
+  // --- Per-widget retry handlers ---
+  function retryWidget(): () => void { return refresh; }
 </script>
 
 <section class="dashboard space-y-6">
   <PageHeader eyebrow={t('shell.overview')} title={t('dashboard.title')}>
     {#snippet actions()}
-      <DataFreshness lastUpdated={dashboardStore.lastUpdated} stale={dashboardStore.stale} />
+      <div class="overview-controls">
+        <div class="period-control">
+          <label for="fleet-period" class="pulse-eyebrow">{t('dashboard.period.label')}</label>
+          <div class="period-select">
+            <SelectField id="fleet-period" bind:value={period} onchange={changePeriod}>
+              <option value="1h">{t('dashboard.fleetHealth.hour')}</option>
+              <option value="24h">{t('dashboard.fleetHealth.day')}</option>
+              <option value="7d">{t('dashboard.fleetHealth.week')}</option>
+              <option value="30d">{t('dashboard.fleetHealth.month')}</option>
+            </SelectField>
+          </div>
+        </div>
+        <span class="period-scope">{t('dashboard.period.scope')}</span>
+        <DataFreshness lastUpdated={dashboardStore.lastUpdated} stale={dashboardStore.stale} />
+      </div>
     {/snippet}
   </PageHeader>
 
@@ -102,45 +105,64 @@
         data={dashboardStore.heatmap}
         loading={dashboardStore.isWidgetLoading('heatmap')}
         error={dashboardStore.getWidgetError('heatmap')}
-        onRetry={retryWidget('heatmap')}
+        onRetry={retryWidget()}
       />
     </div>
 
-    <!-- FleetHealth — combined health score + status distribution -->
+    <!-- FleetHealth — historical uptime and separate current status -->
     <div class="pulse-panel fleet-panel">
       <FleetHealth
         healthData={dashboardStore.healthScore}
         distributionData={dashboardStore.statusDistribution}
         loading={dashboardStore.isWidgetLoading('health-score')}
         error={dashboardStore.getWidgetError('health-score')}
-        onRetry={retryWidget('health-score')}
+        onRetry={retryWidget()}
       />
     </div>
 
     <!-- IncidentsPanel -->
     <div class="pulse-panel md:col-span-2">
       <IncidentsPanel
-        incidents={dashboardStore.activeIncidents}
+        incidents={dashboardStore.incidents}
+        totalCount={dashboardStore.incidentCount}
+        periodFrom={dashboardStore.periodFrom}
+        periodTo={dashboardStore.periodTo}
+        historical
         loading={dashboardStore.isWidgetLoading('incidents')}
         error={dashboardStore.getWidgetError('incidents')}
-        onRetry={retryWidget('incidents')}
+        onRetry={retryWidget()}
       />
     </div>
 
-    <!-- InsightsPanel — tabbed: Response Time, SSL, Events -->
-    <div class="pulse-panel md:col-span-3">
-      <InsightsPanel
+    <div class="pulse-panel md:col-span-2">
+      <ResponseTimes
         monitors={dashboardStore.topLatencyMonitors}
-        sslEntries={dashboardStore.sslExpiry}
-        events={dashboardStore.recentEvents}
+        period={period}
         loading={dashboardStore.isWidgetLoading('sparklines')}
         error={dashboardStore.getWidgetError('sparklines')}
-        onRetry={retryWidget('sparklines')}
+        onRetry={retryWidget()}
+      />
+    </div>
+    <div class="pulse-panel self-start">
+      <SSLWarnings
+        entries={dashboardStore.sslExpiry}
+        checkedMonitorCount={dashboardStore.sslCheckedMonitorCount}
+        loading={dashboardStore.isWidgetLoading('ssl-expiry')}
+        error={dashboardStore.getWidgetError('ssl-expiry')}
+        onRetry={retryWidget()}
       />
     </div>
   </div>
 </section>
 
 <style>
+  .overview-controls { display: flex; flex-direction: column; align-items: flex-end; gap: 0.5rem; }
+  .period-control { display: flex; align-items: center; flex-wrap: wrap; gap: 0.75rem; }
+  .period-select { inline-size: 12rem; max-inline-size: 100%; }
+  .period-scope { font-size: 0.75rem; color: var(--color-text-secondary); }
+  @media (max-width: 639px) {
+    .overview-controls { align-items: flex-start; max-inline-size: 100%; }
+    .period-control { gap: 0.5rem; }
+  }
   .fleet-panel { border-block-start: 3px solid var(--color-brand-primary); }
 </style>

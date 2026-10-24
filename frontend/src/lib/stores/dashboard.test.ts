@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { getDashboardSummary } from '$lib/api';
 import { dashboardStore } from './dashboard.svelte';
 import { monitorStore } from './monitors.svelte';
 import type { MonitorPatch, Monitor } from '$lib/types';
@@ -301,7 +302,7 @@ describe('DashboardStore — applyPatch()', () => {
 	});
 
 	describe('healthScore recalculation', () => {
-		it('recalculates uptime_percent based on updated distribution', async () => {
+		it('preserves historical uptime when live distribution changes', async () => {
 			await setupWithMonitors([makeMonitor({ id: 'mon-1', state: 'up' })]);
 
 			// Initial mock: up=8, down=1, unknown=1, total=10 → uptime = 80%
@@ -311,7 +312,7 @@ describe('DashboardStore — applyPatch()', () => {
 			dashboardStore.applyPatch(makePatch({ monitor_id: 'mon-1', state: 'down' }));
 
 			// New: up=7/10 = 70%
-			expect(dashboardStore.healthScore!.uptime_percent).toBe(70);
+			expect(dashboardStore.healthScore!.uptime_percent).toBe(99.5);
 		});
 	});
 
@@ -349,4 +350,34 @@ describe('DashboardStore — applyPatch()', () => {
 			expect(dashboardStore.recentEvents.length).toBe(3);
 		});
 	});
+});
+
+
+describe('Dashboard snapshots', () => {
+ beforeEach(() => { dashboardStore.reset(); vi.mocked(getDashboardSummary).mockClear(); });
+ it('ignores a slower response for an older period', async () => {
+  const base = await getDashboardSummary();
+  let resolveOld!: (value: typeof base) => void;
+  vi.mocked(getDashboardSummary).mockImplementationOnce(() => new Promise(resolve => { resolveOld = resolve; }));
+  vi.mocked(getDashboardSummary).mockResolvedValueOnce({ ...base, health_score: { ...base.health_score, uptime_percent: 95 } });
+  const old = dashboardStore.load('30d');
+  await dashboardStore.load('1h');
+  resolveOld(base);
+  await old;
+  expect(dashboardStore.healthScore?.period).toBe('1h');
+  expect(dashboardStore.healthScore?.uptime_percent).toBe(95);
+ });
+ it('deduplicates requests for the same period', async () => {
+  await Promise.all([dashboardStore.load('7d'), dashboardStore.load('7d')]);
+  expect(getDashboardSummary).toHaveBeenCalledTimes(1);
+ });
+ it('exposes failed widgets without marking successful widgets as failed', async () => {
+  const base = await getDashboardSummary();
+  vi.mocked(getDashboardSummary).mockResolvedValueOnce({ ...base, partial_data: true, widget_errors: { 'ssl-expiry': 'DASHBOARD_QUERY_FAILED' } });
+  await dashboardStore.load();
+  expect(dashboardStore.getWidgetError('ssl-expiry')).toBeTruthy();
+  expect(dashboardStore.getWidgetError('sparklines')).toBeNull();
+  expect(dashboardStore.stale).toBe(true);
+  expect(dashboardStore.lastUpdated?.toISOString()).toBe('2024-01-15T14:30:00.000Z');
+ });
 });

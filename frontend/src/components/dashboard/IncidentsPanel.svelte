@@ -2,7 +2,7 @@
   /**
    * Utility functions exported for property-based testing (Properties 6, 7, 8).
    */
-  import type { ActiveIncident } from '$lib/types';
+  import type { ActiveIncident, PeriodIncident } from '$lib/types';
 
   /**
    * Truncates a cause string to the given limit, appending "…" if exceeded.
@@ -22,10 +22,10 @@
    *
    * Validates: Requirements 3.1, 3.7
    */
-  export function formatDuration(startedAt: string): string {
+  export function formatDuration(startedAt: string, resolvedAt?: string | null, now = Date.now()): string {
     const start = new Date(startedAt).getTime();
-    const now = Date.now();
-    const diffMs = Math.max(0, now - start);
+    const end = resolvedAt ? new Date(resolvedAt).getTime() : now;
+    const diffMs = Math.max(0, end - start);
     const totalSeconds = Math.floor(diffMs / 1000);
 
     if (totalSeconds < 60) {
@@ -54,7 +54,7 @@
    *
    * Validates: Requirements 3.3
    */
-  export function sortIncidents(incidents: ActiveIncident[]): ActiveIncident[] {
+  export function sortIncidents<T extends ActiveIncident | PeriodIncident>(incidents: T[]): T[] {
     const now = Date.now();
     return [...incidents].sort((a, b) => {
       const durationA = now - new Date(a.started_at).getTime();
@@ -66,6 +66,7 @@
 </script>
 
 <script lang="ts">
+  import { resolve } from '$app/paths';
   /**
    * IncidentsPanel — displays active incidents (down monitors) with live durations.
    *
@@ -75,11 +76,15 @@
    * Requirements 3.6: Cap at 10 entries with overflow indicator
    * Requirements 3.7: Auto-refresh durations every 60 seconds
    */
-  import { t } from '$lib/i18n';
+  import { t, getLocale } from '$lib/i18n';
   import WidgetShell from './WidgetShell.svelte';
 
   interface Props {
-    incidents: ActiveIncident[];
+    incidents: (ActiveIncident | PeriodIncident)[];
+    historical?: boolean;
+    periodFrom?: string;
+    periodTo?: string;
+    totalCount?: number;
     loading: boolean;
     error: string | null;
     onRetry: (() => void) | null;
@@ -87,7 +92,7 @@
 
   const MAX_VISIBLE = 10;
 
-  let { incidents, loading, error, onRetry }: Props = $props();
+  let { incidents, totalCount = incidents.length, historical = false, periodFrom, periodTo, loading, error, onRetry }: Props = $props();
 
   // Tick counter to force duration recalculation every 60s
   let tick = $state(0);
@@ -103,47 +108,83 @@
   let sorted = $derived.by(() => {
     // Reference tick to create reactive dependency
     void tick;
-    return sortIncidents(incidents);
+    return historical ? [...incidents].sort((a, b) => Number(!!resolvedAt(a)) - Number(!!resolvedAt(b)) || Date.parse(b.started_at) - Date.parse(a.started_at)) : sortIncidents(incidents);
   });
 
   let visible = $derived(sorted.slice(0, MAX_VISIBLE));
-  let overflowCount = $derived(Math.max(0, sorted.length - MAX_VISIBLE));
+  let overflowCount = $derived(Math.max(0, Math.max(totalCount, sorted.length) - MAX_VISIBLE));
   let isEmpty = $derived(incidents.length === 0);
+  const now = $derived.by(() => { void tick; return Date.now(); });
+  function resolvedAt(incident: ActiveIncident | PeriodIncident): string | null {
+    return 'resolved_at' in incident ? incident.resolved_at : null;
+  }
+  function dateText(value: string): string {
+    return new Intl.DateTimeFormat(getLocale(), {dateStyle: 'medium', timeStyle: 'short'}).format(new Date(value));
+  }
+  function elapsedText(incident: ActiveIncident | PeriodIncident): string {
+    const end = resolvedAt(incident);
+    const seconds = Math.max(0, Math.floor(((end ? Date.parse(end) : now) - Date.parse(incident.started_at)) / 1000));
+    if (seconds < 60) return t('dashboard.incidents.durationSeconds', {count: seconds});
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return t('dashboard.incidents.durationMinutes', {count: minutes});
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return t('dashboard.incidents.durationHours', {hours, minutes: minutes % 60});
+    return t('dashboard.incidents.durationDays', {days: Math.floor(hours / 24), hours: hours % 24});
+  }
+  const timeZone = new Intl.DateTimeFormat().resolvedOptions().timeZone;
 </script>
 
 <WidgetShell {loading} {error} {onRetry}>
   <div class="flex flex-col gap-3 p-5" data-testid="incidents-panel">
     <h3 class="pulse-eyebrow">
-      {t('dashboard.incidents.title')}
+      {t(historical ? 'dashboard.incidents.periodTitle' : 'dashboard.incidents.title')}
     </h3>
 
+    {#if historical && periodFrom && periodTo}
+      <p class="text-xs" style="color: var(--color-text-secondary)">
+        {t('dashboard.incidents.range', {from: dateText(periodFrom), to: dateText(periodTo), zone: timeZone})}
+      </p>
+    {/if}
     {#if isEmpty}
       <p
         class="py-4 text-center text-sm"
         style="color: var(--color-text-secondary)"
         data-testid="incidents-empty"
       >
-        {t('dashboard.incidents.allOperational')}
+        {t(historical ? 'dashboard.incidents.periodEmpty' : 'dashboard.incidents.allOperational')}
       </p>
     {:else}
       <ul class="flex flex-col gap-1" role="list" data-testid="incidents-list">
-        {#each visible as incident, idx (incident.monitor_id + '-' + incident.started_at)}
+        {#each visible as incident ('id' in incident ? incident.id : incident.monitor_id + '-' + incident.started_at)}
           <li
             class="flex flex-col gap-0.5 rounded-md px-3 py-2"
             style="background-color: var(--color-bg-secondary)"
           >
             <div class="flex items-center justify-between gap-2">
-              <span class="truncate text-sm font-medium" style="color: var(--color-text-primary)">
+              <a class="incident-link truncate text-sm font-medium" href={resolve('/monitors/[id]', { id: incident.monitor_id })} title={incident.monitor_name}>
                 {incident.monitor_name}
-              </span>
+              </a>
               <span
                 class="shrink-0 text-xs font-medium tabular-nums"
-                style="color: var(--color-error)"
+                style:color={resolvedAt(incident) ? 'var(--color-text-secondary)' : 'var(--color-error)'}
                 data-testid="incident-duration"
+                title={t('dashboard.incidents.duration')}
               >
-                {formatDuration(incident.started_at)}
+                {elapsedText(incident)}
               </span>
             </div>
+            {#if historical}
+              <span class="text-xs font-medium" style:color={resolvedAt(incident) ? 'var(--color-success)' : 'var(--color-error)'}>
+                {t(resolvedAt(incident) ? 'dashboard.incidents.resolved' : 'dashboard.incidents.ongoing')}
+              </span>
+              <dl class="incident-dates">
+                <div><dt>{t('dashboard.incidents.started')}</dt><dd><time datetime={incident.started_at}>{dateText(incident.started_at)}</time></dd></div>
+                <div><dt>{t('dashboard.incidents.ended')}</dt><dd>
+                  {#if resolvedAt(incident)}<time datetime={resolvedAt(incident)!}>{dateText(resolvedAt(incident)!)}</time>
+                  {:else}{t('dashboard.incidents.ongoing')}{/if}
+                </dd></div>
+              </dl>
+            {/if}
             {#if incident.cause}
               <span class="text-xs" style="color: var(--color-text-secondary)">
                 {truncateCause(incident.cause)}
@@ -165,3 +206,12 @@
     {/if}
   </div>
 </WidgetShell>
+
+<style>
+ .incident-link { color: var(--color-text-primary); text-decoration: none; }
+ .incident-link:hover { color: var(--color-brand-primary); text-decoration: underline; }
+ .incident-link:focus-visible { outline: 2px solid var(--color-brand-primary); outline-offset: 2px; }
+ .incident-dates { display: flex; flex-wrap: wrap; gap: 0.35rem 1.25rem; font-size: 0.75rem; color: var(--color-text-secondary); }
+ .incident-dates > div { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+ .incident-dates dd { font-variant-numeric: tabular-nums; color: var(--color-text-primary); }
+</style>

@@ -27,7 +27,7 @@
 
   let { healthData, distributionData, loading, error, onRetry }: Props = $props();
 
-  let isEmpty = $derived(healthData === null || healthData.active_monitor_count === 0);
+  let isEmpty = $derived(healthData === null || healthData.active_monitor_count === 0 || healthData.sampled_monitor_count === 0);
   let color = $derived(
     isEmpty ? 'var(--color-text-secondary)' : getHealthScoreColor(healthData!.uptime_percent)
   );
@@ -42,7 +42,7 @@
 </script>
 
 <WidgetShell {loading} {error} {onRetry}>
-  <div class="flex h-full flex-col items-start justify-center gap-3 px-5 py-7" data-testid="fleet-health">
+  <div class="flex flex-col items-start gap-3 px-5 py-7" data-testid="fleet-health">
     <h3 class="pulse-eyebrow">
       {t('dashboard.fleetHealth.title')}
     </h3>
@@ -58,6 +58,8 @@
       {formattedValue}
     </span>
 
+    <p class="text-xs" style="color: var(--color-text-secondary)">{t('dashboard.fleetHealth.method')}</p>
+    <p class="pulse-eyebrow">{t('dashboard.fleetHealth.current')}</p>
     {#if summaryText}
       <span
         class="text-sm font-medium tabular-nums"
@@ -66,12 +68,22 @@
       >
         {t('dashboard.fleetHealth.downSummary', { down: String(distributionData!.down), total: String(distributionData!.total) })}
       </span>
-    {:else if !isEmpty}
+    {:else if distributionData && distributionData.total > 0 && distributionData.up === distributionData.total}
       <span class="text-sm" style="color: var(--color-success)" data-testid="fleet-health-all-up">
         {t('dashboard.fleetHealth.allUp')}
       </span>
     {/if}
 
+    {#if distributionData && distributionData.unknown > 0}
+      <span class="text-sm" style="color: var(--color-text-secondary)" data-testid="fleet-health-unknown">
+        {t('dashboard.fleetHealth.unknown', { count: String(distributionData.unknown) })}
+      </span>
+    {/if}
+    {#if healthData?.sampled_monitor_count !== undefined}
+      <span class="text-xs" style="color: var(--color-text-secondary)">
+        {t('dashboard.fleetHealth.coverage', { count: String(healthData.sampled_monitor_count), total: String(healthData.active_monitor_count) })}
+      </span>
+    {/if}
     {#if showPartialWarning}
       <span
         class="mt-1 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium"

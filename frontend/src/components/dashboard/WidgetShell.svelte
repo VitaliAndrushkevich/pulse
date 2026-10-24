@@ -32,9 +32,10 @@
     <p class="text-sm" style="color: var(--color-error)">{error}</p>
     {#if onRetry}
       <button
+        type="button"
         onclick={onRetry}
-        class="rounded-md px-3 py-1.5 text-sm font-medium text-white transition-colors"
-        style="background-color: var(--color-brand-primary)"
+        class="min-h-10 rounded-md px-3 py-1.5 text-sm font-medium transition-colors"
+        style="background-color: var(--color-brand-600); color: var(--color-on-brand)"
         data-testid="widget-retry"
       >
         {t('common.retry')}

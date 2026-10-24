@@ -14,6 +14,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/jackc/pgx/v5/pgtype"
 
 	"github.com/VitaliAndrushkevich/pulse/internal/api/handlers"
 	"github.com/VitaliAndrushkevich/pulse/internal/api/middleware"
@@ -26,9 +27,9 @@ import (
 type dashboardQueryMode int
 
 const (
-	modeSuccess       dashboardQueryMode = iota // all queries succeed with mock data
-	modePartialFail                             // some queries fail
-	modeEmpty                                   // no data in any table
+	modeSuccess     dashboardQueryMode = iota // all queries succeed with mock data
+	modePartialFail                           // some queries fail
+	modeEmpty                                 // no data in any table
 )
 
 // dashboardFakeDB implements db.DBTX for dashboard handler tests.
@@ -72,6 +73,10 @@ func (f *dashboardFakeDB) successRows(sql string) (pgx.Rows, error) {
 			},
 			idx: -1,
 		}, nil
+	}
+
+	if strings.Contains(sql, "COUNT(*) OVER()") {
+		return &periodIncidentRows{idx: -1}, nil
 	}
 
 	// Active incidents query
@@ -127,7 +132,7 @@ func (f *dashboardFakeDB) successRows(sql string) (pgx.Rows, error) {
 	}
 
 	// Recent events query (incidents ORDER BY started_at DESC)
-	if strings.Contains(sql, "ORDER BY i.started_at DESC") {
+	if strings.Contains(sql, "ORDER BY GREATEST(i.started_at, i.resolved_at) DESC") {
 		return &recentEventRows{
 			data: []recentEventRow{
 				{
@@ -175,21 +180,50 @@ func (r *scalarRow) Scan(dest ...interface{}) error {
 	if len(dest) > 0 {
 		*dest[0].(*float64) = r.value
 	}
+	if len(dest) > 1 {
+		if r.value > 0 {
+			*dest[1].(*int) = 10
+		} else {
+			*dest[1].(*int) = 0
+		}
+	}
+	return nil
+}
+
+type periodIncidentRows struct {
+	emptyRows
+	idx int
+}
+
+func (r *periodIncidentRows) Next() bool { r.idx++; return r.idx < 2 }
+func (r *periodIncidentRows) Scan(dest ...interface{}) error {
+	*dest[0].(*string) = "00000000-0000-0000-0000-00000000000" + []string{"1", "2"}[r.idx]
+	*dest[1].(*string) = "00000000-0000-0000-0000-000000000010"
+	*dest[2].(*string) = "API"
+	*dest[3].(*time.Time) = time.Now().Add(-time.Hour)
+	if r.idx == 0 {
+		*dest[4].(**time.Time) = timePtr(time.Now().Add(-30 * time.Minute))
+	} else {
+		*dest[4].(**time.Time) = nil
+	}
+	*dest[5].(**string) = strPtr("Timeout")
+	*dest[6].(*int) = 12
 	return nil
 }
 
 // emptyRows implements pgx.Rows with zero results.
 type emptyRows struct{}
 
-func (r *emptyRows) Close()                                        {}
-func (r *emptyRows) Err() error                                    { return nil }
-func (r *emptyRows) CommandTag() pgconn.CommandTag                 { return pgconn.NewCommandTag("") }
+func (r *emptyRows) Close()                                       {}
+func (r *emptyRows) Err() error                                   { return nil }
+func (r *emptyRows) CommandTag() pgconn.CommandTag                { return pgconn.NewCommandTag("") }
 func (r *emptyRows) FieldDescriptions() []pgconn.FieldDescription { return nil }
-func (r *emptyRows) RawValues() [][]byte                           { return nil }
+func (r *emptyRows) RawValues() [][]byte                          { return nil }
 func (r *emptyRows) Conn() *pgx.Conn                              { return nil }
-func (r *emptyRows) Next() bool                                    { return false }
-func (r *emptyRows) Scan(_ ...interface{}) error                   { return nil }
-func (r *emptyRows) Values() ([]interface{}, error)                { return nil, nil }
+func (r *emptyRows) TypeMap() *pgtype.Map                         { return pgtype.NewMap() }
+func (r *emptyRows) Next() bool                                   { return false }
+func (r *emptyRows) Scan(_ ...interface{}) error                  { return nil }
+func (r *emptyRows) Values() ([]interface{}, error)               { return nil, nil }
 
 // stateDistRows returns state distribution data.
 type stateCountRow struct {
@@ -202,13 +236,14 @@ type stateDistRows struct {
 	idx  int
 }
 
-func (r *stateDistRows) Close()                                        {}
-func (r *stateDistRows) Err() error                                    { return nil }
-func (r *stateDistRows) CommandTag() pgconn.CommandTag                 { return pgconn.NewCommandTag("") }
+func (r *stateDistRows) Close()                                       {}
+func (r *stateDistRows) Err() error                                   { return nil }
+func (r *stateDistRows) CommandTag() pgconn.CommandTag                { return pgconn.NewCommandTag("") }
 func (r *stateDistRows) FieldDescriptions() []pgconn.FieldDescription { return nil }
-func (r *stateDistRows) RawValues() [][]byte                           { return nil }
+func (r *stateDistRows) RawValues() [][]byte                          { return nil }
 func (r *stateDistRows) Conn() *pgx.Conn                              { return nil }
-func (r *stateDistRows) Values() ([]interface{}, error)                { return nil, nil }
+func (r *stateDistRows) TypeMap() *pgtype.Map                         { return pgtype.NewMap() }
+func (r *stateDistRows) Values() ([]interface{}, error)               { return nil, nil }
 
 func (r *stateDistRows) Next() bool {
 	r.idx++
@@ -235,13 +270,14 @@ type incidentRows struct {
 	idx  int
 }
 
-func (r *incidentRows) Close()                                        {}
-func (r *incidentRows) Err() error                                    { return nil }
-func (r *incidentRows) CommandTag() pgconn.CommandTag                 { return pgconn.NewCommandTag("") }
+func (r *incidentRows) Close()                                       {}
+func (r *incidentRows) Err() error                                   { return nil }
+func (r *incidentRows) CommandTag() pgconn.CommandTag                { return pgconn.NewCommandTag("") }
 func (r *incidentRows) FieldDescriptions() []pgconn.FieldDescription { return nil }
-func (r *incidentRows) RawValues() [][]byte                           { return nil }
+func (r *incidentRows) RawValues() [][]byte                          { return nil }
 func (r *incidentRows) Conn() *pgx.Conn                              { return nil }
-func (r *incidentRows) Values() ([]interface{}, error)                { return nil, nil }
+func (r *incidentRows) TypeMap() *pgtype.Map                         { return pgtype.NewMap() }
+func (r *incidentRows) Values() ([]interface{}, error)               { return nil, nil }
 
 func (r *incidentRows) Next() bool {
 	r.idx++
@@ -269,13 +305,14 @@ type latencyRows struct {
 	idx  int
 }
 
-func (r *latencyRows) Close()                                        {}
-func (r *latencyRows) Err() error                                    { return nil }
-func (r *latencyRows) CommandTag() pgconn.CommandTag                 { return pgconn.NewCommandTag("") }
+func (r *latencyRows) Close()                                       {}
+func (r *latencyRows) Err() error                                   { return nil }
+func (r *latencyRows) CommandTag() pgconn.CommandTag                { return pgconn.NewCommandTag("") }
 func (r *latencyRows) FieldDescriptions() []pgconn.FieldDescription { return nil }
-func (r *latencyRows) RawValues() [][]byte                           { return nil }
+func (r *latencyRows) RawValues() [][]byte                          { return nil }
 func (r *latencyRows) Conn() *pgx.Conn                              { return nil }
-func (r *latencyRows) Values() ([]interface{}, error)                { return nil, nil }
+func (r *latencyRows) TypeMap() *pgtype.Map                         { return pgtype.NewMap() }
+func (r *latencyRows) Values() ([]interface{}, error)               { return nil, nil }
 
 func (r *latencyRows) Next() bool {
 	r.idx++
@@ -303,13 +340,14 @@ type sslRows struct {
 	idx  int
 }
 
-func (r *sslRows) Close()                                        {}
-func (r *sslRows) Err() error                                    { return nil }
-func (r *sslRows) CommandTag() pgconn.CommandTag                 { return pgconn.NewCommandTag("") }
+func (r *sslRows) Close()                                       {}
+func (r *sslRows) Err() error                                   { return nil }
+func (r *sslRows) CommandTag() pgconn.CommandTag                { return pgconn.NewCommandTag("") }
 func (r *sslRows) FieldDescriptions() []pgconn.FieldDescription { return nil }
-func (r *sslRows) RawValues() [][]byte                           { return nil }
+func (r *sslRows) RawValues() [][]byte                          { return nil }
 func (r *sslRows) Conn() *pgx.Conn                              { return nil }
-func (r *sslRows) Values() ([]interface{}, error)                { return nil, nil }
+func (r *sslRows) TypeMap() *pgtype.Map                         { return pgtype.NewMap() }
+func (r *sslRows) Values() ([]interface{}, error)               { return nil, nil }
 
 func (r *sslRows) Next() bool {
 	r.idx++
@@ -322,6 +360,9 @@ func (r *sslRows) Scan(dest ...interface{}) error {
 	*dest[1].(*string) = row.monitorName
 	*dest[2].(*int) = row.daysRemaining
 	*dest[3].(*time.Time) = row.expiresAt
+	if len(dest) > 4 {
+		*dest[4].(*bool) = row.daysRemaining <= 30
+	}
 	return nil
 }
 
@@ -338,13 +379,14 @@ type heatmapRows struct {
 	idx  int
 }
 
-func (r *heatmapRows) Close()                                        {}
-func (r *heatmapRows) Err() error                                    { return nil }
-func (r *heatmapRows) CommandTag() pgconn.CommandTag                 { return pgconn.NewCommandTag("") }
+func (r *heatmapRows) Close()                                       {}
+func (r *heatmapRows) Err() error                                   { return nil }
+func (r *heatmapRows) CommandTag() pgconn.CommandTag                { return pgconn.NewCommandTag("") }
 func (r *heatmapRows) FieldDescriptions() []pgconn.FieldDescription { return nil }
-func (r *heatmapRows) RawValues() [][]byte                           { return nil }
+func (r *heatmapRows) RawValues() [][]byte                          { return nil }
 func (r *heatmapRows) Conn() *pgx.Conn                              { return nil }
-func (r *heatmapRows) Values() ([]interface{}, error)                { return nil, nil }
+func (r *heatmapRows) TypeMap() *pgtype.Map                         { return pgtype.NewMap() }
+func (r *heatmapRows) Values() ([]interface{}, error)               { return nil, nil }
 
 func (r *heatmapRows) Next() bool {
 	r.idx++
@@ -374,13 +416,14 @@ type recentEventRows struct {
 	idx  int
 }
 
-func (r *recentEventRows) Close()                                        {}
-func (r *recentEventRows) Err() error                                    { return nil }
-func (r *recentEventRows) CommandTag() pgconn.CommandTag                 { return pgconn.NewCommandTag("") }
+func (r *recentEventRows) Close()                                       {}
+func (r *recentEventRows) Err() error                                   { return nil }
+func (r *recentEventRows) CommandTag() pgconn.CommandTag                { return pgconn.NewCommandTag("") }
 func (r *recentEventRows) FieldDescriptions() []pgconn.FieldDescription { return nil }
-func (r *recentEventRows) RawValues() [][]byte                           { return nil }
+func (r *recentEventRows) RawValues() [][]byte                          { return nil }
 func (r *recentEventRows) Conn() *pgx.Conn                              { return nil }
-func (r *recentEventRows) Values() ([]interface{}, error)                { return nil, nil }
+func (r *recentEventRows) TypeMap() *pgtype.Map                         { return pgtype.NewMap() }
+func (r *recentEventRows) Values() ([]interface{}, error)               { return nil, nil }
 
 func (r *recentEventRows) Next() bool {
 	r.idx++
@@ -804,4 +847,128 @@ func generateExpiredJWT() string {
 		-1*time.Hour, // expired 1 hour ago
 	)
 	return "Bearer " + token
+}
+
+// windowDashboardDB records the parameter passed to the historical aggregation.
+type windowDashboardDB struct {
+	*dashboardFakeDB
+	since       time.Time
+	latencyFrom time.Time
+	latencyTo   time.Time
+}
+
+func (f *windowDashboardDB) QueryRow(ctx context.Context, sql string, args ...interface{}) pgx.Row {
+	f.since = args[0].(time.Time)
+	return f.dashboardFakeDB.QueryRow(ctx, sql, args...)
+}
+
+func (f *windowDashboardDB) Query(ctx context.Context, sql string, args ...interface{}) (pgx.Rows, error) {
+	if strings.Contains(sql, "avg_latency_ms") && strings.Contains(sql, "LIMIT 5") {
+		f.latencyFrom = args[0].(time.Time)
+		f.latencyTo = args[1].(time.Time)
+	}
+	return f.dashboardFakeDB.Query(ctx, sql, args...)
+}
+
+func TestDashboardPeriods(t *testing.T) {
+	for _, tc := range []struct {
+		period string
+		window time.Duration
+		status int
+	}{
+		{"", 24 * time.Hour, 200}, {"1h", time.Hour, 200}, {"24h", 24 * time.Hour, 200},
+		{"7d", 7 * 24 * time.Hour, 200}, {"30d", 30 * 24 * time.Hour, 200}, {"1y", 0, 400},
+	} {
+		t.Run(tc.period, func(t *testing.T) {
+			fake := &windowDashboardDB{dashboardFakeDB: newDashboardFakeDB(modeSuccess)}
+			router := gin.New()
+			handlers.NewDashboardHandlerWithDB(db.New(fake), fake).Register(router.Group("/api/v1"))
+			recorder := httptest.NewRecorder()
+			before := time.Now().Add(-tc.window)
+			router.ServeHTTP(recorder, httptest.NewRequest(http.MethodGet, "/api/v1/dashboard/summary"+func() string {
+				if tc.period == "" {
+					return ""
+				}
+				return "?period=" + tc.period
+			}(), nil))
+			if recorder.Code != tc.status {
+				t.Fatalf("status = %d, body = %s", recorder.Code, recorder.Body.String())
+			}
+			if tc.status == 400 {
+				if !strings.Contains(recorder.Body.String(), "INVALID_PERIOD") {
+					t.Fatal(recorder.Body.String())
+				}
+				return
+			}
+			if fake.since.Before(before) || fake.since.After(time.Now().Add(-tc.window)) {
+				t.Fatalf("unexpected lower bound %s", fake.since)
+			}
+			var response handlers.DashboardSummaryResponse
+			if err := json.Unmarshal(recorder.Body.Bytes(), &response); err != nil {
+				t.Fatal(err)
+			}
+			if fake.latencyTo.Sub(fake.latencyFrom) != tc.window {
+				t.Fatalf("latency window = %v", fake.latencyTo.Sub(fake.latencyFrom))
+			}
+			if fake.latencyFrom.Format(time.RFC3339Nano) != response.PeriodFrom || fake.latencyTo.Format(time.RFC3339Nano) != response.PeriodTo {
+				t.Fatal("latency window must match selected incident window")
+			}
+			if response.SSLCheckedMonitorCount != 1 {
+				t.Fatalf("SSL checked count = %d", response.SSLCheckedMonitorCount)
+			}
+			if response.HealthScore.SampledMonitorCount != 10 {
+				t.Fatalf("sampled monitors = %d", response.HealthScore.SampledMonitorCount)
+			}
+		})
+	}
+}
+
+func TestDashboardPartialFailureKeepsSuccessfulWidgets(t *testing.T) {
+	fake := newDashboardFakeDB(modePartialFail)
+	router := gin.New()
+	handlers.NewDashboardHandlerWithDB(db.New(fake), fake).Register(router.Group("/api/v1"))
+	recorder := httptest.NewRecorder()
+	router.ServeHTTP(recorder, httptest.NewRequest(http.MethodGet, "/api/v1/dashboard/summary", nil))
+	var response handlers.DashboardSummaryResponse
+	if err := json.Unmarshal(recorder.Body.Bytes(), &response); err != nil {
+		t.Fatal(err)
+	}
+	if !response.PartialData || response.WidgetErrors["heatmap"] == "" {
+		t.Fatal("missing partial failure metadata")
+	}
+	if response.WidgetErrors["sparklines"] != "" || len(response.TopLatencyMonitors) == 0 {
+		t.Fatal("successful latency query lost")
+	}
+}
+
+func TestDashboardPeriodIncidentResponse(t *testing.T) {
+	fake := newDashboardFakeDB(modeSuccess)
+	router := gin.New()
+	handlers.NewDashboardHandlerWithDB(db.New(fake), fake).Register(router.Group("/api/v1"))
+	recorder := httptest.NewRecorder()
+	router.ServeHTTP(recorder, httptest.NewRequest(http.MethodGet, "/api/v1/dashboard/summary?period=7d", nil))
+	var response handlers.DashboardSummaryResponse
+	if err := json.Unmarshal(recorder.Body.Bytes(), &response); err != nil {
+		t.Fatal(err)
+	}
+	if response.IncidentCount != 12 || len(response.Incidents) != 2 {
+		t.Fatalf("lost historical incident count: %+v", response)
+	}
+	if response.Incidents[0].ResolvedAt == nil || response.Incidents[1].ResolvedAt != nil {
+		t.Fatalf("lost recovery/ongoing distinction: %+v", response.Incidents)
+	}
+	from, err := time.Parse(time.RFC3339Nano, response.PeriodFrom)
+	if err != nil {
+		t.Fatal(err)
+	}
+	to, err := time.Parse(time.RFC3339Nano, response.PeriodTo)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if to.Sub(from) != 7*24*time.Hour {
+		t.Fatalf("window = %v", to.Sub(from))
+	}
+	if len(response.ActiveIncidents) == 0 {
+		t.Fatal("legacy active incidents must remain available")
+	}
 }

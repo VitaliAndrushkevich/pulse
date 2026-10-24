@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -39,9 +40,11 @@ func NewDashboardHandlerWithDB(queries *db.Queries, pool DashboardDB) *Dashboard
 
 // HealthScoreData holds the global uptime percentage across all active monitors.
 type HealthScoreData struct {
-	UptimePercent      float64 `json:"uptime_percent"`
-	ActiveMonitorCount int     `json:"active_monitor_count"`
-	PartialData        bool    `json:"partial_data"`
+	UptimePercent       float64 `json:"uptime_percent"`
+	ActiveMonitorCount  int     `json:"active_monitor_count"`
+	PartialData         bool    `json:"partial_data"`
+	Period              string  `json:"period"`
+	SampledMonitorCount int     `json:"sampled_monitor_count"`
 }
 
 // StatusDistribution holds the count of monitors in each state.
@@ -59,6 +62,17 @@ type ActiveIncident struct {
 	StartedAt   string  `json:"started_at"`
 	Cause       *string `json:"cause"`
 	State       string  `json:"state"`
+}
+
+// PeriodIncident is an incident overlapping the selected half-open interval.
+// Timestamps are the actual incident boundaries, never clipped to the window.
+type PeriodIncident struct {
+	ID          string  `json:"id"`
+	MonitorID   string  `json:"monitor_id"`
+	MonitorName string  `json:"monitor_name"`
+	StartedAt   string  `json:"started_at"`
+	ResolvedAt  *string `json:"resolved_at"`
+	Cause       *string `json:"cause"`
 }
 
 // TopLatencyMonitor represents a monitor with one of the highest average latencies.
@@ -95,15 +109,21 @@ type RecentEvent struct {
 
 // DashboardSummaryResponse is the top-level response for GET /dashboard/summary.
 type DashboardSummaryResponse struct {
-	HealthScore        HealthScoreData     `json:"health_score"`
-	StatusDistribution StatusDistribution  `json:"status_distribution"`
-	ActiveIncidents    []ActiveIncident    `json:"active_incidents"`
-	TopLatencyMonitors []TopLatencyMonitor `json:"top_latency_monitors"`
-	SSLExpiry          []SSLExpiryEntry    `json:"ssl_expiry"`
-	Heatmap            []HeatmapHour       `json:"heatmap"`
-	RecentEvents       []RecentEvent       `json:"recent_events"`
-	GeneratedAt        string              `json:"generated_at"`
-	PartialData        bool                `json:"partial_data"`
+	HealthScore            HealthScoreData     `json:"health_score"`
+	Incidents              []PeriodIncident    `json:"incidents"`
+	IncidentCount          int                 `json:"incident_count"`
+	PeriodFrom             string              `json:"period_from"`
+	PeriodTo               string              `json:"period_to"`
+	StatusDistribution     StatusDistribution  `json:"status_distribution"`
+	ActiveIncidents        []ActiveIncident    `json:"active_incidents"`
+	TopLatencyMonitors     []TopLatencyMonitor `json:"top_latency_monitors"`
+	SSLExpiry              []SSLExpiryEntry    `json:"ssl_expiry"`
+	SSLCheckedMonitorCount int                 `json:"ssl_checked_monitor_count"`
+	Heatmap                []HeatmapHour       `json:"heatmap"`
+	RecentEvents           []RecentEvent       `json:"recent_events"`
+	GeneratedAt            string              `json:"generated_at"`
+	PartialData            bool                `json:"partial_data"`
+	WidgetErrors           map[string]string   `json:"widget_errors"`
 }
 
 // Register mounts the dashboard routes on the given router group.
@@ -112,27 +132,54 @@ func (h *DashboardHandler) Register(rg *gin.RouterGroup) {
 }
 
 // GetSummary handles GET /api/v1/dashboard/summary.
-// Runs 6 database queries in parallel and assembles the response.
+// Runs independent database queries in parallel and assembles the response.
 // If any sub-query fails, partial data is returned with partial_data: true.
 func (h *DashboardHandler) GetSummary(c *gin.Context) {
 	ctx := c.Request.Context()
+	until := time.Now().UTC()
+	period := c.DefaultQuery("period", "24h")
+	windows := map[string]time.Duration{"1h": time.Hour, "24h": 24 * time.Hour, "7d": 7 * 24 * time.Hour, "30d": 30 * 24 * time.Hour}
+	window, ok := windows[period]
+	if !ok {
+		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"code": "INVALID_PERIOD", "message": "period must be one of 1h, 24h, 7d, 30d"}})
+		return
+	}
 
 	var (
-		healthScore        HealthScoreData
-		statusDistribution StatusDistribution
-		activeIncidents    []ActiveIncident
-		topLatency         []TopLatencyMonitor
-		sslExpiry          []SSLExpiryEntry
-		heatmap            []HeatmapHour
-		recentEvents       []RecentEvent
-		partialData        bool
+		healthScore            HealthScoreData
+		statusDistribution     StatusDistribution
+		activeIncidents        []ActiveIncident
+		incidents              []PeriodIncident
+		incidentCount          int
+		topLatency             []TopLatencyMonitor
+		sslCheckedMonitorCount int
+		sslExpiry              []SSLExpiryEntry
+		heatmap                []HeatmapHour
+		recentEvents           []RecentEvent
+		partialData            bool
 	)
 
-	g, gCtx := errgroup.WithContext(ctx)
+	var g errgroup.Group
+	gCtx := ctx
+	widgetErrors := make(map[string]string)
+	var errorMu sync.Mutex
+	run := func(widget string, query func() error) {
+		g.Go(func() error {
+			if err := query(); err != nil {
+				errorMu.Lock()
+				widgetErrors[widget] = "DASHBOARD_QUERY_FAILED"
+				if widget == "health-score" {
+					widgetErrors["status-ring"] = "DASHBOARD_QUERY_FAILED"
+				}
+				errorMu.Unlock()
+			}
+			return nil
+		})
+	}
 
 	// Query 1: Health score + status distribution
-	g.Go(func() error {
-		hs, sd, err := h.queryHealthAndDistribution(gCtx)
+	run("health-score", func() error {
+		hs, sd, err := h.queryHealthAndDistribution(gCtx, window)
 		if err != nil {
 			return fmt.Errorf("health+distribution: %w", err)
 		}
@@ -142,7 +189,7 @@ func (h *DashboardHandler) GetSummary(c *gin.Context) {
 	})
 
 	// Query 2: Active incidents
-	g.Go(func() error {
+	run("active-incidents", func() error {
 		incidents, err := h.queryActiveIncidents(gCtx)
 		if err != nil {
 			return fmt.Errorf("active incidents: %w", err)
@@ -151,9 +198,15 @@ func (h *DashboardHandler) GetSummary(c *gin.Context) {
 		return nil
 	})
 
+	run("incidents", func() error {
+		var err error
+		incidents, incidentCount, err = h.queryPeriodIncidents(gCtx, until.Add(-window), until)
+		return err
+	})
+
 	// Query 3: Top latency monitors
-	g.Go(func() error {
-		monitors, err := h.queryTopLatency(gCtx)
+	run("sparklines", func() error {
+		monitors, err := h.queryTopLatency(gCtx, until.Add(-window), until)
 		if err != nil {
 			return fmt.Errorf("top latency: %w", err)
 		}
@@ -162,17 +215,18 @@ func (h *DashboardHandler) GetSummary(c *gin.Context) {
 	})
 
 	// Query 4: SSL expiry warnings
-	g.Go(func() error {
-		entries, err := h.querySSLExpiry(gCtx)
+	run("ssl-expiry", func() error {
+		entries, checkedCount, err := h.querySSLExpiry(gCtx)
 		if err != nil {
 			return fmt.Errorf("ssl expiry: %w", err)
 		}
 		sslExpiry = entries
+		sslCheckedMonitorCount = checkedCount
 		return nil
 	})
 
 	// Query 5: Heatmap (TimescaleDB time_bucket)
-	g.Go(func() error {
+	run("heatmap", func() error {
 		hours, err := h.queryHeatmap(gCtx)
 		if err != nil {
 			return fmt.Errorf("heatmap: %w", err)
@@ -182,7 +236,7 @@ func (h *DashboardHandler) GetSummary(c *gin.Context) {
 	})
 
 	// Query 6: Recent events
-	g.Go(func() error {
+	run("events-feed", func() error {
 		events, err := h.queryRecentEvents(gCtx)
 		if err != nil {
 			return fmt.Errorf("recent events: %w", err)
@@ -193,11 +247,13 @@ func (h *DashboardHandler) GetSummary(c *gin.Context) {
 
 	// errgroup.Wait returns the first error, but we want partial data.
 	// We use individual error tracking instead.
-	if err := g.Wait(); err != nil {
-		partialData = true
-	}
+	_ = g.Wait()
+	partialData = len(widgetErrors) > 0
 
 	// Ensure slices are never nil in JSON output.
+	if incidents == nil {
+		incidents = []PeriodIncident{}
+	}
 	if activeIncidents == nil {
 		activeIncidents = []ActiveIncident{}
 	}
@@ -215,26 +271,33 @@ func (h *DashboardHandler) GetSummary(c *gin.Context) {
 	}
 
 	// Propagate partial_data to health score struct as well.
-	healthScore.PartialData = partialData
+	healthScore.PartialData = healthScore.PartialData || partialData
+	healthScore.Period = period
 
 	resp := DashboardSummaryResponse{
-		HealthScore:        healthScore,
-		StatusDistribution: statusDistribution,
-		ActiveIncidents:    activeIncidents,
-		TopLatencyMonitors: topLatency,
-		SSLExpiry:          sslExpiry,
-		Heatmap:            heatmap,
-		RecentEvents:       recentEvents,
-		GeneratedAt:        time.Now().UTC().Format(time.RFC3339),
-		PartialData:        partialData,
+		HealthScore:            healthScore,
+		Incidents:              incidents,
+		IncidentCount:          incidentCount,
+		PeriodFrom:             until.Add(-window).Format(time.RFC3339Nano),
+		PeriodTo:               until.Format(time.RFC3339Nano),
+		StatusDistribution:     statusDistribution,
+		ActiveIncidents:        activeIncidents,
+		TopLatencyMonitors:     topLatency,
+		SSLExpiry:              sslExpiry,
+		SSLCheckedMonitorCount: sslCheckedMonitorCount,
+		Heatmap:                heatmap,
+		RecentEvents:           recentEvents,
+		GeneratedAt:            time.Now().UTC().Format(time.RFC3339),
+		PartialData:            partialData,
+		WidgetErrors:           widgetErrors,
 	}
 
 	c.JSON(http.StatusOK, resp)
 }
 
 // queryHealthAndDistribution fetches the state distribution for active monitors
-// and computes the uptime percentage from check_results in the last 24 hours.
-func (h *DashboardHandler) queryHealthAndDistribution(ctx context.Context) (HealthScoreData, StatusDistribution, error) {
+// and computes the mean per-monitor successful-check percentage for the window.
+func (h *DashboardHandler) queryHealthAndDistribution(ctx context.Context, windows ...time.Duration) (HealthScoreData, StatusDistribution, error) {
 	// Get state distribution for active monitors.
 	rows, err := h.pool.Query(ctx,
 		`SELECT state, COUNT(*) AS cnt
@@ -267,9 +330,14 @@ func (h *DashboardHandler) queryHealthAndDistribution(ctx context.Context) (Heal
 	}
 	dist.Total = dist.Up + dist.Down + dist.Unknown
 
-	// Compute average uptime percentage across all active monitors over last 24h.
-	since := time.Now().UTC().Add(-24 * time.Hour)
+	// Weight each active monitor with retained checks equally, regardless of check frequency.
+	window := 24 * time.Hour
+	if len(windows) > 0 {
+		window = windows[0]
+	}
+	since := time.Now().UTC().Add(-window)
 	var uptimePercent float64
+	var sampledCount int
 
 	err = h.pool.QueryRow(ctx,
 		`SELECT COALESCE(
@@ -278,7 +346,7 @@ func (h *DashboardHandler) queryHealthAndDistribution(ctx context.Context) (Heal
 					THEN (up_count::float / total::float) * 100
 					ELSE 0
 				END
-			), 0)
+			), 0), COUNT(*)
 		 FROM (
 			SELECT
 				cr.monitor_id,
@@ -289,7 +357,7 @@ func (h *DashboardHandler) queryHealthAndDistribution(ctx context.Context) (Heal
 			WHERE m.status = 'active'
 			  AND cr.checked_at >= $1
 			GROUP BY cr.monitor_id
-		 ) sub`, since).Scan(&uptimePercent)
+		 ) sub`, since).Scan(&uptimePercent, &sampledCount)
 	if err != nil {
 		return HealthScoreData{}, StatusDistribution{}, fmt.Errorf("uptime query: %w", err)
 	}
@@ -298,9 +366,10 @@ func (h *DashboardHandler) queryHealthAndDistribution(ctx context.Context) (Heal
 	uptimePercent = math.Round(uptimePercent*100) / 100
 
 	healthScore := HealthScoreData{
-		UptimePercent:      uptimePercent,
-		ActiveMonitorCount: dist.Total,
-		PartialData:        false,
+		UptimePercent:       uptimePercent,
+		ActiveMonitorCount:  dist.Total,
+		PartialData:         sampledCount < dist.Total,
+		SampledMonitorCount: sampledCount,
 	}
 
 	return healthScore, dist, nil
@@ -320,7 +389,7 @@ func (h *DashboardHandler) queryActiveIncidents(ctx context.Context) ([]ActiveIn
 		     i.cause
 		   FROM incidents i
 		   JOIN monitors m ON m.id = i.monitor_id
-		   WHERE i.resolved_at IS NULL
+		   WHERE i.resolved_at IS NULL AND m.status = 'active' AND m.state = 'down'
 		   ORDER BY m.id, i.started_at ASC
 		 ) sub
 		 ORDER BY sub.started_at ASC
@@ -356,21 +425,54 @@ func (h *DashboardHandler) queryActiveIncidents(ctx context.Context) ([]ActiveIn
 	return incidents, nil
 }
 
-// queryTopLatency fetches the top 5 monitors by average latency in the last 24h.
-func (h *DashboardHandler) queryTopLatency(ctx context.Context) ([]TopLatencyMonitor, error) {
-	since := time.Now().UTC().Add(-24 * time.Hour)
+// queryPeriodIncidents returns at most 10 incidents overlapping [from, to),
+// ongoing first, then newest first. COUNT OVER preserves the full count without a second query.
+func (h *DashboardHandler) queryPeriodIncidents(ctx context.Context, from, to time.Time) ([]PeriodIncident, int, error) {
+	rows, err := h.pool.Query(ctx, `SELECT i.id, m.id, m.name, i.started_at, i.resolved_at, i.cause, COUNT(*) OVER()
+ FROM incidents i JOIN monitors m ON m.id = i.monitor_id
+ WHERE i.started_at < $2 AND (i.resolved_at IS NULL OR i.resolved_at > $1)
+ ORDER BY (i.resolved_at IS NULL) DESC, i.started_at DESC, i.id DESC
+ LIMIT 10`, from, to)
+	if err != nil {
+		return nil, 0, fmt.Errorf("period incidents query: %w", err)
+	}
+	defer rows.Close()
+	incidents := make([]PeriodIncident, 0)
+	total := 0
+	for rows.Next() {
+		var incident PeriodIncident
+		var started time.Time
+		var resolved *time.Time
+		if err := rows.Scan(&incident.ID, &incident.MonitorID, &incident.MonitorName, &started, &resolved, &incident.Cause, &total); err != nil {
+			return nil, 0, fmt.Errorf("period incidents scan: %w", err)
+		}
+		incident.StartedAt = started.UTC().Format(time.RFC3339Nano)
+		if resolved != nil {
+			value := resolved.UTC().Format(time.RFC3339Nano)
+			incident.ResolvedAt = &value
+		}
+		incidents = append(incidents, incident)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, 0, fmt.Errorf("period incidents rows: %w", err)
+	}
+	return incidents, total, nil
+}
+
+// queryTopLatency fetches the top 5 monitors by recorded average latency in [from, to).
+func (h *DashboardHandler) queryTopLatency(ctx context.Context, from, to time.Time) ([]TopLatencyMonitor, error) {
 
 	rows, err := h.pool.Query(ctx,
 		`SELECT m.id, m.name, AVG(cr.latency_ms)::integer AS avg_latency_ms
 		 FROM check_results cr
 		 JOIN monitors m ON m.id = cr.monitor_id
 		 WHERE m.status = 'active'
-		   AND cr.checked_at >= $1
+		   AND cr.checked_at >= $1 AND cr.checked_at < $2
 		   AND cr.latency_ms IS NOT NULL
 		 GROUP BY m.id, m.name
 		 HAVING AVG(cr.latency_ms) IS NOT NULL
 		 ORDER BY avg_latency_ms DESC NULLS LAST
-		 LIMIT 5`, since)
+		 LIMIT 5`, from, to)
 	if err != nil {
 		return nil, fmt.Errorf("top latency query: %w", err)
 	}
@@ -400,34 +502,41 @@ func (h *DashboardHandler) queryTopLatency(ctx context.Context) ([]TopLatencyMon
 }
 
 // querySSLExpiry fetches monitors with SSL certificates expiring within 30 days.
-func (h *DashboardHandler) querySSLExpiry(ctx context.Context) ([]SSLExpiryEntry, error) {
+func (h *DashboardHandler) querySSLExpiry(ctx context.Context) ([]SSLExpiryEntry, int, error) {
 	rows, err := h.pool.Query(ctx,
-		`SELECT DISTINCT ON (cr.monitor_id)
-			m.id,
-			m.name,
-			cr.ssl_days_remaining,
-			cr.checked_at + (cr.ssl_days_remaining || ' days')::interval AS expires_at
-		 FROM check_results cr
-		 JOIN monitors m ON m.id = cr.monitor_id
-		 WHERE m.status = 'active'
-		   AND cr.ssl_days_remaining IS NOT NULL
-		   AND cr.ssl_days_remaining <= 30
-		 ORDER BY cr.monitor_id, cr.checked_at DESC`)
+		`SELECT m.id, m.name,
+          FLOOR(EXTRACT(EPOCH FROM (latest.expires_at - CURRENT_TIMESTAMP)) / 86400)::integer AS ssl_days_remaining,
+          latest.expires_at, latest.expires_at <= CURRENT_TIMESTAMP + INTERVAL '30 days' AS expiring
+         FROM monitors m
+         JOIN LATERAL (
+           SELECT cr.checked_at + cr.ssl_days_remaining * INTERVAL '1 day' AS expires_at
+           FROM check_results cr
+           WHERE cr.monitor_id = m.id AND cr.ssl_days_remaining IS NOT NULL
+           ORDER BY cr.checked_at DESC
+           LIMIT 1
+         ) latest ON true
+         WHERE m.status = 'active'`)
 	if err != nil {
-		return nil, fmt.Errorf("ssl expiry query: %w", err)
+		return nil, 0, fmt.Errorf("ssl expiry query: %w", err)
 	}
 	defer rows.Close()
 
 	entries := make([]SSLExpiryEntry, 0)
+	checkedCount := 0
 	for rows.Next() {
 		var (
 			monitorID     string
 			monitorName   string
 			daysRemaining int
 			expiresAt     time.Time
+			expiring      bool
 		)
-		if err := rows.Scan(&monitorID, &monitorName, &daysRemaining, &expiresAt); err != nil {
-			return nil, fmt.Errorf("ssl expiry scan: %w", err)
+		if err := rows.Scan(&monitorID, &monitorName, &daysRemaining, &expiresAt, &expiring); err != nil {
+			return nil, 0, fmt.Errorf("ssl expiry scan: %w", err)
+		}
+		checkedCount++
+		if !expiring {
+			continue
 		}
 		entries = append(entries, SSLExpiryEntry{
 			MonitorID:     monitorID,
@@ -437,16 +546,13 @@ func (h *DashboardHandler) querySSLExpiry(ctx context.Context) ([]SSLExpiryEntry
 		})
 	}
 	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("ssl expiry rows: %w", err)
+		return nil, 0, fmt.Errorf("ssl expiry rows: %w", err)
 	}
 
-	// Sort by days_remaining ASC (the DISTINCT ON may not preserve global order).
-	// Re-query with proper ordering.
-	// Actually, let's handle ordering in the query itself using a subquery.
-	// For simplicity and correctness, sort in Go since dataset is small (<=30 entries typically).
+	// Sort the latest certificate observations by urgency.
 	sortSSLEntries(entries)
 
-	return entries, nil
+	return entries, checkedCount, nil
 }
 
 // sortSSLEntries sorts by days_remaining ascending, name ascending as tiebreaker.
@@ -516,8 +622,8 @@ func (h *DashboardHandler) queryRecentEvents(ctx context.Context) ([]RecentEvent
 		`SELECT m.id, m.name, i.started_at, i.resolved_at, i.cause
 		 FROM incidents i
 		 JOIN monitors m ON m.id = i.monitor_id
-		 ORDER BY i.started_at DESC
-		 LIMIT 20`)
+		 ORDER BY GREATEST(i.started_at, i.resolved_at) DESC
+		 LIMIT 10`)
 	if err != nil {
 		return nil, fmt.Errorf("recent events query: %w", err)
 	}
