@@ -211,12 +211,13 @@ type fakeTokenRows struct {
 	idx    int
 }
 
-func (r *fakeTokenRows) Close()                        {}
-func (r *fakeTokenRows) Err() error                    { return nil }
-func (r *fakeTokenRows) CommandTag() pgconn.CommandTag  { return pgconn.NewCommandTag("") }
+func (r *fakeTokenRows) Close()                                       {}
+func (r *fakeTokenRows) Err() error                                   { return nil }
+func (r *fakeTokenRows) CommandTag() pgconn.CommandTag                { return pgconn.NewCommandTag("") }
 func (r *fakeTokenRows) FieldDescriptions() []pgconn.FieldDescription { return nil }
-func (r *fakeTokenRows) RawValues() [][]byte           { return nil }
-func (r *fakeTokenRows) Conn() *pgx.Conn               { return nil }
+func (r *fakeTokenRows) RawValues() [][]byte                          { return nil }
+func (r *fakeTokenRows) Conn() *pgx.Conn                              { return nil }
+func (r *fakeTokenRows) TypeMap() *pgtype.Map                         { return pgtype.NewMap() }
 
 func (r *fakeTokenRows) Next() bool {
 	r.idx++

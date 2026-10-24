@@ -229,29 +229,31 @@ type heartbeatRows struct {
 	idx  int
 }
 
-func (r *heartbeatRows) Close()                                      {}
-func (r *heartbeatRows) Err() error                                  { return nil }
-func (r *heartbeatRows) CommandTag() pgconn.CommandTag               { return pgconn.NewCommandTag("") }
+func (r *heartbeatRows) Close()                                       {}
+func (r *heartbeatRows) Err() error                                   { return nil }
+func (r *heartbeatRows) CommandTag() pgconn.CommandTag                { return pgconn.NewCommandTag("") }
 func (r *heartbeatRows) FieldDescriptions() []pgconn.FieldDescription { return nil }
-func (r *heartbeatRows) RawValues() [][]byte                         { return nil }
-func (r *heartbeatRows) Conn() *pgx.Conn                             { return nil }
-func (r *heartbeatRows) Values() ([]interface{}, error)              { return nil, nil }
-func (r *heartbeatRows) Next() bool                                  { r.idx++; return r.idx < len(r.rows) }
-func (r *heartbeatRows) Scan(dest ...interface{}) error              { return scanHeartbeat(r.rows[r.idx], dest) }
+func (r *heartbeatRows) RawValues() [][]byte                          { return nil }
+func (r *heartbeatRows) Conn() *pgx.Conn                              { return nil }
+func (r *heartbeatRows) TypeMap() *pgtype.Map                         { return pgtype.NewMap() }
+func (r *heartbeatRows) Values() ([]interface{}, error)               { return nil, nil }
+func (r *heartbeatRows) Next() bool                                   { r.idx++; return r.idx < len(r.rows) }
+func (r *heartbeatRows) Scan(dest ...interface{}) error               { return scanHeartbeat(r.rows[r.idx], dest) }
 
 type hbTokenPrefixRows struct {
 	rows []db.GetHeartbeatByTokenPrefixRow
 	idx  int
 }
 
-func (r *hbTokenPrefixRows) Close()                                      {}
-func (r *hbTokenPrefixRows) Err() error                                  { return nil }
-func (r *hbTokenPrefixRows) CommandTag() pgconn.CommandTag               { return pgconn.NewCommandTag("") }
+func (r *hbTokenPrefixRows) Close()                                       {}
+func (r *hbTokenPrefixRows) Err() error                                   { return nil }
+func (r *hbTokenPrefixRows) CommandTag() pgconn.CommandTag                { return pgconn.NewCommandTag("") }
 func (r *hbTokenPrefixRows) FieldDescriptions() []pgconn.FieldDescription { return nil }
-func (r *hbTokenPrefixRows) RawValues() [][]byte                         { return nil }
-func (r *hbTokenPrefixRows) Conn() *pgx.Conn                             { return nil }
-func (r *hbTokenPrefixRows) Values() ([]interface{}, error)              { return nil, nil }
-func (r *hbTokenPrefixRows) Next() bool                                  { r.idx++; return r.idx < len(r.rows) }
+func (r *hbTokenPrefixRows) RawValues() [][]byte                          { return nil }
+func (r *hbTokenPrefixRows) Conn() *pgx.Conn                              { return nil }
+func (r *hbTokenPrefixRows) TypeMap() *pgtype.Map                         { return pgtype.NewMap() }
+func (r *hbTokenPrefixRows) Values() ([]interface{}, error)               { return nil, nil }
+func (r *hbTokenPrefixRows) Next() bool                                   { r.idx++; return r.idx < len(r.rows) }
 func (r *hbTokenPrefixRows) Scan(dest ...interface{}) error {
 	row := r.rows[r.idx]
 	*dest[0].(*uuid.UUID) = row.ID
@@ -266,15 +268,16 @@ func (r *hbTokenPrefixRows) Scan(dest ...interface{}) error {
 
 type heartbeatTagRows struct{ idx int }
 
-func (r *heartbeatTagRows) Close()                                      {}
-func (r *heartbeatTagRows) Err() error                                  { return nil }
-func (r *heartbeatTagRows) CommandTag() pgconn.CommandTag               { return pgconn.NewCommandTag("") }
+func (r *heartbeatTagRows) Close()                                       {}
+func (r *heartbeatTagRows) Err() error                                   { return nil }
+func (r *heartbeatTagRows) CommandTag() pgconn.CommandTag                { return pgconn.NewCommandTag("") }
 func (r *heartbeatTagRows) FieldDescriptions() []pgconn.FieldDescription { return nil }
-func (r *heartbeatTagRows) RawValues() [][]byte                         { return nil }
-func (r *heartbeatTagRows) Conn() *pgx.Conn                             { return nil }
-func (r *heartbeatTagRows) Values() ([]interface{}, error)              { return nil, nil }
-func (r *heartbeatTagRows) Next() bool                                  { return false }
-func (r *heartbeatTagRows) Scan(_ ...interface{}) error                 { return nil }
+func (r *heartbeatTagRows) RawValues() [][]byte                          { return nil }
+func (r *heartbeatTagRows) Conn() *pgx.Conn                              { return nil }
+func (r *heartbeatTagRows) TypeMap() *pgtype.Map                         { return pgtype.NewMap() }
+func (r *heartbeatTagRows) Values() ([]interface{}, error)               { return nil, nil }
+func (r *heartbeatTagRows) Next() bool                                   { return false }
+func (r *heartbeatTagRows) Scan(_ ...interface{}) error                  { return nil }
 
 func scanBinding(b db.HeartbeatBinding, dest []interface{}) error {
 	*dest[0].(*uuid.UUID) = b.ID
@@ -304,15 +307,18 @@ type heartbeatBindingRows struct {
 	idx  int
 }
 
-func (r *heartbeatBindingRows) Close()                                      {}
-func (r *heartbeatBindingRows) Err() error                                  { return nil }
-func (r *heartbeatBindingRows) CommandTag() pgconn.CommandTag               { return pgconn.NewCommandTag("") }
+func (r *heartbeatBindingRows) Close()                                       {}
+func (r *heartbeatBindingRows) Err() error                                   { return nil }
+func (r *heartbeatBindingRows) CommandTag() pgconn.CommandTag                { return pgconn.NewCommandTag("") }
 func (r *heartbeatBindingRows) FieldDescriptions() []pgconn.FieldDescription { return nil }
-func (r *heartbeatBindingRows) RawValues() [][]byte                         { return nil }
-func (r *heartbeatBindingRows) Conn() *pgx.Conn                             { return nil }
-func (r *heartbeatBindingRows) Values() ([]interface{}, error)              { return nil, nil }
-func (r *heartbeatBindingRows) Next() bool                                  { r.idx++; return r.idx < len(r.rows) }
-func (r *heartbeatBindingRows) Scan(dest ...interface{}) error              { return scanBinding(r.rows[r.idx], dest) }
+func (r *heartbeatBindingRows) RawValues() [][]byte                          { return nil }
+func (r *heartbeatBindingRows) Conn() *pgx.Conn                              { return nil }
+func (r *heartbeatBindingRows) TypeMap() *pgtype.Map                         { return pgtype.NewMap() }
+func (r *heartbeatBindingRows) Values() ([]interface{}, error)               { return nil, nil }
+func (r *heartbeatBindingRows) Next() bool                                   { r.idx++; return r.idx < len(r.rows) }
+func (r *heartbeatBindingRows) Scan(dest ...interface{}) error {
+	return scanBinding(r.rows[r.idx], dest)
+}
 
 type markUpRow struct {
 	hb   db.Heartbeat
@@ -745,5 +751,3 @@ func assertHeartbeatErrorCode(t *testing.T, w *httptest.ResponseRecorder, status
 		t.Fatalf("expected error code %q, got %q (body=%s)", code, resp.Error.Code, w.Body.String())
 	}
 }
-
-
