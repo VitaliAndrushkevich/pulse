@@ -127,6 +127,14 @@ type SSLInfo struct {
 
 // DashboardSummary is the aggregated overview of the monitoring system.
 type DashboardSummary struct {
+	SSLCheckedMonitorCount int
+	Incidents              []DashboardIncident
+	IncidentCount          int
+	PeriodFrom             string
+	PeriodTo               string
+	PartialData            bool
+	WidgetErrors           map[string]string
+
 	HealthScore        HealthScore
 	StatusDistribution StatusDistribution
 	ActiveIncidents    []DashboardIncident
@@ -137,6 +145,10 @@ type DashboardSummary struct {
 
 // HealthScore holds the global uptime percentage.
 type HealthScore struct {
+	Period              string
+	SampledMonitorCount int
+	PartialData         bool
+
 	UptimePercent      float64
 	ActiveMonitorCount int
 }
@@ -151,6 +163,8 @@ type StatusDistribution struct {
 
 // DashboardIncident represents an active incident on the dashboard.
 type DashboardIncident struct {
+	ID          string
+	ResolvedAt  *string
 	MonitorID   string
 	MonitorName string
 	StartedAt   string

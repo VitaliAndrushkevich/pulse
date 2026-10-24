@@ -44,116 +44,64 @@
 </script>
 
 <script lang="ts">
-  /**
-   * ResponseSparklines — displays top-5 monitors by latency with inline sparkline charts.
-   *
-   * Requirements 4.1: Select up to 5 monitors with highest non-null avg_latency_ms
-   * Requirements 4.2: Monitor name truncated to 40 chars, latency as integer + " ms"
-   * Requirements 4.3: Sparkline uses 15-min bucket data (step=900)
-   * Requirements 4.4: Order by avg latency descending
-   * Requirements 4.5: Display only monitors with non-null latency
-   * Requirements 4.6: Omit monitors with no history data
-   * Requirements 4.7: Null data points rendered as gaps in the line
-   */
-  import { t } from '$lib/i18n';
+  import { resolve } from '$app/paths';
+  import { t, getLocale } from '$lib/i18n';
+  import type { FleetPeriod } from '$lib/types';
   import WidgetShell from './WidgetShell.svelte';
 
-  interface Props {
+  let { monitors, period = '24h', loading, error, onRetry }: {
     monitors: TopLatencyMonitor[];
+    period?: FleetPeriod;
     loading: boolean;
     error: string | null;
     onRetry: (() => void) | null;
-  }
+  } = $props();
 
-  let { monitors, loading, error, onRetry }: Props = $props();
-
-  let topMonitors = $derived(selectTopMonitors(monitors));
-  let isEmpty = $derived(topMonitors.length === 0);
-
-  /**
-   * Builds an SVG polyline points string from latency data.
-   * Null points are skipped (creating gaps via separate polyline segments).
-   * For now, uses a simple descending representation as placeholder
-   * until actual history data is fetched by the page component.
-   */
-  function buildSparklinePath(latencyMs: number): string {
-    // Generate a simple sparkline placeholder based on latency value.
-    // Actual history data (step=900) will be fetched and passed in a future enhancement.
-    const points: number[] = [];
-    const numPoints = 12;
-    const height = 24;
-    const width = 80;
-
-    for (let i = 0; i < numPoints; i++) {
-      // Create slight variation for visual interest
-      const variance = Math.sin(i * 0.8 + latencyMs * 0.01) * 0.3 + 0.5;
-      points.push(variance * height);
-    }
-
-    return points
-      .map((y, i) => `${(i / (numPoints - 1)) * width},${y}`)
-      .join(' ');
-  }
+  const topMonitors = $derived(selectTopMonitors(monitors));
+  const maximum = $derived(Math.max(0, ...topMonitors.map(monitor => monitor.avg_latency_ms)));
+  const periodLabel = $derived(t({ '1h': 'dashboard.fleetHealth.hour', '24h': 'dashboard.fleetHealth.day', '7d': 'dashboard.fleetHealth.week', '30d': 'dashboard.fleetHealth.month' }[period]));
 </script>
 
-<WidgetShell {loading} {error} {onRetry}>
-  <div class="flex flex-col gap-2 p-4" data-testid="response-sparklines">
-    <h3 class="text-sm font-medium" style="color: var(--color-text-secondary)">
-      {t('dashboard.sparklines.title')}
-    </h3>
-
-    {#if isEmpty}
-      <p
-        class="py-4 text-center text-sm"
-        style="color: var(--color-text-secondary)"
-        data-testid="sparklines-empty"
-      >
-        {t('dashboard.sparklines.empty')}
-      </p>
+<section class="response-panel" aria-labelledby="response-times-title" data-testid="response-times">
+  <header class="panel-heading">
+    <h3 id="response-times-title" class="pulse-eyebrow">{t('dashboard.responseTimes.title')}</h3>
+    <p>{t('dashboard.responseTimes.description', { period: periodLabel })}</p>
+  </header>
+  <WidgetShell {loading} {error} {onRetry}>
+    {#if topMonitors.length === 0}
+      <p class="empty-message" data-testid="response-times-empty">{t('dashboard.responseTimes.empty')}</p>
     {:else}
-      <ul class="flex flex-col gap-1" role="list" data-testid="sparklines-list">
+      <ol class="response-list">
         {#each topMonitors as monitor (monitor.monitor_id)}
-          <li
-            class="flex items-center gap-3 rounded-md px-3 py-2"
-            style="background-color: var(--color-bg-secondary)"
-          >
-            <div class="flex min-w-0 flex-1 flex-col gap-0.5">
-              <span
-                class="truncate text-sm font-medium"
-                style="color: var(--color-text-primary)"
-                title={monitor.monitor_name}
-              >
-                {truncateMonitorName(monitor.monitor_name)}
-              </span>
-              <span
-                class="text-xs tabular-nums"
-                style="color: var(--color-text-secondary)"
-                data-testid="sparkline-latency"
-              >
-                {formatLatency(monitor.avg_latency_ms)}
-              </span>
-            </div>
-            <svg
-              class="shrink-0"
-              width="80"
-              height="24"
-              viewBox="0 0 80 24"
-              fill="none"
-              aria-hidden="true"
-              data-testid="sparkline-chart"
-            >
-              <polyline
-                points={buildSparklinePath(monitor.avg_latency_ms)}
-                stroke="var(--color-brand-primary)"
-                stroke-width="1.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                fill="none"
-              />
-            </svg>
+          <li>
+            <a class="monitor-row" href={resolve('/monitors/[id]', { id: monitor.monitor_id })}>
+              <div class="row-heading">
+                <span class="monitor-name" title={monitor.monitor_name}>{monitor.monitor_name}</span>
+                <span class="latency">{t('dashboard.responseTimes.milliseconds', { value: new Intl.NumberFormat(getLocale(), { maximumFractionDigits: 0 }).format(monitor.avg_latency_ms) })}</span>
+              </div>
+              <div class="latency-track" aria-hidden="true">
+                <span style:inline-size="{maximum > 0 ? Math.max(0, monitor.avg_latency_ms / maximum * 100) : 0}%"></span>
+              </div>
+            </a>
           </li>
         {/each}
-      </ul>
+      </ol>
     {/if}
-  </div>
-</WidgetShell>
+  </WidgetShell>
+</section>
+
+<style>
+  .response-panel { padding: 1.25rem; }
+  .panel-heading { display: grid; gap: 0.5rem; margin-block-end: 1rem; }
+  .panel-heading p, .empty-message { color: var(--color-text-secondary); font-size: 0.75rem; }
+  .empty-message { padding-block: 0.5rem; }
+  .response-list { display: grid; gap: 0.25rem; }
+  .monitor-row { display: grid; gap: 0.6rem; padding: 0.75rem; border-radius: 0.25rem; text-decoration: none; }
+  .monitor-row:hover { background: var(--color-bg-secondary); }
+  .monitor-row:focus-visible { outline: 2px solid var(--color-brand-primary); outline-offset: 2px; }
+  .row-heading { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; }
+  .monitor-name { min-inline-size: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--color-text-primary); font-size: 0.875rem; font-weight: 500; }
+  .latency { flex-shrink: 0; color: var(--color-text-primary); font-size: 0.875rem; font-variant-numeric: tabular-nums; font-family: var(--font-data); }
+  .latency-track { block-size: 0.25rem; background: var(--color-border); border-radius: 0.125rem; overflow: hidden; }
+  .latency-track span { display: block; block-size: 100%; background: var(--color-brand-primary); border-radius: inherit; }
+</style>

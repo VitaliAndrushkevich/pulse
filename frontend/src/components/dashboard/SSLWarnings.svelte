@@ -43,106 +43,77 @@
 </script>
 
 <script lang="ts">
-  /**
-   * SSLWarnings — displays monitors with SSL certificates expiring within 30 days.
-   *
-   * Requirements 5.1: Display monitors with SSL expiring within 30 days or already expired
-   * Requirements 5.2: Show name, days remaining, expiry date (locale-formatted)
-   * Requirements 5.3: Order by days remaining ascending, name tiebreaker
-   * Requirements 5.4: Hide section entirely when no entries
-   * Requirements 5.5: Urgency styling (expired/critical red, warning amber)
-   */
-  import { t } from '$lib/i18n';
+  import { resolve } from '$app/paths';
+  import { t, getLocale } from '$lib/i18n';
   import WidgetShell from './WidgetShell.svelte';
+  import VirtualList from '../VirtualList.svelte';
 
-  interface Props {
+  let { entries, checkedMonitorCount = entries.length, loading, error, onRetry }: {
     entries: SSLExpiryEntry[];
+    checkedMonitorCount?: number;
     loading: boolean;
     error: string | null;
     onRetry: (() => void) | null;
-  }
+  } = $props();
 
-  let { entries, loading, error, onRetry }: Props = $props();
-
-  // Locale-aware date formatter using browser's Intl.DateTimeFormat
-  const dateFormatter = new Intl.DateTimeFormat(undefined, {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric'
-  });
-
-  // Filter and sort entries reactively
-  let filtered = $derived(filterSSLEntries(entries));
-  let sorted = $derived(sortSSLEntries(filtered));
-  let isEmpty = $derived(sorted.length === 0);
-
-  /**
-   * Returns the CSS color variable for a given urgency tier.
-   */
-  function getUrgencyColor(tier: 'expired' | 'critical' | 'warning'): string {
-    if (tier === 'warning') return 'var(--color-warning)';
-    return 'var(--color-error)';
-  }
-
-  /**
-   * Formats the days remaining display text.
-   */
-  function formatDaysRemaining(days: number): string {
-    if (days <= 0) return t('dashboard.ssl.expired');
-    return t('dashboard.ssl.daysRemaining', { count: String(days) });
-  }
-
-  /**
-   * Formats the expiry date using locale-aware formatting.
-   */
-  function formatExpiryDate(expiresAt: string): string {
-    const date = new Date(expiresAt);
-    return dateFormatter.format(date);
+  const sorted = $derived(sortSSLEntries(filterSSLEntries(entries)));
+  function expiryDate(value: string): string {
+    return new Intl.DateTimeFormat(getLocale(), {year: 'numeric', month: 'short', day: 'numeric'}).format(new Date(value));
   }
 </script>
 
-<WidgetShell {loading} {error} {onRetry}>
-  <div class="flex flex-col gap-2 p-4" data-testid="ssl-warnings">
-    <h3 class="text-sm font-medium" style="color: var(--color-text-secondary)">
-      {t('dashboard.ssl.title')}
-    </h3>
+{#snippet certificate(entry: SSLExpiryEntry)}
+  {@const tier = getUrgencyTier(entry.days_remaining)}
+            <a class="certificate-row" href={resolve('/monitors/[id]', { id: entry.monitor_id })}>
+              <div class="row-heading">
+                <span class="monitor-name" title={entry.monitor_name}>{entry.monitor_name}</span>
+                <span class="days-remaining" style:color={tier === 'warning' ? 'var(--color-warning)' : 'var(--color-error)'} data-urgency={tier}>
+                  {entry.days_remaining <= 0 ? t('dashboard.ssl.expired') : t('dashboard.ssl.daysRemaining', { count: String(entry.days_remaining) })}
+                </span>
+              </div>
+              <span class="expiry-date">{t('dashboard.certificates.expires', {date: expiryDate(entry.expires_at)})}</span>
+            </a>
+{/snippet}
 
-    {#if isEmpty}
-      <p
-        class="py-4 text-center text-sm"
-        style="color: var(--color-text-secondary)"
-        data-testid="ssl-empty"
-      >
-        {t('dashboard.ssl.allClear')}
-      </p>
+<section class="certificates-panel" aria-labelledby="certificates-title" data-testid="ssl-warnings">
+  <header class="panel-heading">
+    <div class="heading-row">
+      <h3 id="certificates-title" class="pulse-eyebrow">{t('dashboard.certificates.title')}</h3>
+      {#if !loading && !error && sorted.length > 0}<span class="pulse-tag">{sorted.length}</span>{/if}
+    </div>
+    <p>{t('dashboard.certificates.description')}</p>
+  </header>
+  <WidgetShell {loading} {error} {onRetry}>
+    {#if checkedMonitorCount === 0 && sorted.length === 0}
+      <p class="empty-message" data-testid="ssl-no-data">{t('dashboard.certificates.noData')}</p>
+    {:else if sorted.length === 0}
+      <p class="empty-message" data-testid="ssl-empty">{t('dashboard.certificates.allClear')}</p>
     {:else}
-      <ul class="flex flex-col gap-1" role="list" data-testid="ssl-list">
-        {#each sorted as entry (entry.monitor_id)}
-          {@const tier = getUrgencyTier(entry.days_remaining)}
-          {@const color = getUrgencyColor(tier)}
-          <li
-            class="flex items-center justify-between gap-2 rounded-md px-3 py-2"
-            style="background-color: var(--color-bg-secondary)"
-          >
-            <span class="truncate text-sm font-medium" style="color: var(--color-text-primary)">
-              {entry.monitor_name}
-            </span>
-            <div class="flex shrink-0 items-center gap-2">
-              <span
-                class="text-xs font-medium tabular-nums"
-                style="color: {color}"
-                data-testid="ssl-days-remaining"
-                data-urgency={tier}
-              >
-                {formatDaysRemaining(entry.days_remaining)}
-              </span>
-              <span class="text-xs" style="color: var(--color-text-secondary)">
-                {formatExpiryDate(entry.expires_at)}
-              </span>
-            </div>
-          </li>
-        {/each}
-      </ul>
+      {#if sorted.length > 6}
+        <VirtualList items={sorted} itemHeight={72} containerHeight={360}>
+          {#snippet row(entry)}{@render certificate(entry)}{/snippet}
+        </VirtualList>
+      {:else}
+        <ul class="certificate-list">
+          {#each sorted as entry (entry.monitor_id)}<li>{@render certificate(entry)}</li>{/each}
+        </ul>
+      {/if}
     {/if}
-  </div>
-</WidgetShell>
+  </WidgetShell>
+</section>
+
+<style>
+  .certificates-panel { padding: 1.25rem; }
+  .panel-heading { display: grid; gap: 0.5rem; margin-block-end: 0.75rem; }
+  .heading-row { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; }
+  .panel-heading p, .empty-message, .expiry-date { color: var(--color-text-secondary); font-size: 0.75rem; }
+  .empty-message { padding-block: 0.5rem; }
+  .certificate-list { display: grid; gap: 0.25rem;  }
+  .certificate-row { block-size: 72px; box-sizing: border-box; display: grid; gap: 0.35rem; padding: 0.75rem; border-radius: 0.25rem; text-decoration: none; }
+  .certificate-row:hover { background: var(--color-bg-secondary); }
+  .certificate-row:focus-visible { outline: 2px solid var(--color-brand-primary); outline-offset: -2px; }
+  .expiry-date { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .row-heading { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; }
+  .monitor-name { min-inline-size: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--color-text-primary); font-size: 0.875rem; font-weight: 500; }
+  .days-remaining { flex-shrink: 0; font-size: 0.75rem; font-weight: 600; font-variant-numeric: tabular-nums; font-family: var(--font-data); }
+</style>

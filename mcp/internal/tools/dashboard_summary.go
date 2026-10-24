@@ -10,6 +10,14 @@ type DashboardSummaryInput struct{}
 
 // DashboardSummaryOutput contains the aggregated monitoring overview.
 type DashboardSummaryOutput struct {
+	SSLCheckedMonitorCount int                    `json:"ssl_checked_monitor_count"`
+	Incidents              []PeriodIncidentOutput `json:"incidents"`
+	IncidentCount          int                    `json:"incident_count"`
+	PeriodFrom             string                 `json:"period_from"`
+	PeriodTo               string                 `json:"period_to"`
+	PartialData            bool                   `json:"partial_data"`
+	WidgetErrors           map[string]string      `json:"widget_errors"`
+
 	HealthScore        HealthScoreOutput        `json:"health_score"`
 	StatusDistribution StatusDistributionOutput `json:"status_distribution"`
 	ActiveIncidents    []IncidentOutput         `json:"active_incidents"`
@@ -20,6 +28,10 @@ type DashboardSummaryOutput struct {
 
 // HealthScoreOutput shows the global uptime percentage.
 type HealthScoreOutput struct {
+	Period              string `json:"period"`
+	SampledMonitorCount int    `json:"sampled_monitor_count"`
+	PartialData         bool   `json:"partial_data"`
+
 	UptimePercent      float64 `json:"uptime_percent"`
 	ActiveMonitorCount int     `json:"active_monitor_count"`
 }
@@ -38,6 +50,16 @@ type IncidentOutput struct {
 	MonitorName string  `json:"monitor_name"`
 	StartedAt   string  `json:"started_at"`
 	Cause       *string `json:"cause,omitempty"`
+}
+
+// PeriodIncidentOutput contains the original boundaries of a matching outage.
+type PeriodIncidentOutput struct {
+	ID          string  `json:"id"`
+	MonitorID   string  `json:"monitor_id"`
+	MonitorName string  `json:"monitor_name"`
+	StartedAt   string  `json:"started_at"`
+	ResolvedAt  *string `json:"resolved_at"`
+	Cause       *string `json:"cause"`
 }
 
 // LatencyOutput represents a high-latency monitor.
@@ -72,6 +94,11 @@ func HandleDashboardSummary(ctx context.Context, deps Deps, _ DashboardSummaryIn
 		})
 	}
 
+	periodIncidents := make([]PeriodIncidentOutput, 0, len(summary.Incidents))
+	for _, inc := range summary.Incidents {
+		periodIncidents = append(periodIncidents, PeriodIncidentOutput{ID: inc.ID, MonitorID: inc.MonitorID, MonitorName: inc.MonitorName, StartedAt: inc.StartedAt, ResolvedAt: inc.ResolvedAt, Cause: inc.Cause})
+	}
+
 	latency := make([]LatencyOutput, 0, len(summary.TopLatencyMonitors))
 	for _, m := range summary.TopLatencyMonitors {
 		latency = append(latency, LatencyOutput{
@@ -92,9 +119,19 @@ func HandleDashboardSummary(ctx context.Context, deps Deps, _ DashboardSummaryIn
 	}
 
 	return &DashboardSummaryOutput{
+		SSLCheckedMonitorCount: summary.SSLCheckedMonitorCount,
+		Incidents:              periodIncidents,
+		IncidentCount:          summary.IncidentCount,
+		PeriodFrom:             summary.PeriodFrom,
+		PeriodTo:               summary.PeriodTo,
+		PartialData:            summary.PartialData,
+		WidgetErrors:           summary.WidgetErrors,
 		HealthScore: HealthScoreOutput{
-			UptimePercent:      summary.HealthScore.UptimePercent,
-			ActiveMonitorCount: summary.HealthScore.ActiveMonitorCount,
+			UptimePercent:       summary.HealthScore.UptimePercent,
+			Period:              summary.HealthScore.Period,
+			SampledMonitorCount: summary.HealthScore.SampledMonitorCount,
+			PartialData:         summary.HealthScore.PartialData,
+			ActiveMonitorCount:  summary.HealthScore.ActiveMonitorCount,
 		},
 		StatusDistribution: StatusDistributionOutput{
 			Up:      summary.StatusDistribution.Up,

@@ -19,11 +19,12 @@
     sslEntries: SSLExpiryEntry[];
     events: RecentEvent[];
     loading: boolean;
-    error: string | null;
+    error?: string | null;
+    errors?: Partial<Record<TabId, string | null>>;
     onRetry: (() => void) | null;
   }
 
-  let { monitors, sslEntries, events, loading, error, onRetry }: Props = $props();
+  let { monitors, sslEntries, events, loading, error = null, errors = {}, onRetry }: Props = $props();
 
   let activeTab = $state<TabId>('events');
 
@@ -57,22 +58,8 @@
     return t('dashboard.ssl.daysRemaining', { count: String(days) });
   }
 
-  function buildSparklinePath(latencyMs: number): string {
-    const points: number[] = [];
-    const numPoints = 12;
-    const height = 24;
-    const width = 80;
-
-    for (let i = 0; i < numPoints; i++) {
-      const variance = Math.sin(i * 0.8 + latencyMs * 0.01) * 0.3 + 0.5;
-      points.push(variance * height);
-    }
-
-    return points.map((y, i) => `${(i / (numPoints - 1)) * width},${y}`).join(' ');
-  }
 </script>
 
-<WidgetShell {loading} {error} {onRetry}>
   <div class="flex flex-col gap-3 p-4" data-testid="insights-panel">
     <!-- Tab bar -->
     <div class="flex gap-1 rounded-lg p-0.5" style="background-color: var(--color-bg-secondary)" role="tablist">
@@ -103,8 +90,10 @@
 
     <!-- Tab content -->
     <div data-testid="insights-content">
+    <WidgetShell {loading} error={errors[activeTab] ?? error} {onRetry}>
       {#if activeTab === 'latency'}
         <!-- Response Time tab -->
+        <p class="text-xs" style="color: var(--color-text-secondary)">{t('dashboard.fleetHealth.latencyWindow')}</p>
         {#if topMonitors.length === 0}
           <p class="py-4 text-center text-sm" style="color: var(--color-text-secondary)" data-testid="insights-latency-empty">
             {t('dashboard.sparklines.empty')}
@@ -124,16 +113,7 @@
                     {formatLatency(monitor.avg_latency_ms)}
                   </span>
                 </div>
-                <svg class="shrink-0" width="80" height="24" viewBox="0 0 80 24" fill="none" aria-hidden="true">
-                  <polyline
-                    points={buildSparklinePath(monitor.avg_latency_ms)}
-                    stroke="var(--color-brand-primary)"
-                    stroke-width="1.5"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    fill="none"
-                  />
-                </svg>
+
               </li>
             {/each}
           </ul>
@@ -196,6 +176,6 @@
           </ul>
         {/if}
       {/if}
+    </WidgetShell>
     </div>
   </div>
-</WidgetShell>

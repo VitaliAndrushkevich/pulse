@@ -1110,7 +1110,21 @@ paths:
         state transition events. All sub-queries run in parallel; partial
         failures are reflected via the `partial_data` flag in the health score.
       tags: [Dashboard]
+      parameters:
+        - name: period
+          in: query
+          description: Rolling window for Fleet Health, overlapping incidents, and average latency. The heatmap retains its 24-hour window; certificates show the latest retained observations.
+          schema:
+            type: string
+            enum: [1h, 24h, 7d, 30d]
+            default: 24h
       responses:
+        "400":
+          description: Invalid period (INVALID_PERIOD)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "403":
           $ref: "#/components/responses/Forbidden"
         "200":
@@ -3244,15 +3258,52 @@ components:
         Aggregated operational health overview for the dashboard. All sections
         are pre-computed server-side to avoid N+1 client requests.
       required:
+        - incidents
+        - incident_count
+        - period_from
+        - period_to
+        - partial_data
+        - widget_errors
         - health_score
         - status_distribution
         - active_incidents
         - top_latency_monitors
+        - ssl_checked_monitor_count
         - ssl_expiry
         - heatmap
         - recent_events
         - generated_at
       properties:
+        partial_data:
+          type: boolean
+          description: True if any dashboard query failed; consult widget_errors for affected sections.
+        incidents:
+          type: array
+          items:
+            $ref: "#/components/schemas/DashboardPeriodIncident"
+          description: >
+            Up to 10 incidents overlapping [period_from, period_to), ongoing first, then newest started_at first,
+            UUID descending as tiebreaker. Includes resolved and ongoing incidents from all
+            monitors, including paused monitors. An incident overlaps when started_at is
+            before period_to and resolved_at is null or after period_from. Actual incident
+            timestamps are not clipped to the window. This is independent of active_incidents.
+        incident_count:
+          type: integer
+          minimum: 0
+          description: Total matching incidents before the 10-entry display limit.
+        period_from:
+          type: string
+          format: date-time
+          description: Inclusive beginning of the incident window (UTC).
+        period_to:
+          type: string
+          format: date-time
+          description: Exclusive end of the incident window (UTC).
+        widget_errors:
+          type: object
+          description: Failed widgets keyed by widget ID; values are DASHBOARD_QUERY_FAILED. Failed arrays are empty and must not be treated as healthy or empty results.
+          additionalProperties:
+            type: string
         health_score:
           $ref: "#/components/schemas/DashboardHealthScore"
         status_distribution:
@@ -3268,7 +3319,11 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/DashboardTopLatencyMonitor"
-          description: Up to 5 monitors with the highest 24h average latency
+          description: Up to 5 active monitors with the highest average recorded latency in [period_from, period_to); excludes null latencies.
+        ssl_checked_monitor_count:
+          type: integer
+          minimum: 0
+          description: Active monitors with at least one retained SSL observation. Zero means no certificate data, not an all-clear.
         ssl_expiry:
           type: array
           items:
@@ -3291,9 +3346,21 @@ components:
 
     DashboardHealthScore:
       type: object
-      description: Global uptime percentage computed across all active monitors for the last 24 hours
-      required: [uptime_percent, active_monitor_count, partial_data]
+      description: >
+        Equal-weight mean of per-monitor successful-check percentages for active monitors
+        with retained checks in the selected rolling period (default 24h). This is
+        check-based, not time-weighted availability. Monitors without checks are excluded;
+        retention and monitor age can shorten observed history. Zero with no sampled
+        monitors means no data, not a measured outage.
+      required: [uptime_percent, active_monitor_count, partial_data, period, sampled_monitor_count]
       properties:
+        period:
+          type: string
+          enum: [1h, 24h, 7d, 30d]
+        sampled_monitor_count:
+          type: integer
+          minimum: 0
+          description: Active monitors with at least one retained check in the selected period
         uptime_percent:
           type: number
           format: float
@@ -3303,12 +3370,11 @@ components:
         active_monitor_count:
           type: integer
           minimum: 0
-          description: Number of monitors with status active included in the computation
+          description: Total number of currently active monitors, including those without retained checks
         partial_data:
           type: boolean
           description: >
-            True when stats could not be retrieved for one or more active monitors,
-            meaning the health score is computed from a subset of monitors
+            True when a dashboard query failed or at least one active monitor has no retained checks in the selected period
 
     DashboardStatusDistribution:
       type: object
@@ -3358,6 +3424,31 @@ components:
           type: string
           enum: [down]
           description: Always "down" for active incidents
+
+    DashboardPeriodIncident:
+      type: object
+      description: An outage overlapping the selected window, with its original boundaries.
+      required: [id, monitor_id, monitor_name, started_at, resolved_at, cause]
+      properties:
+        id:
+          type: string
+          format: uuid
+        monitor_id:
+          type: string
+          format: uuid
+        monitor_name:
+          type: string
+        started_at:
+          type: string
+          format: date-time
+        resolved_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: Actual recovery time; null if the incident is still ongoing.
+        cause:
+          type: string
+          nullable: true
 
     DashboardTopLatencyMonitor:
       type: object

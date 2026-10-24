@@ -102,7 +102,17 @@
     "fleetHealth": {
       "title": "Stato della flotta",
       "downSummary": "{down}/{total} non attivi",
-      "allUp": "Tutti i monitor attivi"
+      "allUp": "Tutti i monitor attivi",
+      "period": "Uptime period",
+      "hour": "Last hour",
+      "day": "Last 24 hours",
+      "week": "Last 7 days",
+      "month": "Last 30 days",
+      "method": "Mean of per-monitor successful-check percentages over the selected rolling period. Based on retained checks; not time-weighted availability.",
+      "current": "Current status",
+      "unknown": "Unknown: {count}",
+      "coverage": "Monitors with checks: {count}/{total}",
+      "latencyWindow": "Average response time over the last 24 hours."
     },
     "insights": {
       "tabLatency": "Tempo di risposta",
@@ -121,8 +131,20 @@
     },
     "incidents": {
       "title": "Incidenti attivi",
-      "allOperational": "Tutti i sistemi operativi",
-      "overflow": "+ altri {count}"
+      "allOperational": "Nessun incidente attivo",
+      "overflow": "+ altri {count}",
+      "periodTitle": "Incidents in period",
+      "periodEmpty": "No incidents in the selected period",
+      "started": "Started",
+      "ended": "Ended",
+      "ongoing": "Ongoing",
+      "resolved": "Resolved",
+      "duration": "Full incident duration",
+      "range": "{from} – {to} ({zone})",
+      "durationSeconds": "{count}s",
+      "durationMinutes": "{count}m",
+      "durationHours": "{hours}h {minutes}m",
+      "durationDays": "{days}d {hours}h"
     },
     "heatmap": {
       "title": "Mappa disponibilità (24h)",
@@ -159,6 +181,24 @@
       "minutesAgo": "{count}min fa",
       "hoursAgo": "{count}h fa",
       "daysAgo": "{count}g fa"
+    },
+    "loadError": "Could not load dashboard data. Please retry.",
+    "period": {
+      "label": "Period",
+      "scope": "Fleet Health · Incidents · Response time"
+    },
+    "responseTimes": {
+      "title": "Response time",
+      "description": "Five slowest monitors · {period}",
+      "empty": "No recorded response times in the selected period.",
+      "milliseconds": "{value} ms"
+    },
+    "certificates": {
+      "title": "Certificates",
+      "description": "Current observations · expiring within 30 days",
+      "noData": "No retained certificate checks yet.",
+      "allClear": "No observed certificates expire within 30 days.",
+      "expires": "Expires {date}"
     }
   },
   "monitors": {

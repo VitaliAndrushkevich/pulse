@@ -205,10 +205,11 @@ func (c *httpClient) UpdateMonitorStatus(ctx context.Context, id string, status 
 	return wire.toModel(), nil
 }
 
-// GetDashboardSummary implements PulseClient.
+// GetDashboardSummary implements PulseClient. Health, incidents, and latency use
+// the same 24-hour window; SSL coverage describes retained certificate observations.
 func (c *httpClient) GetDashboardSummary(ctx context.Context) (DashboardSummary, error) {
 	var wire wireDashboardSummary
-	_, err := c.doJSON(ctx, http.MethodGet, "/dashboard/summary", nil, nil, &wire)
+	_, err := c.doJSON(ctx, http.MethodGet, "/dashboard/summary", url.Values{"period": {"24h"}}, nil, &wire)
 	if err != nil {
 		return DashboardSummary{}, err
 	}

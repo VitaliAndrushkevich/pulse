@@ -102,7 +102,17 @@
     "fleetHealth": {
       "title": "صحة الأسطول",
       "downSummary": "{down}/{total} معطل",
-      "allUp": "جميع المراقبات تعمل"
+      "allUp": "جميع المراقبات تعمل",
+      "period": "فترة التوافر",
+      "hour": "الساعة الأخيرة",
+      "day": "آخر 24 ساعة",
+      "week": "آخر 7 أيام",
+      "month": "آخر 30 يومًا",
+      "method": "متوسط نسبة الفحوصات الناجحة لكل مراقب خلال الفترة المحددة، وفق الفحوصات المحفوظة، وليس نسبة التوافر المرجحة بالوقت.",
+      "current": "الحالة الحالية",
+      "unknown": "حالة غير معروفة: {count}",
+      "coverage": "المراقبون ذوو الفحوصات: {count}/{total}",
+      "latencyWindow": "متوسط زمن الاستجابة خلال آخر 24 ساعة."
     },
     "insights": {
       "tabLatency": "وقت الاستجابة",
@@ -121,8 +131,20 @@
     },
     "incidents": {
       "title": "الحوادث النشطة",
-      "allOperational": "جميع الأنظمة تعمل بشكل طبيعي",
-      "overflow": "+ {count} أخرى"
+      "allOperational": "لا توجد حوادث نشطة",
+      "overflow": "+ {count} أخرى",
+      "periodTitle": "الحوادث خلال الفترة",
+      "periodEmpty": "لا توجد حوادث خلال الفترة المحددة",
+      "started": "البداية",
+      "ended": "النهاية",
+      "ongoing": "مستمر",
+      "resolved": "تم الحل",
+      "duration": "مدة الحادث الكاملة",
+      "range": "{from} – {to} ({zone})",
+      "durationSeconds": "{count} ث",
+      "durationMinutes": "{count} د",
+      "durationHours": "{hours} س {minutes} د",
+      "durationDays": "{days} ي {hours} س"
     },
     "heatmap": {
       "title": "خريطة التشغيل (24 ساعة)",
@@ -159,6 +181,24 @@
       "minutesAgo": "منذ {count} د",
       "hoursAgo": "منذ {count} س",
       "daysAgo": "منذ {count} ي"
+    },
+    "loadError": "تعذر تحميل بيانات لوحة المراقبة. أعد المحاولة.",
+    "period": {
+      "label": "الفترة",
+      "scope": "صحة الأسطول · الحوادث · زمن الاستجابة"
+    },
+    "responseTimes": {
+      "title": "زمن الاستجابة",
+      "description": "أبطأ خمسة مراقبين · {period}",
+      "empty": "لا توجد قياسات لزمن الاستجابة خلال الفترة المحددة.",
+      "milliseconds": "{value} مللي ثانية"
+    },
+    "certificates": {
+      "title": "الشهادات",
+      "description": "الحالة الحالية · تنتهي خلال 30 يومًا",
+      "noData": "لا توجد فحوصات شهادات محفوظة بعد.",
+      "allClear": "لا توجد شهادات مفحوصة تنتهي خلال 30 يومًا.",
+      "expires": "تنتهي في {date}"
     }
   },
   "monitors": {

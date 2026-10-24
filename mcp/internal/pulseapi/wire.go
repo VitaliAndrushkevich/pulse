@@ -127,11 +127,11 @@ func (w wireMonitorStats) toModel() MonitorStats {
 // historyEnvelope is the direct response from GET /monitors/:id/history.
 // Note: The history endpoint does NOT use the data-envelope pattern.
 type historyEnvelope struct {
-	MonitorID string           `json:"monitor_id"`
-	From      string           `json:"from"`
-	To        string           `json:"to"`
-	Truncated bool             `json:"truncated"`
-	Points    []wireHistoryPt  `json:"points"`
+	MonitorID string          `json:"monitor_id"`
+	From      string          `json:"from"`
+	To        string          `json:"to"`
+	Truncated bool            `json:"truncated"`
+	Points    []wireHistoryPt `json:"points"`
 }
 
 type wireHistoryPt struct {
@@ -230,15 +230,27 @@ type updateMonitorStatusRequest struct {
 // --- Dashboard Summary ---
 
 type wireDashboardSummary struct {
-	HealthScore        wireHealthScore        `json:"health_score"`
-	StatusDistribution wireStatusDistribution `json:"status_distribution"`
+	SSLCheckedMonitorCount int                     `json:"ssl_checked_monitor_count"`
+	Incidents              []wireDashboardIncident `json:"incidents"`
+	IncidentCount          int                     `json:"incident_count"`
+	PeriodFrom             string                  `json:"period_from"`
+	PeriodTo               string                  `json:"period_to"`
+	PartialData            bool                    `json:"partial_data"`
+	WidgetErrors           map[string]string       `json:"widget_errors"`
+
+	HealthScore        wireHealthScore         `json:"health_score"`
+	StatusDistribution wireStatusDistribution  `json:"status_distribution"`
 	ActiveIncidents    []wireDashboardIncident `json:"active_incidents"`
 	TopLatencyMonitors []wireTopLatencyMonitor `json:"top_latency_monitors"`
-	SSLExpiry          []wireSSLExpiryEntry   `json:"ssl_expiry"`
-	GeneratedAt        string                 `json:"generated_at"`
+	SSLExpiry          []wireSSLExpiryEntry    `json:"ssl_expiry"`
+	GeneratedAt        string                  `json:"generated_at"`
 }
 
 type wireHealthScore struct {
+	Period              string `json:"period"`
+	SampledMonitorCount int    `json:"sampled_monitor_count"`
+	PartialData         bool   `json:"partial_data"`
+
 	UptimePercent      float64 `json:"uptime_percent"`
 	ActiveMonitorCount int     `json:"active_monitor_count"`
 }
@@ -251,6 +263,8 @@ type wireStatusDistribution struct {
 }
 
 type wireDashboardIncident struct {
+	ID          string  `json:"id"`
+	ResolvedAt  *string `json:"resolved_at"`
 	MonitorID   string  `json:"monitor_id"`
 	MonitorName string  `json:"monitor_name"`
 	StartedAt   string  `json:"started_at"`
@@ -281,6 +295,11 @@ func (w wireDashboardSummary) toModel() DashboardSummary {
 		})
 	}
 
+	periodIncidents := make([]DashboardIncident, 0, len(w.Incidents))
+	for _, inc := range w.Incidents {
+		periodIncidents = append(periodIncidents, DashboardIncident{ID: inc.ID, MonitorID: inc.MonitorID, MonitorName: inc.MonitorName, StartedAt: inc.StartedAt, ResolvedAt: inc.ResolvedAt, Cause: inc.Cause})
+	}
+
 	latency := make([]TopLatencyMonitor, 0, len(w.TopLatencyMonitors))
 	for _, m := range w.TopLatencyMonitors {
 		latency = append(latency, TopLatencyMonitor{
@@ -301,9 +320,19 @@ func (w wireDashboardSummary) toModel() DashboardSummary {
 	}
 
 	return DashboardSummary{
+		SSLCheckedMonitorCount: w.SSLCheckedMonitorCount,
+		Incidents:              periodIncidents,
+		IncidentCount:          w.IncidentCount,
+		PeriodFrom:             w.PeriodFrom,
+		PeriodTo:               w.PeriodTo,
+		PartialData:            w.PartialData,
+		WidgetErrors:           w.WidgetErrors,
 		HealthScore: HealthScore{
-			UptimePercent:      w.HealthScore.UptimePercent,
-			ActiveMonitorCount: w.HealthScore.ActiveMonitorCount,
+			UptimePercent:       w.HealthScore.UptimePercent,
+			Period:              w.HealthScore.Period,
+			SampledMonitorCount: w.HealthScore.SampledMonitorCount,
+			PartialData:         w.HealthScore.PartialData,
+			ActiveMonitorCount:  w.HealthScore.ActiveMonitorCount,
 		},
 		StatusDistribution: StatusDistribution{
 			Up:      w.StatusDistribution.Up,

@@ -460,8 +460,8 @@ export async function createSecret(data: CreateSecretRequest): Promise<Secret> {
 // ---------------------------------------------------------------------------
 
 /** GET /api/v1/dashboard/summary — aggregated health overview for all widgets */
-export async function getDashboardSummary(): Promise<DashboardSummary> {
-  return apiRequest<DashboardSummary>('GET', '/dashboard/summary');
+export async function getDashboardSummary(period: import('$lib/types').FleetPeriod = '24h'): Promise<DashboardSummary> {
+  return apiRequest<DashboardSummary>('GET', `/dashboard/summary?period=${period}`);
 }
 
 // ---------------------------------------------------------------------------
