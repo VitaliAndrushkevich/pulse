@@ -1,21 +1,21 @@
 <script lang="ts">
   import EditorPage from '../../../../components/EditorPage.svelte';
-  import { page } from '$app/stores';
+  import { page } from '$app/state';
   import { goto } from '$app/navigation';
   import { untrack } from 'svelte';
-  import { getMonitor, updateMonitor, ApiRequestError } from '$lib/api';
-  import { monitorStore } from '$lib/stores/monitors.svelte';
+  import { getMonitor, updateMonitor, ApiRequestError } from '#lib/api.ts';
+  import { monitorStore } from '#lib/stores/monitors.svelte.ts';
   import MonitorForm from '../../../../components/MonitorForm.svelte';
   import MonitorNotificationBindings from '../../../../components/MonitorNotificationBindings.svelte';
-  import type { Monitor } from '$lib/types';
-  import { t } from '$lib/i18n';
+  import type { Monitor } from '#lib/types.ts';
+  import { t } from '#lib/i18n/index.ts';
 
   let monitor = $state<Monitor | null>(null);
   let loading = $state(true);
   let error = $state<string | null>(null);
   let notFound = $state(false);
 
-  let monitorId = $derived($page.params.id);
+  let monitorId = $derived(page.params.id ?? '');
 
   async function fetchData() {
     loading = true;

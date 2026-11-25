@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/svelte';
 import { createRawSnippet } from 'svelte';
 import WidgetShell from './WidgetShell.svelte';
 
-vi.mock('$lib/i18n', () => ({
+vi.mock('#lib/i18n/index.ts', () => ({
   t: (key: string) => {
     const translations: Record<string, string> = {
       'common.loading': 'Loading...',

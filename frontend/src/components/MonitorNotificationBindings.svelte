@@ -9,9 +9,9 @@
     deleteNotificationBinding,
     type CreateBindingRequest,
     type UpdateBindingRequest,
-  } from '$lib/api';
-  import type { NotificationChannel, ChannelBinding, TriggerCondition, TriggerType } from '$lib/types';
-  import { t } from '$lib/i18n';
+  } from '#lib/api.ts';
+  import type { NotificationChannel, ChannelBinding, TriggerCondition, TriggerType } from '#lib/types.ts';
+  import { t } from '#lib/i18n/index.ts';
 
   interface Props {
     monitorId: string;

@@ -3,7 +3,7 @@
 ## Prerequisites
 
 - Go 1.26+
-- Node.js 22.12+ (or a newer supported LTS; Vite 8)
+- Node.js 22.17+ (or a newer supported LTS; SvelteKit 3, Vite 8)
 - pnpm 9+ (install via `corepack enable` or [pnpm.io/installation](https://pnpm.io/installation))
 - PostgreSQL 16 with TimescaleDB 2.17+
 - Make

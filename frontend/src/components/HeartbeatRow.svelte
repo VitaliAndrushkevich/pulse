@@ -1,7 +1,7 @@
 <script lang="ts">
-  import type { Heartbeat } from '$lib/types';
-  import { formatDate } from '$lib/format';
-  import { t } from '$lib/i18n';
+  import type { Heartbeat } from '#lib/types.ts';
+  import { formatDate } from '#lib/format.ts';
+  import { t } from '#lib/i18n/index.ts';
   import { resolve } from '$app/paths';
 
   interface Props {

@@ -1,10 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/svelte';
 import PasswordChangeSection from '../PasswordChangeSection.svelte';
-import { ApiRequestError, changePassword } from '$lib/api';
+import { ApiRequestError, changePassword } from '#lib/api.ts';
 import { goto } from '$app/navigation';
-vi.mock('$lib/i18n/locale.svelte', () => ({ t: (key: string) => key }));
-vi.mock('$lib/api', async (original) => ({ ...await original<typeof import('$lib/api')>(), changePassword: vi.fn() }));
+vi.mock('#lib/i18n/locale.svelte.ts', () => ({ t: (key: string) => key }));
+vi.mock('#lib/api.ts', async (original) => ({ ...await original<typeof import('#lib/api.ts')>(), changePassword: vi.fn() }));
 beforeEach(() => { vi.clearAllMocks(); });
 async function fill(current: string, next: string, confirm = next) {
   await fireEvent.input(screen.getByLabelText('settings.password.currentPassword'), { target: { value: current } });

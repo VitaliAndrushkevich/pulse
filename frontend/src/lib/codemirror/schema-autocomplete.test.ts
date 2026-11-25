@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import * as fc from 'fast-check';
-import type { ProtoMessageSchema, ProtoField } from '$lib/types';
+import type { ProtoMessageSchema, ProtoField } from '#lib/types.ts';
 
 /**
  * Property-based tests for schema-to-completion-items mapping

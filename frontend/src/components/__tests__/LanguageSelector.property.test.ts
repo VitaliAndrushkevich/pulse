@@ -12,10 +12,10 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { render, cleanup } from '@testing-library/svelte';
 import * as fc from 'fast-check';
-import { SUPPORTED_LOCALES } from '$lib/i18n/config';
+import { SUPPORTED_LOCALES } from '#lib/i18n/config.ts';
 
 // Mock the locale.svelte module — the component imports getLocale, setLocale, t from it
-vi.mock('$lib/i18n/locale.svelte', () => ({
+vi.mock('#lib/i18n/locale.svelte.ts', () => ({
   getLocale: () => 'en',
   setLocale: vi.fn(),
   t: (key: string) => key,

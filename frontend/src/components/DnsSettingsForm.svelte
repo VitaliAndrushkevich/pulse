@@ -1,7 +1,7 @@
 <script lang="ts">
   import SelectField from './SelectField.svelte';
-  import type { DnsSettings, DnsRecordType } from '$lib/types';
-  import { t } from '$lib/i18n';
+  import type { DnsSettings, DnsRecordType } from '#lib/types.ts';
+  import { t } from '#lib/i18n/index.ts';
 
   interface Props {
     settings: DnsSettings;

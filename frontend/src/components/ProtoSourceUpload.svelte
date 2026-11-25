@@ -1,7 +1,7 @@
 <script lang="ts">
-  import type { ProtoSourceMeta, ServiceMethodSelection } from '$lib/types';
-  import { uploadProtoSource, deleteProtoSource, adHocReflect, adHocParseProto } from '$lib/api';
-  import { t } from '$lib/i18n';
+  import type { ProtoSourceMeta, ServiceMethodSelection } from '#lib/types.ts';
+  import { uploadProtoSource, deleteProtoSource, adHocReflect, adHocParseProto } from '#lib/api.ts';
+  import { t } from '#lib/i18n/index.ts';
   import ServiceMethodSelector from './ServiceMethodSelector.svelte';
 
   interface Props {

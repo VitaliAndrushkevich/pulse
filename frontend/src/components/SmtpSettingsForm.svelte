@@ -1,6 +1,6 @@
 <script lang="ts">
-  import type { SmtpSettings } from '$lib/types';
-  import { t } from '$lib/i18n';
+  import type { SmtpSettings } from '#lib/types.ts';
+  import { t } from '#lib/i18n/index.ts';
 
   interface Props {
     settings: SmtpSettings;

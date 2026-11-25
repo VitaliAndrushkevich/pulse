@@ -12,7 +12,7 @@
  * Requirements: 1.4, 5.2, 5.3, 5.6
  */
 
-import type { Monitor, MonitorPatch, Tag } from '$lib/types';
+import type { Monitor, MonitorPatch, Tag } from '#lib/types.ts';
 
 // --- Pure patch-merge function ---
 

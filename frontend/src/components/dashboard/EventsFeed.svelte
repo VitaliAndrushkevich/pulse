@@ -2,7 +2,7 @@
   /**
    * Utility functions exported for property-based testing (Properties 16, 17, 18).
    */
-  import type { RecentEvent } from '$lib/types';
+  import type { RecentEvent } from '#lib/types.ts';
 
   /**
    * Formats a timestamp as a relative human-readable duration.
@@ -106,7 +106,7 @@
    * Requirements 7.6: Visually distinguish recovery vs failure with color tokens
    * Requirements 7.7: Session-scoped, cleared on refresh
    */
-  import { t } from '$lib/i18n';
+  import { t } from '#lib/i18n/index.ts';
   import WidgetShell from './WidgetShell.svelte';
 
   interface Props {

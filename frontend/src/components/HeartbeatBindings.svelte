@@ -9,14 +9,14 @@
     deleteHeartbeatBinding,
     type CreateHeartbeatBindingRequest,
     type UpdateHeartbeatBindingRequest,
-  } from '$lib/api';
+  } from '#lib/api.ts';
   import type {
     NotificationChannel,
     HeartbeatBinding,
     HeartbeatTriggerCondition,
     HeartbeatTriggerType,
-  } from '$lib/types';
-  import { t } from '$lib/i18n';
+  } from '#lib/types.ts';
+  import { t } from '#lib/i18n/index.ts';
 
   interface Props {
     heartbeatId: string;

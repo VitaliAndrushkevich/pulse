@@ -1,7 +1,7 @@
 <script lang="ts">
   import SelectField from './SelectField.svelte';
-  import type { CreateCredentialRequest } from '$lib/api';
-  import { t } from '$lib/i18n';
+  import type { CreateCredentialRequest } from '#lib/api.ts';
+  import { t } from '#lib/i18n/index.ts';
 
   type AuthType = 'none' | 'bearer' | 'basic' | 'header';
 

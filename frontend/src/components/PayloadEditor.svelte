@@ -8,8 +8,8 @@
   import { closeBrackets, closeBracketsKeymap } from '@codemirror/autocomplete';
   import { lineNumbers, highlightActiveLineGutter, highlightActiveLine } from '@codemirror/view';
   import { highlightSelectionMatches } from '@codemirror/search';
-  import { t } from '$lib/i18n';
-  import type { ProtoMessageSchema } from '$lib/types';
+  import { t } from '#lib/i18n/index.ts';
+  import type { ProtoMessageSchema } from '#lib/types.ts';
 
   interface Props {
     value?: string;

@@ -7,7 +7,7 @@
  * Requirements: 10.1, 10.2
  */
 
-import type { NotificationChannel, PaginatedList } from '$lib/types';
+import type { NotificationChannel, PaginatedList } from '#lib/types.ts';
 import {
 	listNotificationChannels,
 	createNotificationChannel,
@@ -17,7 +17,7 @@ import {
 	getNotificationChannel,
 	type CreateNotificationChannelRequest,
 	type UpdateNotificationChannelRequest,
-} from '$lib/api';
+} from '#lib/api.ts';
 
 // --- Reactive state (Svelte 5 runes) ---
 

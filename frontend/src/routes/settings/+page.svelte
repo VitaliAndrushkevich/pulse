@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { isAdmin } from '$lib/stores/auth.svelte';
+  import { isAdmin } from '#lib/stores/auth.svelte.ts';
   import UsersSection from './UsersSection.svelte';
   import PageHeader from '../../components/PageHeader.svelte';
   import ApiTokenSection from './ApiTokenSection.svelte';
@@ -7,7 +7,7 @@
   import PasswordChangeSection from './PasswordChangeSection.svelte';
   import CollapsibleSection from '../../components/CollapsibleSection.svelte';
   import LanguageSelector from '../../components/LanguageSelector.svelte';
-  import { t } from '$lib/i18n/locale.svelte';
+  import { t } from '#lib/i18n/locale.svelte.ts';
 </script>
 
 <svelte:head>

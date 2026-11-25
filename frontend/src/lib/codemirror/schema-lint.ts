@@ -1,5 +1,5 @@
 import { linter, type Diagnostic } from '@codemirror/lint';
-import type { ProtoMessageSchema, ProtoField } from '$lib/types';
+import type { ProtoMessageSchema, ProtoField } from '#lib/types.ts';
 
 /** Proto type categories mapped to JSON value types */
 const NUMERIC_TYPES = new Set([

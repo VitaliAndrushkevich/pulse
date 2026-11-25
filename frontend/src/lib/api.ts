@@ -1,14 +1,14 @@
 // API client — fetch wrapper with auth, timeout, and error handling
 
-import { getToken, clearToken, setSession, requirePasswordChange } from '$lib/stores/auth.svelte';
-import { toastStore } from '$lib/stores/toast.svelte';
+import { getToken, clearToken, setSession, requirePasswordChange } from '#lib/stores/auth.svelte.ts';
+import { toastStore } from '#lib/stores/toast.svelte.ts';
 import type {
   User, UserRole, Monitor, PaginatedList, HistoryPoint, Incident, Secret, Tag, DashboardSummary, ProtoSourceMeta,
   NotificationChannel, NotificationChannelType, ChannelBinding, TriggerCondition,
   TemplateVariableGroup, SMTPSettings, SMTPSettingsRequest, TestChannelResult, TestSMTPResult,
   EmailChannelConfig, WebhookChannelConfig, NotificationChannelConfig,
   Heartbeat, HeartbeatBinding, HeartbeatTriggerCondition, HeartbeatHistoryResponse
-} from '$lib/types';
+} from '#lib/types.ts';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -426,8 +426,8 @@ export async function getMonitorHistoryExtended(
 }
 
 /** GET /api/v1/monitors/:id/stats — uptime percentages, SSL info, last error */
-export async function getMonitorStats(id: string): Promise<import('$lib/types').MonitorStats> {
-  return apiRequest<import('$lib/types').MonitorStats>('GET', `/monitors/${id}/stats`);
+export async function getMonitorStats(id: string): Promise<import('#lib/types.ts').MonitorStats> {
+  return apiRequest<import('#lib/types.ts').MonitorStats>('GET', `/monitors/${id}/stats`);
 }
 
 /** GET /api/v1/monitors/:id/incidents?page=&limit= */
@@ -460,7 +460,7 @@ export async function createSecret(data: CreateSecretRequest): Promise<Secret> {
 // ---------------------------------------------------------------------------
 
 /** GET /api/v1/dashboard/summary — aggregated health overview for all widgets */
-export async function getDashboardSummary(period: import('$lib/types').FleetPeriod = '24h'): Promise<DashboardSummary> {
+export async function getDashboardSummary(period: import('#lib/types.ts').FleetPeriod = '24h'): Promise<DashboardSummary> {
   return apiRequest<DashboardSummary>('GET', `/dashboard/summary?period=${period}`);
 }
 

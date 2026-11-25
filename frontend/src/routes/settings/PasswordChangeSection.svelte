@@ -1,8 +1,8 @@
 <script lang="ts">
-  import { changePassword, ApiRequestError, NetworkError } from '$lib/api';
-  import { toastStore } from '$lib/stores/toast.svelte';
+  import { changePassword, ApiRequestError, NetworkError } from '#lib/api.ts';
+  import { toastStore } from '#lib/stores/toast.svelte.ts';
   import { goto } from '$app/navigation';
-  import { t } from '$lib/i18n/locale.svelte';
+  import { t } from '#lib/i18n/locale.svelte.ts';
 
   let { forced = false }: { forced?: boolean } = $props();
 

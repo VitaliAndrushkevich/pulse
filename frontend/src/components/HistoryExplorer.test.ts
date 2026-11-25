@@ -12,10 +12,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor, fireEvent } from '@testing-library/svelte';
 import HistoryExplorer from './HistoryExplorer.svelte';
-import type { HistoryResponseExtended } from '$lib/api';
+import type { HistoryResponseExtended } from '#lib/api.ts';
 
 // Mock the API module
-vi.mock('$lib/api', () => ({
+vi.mock('#lib/api.ts', () => ({
   getMonitorHistoryExtended: vi.fn(),
 }));
 
@@ -49,7 +49,7 @@ const mockResizeObserver = vi.fn().mockImplementation(function () {
 });
 vi.stubGlobal('ResizeObserver', mockResizeObserver);
 
-import { getMonitorHistoryExtended } from '$lib/api';
+import { getMonitorHistoryExtended } from '#lib/api.ts';
 const mockGetHistory = vi.mocked(getMonitorHistoryExtended);
 
 function defaultProps() {

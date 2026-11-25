@@ -75,10 +75,13 @@ contrast and alignment between Tailwind fallbacks and the light theme.
 
 ## Frontend toolchain
 
-The frontend uses Svelte 5.57, SvelteKit 2, Vite 8, and Svelte's Vite plugin 7.
-Use Node 22.12+ (or a newer supported LTS) and the pnpm version pinned in
-`frontend/package.json`. Tailwind remains on version 3; SvelteKit 3 and other
-major framework migrations are separate work. Exact versions and reproducible
+The frontend uses Svelte 5.57, SvelteKit 3, Vite 8, Svelte's Vite plugin 7, and
+TypeScript 6. Use Node 22.17+ (or a newer supported LTS) and the pnpm version
+pinned in `frontend/package.json`. SvelteKit configuration lives in the
+`sveltekit(...)` plugin call in `frontend/vite.config.ts` (there is no
+`svelte.config.js`), and library imports use the `#lib/*` subpath alias declared
+in `frontend/package.json` with explicit file extensions. Tailwind remains on
+version 3; other major framework migrations are separate work. Exact versions and reproducible
 resolutions live in `frontend/package.json` and `frontend/pnpm-lock.yaml`.
 
 After UI changes run `pnpm install`, `pnpm check`, `pnpm validate-locales`,

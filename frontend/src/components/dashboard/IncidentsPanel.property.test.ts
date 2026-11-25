@@ -12,7 +12,7 @@
  */
 import { describe, it, expect } from 'vitest';
 import * as fc from 'fast-check';
-import type { ActiveIncident } from '$lib/types';
+import type { ActiveIncident } from '#lib/types.ts';
 import { truncateCause, sortIncidents } from './IncidentsPanel.svelte';
 
 // --- Constants ---

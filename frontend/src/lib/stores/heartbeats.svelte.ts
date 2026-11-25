@@ -13,7 +13,7 @@
  * Design: §9.2, R8.4/R9.9.
  */
 
-import type { Heartbeat, HeartbeatStatusPayload } from '$lib/types';
+import type { Heartbeat, HeartbeatStatusPayload } from '#lib/types.ts';
 
 // --- Pure patch-merge function ---
 

@@ -58,7 +58,7 @@
    * Requirements 9.4: Stale-data indicator after 60s without WebSocket messages
    * Requirements 9.5: Remove stale indicator on new WebSocket message
    */
-  import { t } from '$lib/i18n';
+  import { t } from '#lib/i18n/index.ts';
 
   interface Props {
     lastUpdated: Date | null;

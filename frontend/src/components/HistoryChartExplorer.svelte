@@ -2,10 +2,10 @@
   import { onMount, onDestroy } from 'svelte';
   import uPlot from 'uplot';
   import 'uplot/dist/uPlot.min.css';
-  import type { HistoryPoint } from '$lib/types';
-  import type { AggregatedHistoryPoint } from '$lib/api';
-  import { formatLatency } from '$lib/format';
-  import { t } from '$lib/i18n';
+  import type { HistoryPoint } from '#lib/types.ts';
+  import type { AggregatedHistoryPoint } from '#lib/api.ts';
+  import { formatLatency } from '#lib/format.ts';
+  import { t } from '#lib/i18n/index.ts';
 
   // ---------------------------------------------------------------------------
   // Props (Svelte 5 runes)

@@ -8,11 +8,11 @@
    * Requirements: 8.1, 8.2, 8.3, 8.4, 8.5, 8.6, 8.7, 9.1, 9.2
    */
   import { onMount, untrack } from 'svelte';
-  import { dashboardStore } from '$lib/stores/dashboard.svelte';
-  import { patchBus } from '$lib/stores/patchBus.svelte';
-  import { connectionStore } from '$lib/stores/connection.svelte';
-  import { t } from '$lib/i18n';
-  import type { MonitorPatch } from '$lib/types';
+  import { dashboardStore } from '#lib/stores/dashboard.svelte.ts';
+  import { patchBus } from '#lib/stores/patchBus.svelte.ts';
+  import { connectionStore } from '#lib/stores/connection.svelte.ts';
+  import { t } from '#lib/i18n/index.ts';
+  import type { MonitorPatch } from '#lib/types.ts';
 
   import PageHeader from '../components/PageHeader.svelte';
   import FleetHealth from '../components/dashboard/FleetHealth.svelte';
@@ -23,7 +23,7 @@
   import DataFreshness from '../components/dashboard/DataFreshness.svelte';
 
   import SelectField from '../components/SelectField.svelte';
-  import type { FleetPeriod } from '$lib/types';
+  import type { FleetPeriod } from '#lib/types.ts';
   let period = $state<FleetPeriod>('24h');
   let mounted = false;
   let refreshTimer: ReturnType<typeof setTimeout> | undefined;

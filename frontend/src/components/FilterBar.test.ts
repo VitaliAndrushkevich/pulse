@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/svelte';
 import FilterBar from './FilterBar.svelte';
-import type { MonitorType, Tag } from '$lib/types';
+import type { MonitorType, Tag } from '#lib/types.ts';
 
 // Mock i18n to avoid $effect outside component context
-vi.mock('$lib/i18n', () => ({
+vi.mock('#lib/i18n/index.ts', () => ({
   t: (key: string, params?: Record<string, string | number>) => {
     const translations: Record<string, string> = {
       'monitors.filter.expand': 'Filter',
@@ -26,7 +26,7 @@ vi.mock('$lib/i18n', () => ({
 }));
 
 // Mock the API calls used internally by FilterBar
-vi.mock('$lib/api', () => ({
+vi.mock('#lib/api.ts', () => ({
   getTags: vi.fn().mockResolvedValue(['env', 'team', 'region']),
   getTagValues: vi.fn().mockImplementation((key: string) => {
     const values: Record<string, string[]> = {

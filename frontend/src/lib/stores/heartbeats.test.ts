@@ -7,12 +7,12 @@
  */
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/svelte';
-import type { Heartbeat } from '$lib/types';
-import { heartbeatStore } from '$lib/stores/heartbeats.svelte';
+import type { Heartbeat } from '#lib/types.ts';
+import { heartbeatStore } from '#lib/stores/heartbeats.svelte.ts';
 
 // --- i18n + api mocks (shared by the form render tests) ---
 
-vi.mock('$lib/i18n', () => ({
+vi.mock('#lib/i18n/index.ts', () => ({
   t: (key: string, params?: Record<string, string | number>) => {
     const translations: Record<string, string> = {
       'heartbeats.fields.name': 'Name',
@@ -44,13 +44,13 @@ vi.mock('$lib/i18n', () => ({
   }
 }));
 
-vi.mock('$lib/api', () => ({
+vi.mock('#lib/api.ts', () => ({
   getTags: vi.fn().mockResolvedValue([]),
   getTagValues: vi.fn().mockResolvedValue([])
 }));
 
 // Import after mocks so the component picks them up.
-import HeartbeatForm from '$lib/../components/HeartbeatForm.svelte';
+import HeartbeatForm from '../../components/HeartbeatForm.svelte';
 
 function makeHeartbeat(overrides: Partial<Heartbeat> = {}): Heartbeat {
   return {

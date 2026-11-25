@@ -1,10 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/svelte';
-import { getDashboardSummary } from '$lib/api';
-import { dashboardStore } from '$lib/stores/dashboard.svelte';
-import { setLocale } from '$lib/i18n';
+import { getDashboardSummary } from '#lib/api.ts';
+import { dashboardStore } from '#lib/stores/dashboard.svelte.ts';
+import { setLocale } from '#lib/i18n/index.ts';
 import Dashboard from './+page.svelte';
-vi.mock('$lib/api',()=>({getDashboardSummary:vi.fn()}));
+vi.mock('#lib/api.ts',()=>({getDashboardSummary:vi.fn()}));
 
 afterEach(cleanup);
 beforeEach(async () => {

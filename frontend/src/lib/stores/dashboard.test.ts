@@ -1,11 +1,11 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { getDashboardSummary } from '$lib/api';
+import { getDashboardSummary } from '#lib/api.ts';
 import { dashboardStore } from './dashboard.svelte';
 import { monitorStore } from './monitors.svelte';
-import type { MonitorPatch, Monitor } from '$lib/types';
+import type { MonitorPatch, Monitor } from '#lib/types.ts';
 
 // Mock the API module so load() doesn't make real HTTP requests
-vi.mock('$lib/api', () => ({
+vi.mock('#lib/api.ts', () => ({
 	getDashboardSummary: vi.fn().mockResolvedValue({
 		health_score: { uptime_percent: 99.5, active_monitor_count: 10, partial_data: false },
 		status_distribution: { up: 8, down: 1, unknown: 1, total: 10 },

@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { cleanup, render, screen } from '@testing-library/svelte';
 import FleetHealth from './FleetHealth.svelte';
-import { setLocale } from '$lib/i18n';
+import { setLocale } from '#lib/i18n/index.ts';
 
 afterEach(cleanup);
 

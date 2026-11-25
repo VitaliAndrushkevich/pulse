@@ -9,7 +9,7 @@
    * Requirements 8.6: Animated loading skeleton placeholder.
    */
   import type { Snippet } from 'svelte';
-  import { t } from '$lib/i18n';
+  import { t } from '#lib/i18n/index.ts';
 
   interface Props {
     loading: boolean;

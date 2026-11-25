@@ -6,7 +6,7 @@ import EventsFeed, {
   prependEvent,
   getEventColor
 } from './EventsFeed.svelte';
-import type { RecentEvent } from '$lib/types';
+import type { RecentEvent } from '#lib/types.ts';
 
 function makeEvent(overrides: Partial<RecentEvent> = {}): RecentEvent {
   return {

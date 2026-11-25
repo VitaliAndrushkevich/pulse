@@ -19,8 +19,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/svelte';
 import * as fc from 'fast-check';
-import type { HistoryPoint, MonitorPatch } from '$lib/types';
-import { monitorStore } from '$lib/stores/monitors.svelte';
+import type { HistoryPoint, MonitorPatch } from '#lib/types.ts';
+import { monitorStore } from '#lib/stores/monitors.svelte.ts';
 import StatusTimeline from '../../../components/StatusTimeline.svelte';
 import { buildSegments } from '../../../components/statusTimeline.utils';
 

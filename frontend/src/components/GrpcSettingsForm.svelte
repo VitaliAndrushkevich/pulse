@@ -1,8 +1,8 @@
 <script lang="ts">
   import SelectField from './SelectField.svelte';
-  import type { GrpcSettings, TlsMode, ProtoSourceMeta, ProtoMessageSchema, ServiceMethodSelection } from '$lib/types';
-  import { getProtoSource } from '$lib/api';
-  import { t } from '$lib/i18n';
+  import type { GrpcSettings, TlsMode, ProtoSourceMeta, ProtoMessageSchema, ServiceMethodSelection } from '#lib/types.ts';
+  import { getProtoSource } from '#lib/api.ts';
+  import { t } from '#lib/i18n/index.ts';
   import ProtoSourceUpload from './ProtoSourceUpload.svelte';
   import PayloadEditor from './PayloadEditor.svelte';
 

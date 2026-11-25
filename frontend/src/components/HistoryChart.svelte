@@ -2,8 +2,8 @@
   import { onMount, onDestroy } from 'svelte';
   import uPlot from 'uplot';
   import 'uplot/dist/uPlot.min.css';
-  import type { HistoryPoint } from '$lib/types';
-  import { formatLatency } from '$lib/format';
+  import type { HistoryPoint } from '#lib/types.ts';
+  import { formatLatency } from '#lib/format.ts';
 
   export let data: HistoryPoint[] = [];
 

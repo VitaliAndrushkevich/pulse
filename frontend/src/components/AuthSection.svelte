@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { t } from '$lib/i18n';
+  import { t } from '#lib/i18n/index.ts';
   import CredentialForm from './CredentialForm.svelte';
   import CredentialList from './CredentialList.svelte';
   import ShowOnceModal from './ShowOnceModal.svelte';
@@ -10,7 +10,7 @@
     deleteCredential,
     type Credential,
     type CreateCredentialRequest,
-  } from '$lib/api';
+  } from '#lib/api.ts';
 
   interface Props {
     monitorId: string;

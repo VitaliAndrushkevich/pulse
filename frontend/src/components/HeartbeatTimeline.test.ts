@@ -13,8 +13,8 @@
 import { describe, it, expect, afterEach } from 'vitest';
 import { render, screen, fireEvent, cleanup } from '@testing-library/svelte';
 import HeartbeatTimeline from './HeartbeatTimeline.svelte';
-import { t } from '$lib/i18n';
-import type { HeartbeatEvent, HeartbeatHistorySummary } from '$lib/types';
+import { t } from '#lib/i18n/index.ts';
+import type { HeartbeatEvent, HeartbeatHistorySummary } from '#lib/types.ts';
 
 afterEach(() => cleanup());
 

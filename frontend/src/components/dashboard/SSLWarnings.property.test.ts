@@ -12,7 +12,7 @@
  */
 import { describe, it, expect } from 'vitest';
 import * as fc from 'fast-check';
-import type { SSLExpiryEntry } from '$lib/types';
+import type { SSLExpiryEntry } from '#lib/types.ts';
 import { filterSSLEntries, sortSSLEntries, getUrgencyTier } from './SSLWarnings.svelte';
 
 // --- Arbitraries ---

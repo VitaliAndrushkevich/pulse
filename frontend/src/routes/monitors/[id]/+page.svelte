@@ -1,20 +1,20 @@
 <script lang="ts">
-  import { isAdmin } from '$lib/stores/auth.svelte';
-  import { page } from '$app/stores';
+  import { isAdmin } from '#lib/stores/auth.svelte.ts';
+  import { page } from '$app/state';
   import { goto } from '$app/navigation';
   import { untrack } from 'svelte';
-  import { getMonitor, getMonitorHistory, getMonitorIncidents, getMonitorStats, deleteMonitor, updateMonitor, ApiRequestError } from '$lib/api';
-  import { monitorStore } from '$lib/stores/monitors.svelte';
-  import { patchBus } from '$lib/stores/patchBus.svelte';
-  import { formatDate, formatLatency } from '$lib/format';
+  import { getMonitor, getMonitorHistory, getMonitorIncidents, getMonitorStats, deleteMonitor, updateMonitor, ApiRequestError } from '#lib/api.ts';
+  import { monitorStore } from '#lib/stores/monitors.svelte.ts';
+  import { patchBus } from '#lib/stores/patchBus.svelte.ts';
+  import { formatDate, formatLatency } from '#lib/format.ts';
   import HistoryChart from '../../../components/HistoryChart.svelte';
   import StatusTimeline from '../../../components/StatusTimeline.svelte';
   import HistoryExplorer from '../../../components/HistoryExplorer.svelte';
   import MonitorNotificationBindings from '../../../components/MonitorNotificationBindings.svelte';
   import MonitorDeliveryLogs from '../../../components/MonitorDeliveryLogs.svelte';
 
-  import type { Monitor, HistoryPoint, Incident, MonitorPatch, MonitorStats } from '$lib/types';
-  import { t } from '$lib/i18n';
+  import type { Monitor, HistoryPoint, Incident, MonitorPatch, MonitorStats } from '#lib/types.ts';
+  import { t } from '#lib/i18n/index.ts';
 
   type Tab = 'overview' | 'history' | 'notifications';
 
@@ -42,7 +42,7 @@
   let toggling = $state(false);
   let showPauseConfirm = $state(false);
 
-  let monitorId = $derived($page.params.id);
+  let monitorId = $derived(page.params.id ?? '');
 
   let monitor = $derived<Monitor | null>(monitorStore.getById(monitorId) ?? null);
 
@@ -217,7 +217,7 @@
       const updated = [...currentHistory, newPoint];
 
       const cutoff = Date.now() - 24 * 60 * 60 * 1000;
-      history = updated.filter(p => new Date(p.checked_at).getTime() >= cutoff);
+      history = updated.filter((p) => new Date(p.checked_at).getTime() >= cutoff);
 
       // Update SSL info in stats from patch if available
       if (patch.ssl_days_remaining != null && stats) {
@@ -391,204 +391,213 @@
     <!-- Tab content: Overview -->
     <div class="space-y-6" hidden={activeTab !== 'overview'} role="tabpanel" data-testid="tab-panel-overview">
 
-    <!-- Status bar with current state + error highlight -->
+      <!-- Status bar with current state + error highlight -->
     <div class="rounded-lg border border-[var(--color-border)] bg-surface" data-testid="status-bar">
-      <div class="flex items-center gap-4 px-5 py-3">
-        <span
-          class="h-3 w-3 rounded-full {stateColors[monitor.state] ?? 'bg-slate-400'}"
-          data-testid="state-indicator"
-        ></span>
+        <div class="flex items-center gap-4 px-5 py-3">
+          <span
+            class="h-3 w-3 rounded-full {stateColors[monitor.state] ?? 'bg-slate-400'}"
+            data-testid="state-indicator"
+          ></span>
         <span class="text-sm font-semibold {monitor.state === 'up' ? 'text-emerald-700' : monitor.state === 'down' ? 'text-rose-700' : 'text-primary'}" data-testid="monitor-state">
           {stateLabels[monitor.state] ?? t('monitors.status.unknown')}
         </span>
-        <span class="text-sm text-[var(--color-text-muted)]">·</span>
+          <span class="text-sm text-[var(--color-text-muted)]">·</span>
         <span class="text-sm text-secondary" data-testid="monitor-status">
           {statusLabels[monitor.status] ?? monitor.status}
         </span>
-        <span class="text-sm text-[var(--color-text-muted)]">·</span>
+          <span class="text-sm text-[var(--color-text-muted)]">·</span>
         <span class="text-xs text-[var(--color-text-muted)]">
           {t('monitors.detail.checkInterval', { seconds: monitor.interval_seconds })}
         </span>
-      </div>
+        </div>
 
-      <!-- Error banner when monitor is down -->
-      {#if monitor.state === 'down' && stats?.last_error}
+        <!-- Error banner when monitor is down -->
+        {#if monitor.state === 'down' && stats?.last_error}
         <div class="border-t border-rose-200 bg-rose-50 px-5 py-3" data-testid="error-banner">
-          <div class="flex items-start gap-3">
-            <div class="mt-0.5 flex-shrink-0">
-              <svg class="h-4 w-4 text-rose-500" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" />
-              </svg>
-            </div>
-            <div class="min-w-0 flex-1">
-              <p class="text-sm font-medium text-rose-800">{t('monitors.status.down')}</p>
+            <div class="flex items-start gap-3">
+              <div class="mt-0.5 flex-shrink-0">
+                <svg
+                  class="h-4 w-4 text-rose-500"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z"
+                    clip-rule="evenodd"
+                  ></path>
+                </svg>
+              </div>
+              <div class="min-w-0 flex-1">
+                <p class="text-sm font-medium text-rose-800">{t('monitors.status.down')}</p>
               <p class="mt-0.5 text-sm text-rose-700" data-testid="error-message">{stats.last_error.error}</p>
-              <p class="mt-1 text-xs text-rose-500">{formatDate(stats.last_error.checked_at)}</p>
+                <p class="mt-1 text-xs text-rose-500">{formatDate(stats.last_error.checked_at)}</p>
+              </div>
             </div>
           </div>
-        </div>
-      {/if}
-    </div>
+        {/if}
+      </div>
 
-    <!-- Stats cards (Kuma-style) -->
+      <!-- Stats cards (Kuma-style) -->
     <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 {monitor.type === 'http' ? 'lg:grid-cols-5' : 'lg:grid-cols-4'}" data-testid="stats-cards">
-      <!-- Response time (current) -->
+        <!-- Response time (current) -->
       <div class="rounded-lg border border-[var(--color-border)] bg-surface p-4 text-center">
         <dt class="text-xs font-medium uppercase tracking-wider text-[var(--color-text-muted)]">{t('monitors.detail.stats.response')}</dt>
         <dd class="mt-1 text-lg font-semibold text-primary" data-testid="stat-response">
-          {#if history.length > 0 && history[history.length - 1].latency_ms != null}
-            {formatLatency(history[history.length - 1].latency_ms!)}
-          {:else}
-            {t('common.na')}
-          {/if}
-        </dd>
-        <span class="text-[10px] text-[var(--color-text-muted)]">{t('monitors.detail.stats.current')}</span>
-      </div>
+            {#if history.length > 0 && history[history.length - 1].latency_ms != null}
+              {formatLatency(history[history.length - 1].latency_ms!)}
+            {:else}
+              {t('common.na')}
+            {/if}
+          </dd>
+          <span class="text-[10px] text-[var(--color-text-muted)]">{t('monitors.detail.stats.current')}</span>
+        </div>
 
-      <!-- Avg response time 24h -->
+        <!-- Avg response time 24h -->
       <div class="rounded-lg border border-[var(--color-border)] bg-surface p-4 text-center">
         <dt class="text-xs font-medium uppercase tracking-wider text-[var(--color-text-muted)]">{t('monitors.detail.stats.avgResponse')}</dt>
         <dd class="mt-1 text-lg font-semibold text-primary" data-testid="stat-avg-response">
-          {#if stats && stats.uptime_24h.avg_latency_ms > 0}
-            {formatLatency(stats.uptime_24h.avg_latency_ms)}
-          {:else}
-            {t('common.na')}
-          {/if}
-        </dd>
-        <span class="text-[10px] text-[var(--color-text-muted)]">{t('monitors.detail.stats.period24h')}</span>
-      </div>
+            {#if stats && stats.uptime_24h.avg_latency_ms > 0}
+              {formatLatency(stats.uptime_24h.avg_latency_ms)}
+            {:else}
+              {t('common.na')}
+            {/if}
+          </dd>
+          <span class="text-[10px] text-[var(--color-text-muted)]">{t('monitors.detail.stats.period24h')}</span>
+        </div>
 
-      <!-- Uptime 24h -->
+        <!-- Uptime 24h -->
       <div class="rounded-lg border border-[var(--color-border)] bg-surface p-4 text-center">
         <dt class="text-xs font-medium uppercase tracking-wider text-[var(--color-text-muted)]">{t('monitors.detail.stats.uptime')}</dt>
         <dd class="mt-1 text-lg font-semibold {stats ? uptimeColor(stats.uptime_24h.uptime_percent) : 'text-primary'}" data-testid="stat-uptime-24h">
-          {#if stats && stats.uptime_24h.total_checks > 0}
-            {formatUptime(stats.uptime_24h.uptime_percent)}
-          {:else}
-            {t('common.na')}
-          {/if}
-        </dd>
-        <span class="text-[10px] text-[var(--color-text-muted)]">{t('monitors.detail.stats.period24h')}</span>
-      </div>
+            {#if stats && stats.uptime_24h.total_checks > 0}
+              {formatUptime(stats.uptime_24h.uptime_percent)}
+            {:else}
+              {t('common.na')}
+            {/if}
+          </dd>
+          <span class="text-[10px] text-[var(--color-text-muted)]">{t('monitors.detail.stats.period24h')}</span>
+        </div>
 
-      <!-- Uptime 30d -->
+        <!-- Uptime 30d -->
       <div class="rounded-lg border border-[var(--color-border)] bg-surface p-4 text-center">
         <dt class="text-xs font-medium uppercase tracking-wider text-[var(--color-text-muted)]">{t('monitors.detail.stats.uptime')}</dt>
         <dd class="mt-1 text-lg font-semibold {stats ? uptimeColor(stats.uptime_30d.uptime_percent) : 'text-primary'}" data-testid="stat-uptime-30d">
-          {#if stats && stats.uptime_30d.total_checks > 0}
-            {formatUptime(stats.uptime_30d.uptime_percent)}
-          {:else}
-            {t('common.na')}
-          {/if}
-        </dd>
-        <span class="text-[10px] text-[var(--color-text-muted)]">{t('monitors.detail.stats.period30d')}</span>
-      </div>
+            {#if stats && stats.uptime_30d.total_checks > 0}
+              {formatUptime(stats.uptime_30d.uptime_percent)}
+            {:else}
+              {t('common.na')}
+            {/if}
+          </dd>
+          <span class="text-[10px] text-[var(--color-text-muted)]">{t('monitors.detail.stats.period30d')}</span>
+        </div>
 
-      <!-- SSL Certificate (only for HTTP monitors) -->
-      {#if monitor.type === 'http'}
-        {#if stats?.ssl}
+        <!-- SSL Certificate (only for HTTP monitors) -->
+        {#if monitor.type === 'http'}
+          {#if stats?.ssl}
           <div class="rounded-lg border {sslBorderColor(stats.ssl.days_remaining)} {sslBgColor(stats.ssl.days_remaining)} p-4 text-center" data-testid="stat-ssl">
             <dt class="text-xs font-medium uppercase tracking-wider text-[var(--color-text-muted)]">{t('monitors.detail.stats.certExpiry')}</dt>
             <dd class="mt-1 text-lg font-semibold {sslColor(stats.ssl.days_remaining)}">
               {t('monitors.detail.stats.days', { count: stats.ssl.days_remaining })}
             </dd>
-            <span class="text-[10px] text-secondary">({stats.ssl.expires_at})</span>
-          </div>
-        {:else}
+              <span class="text-[10px] text-secondary">({stats.ssl.expires_at})</span>
+            </div>
+          {:else}
           <div class="rounded-lg border border-[var(--color-border)] bg-surface p-4 text-center" data-testid="stat-ssl">
             <dt class="text-xs font-medium uppercase tracking-wider text-[var(--color-text-muted)]">{t('monitors.detail.stats.certExpiry')}</dt>
             <dd class="mt-1 text-lg font-semibold text-[var(--color-text-muted)]">{t('common.na')}</dd>
-            <span class="text-[10px] text-[var(--color-text-muted)]">{t('monitors.detail.stats.noData')}</span>
-          </div>
+              <span class="text-[10px] text-[var(--color-text-muted)]">{t('monitors.detail.stats.noData')}</span>
+            </div>
+          {/if}
         {/if}
-      {/if}
-    </div>
+      </div>
 
-    <!-- Status timeline -->
+      <!-- Status timeline -->
     <div class="rounded-xl border border-[var(--color-border)] bg-surface p-5" data-testid="status-timeline-section">
-      <h2 class="mb-4 text-sm font-semibold text-primary">{t('monitors.detail.timeline.title')}</h2>
-      <StatusTimeline data={history} />
-    </div>
+        <h2 class="mb-4 text-sm font-semibold text-primary">{t('monitors.detail.timeline.title')}</h2>
+        <StatusTimeline data={history} />
+      </div>
 
-    <!-- History chart -->
+      <!-- History chart -->
     <div class="rounded-xl border border-[var(--color-border)] bg-surface p-5" data-testid="history-section">
-      <h2 class="mb-4 text-sm font-semibold text-primary">{t('monitors.detail.responseTime.title')}</h2>
-      <HistoryChart data={history} />
-    </div>
+        <h2 class="mb-4 text-sm font-semibold text-primary">{t('monitors.detail.responseTime.title')}</h2>
+        <HistoryChart data={history} />
+      </div>
 
-    <!-- Monitor details grid -->
+      <!-- Monitor details grid -->
     <div class="rounded-xl border border-[var(--color-border)] bg-surface" data-testid="monitor-details">
       <div class="border-b border-[var(--color-border)] px-5 py-3">
         <h2 class="text-sm font-semibold text-primary">{t('monitors.detail.configuration.title')}</h2>
       </div>
       <div class="grid grid-cols-1 divide-y divide-slate-100 sm:grid-cols-2 sm:divide-y-0 sm:divide-x">
-        <div class="space-y-4 p-5">
-          <div>
+          <div class="space-y-4 p-5">
+            <div>
             <dt class="text-xs font-medium uppercase tracking-wider text-[var(--color-text-muted)]">{t('monitors.detail.configuration.target')}</dt>
             <dd class="mt-1 break-all text-sm text-primary" data-testid="monitor-target">{monitor.target}</dd>
-          </div>
-          <div>
+            </div>
+            <div>
             <dt class="text-xs font-medium uppercase tracking-wider text-[var(--color-text-muted)]">{t('monitors.detail.configuration.interval')}</dt>
             <dd class="mt-1 text-sm text-primary" data-testid="monitor-interval">{monitor.interval_seconds}s</dd>
-          </div>
-          <div>
+            </div>
+            <div>
             <dt class="text-xs font-medium uppercase tracking-wider text-[var(--color-text-muted)]">{t('monitors.detail.configuration.timeout')}</dt>
             <dd class="mt-1 text-sm text-primary" data-testid="monitor-timeout">{monitor.timeout_seconds}s</dd>
+            </div>
           </div>
-        </div>
-        <div class="space-y-4 p-5">
-          <div>
+          <div class="space-y-4 p-5">
+            <div>
             <dt class="text-xs font-medium uppercase tracking-wider text-[var(--color-text-muted)]">{t('monitors.detail.configuration.lastChecked')}</dt>
             <dd class="mt-1 text-sm text-primary" data-testid="monitor-last-checked">{formatDate(monitor.last_checked_at)}</dd>
-          </div>
-          <div>
+            </div>
+            <div>
             <dt class="text-xs font-medium uppercase tracking-wider text-[var(--color-text-muted)]">{t('monitors.detail.configuration.nextCheck')}</dt>
             <dd class="mt-1 text-sm text-primary" data-testid="monitor-next-check">{formatDate(monitor.next_check_at, t('monitors.detail.configuration.notScheduled'))}</dd>
-          </div>
-          <div>
+            </div>
+            <div>
             <dt class="text-xs font-medium uppercase tracking-wider text-[var(--color-text-muted)]">{t('monitors.detail.configuration.created')}</dt>
             <dd class="mt-1 text-sm text-primary" data-testid="monitor-created">{formatDate(monitor.created_at)}</dd>
+            </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Incident timeline -->
+      <!-- Incident timeline -->
     <div class="rounded-xl border border-[var(--color-border)] bg-surface p-5" data-testid="incidents-section">
-      <h2 class="mb-4 text-sm font-semibold text-primary">{t('monitors.detail.incidents.title')}</h2>
-      {#if incidents.length === 0}
-        <p class="text-sm text-[var(--color-text-muted)]">{t('monitors.detail.incidents.empty')}</p>
-      {:else}
-        <div class="space-y-3">
-          {#each incidents as incident (incident.id)}
+        <h2 class="mb-4 text-sm font-semibold text-primary">{t('monitors.detail.incidents.title')}</h2>
+        {#if incidents.length === 0}
+          <p class="text-sm text-[var(--color-text-muted)]">{t('monitors.detail.incidents.empty')}</p>
+        {:else}
+          <div class="space-y-3">
+            {#each incidents as incident (incident.id)}
             <div class="flex items-start gap-3 rounded-lg border border-[var(--color-border)] bg-page p-3" data-testid="incident-item">
               <div class="mt-0.5 h-2.5 w-2.5 flex-shrink-0 rounded-full {incident.resolved_at ? 'bg-emerald-500' : 'bg-rose-500'}"></div>
-              <div class="min-w-0 flex-1">
-                <div class="flex items-center gap-2 text-sm">
+                <div class="min-w-0 flex-1">
+                  <div class="flex items-center gap-2 text-sm">
                   <span class="font-medium text-primary" data-testid="incident-started">
                     {formatDate(incident.started_at)}
                   </span>
-                  <span class="text-[var(--color-text-muted)]">→</span>
+                    <span class="text-[var(--color-text-muted)]">→</span>
                   <span class="text-secondary" data-testid="incident-resolved">
-                    {#if incident.resolved_at}
-                      {formatDate(incident.resolved_at)}
-                    {:else}
+                      {#if incident.resolved_at}
+                        {formatDate(incident.resolved_at)}
+                      {:else}
                       <span class="rounded bg-rose-100 px-1.5 py-0.5 text-xs font-medium text-rose-700">{t('monitors.detail.incidents.ongoing')}</span>
-                    {/if}
-                  </span>
+                      {/if}
+                    </span>
+                  </div>
+                  {#if incident.cause}
+                    <p class="mt-1 text-xs text-secondary">{incident.cause}</p>
+                  {/if}
                 </div>
-                {#if incident.cause}
-                  <p class="mt-1 text-xs text-secondary">{incident.cause}</p>
-                {/if}
               </div>
-            </div>
-          {/each}
-        </div>
-      {/if}
+            {/each}
+          </div>
+        {/if}
+      </div>
+
     </div>
 
-    </div><!-- /tab-panel-overview -->
-
+    <!-- /tab-panel-overview -->
     <!-- Tab content: History -->
     <div hidden={activeTab !== 'history'} role="tabpanel" data-testid="tab-panel-history">
       <HistoryExplorer monitorId={monitor.id} retentionDays={monitor.history_retention_days ?? 30} />

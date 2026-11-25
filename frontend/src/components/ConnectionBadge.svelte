@@ -8,8 +8,8 @@
    * - Removed when connection is re-established
    * - Visible without scrolling (placed in navigation footer)
    */
-  import { connectionStore } from '$lib/stores/connection.svelte';
-  import { t } from '$lib/i18n';
+  import { connectionStore } from '#lib/stores/connection.svelte.ts';
+  import { t } from '#lib/i18n/index.ts';
 
   let { compact = false }: { compact?: boolean } = $props();
 

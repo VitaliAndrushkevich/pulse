@@ -12,7 +12,7 @@ import { describe, it, expect } from 'vitest';
 import { render } from '@testing-library/svelte';
 import fc from 'fast-check';
 import StatusTimeline from '../StatusTimeline.svelte';
-import type { HistoryPoint } from '$lib/types';
+import type { HistoryPoint } from '#lib/types.ts';
 
 /**
  * Arbitrary generator for "down" HistoryPoint arrays where at least one point

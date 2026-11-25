@@ -10,14 +10,14 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, cleanup } from '@testing-library/svelte';
 import LanguageSelector from '../LanguageSelector.svelte';
-import { SUPPORTED_LOCALES } from '$lib/i18n/config';
+import { SUPPORTED_LOCALES } from '#lib/i18n/config.ts';
 
 // Mock the locale store module
 const mockGetLocale = vi.fn(() => 'en');
 const mockSetLocale = vi.fn();
 const mockT = vi.fn((key: string) => key);
 
-vi.mock('$lib/i18n/locale.svelte', () => ({
+vi.mock('#lib/i18n/locale.svelte.ts', () => ({
   getLocale: () => mockGetLocale(),
   setLocale: (...args: unknown[]) => mockSetLocale(...args),
   t: (key: string) => mockT(key),

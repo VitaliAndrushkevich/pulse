@@ -2,7 +2,7 @@
   /**
    * Utility functions exported for property-based testing (Properties 6, 7, 8).
    */
-  import type { ActiveIncident, PeriodIncident } from '$lib/types';
+  import type { ActiveIncident, PeriodIncident } from '#lib/types.ts';
 
   /**
    * Truncates a cause string to the given limit, appending "…" if exceeded.
@@ -76,7 +76,7 @@
    * Requirements 3.6: Cap at 10 entries with overflow indicator
    * Requirements 3.7: Auto-refresh durations every 60 seconds
    */
-  import { t, getLocale } from '$lib/i18n';
+  import { t, getLocale } from '#lib/i18n/index.ts';
   import WidgetShell from './WidgetShell.svelte';
 
   interface Props {

@@ -1,10 +1,10 @@
 <script lang="ts">
   import EditorPage from '../../../components/EditorPage.svelte';
   import { goto } from '$app/navigation';
-  import { createMonitor, createCredential, createNotificationBinding, type CreateCredentialRequest, type CreateBindingRequest } from '$lib/api';
+  import { createMonitor, createCredential, createNotificationBinding, type CreateCredentialRequest, type CreateBindingRequest } from '#lib/api.ts';
   import MonitorForm from '../../../components/MonitorForm.svelte';
   import type { PendingBinding } from '../../../components/PendingNotificationBindings.svelte';
-  import { t } from '$lib/i18n';
+  import { t } from '#lib/i18n/index.ts';
 
   async function handleSubmit(
     values: Parameters<typeof createMonitor>[0],

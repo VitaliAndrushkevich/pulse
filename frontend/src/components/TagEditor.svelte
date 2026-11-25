@@ -1,7 +1,7 @@
 <script lang="ts">
-  import type { Tag } from '$lib/types';
-  import { getTags, getTagValues } from '$lib/api';
-  import { t } from '$lib/i18n';
+  import type { Tag } from '#lib/types.ts';
+  import { getTags, getTagValues } from '#lib/api.ts';
+  import { t } from '#lib/i18n/index.ts';
 
   interface Props {
     tags: Tag[];

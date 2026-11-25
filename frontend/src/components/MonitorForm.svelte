@@ -1,10 +1,10 @@
 <script lang="ts">
   import SelectField from './SelectField.svelte';
-  import type { MonitorType, GrpcSettings, DnsSettings, IcmpSettings, SmtpSettings, Tag } from '$lib/types';
-  import type { CreateCredentialRequest } from '$lib/api';
-  import { validateName, validateTarget, validateInterval, validateTimeout, validateType } from '$lib/validation';
-  import { formatSecretReference } from '$lib/format';
-  import { t } from '$lib/i18n';
+  import type { MonitorType, GrpcSettings, DnsSettings, IcmpSettings, SmtpSettings, Tag } from '#lib/types.ts';
+  import type { CreateCredentialRequest } from '#lib/api.ts';
+  import { validateName, validateTarget, validateInterval, validateTimeout, validateType } from '#lib/validation.ts';
+  import { formatSecretReference } from '#lib/format.ts';
+  import { t } from '#lib/i18n/index.ts';
   import AuthSection from './AuthSection.svelte';
   import CredentialForm from './CredentialForm.svelte';
   import GrpcSettingsForm from './GrpcSettingsForm.svelte';

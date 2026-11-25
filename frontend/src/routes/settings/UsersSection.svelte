@@ -1,10 +1,10 @@
 <script lang="ts">
   import SelectField from '../../components/SelectField.svelte';
   import { onMount } from 'svelte';
-  import { listUsers, createUser, updateUser, resetUserPassword } from '$lib/api';
-  import { getUser } from '$lib/stores/auth.svelte';
-  import type { User, UserRole } from '$lib/types';
-  import { t } from '$lib/i18n';
+  import { listUsers, createUser, updateUser, resetUserPassword } from '#lib/api.ts';
+  import { getUser } from '#lib/stores/auth.svelte.ts';
+  import type { User, UserRole } from '#lib/types.ts';
+  import { t } from '#lib/i18n/index.ts';
   import Pagination from '../../components/Pagination.svelte';
 
   let users = $state.raw<User[]>([]);

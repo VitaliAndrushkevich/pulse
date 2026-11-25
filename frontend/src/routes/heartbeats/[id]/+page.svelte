@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { isAdmin } from '$lib/stores/auth.svelte';
-  import { page } from '$app/stores';
+  import { isAdmin } from '#lib/stores/auth.svelte.ts';
+  import { page } from '$app/state';
   import { goto } from '$app/navigation';
   import { untrack } from 'svelte';
   import {
@@ -9,15 +9,15 @@
     deleteHeartbeat,
     rotateHeartbeatToken,
     ApiRequestError,
-  } from '$lib/api';
-  import { heartbeatStore } from '$lib/stores/heartbeats.svelte';
+  } from '#lib/api.ts';
+  import { heartbeatStore } from '#lib/stores/heartbeats.svelte.ts';
   import HeartbeatBindings from '../../../components/HeartbeatBindings.svelte';
   import HeartbeatTimeline from '../../../components/HeartbeatTimeline.svelte';
   import PingExamples from '../../../components/PingExamples.svelte';
   import ShowOnceModal from '../../../components/ShowOnceModal.svelte';
-  import type { Heartbeat, HeartbeatHistoryResponse } from '$lib/types';
-  import { formatDate } from '$lib/format';
-  import { t } from '$lib/i18n';
+  import type { Heartbeat, HeartbeatHistoryResponse } from '#lib/types.ts';
+  import { formatDate } from '#lib/format.ts';
+  import { t } from '#lib/i18n/index.ts';
 
   let heartbeat = $state<Heartbeat | null>(null);
   let loading = $state(true);
@@ -44,7 +44,7 @@
   let showDeleteConfirm = $state(false);
   let showOnceSecret = $state<string | null>(null);
 
-  let heartbeatId = $derived($page.params.id);
+  let heartbeatId = $derived(page.params.id ?? '');
 
   const stateColors: Record<string, string> = {
     up: 'bg-emerald-500',
@@ -178,22 +178,22 @@
         <h1 class="truncate text-2xl font-bold tracking-tight text-primary">{heartbeat.name}</h1>
       </div>
       {#if isAdmin()}
-      <div class="flex items-center gap-2">
-        <a
-          href="/heartbeats/{heartbeat.id}/edit"
-          class="rounded-md border border-[var(--color-border)] bg-surface px-3 py-2 text-sm font-medium text-primary transition hover:bg-[var(--color-bg-surface-hover)]"
+        <div class="flex items-center gap-2">
+          <a
+            href="/heartbeats/{heartbeat.id}/edit"
+            class="rounded-md border border-[var(--color-border)] bg-surface px-3 py-2 text-sm font-medium text-primary transition hover:bg-[var(--color-bg-surface-hover)]"
         >
           {t('heartbeats.edit')}
         </a>
-        <button
-          type="button"
-          onclick={() => (showDeleteConfirm = true)}
-          class="rounded-md border border-rose-200 bg-surface px-3 py-2 text-sm font-medium text-rose-600 transition hover:bg-rose-50"
-          data-testid="hb-delete-button"
+          <button
+            type="button"
+            onclick={() => showDeleteConfirm = true}
+            class="rounded-md border border-rose-200 bg-surface px-3 py-2 text-sm font-medium text-rose-600 transition hover:bg-rose-50"
+            data-testid="hb-delete-button"
         >
           {t('heartbeats.delete')}
         </button>
-      </div>
+        </div>
       {/if}
     </div>
 
@@ -241,20 +241,20 @@
       {/if}
 
       {#if isAdmin()}
-      <!-- Ping URL / rotate -->
+        <!-- Ping URL / rotate -->
       <div class="mt-6 border-t border-[var(--color-border)] pt-4">
-        <div class="flex items-center justify-between">
-          <h2 class="text-sm font-semibold text-primary">{t('heartbeats.token.title')}</h2>
-          <button
-            type="button"
-            onclick={() => (showRotateConfirm = true)}
-            class="rounded-md border border-[var(--color-border)] bg-surface px-3 py-1.5 text-xs font-medium text-primary transition hover:bg-[var(--color-bg-surface-hover)]"
-            data-testid="hb-rotate-button"
+          <div class="flex items-center justify-between">
+            <h2 class="text-sm font-semibold text-primary">{t('heartbeats.token.title')}</h2>
+            <button
+              type="button"
+              onclick={() => showRotateConfirm = true}
+              class="rounded-md border border-[var(--color-border)] bg-surface px-3 py-1.5 text-xs font-medium text-primary transition hover:bg-[var(--color-bg-surface-hover)]"
+              data-testid="hb-rotate-button"
           >
             {t('heartbeats.token.rotate')}
           </button>
+          </div>
         </div>
-      </div>
       {/if}
     </div>
 
@@ -272,7 +272,10 @@
     </div>
 
     <!-- Usage examples -->
-    {#if isAdmin()}<PingExamples {pingUrl} {pingFailUrl} />{/if}
+
+    {#if isAdmin()}
+      <PingExamples pingUrl={pingUrl} pingFailUrl={pingFailUrl} />
+    {/if}
 
     <!-- Notification bindings -->
     {#if isAdmin()}<HeartbeatBindings heartbeatId={heartbeat.id} />{/if}
@@ -288,7 +291,7 @@
       <div class="mt-5 flex items-center justify-end gap-3">
         <button
           type="button"
-          onclick={() => (showRotateConfirm = false)}
+          onclick={() => showRotateConfirm = false}
           disabled={busy}
           class="rounded-md border border-[var(--color-border)] bg-surface px-4 py-2 text-sm font-medium text-primary transition hover:bg-[var(--color-bg-surface-hover)] disabled:opacity-50"
         >
@@ -317,7 +320,7 @@
       <div class="mt-5 flex items-center justify-end gap-3">
         <button
           type="button"
-          onclick={() => (showDeleteConfirm = false)}
+          onclick={() => showDeleteConfirm = false}
           disabled={busy}
           class="rounded-md border border-[var(--color-border)] bg-surface px-4 py-2 text-sm font-medium text-primary transition hover:bg-[var(--color-bg-surface-hover)] disabled:opacity-50"
         >
@@ -339,5 +342,8 @@
 
 <!-- Raw ping URL shown once after rotate -->
 {#if showOnceSecret}
-  <ShowOnceModal secret={showOnceSecret} onDismiss={() => (showOnceSecret = null)} />
+  <ShowOnceModal
+    secret={showOnceSecret}
+    onDismiss={() => showOnceSecret = null}
+  />
 {/if}

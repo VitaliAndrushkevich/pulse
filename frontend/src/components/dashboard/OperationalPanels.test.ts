@@ -1,9 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen } from '@testing-library/svelte';
-import { setLocale, t } from '$lib/i18n';
+import { setLocale, t } from '#lib/i18n/index.ts';
 import ResponseTimes from './ResponseSparklines.svelte';
 import SSLWarnings from './SSLWarnings.svelte';
-import type { SSLExpiryEntry } from '$lib/types';
+import type { SSLExpiryEntry } from '#lib/types.ts';
 
 afterEach(cleanup);
 beforeEach(async () => { await setLocale('en'); });

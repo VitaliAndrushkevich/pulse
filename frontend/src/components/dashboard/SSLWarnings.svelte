@@ -2,7 +2,7 @@
   /**
    * Utility functions exported for property-based testing (Properties 11, 12, 13).
    */
-  import type { SSLExpiryEntry } from '$lib/types';
+  import type { SSLExpiryEntry } from '#lib/types.ts';
 
   /**
    * Filters SSL entries to only include those with days_remaining <= 30.
@@ -44,7 +44,7 @@
 
 <script lang="ts">
   import { resolve } from '$app/paths';
-  import { t, getLocale } from '$lib/i18n';
+  import { t, getLocale } from '#lib/i18n/index.ts';
   import WidgetShell from './WidgetShell.svelte';
   import VirtualList from '../VirtualList.svelte';
 

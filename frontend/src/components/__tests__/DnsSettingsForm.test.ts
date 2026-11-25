@@ -8,7 +8,7 @@ import { describe, it, expect, vi, afterEach } from 'vitest';
 import { render, cleanup } from '@testing-library/svelte';
 import * as fc from 'fast-check';
 
-vi.mock('$lib/i18n/locale.svelte', () => ({
+vi.mock('#lib/i18n/locale.svelte.ts', () => ({
   getLocale: () => 'en',
   setLocale: vi.fn(),
   t: (key: string) => key,

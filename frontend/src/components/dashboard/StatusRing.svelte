@@ -1,5 +1,5 @@
 <script lang="ts" module>
-  import type { StatusDistribution } from '$lib/types';
+  import type { StatusDistribution } from '#lib/types.ts';
 
   export interface ArcSegment {
     state: 'up' | 'down' | 'unknown';
@@ -51,7 +51,7 @@
 </script>
 
 <script lang="ts">
-  import { t } from '$lib/i18n';
+  import { t } from '#lib/i18n/index.ts';
   import WidgetShell from './WidgetShell.svelte';
 
   interface Props {
