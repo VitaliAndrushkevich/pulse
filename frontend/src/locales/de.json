@@ -705,7 +705,9 @@
     "ehloDomainHelp": "Domainname für die EHLO-Begrüßung",
     "sslExpiryThreshold": "SSL-Ablaufschwelle (Tage)",
     "sslExpiryThresholdPlaceholder": "14",
-    "sslExpiryThresholdHelp": "Warnung, wenn das Zertifikat innerhalb dieser Tage abläuft (0 = deaktiviert)"
+    "sslExpiryThresholdHelp": "Warnung, wenn das Zertifikat innerhalb dieser Tage abläuft (0 = deaktiviert)",
+    "skipTlsVerify": "Disable certificate verification (skip TLS verification)",
+    "skipTlsVerifyHelp": "The monitor will skip TLS certificate chain and hostname verification. Use for self-signed certificates."
   },
   "payloadEditor": {
     "placeholder": "JSON-Payload eingeben (z.B. {\"name\": \"value\"})",

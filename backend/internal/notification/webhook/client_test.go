@@ -524,3 +524,36 @@ func TestClient_Deliver_ContentTypeCaseInsensitive(t *testing.T) {
 		t.Errorf("expected Content-Type: text/plain, got: %s", receivedContentType)
 	}
 }
+
+func TestClient_Deliver_DoesNotFollowRedirects(t *testing.T) {
+	key := testKey(t)
+
+	var targetHits int
+	target := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		targetHits++
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer target.Close()
+
+	redirector := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, target.URL, http.StatusFound)
+	}))
+	defer redirector.Close()
+
+	client := NewClient(key)
+	config := WebhookConfig{
+		URL:          redirector.URL,
+		Method:       "POST",
+		BodyTemplate: `{}`,
+		Headers: []WebhookHeader{
+			{Name: "X-Api-Key", Value: encryptValue(t, key, "secret")},
+		},
+	}
+
+	if err := client.Deliver(context.Background(), config, sampleTemplateData()); err == nil {
+		t.Fatal("expected error for redirect response, got nil")
+	}
+	if targetHits != 0 {
+		t.Errorf("redirect target was contacted %d times; redirects must not be followed", targetHits)
+	}
+}

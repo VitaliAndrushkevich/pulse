@@ -705,7 +705,9 @@
     "ehloDomainHelp": "Доменное имя, используемое в приветствии EHLO",
     "sslExpiryThreshold": "Порог истечения SSL (дни)",
     "sslExpiryThresholdPlaceholder": "14",
-    "sslExpiryThresholdHelp": "Оповещать, когда сертификат истекает в течение указанного количества дней (0 = отключено)"
+    "sslExpiryThresholdHelp": "Оповещать, когда сертификат истекает в течение указанного количества дней (0 = отключено)",
+    "skipTlsVerify": "Отключить проверку сертификата (skip TLS verification)",
+    "skipTlsVerifyHelp": "Монитор не проверяет цепочку сертификатов и имя хоста. Используйте для самоподписанных сертификатов."
   },
   "payloadEditor": {
     "placeholder": "Введите JSON-данные (напр. {\"name\": \"value\"})",

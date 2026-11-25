@@ -705,7 +705,9 @@
     "ehloDomainHelp": "EHLO 问候中使用的域名",
     "sslExpiryThreshold": "SSL 到期阈值（天）",
     "sslExpiryThresholdPlaceholder": "14",
-    "sslExpiryThresholdHelp": "证书在此天数内到期时发出警报（0 = 禁用）"
+    "sslExpiryThresholdHelp": "证书在此天数内到期时发出警报（0 = 禁用）",
+    "skipTlsVerify": "Disable certificate verification (skip TLS verification)",
+    "skipTlsVerifyHelp": "The monitor will skip TLS certificate chain and hostname verification. Use for self-signed certificates."
   },
   "payloadEditor": {
     "placeholder": "输入 JSON 有效载荷（例如 {\"name\": \"value\"}）",

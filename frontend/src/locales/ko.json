@@ -705,7 +705,9 @@
     "ehloDomainHelp": "EHLO 인사에 사용되는 도메인 이름",
     "sslExpiryThreshold": "SSL 만료 임계값 (일)",
     "sslExpiryThresholdPlaceholder": "14",
-    "sslExpiryThresholdHelp": "인증서가 이 일수 내에 만료되면 알림 (0 = 비활성화)"
+    "sslExpiryThresholdHelp": "인증서가 이 일수 내에 만료되면 알림 (0 = 비활성화)",
+    "skipTlsVerify": "Disable certificate verification (skip TLS verification)",
+    "skipTlsVerifyHelp": "The monitor will skip TLS certificate chain and hostname verification. Use for self-signed certificates."
   },
   "payloadEditor": {
     "placeholder": "JSON 페이로드 입력 (예: {\"name\": \"value\"})",

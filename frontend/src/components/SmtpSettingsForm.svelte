@@ -13,6 +13,7 @@
   let starttls = $state(settings?.starttls ?? true);
   let implicitTls = $state(settings?.implicit_tls ?? false);
   let ehloDomain = $state(settings?.ehlo_domain ?? '');
+  let skipTlsVerify = $state(settings?.skip_tls_verify ?? false);
   let sslExpiryThreshold = $state<number | undefined>(settings?.ssl_expiry_threshold);
 
   // Whether TLS is active (either STARTTLS or implicit)
@@ -24,6 +25,7 @@
       port,
       starttls,
       implicit_tls: implicitTls,
+      skip_tls_verify: skipTlsVerify,
     };
 
     if (ehloDomain.trim()) {
@@ -96,6 +98,22 @@
     />
     <p class="mt-1 text-xs text-secondary">{t('smtp.ehloDomainHelp')}</p>
   </div>
+
+  <!-- Skip TLS verification (visible when any TLS is enabled) -->
+  {#if tlsActive}
+    <div>
+      <label class="inline-flex items-center gap-2 text-sm text-secondary">
+        <input
+          type="checkbox"
+          bind:checked={skipTlsVerify}
+          class="rounded border-[var(--color-border)] text-blue-600 focus:ring-blue-500"
+          data-testid="smtp-skip-tls-verify"
+        />
+        <span>{t('smtp.skipTlsVerify')}</span>
+      </label>
+      <p class="mt-1 text-xs text-secondary">{t('smtp.skipTlsVerifyHelp')}</p>
+    </div>
+  {/if}
 
   <!-- SSL Expiry Threshold (visible when any TLS is enabled) -->
   {#if tlsActive}

@@ -705,7 +705,9 @@
     "ehloDomainHelp": "اسم النطاق المستخدم في تحية EHLO",
     "sslExpiryThreshold": "عتبة انتهاء SSL (أيام)",
     "sslExpiryThresholdPlaceholder": "14",
-    "sslExpiryThresholdHelp": "تنبيه عندما تنتهي صلاحية الشهادة خلال هذا العدد من الأيام (0 = معطل)"
+    "sslExpiryThresholdHelp": "تنبيه عندما تنتهي صلاحية الشهادة خلال هذا العدد من الأيام (0 = معطل)",
+    "skipTlsVerify": "Disable certificate verification (skip TLS verification)",
+    "skipTlsVerifyHelp": "The monitor will skip TLS certificate chain and hostname verification. Use for self-signed certificates."
   },
   "payloadEditor": {
     "placeholder": "أدخل حمولة JSON (مثال: {\"name\": \"value\"})",

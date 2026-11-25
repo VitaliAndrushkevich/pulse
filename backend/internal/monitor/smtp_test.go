@@ -642,3 +642,15 @@ func newImplicitTLSMockConn(cert *tls.Certificate) *tlsMockConn {
 		cert:         cert,
 	}
 }
+
+func TestParseSMTPSettings_SkipTLSVerifyDefaultsToFalse(t *testing.T) {
+	if parseSMTPSettings(nil).SkipTLSVerify {
+		t.Error("skip_tls_verify must default to false")
+	}
+	if parseSMTPSettings(json.RawMessage(`{"port":587}`)).SkipTLSVerify {
+		t.Error("skip_tls_verify must be false when omitted")
+	}
+	if !parseSMTPSettings(json.RawMessage(`{"skip_tls_verify":true}`)).SkipTLSVerify {
+		t.Error("skip_tls_verify=true must be honored")
+	}
+}

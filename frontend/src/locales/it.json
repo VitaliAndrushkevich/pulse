@@ -605,7 +605,9 @@
     "ehloDomainHelp": "Nome di dominio usato nel saluto EHLO",
     "sslExpiryThreshold": "Soglia scadenza SSL (giorni)",
     "sslExpiryThresholdPlaceholder": "14",
-    "sslExpiryThresholdHelp": "Avvisa quando il certificato scade entro questi giorni (0 = disabilitato)"
+    "sslExpiryThresholdHelp": "Avvisa quando il certificato scade entro questi giorni (0 = disabilitato)",
+    "skipTlsVerify": "Disable certificate verification (skip TLS verification)",
+    "skipTlsVerifyHelp": "The monitor will skip TLS certificate chain and hostname verification. Use for self-signed certificates."
   },
   "timeRange": {
     "custom": "Personalizzato",

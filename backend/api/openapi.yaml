@@ -3161,6 +3161,14 @@ components:
           type: string
           default: "pulse.local"
           description: "Domain name to use in EHLO greeting"
+        skip_tls_verify:
+          type: boolean
+          default: false
+          description: "Disable TLS certificate chain and hostname verification (STARTTLS and implicit TLS). Use for self-signed certificates."
+        ssl_expiry_threshold:
+          type: integer
+          minimum: 0
+          description: "Minimum acceptable days until certificate expiry (0 = disabled)"
 
     QUICSettings:
       type: object

@@ -142,8 +142,9 @@
           implicit_tls: (initialValues.settings.implicit_tls as boolean) ?? false,
           ehlo_domain: initialValues.settings.ehlo_domain as string | undefined,
           ssl_expiry_threshold: initialValues.settings.ssl_expiry_threshold as number | undefined,
+          skip_tls_verify: (initialValues.settings.skip_tls_verify as boolean) ?? false,
         }
-      : { port: 25, starttls: true, implicit_tls: false }
+      : { port: 25, starttls: true, implicit_tls: false, skip_tls_verify: false }
   );
 
   // Pending credential for create mode (saved locally, sent after monitor creation)
