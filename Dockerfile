@@ -5,7 +5,7 @@ FROM node:lts-alpine AS node-builder
 
 WORKDIR /src/frontend
 ENV CI=true
-RUN corepack enable
+RUN npm install -g pnpm@10.34.5
 COPY frontend/package.json frontend/pnpm-lock.yaml frontend/pnpm-workspace.yaml ./
 RUN pnpm install --frozen-lockfile
 
