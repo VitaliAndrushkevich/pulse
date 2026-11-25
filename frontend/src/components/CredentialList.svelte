@@ -1,6 +1,6 @@
 <script lang="ts">
-  import type { Credential } from '$lib/api';
-  import { t } from '$lib/i18n';
+  import type { Credential } from '#lib/api.ts';
+  import { t } from '#lib/i18n/index.ts';
 
   interface Props {
     credentials: Credential[];

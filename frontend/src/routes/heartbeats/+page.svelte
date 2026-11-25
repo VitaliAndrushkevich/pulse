@@ -1,13 +1,13 @@
 <script lang="ts">
-  import { isAdmin } from '$lib/stores/auth.svelte';
+  import { isAdmin } from '#lib/stores/auth.svelte.ts';
   import { untrack } from 'svelte';
-  import { getHeartbeats } from '$lib/api';
-  import type { Heartbeat, PaginatedList } from '$lib/types';
-  import { heartbeatStore } from '$lib/stores/heartbeats.svelte';
+  import { getHeartbeats } from '#lib/api.ts';
+  import type { Heartbeat, PaginatedList } from '#lib/types.ts';
+  import { heartbeatStore } from '#lib/stores/heartbeats.svelte.ts';
   import HeartbeatRow from '../../components/HeartbeatRow.svelte';
   import Pagination from '../../components/Pagination.svelte';
   import VirtualList from '../../components/VirtualList.svelte';
-  import { t } from '$lib/i18n';
+  import { t } from '#lib/i18n/index.ts';
 
   let page = $state(1);
   let total = $state(0);

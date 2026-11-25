@@ -1,6 +1,6 @@
 import { autocompletion, type CompletionContext, type CompletionResult } from '@codemirror/autocomplete';
 import type { Extension } from '@codemirror/state';
-import type { ProtoMessageSchema, ProtoField } from '$lib/types';
+import type { ProtoMessageSchema, ProtoField } from '#lib/types.ts';
 
 /**
  * Creates a CodeMirror 6 autocompletion extension that provides

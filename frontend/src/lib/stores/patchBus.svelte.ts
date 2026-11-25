@@ -14,7 +14,7 @@
  * trigger Svelte reactivity — it's purely an imperative callback registry.
  */
 
-import type { MonitorPatch } from '$lib/types';
+import type { MonitorPatch } from '#lib/types.ts';
 
 type PatchListener = (patch: MonitorPatch) => void;
 

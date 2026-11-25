@@ -1,6 +1,6 @@
 <script lang="ts">
-  import type { ProtoService, ServiceMethodSelection } from '$lib/types';
-  import { t } from '$lib/i18n';
+  import type { ProtoService, ServiceMethodSelection } from '#lib/types.ts';
+  import { t } from '#lib/i18n/index.ts';
 
   interface Props {
     services: ProtoService[];

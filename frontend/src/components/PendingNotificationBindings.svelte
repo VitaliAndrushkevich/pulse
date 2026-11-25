@@ -1,9 +1,9 @@
 <script lang="ts">
   import SelectField from './SelectField.svelte';
   import { onMount } from 'svelte';
-  import { listNotificationChannels } from '$lib/api';
-  import type { NotificationChannel, TriggerCondition, TriggerType } from '$lib/types';
-  import { t } from '$lib/i18n';
+  import { listNotificationChannels } from '#lib/api.ts';
+  import type { NotificationChannel, TriggerCondition, TriggerType } from '#lib/types.ts';
+  import { t } from '#lib/i18n/index.ts';
 
   export interface PendingBinding {
     channel_id: string;

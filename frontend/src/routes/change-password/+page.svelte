@@ -1,9 +1,9 @@
 <script lang="ts">
   import PasswordChangeSection from '../settings/PasswordChangeSection.svelte';
   import BrandLockup from '../../components/BrandLockup.svelte';
-  import { clearToken } from '$lib/stores/auth.svelte';
+  import { clearToken } from '#lib/stores/auth.svelte.ts';
   import { goto } from '$app/navigation';
-  import { t } from '$lib/i18n';
+  import { t } from '#lib/i18n/index.ts';
 
   function logout() {
     clearToken();

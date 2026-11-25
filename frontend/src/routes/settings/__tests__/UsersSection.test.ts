@@ -1,12 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/svelte';
 import UsersSection from '../UsersSection.svelte';
-import { createUser, listUsers, resetUserPassword, updateUser } from '$lib/api';
+import { createUser, listUsers, resetUserPassword, updateUser } from '#lib/api.ts';
 const admin = { id: 'admin', email: 'admin@example.com', role: 'admin', enabled: true, must_change_password: false };
 const reader = { id: 'reader', email: 'reader@example.com', role: 'read_only', enabled: true, must_change_password: true };
-vi.mock('$lib/i18n', () => ({ t: (key: string) => key }));
-vi.mock('$lib/stores/auth.svelte', () => ({ getUser: () => admin }));
-vi.mock('$lib/api', () => ({ listUsers: vi.fn(), createUser: vi.fn(), updateUser: vi.fn(), resetUserPassword: vi.fn() }));
+vi.mock('#lib/i18n/index.ts', () => ({ t: (key: string) => key }));
+vi.mock('#lib/stores/auth.svelte.ts', () => ({ getUser: () => admin }));
+vi.mock('#lib/api.ts', () => ({ listUsers: vi.fn(), createUser: vi.fn(), updateUser: vi.fn(), resetUserPassword: vi.fn() }));
 beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(listUsers).mockResolvedValue({ data: [admin, reader], page: 1, total_pages: 1, limit: 20, total: 2 } as never);

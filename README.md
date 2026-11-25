@@ -40,7 +40,7 @@ and workspace alignment. Shared dropdowns use the active theme and support arrow
 keys, Home/End, typing to find an option, Enter to select, and Escape to dismiss.
 
 See [UI design conventions](docs/UI-DESIGN.md) for component and theme guidance.
-For frontend development use Node 22.12+ (or a newer supported LTS) and the pnpm
+For frontend development use Node 22.17+ (or a newer supported LTS) and the pnpm
 version pinned in `frontend/package.json`.
 
 ## Architecture

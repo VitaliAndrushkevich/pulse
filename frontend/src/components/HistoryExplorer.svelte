@@ -2,8 +2,8 @@
   import { untrack } from 'svelte';
   import TimeRangePicker from './TimeRangePicker.svelte';
   import HistoryChartExplorer from './HistoryChartExplorer.svelte';
-  import { getMonitorHistoryExtended, type AggregatedHistoryPoint } from '$lib/api';
-  import type { HistoryPoint } from '$lib/types';
+  import { getMonitorHistoryExtended, type AggregatedHistoryPoint } from '#lib/api.ts';
+  import type { HistoryPoint } from '#lib/types.ts';
 
   interface Props {
     monitorId: string;

@@ -8,10 +8,10 @@
     deleteApiToken,
     ApiRequestError,
     NetworkError,
-  } from '$lib/api';
-  import type { ApiToken } from '$lib/api';
-  import { formatDate } from '$lib/format';
-  import { t } from '$lib/i18n/locale.svelte';
+  } from '#lib/api.ts';
+  import type { ApiToken } from '#lib/api.ts';
+  import { formatDate } from '#lib/format.ts';
+  import { t } from '#lib/i18n/locale.svelte.ts';
   import ShowOnceModal from '../../components/ShowOnceModal.svelte';
 
   let tokens = $state<ApiToken[]>([]);

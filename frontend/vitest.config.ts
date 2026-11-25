@@ -11,10 +11,9 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      $lib: path.resolve(import.meta.dirname, 'src/lib'),
       '$app/paths': path.resolve(import.meta.dirname, 'src/__mocks__/$app/paths.ts'),
       '$app/navigation': path.resolve(import.meta.dirname, 'src/__mocks__/$app/navigation.ts'),
-      '$app/stores': path.resolve(import.meta.dirname, 'src/__mocks__/$app/stores.ts'),
+      '$app/state': path.resolve(import.meta.dirname, 'src/__mocks__/$app/state.ts'),
     },
     conditions: ['browser']
   }

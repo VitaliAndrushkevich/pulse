@@ -20,7 +20,7 @@
 import { describe, it, expect } from 'vitest';
 import * as fc from 'fast-check';
 import { normalizeHeatmapData, getBlockColor } from './UptimeHeatmap.svelte';
-import type { HeatmapHour } from '$lib/types';
+import type { HeatmapHour } from '#lib/types.ts';
 
 // --- Arbitraries ---
 

@@ -14,7 +14,7 @@
  */
 import { describe, it, expect } from 'vitest';
 import * as fc from 'fast-check';
-import type { RecentEvent } from '$lib/types';
+import type { RecentEvent } from '#lib/types.ts';
 import { formatRelativeTime, filterInitialEvents, prependEvent } from './EventsFeed.svelte';
 
 // --- Constants ---

@@ -1,11 +1,11 @@
 <script lang="ts">
   import EditorPage from '../../../components/EditorPage.svelte';
   import { goto } from '$app/navigation';
-  import { createHeartbeat } from '$lib/api';
-  import { heartbeatStore } from '$lib/stores/heartbeats.svelte';
+  import { createHeartbeat } from '#lib/api.ts';
+  import { heartbeatStore } from '#lib/stores/heartbeats.svelte.ts';
   import HeartbeatForm, { type HeartbeatFormValues } from '../../../components/HeartbeatForm.svelte';
   import ShowOnceModal from '../../../components/ShowOnceModal.svelte';
-  import { t } from '$lib/i18n';
+  import { t } from '#lib/i18n/index.ts';
 
   // After create, the raw ping URL is shown once; dismissing navigates to detail.
   let createdId = $state<string | null>(null);

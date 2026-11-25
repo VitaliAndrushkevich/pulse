@@ -6,11 +6,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/svelte';
 import LoginPage from '../+page.svelte';
 import { goto } from '$app/navigation';
-import { setSession } from '$lib/stores/auth.svelte';
-import { ApiRequestError, NetworkError } from '$lib/api';
+import { setSession } from '#lib/stores/auth.svelte.ts';
+import { ApiRequestError, NetworkError } from '#lib/api.ts';
 
 // Mock i18n to avoid $effect outside component context
-vi.mock('$lib/i18n', () => ({
+vi.mock('#lib/i18n/index.ts', () => ({
   t: (key: string, params?: Record<string, string | number>) => {
     const translations: Record<string, string> = {
       'login.title': 'Sign in to Pulse',
@@ -36,7 +36,7 @@ vi.mock('$lib/i18n', () => ({
 }));
 
 // Mock auth store
-vi.mock('$lib/stores/auth.svelte', () => ({
+vi.mock('#lib/stores/auth.svelte.ts', () => ({
   setSession: vi.fn(),
   getToken: vi.fn(() => null),
   clearToken: vi.fn(),
@@ -44,7 +44,7 @@ vi.mock('$lib/stores/auth.svelte', () => ({
 }));
 
 // Mock toast store
-vi.mock('$lib/stores/toast.svelte', () => ({
+vi.mock('#lib/stores/toast.svelte.ts', () => ({
   toastStore: {
     addToast: vi.fn(),
     dismissToast: vi.fn(),
@@ -53,8 +53,8 @@ vi.mock('$lib/stores/toast.svelte', () => ({
 
 // Mock API
 const mockLogin = vi.fn();
-vi.mock('$lib/api', async () => {
-  const actual = await vi.importActual('$lib/api') as Record<string, unknown>;
+vi.mock('#lib/api.ts', async () => {
+  const actual = await vi.importActual('#lib/api.ts') as Record<string, unknown>;
   return {
     ...actual,
     login: (...args: unknown[]) => mockLogin(...args),

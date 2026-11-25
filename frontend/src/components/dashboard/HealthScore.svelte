@@ -22,8 +22,8 @@
    * Requirements 1.3: Empty state "—" when no active monitors
    * Requirements 1.5: Partial data warning indicator
    */
-  import type { HealthScoreData } from '$lib/types';
-  import { t } from '$lib/i18n';
+  import type { HealthScoreData } from '#lib/types.ts';
+  import { t } from '#lib/i18n/index.ts';
   import WidgetShell from './WidgetShell.svelte';
 
   interface Props {

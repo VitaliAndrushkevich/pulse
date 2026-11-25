@@ -5,17 +5,17 @@
  * Requirements: 5.1, 5.4, 5.7, 5.8, 5.9
  */
 
-import { getToken, clearToken } from '$lib/stores/auth.svelte';
-import { monitorStore } from '$lib/stores/monitors.svelte';
-import { heartbeatStore } from '$lib/stores/heartbeats.svelte';
-import { connectionStore, type ConnectionStatus } from '$lib/stores/connection.svelte';
-import { patchBus } from '$lib/stores/patchBus.svelte';
+import { getToken, clearToken } from '#lib/stores/auth.svelte.ts';
+import { monitorStore } from '#lib/stores/monitors.svelte.ts';
+import { heartbeatStore } from '#lib/stores/heartbeats.svelte.ts';
+import { connectionStore, type ConnectionStatus } from '#lib/stores/connection.svelte.ts';
+import { patchBus } from '#lib/stores/patchBus.svelte.ts';
 import type {
 	MonitorPatch,
 	MonitorTagsChangedPayload,
 	HeartbeatStatusPayload,
 	WsEnvelope
-} from '$lib/types';
+} from '#lib/types.ts';
 
 // ---------------------------------------------------------------------------
 // Types

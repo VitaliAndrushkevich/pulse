@@ -2,7 +2,7 @@
   /**
    * Utility functions exported for property-based testing (Properties 14, 15).
    */
-  import type { HeatmapHour } from '$lib/types';
+  import type { HeatmapHour } from '#lib/types.ts';
 
   /**
    * Builds a full 24-hour timeline from (now - 23h) to now, filling in
@@ -79,7 +79,7 @@
    * Requirements 6.5: Error state with retry control
    * Requirements 6.6: Real-time update of current hour block
    */
-  import { t } from '$lib/i18n';
+  import { t } from '#lib/i18n/index.ts';
   import WidgetShell from './WidgetShell.svelte';
 
   interface Props {

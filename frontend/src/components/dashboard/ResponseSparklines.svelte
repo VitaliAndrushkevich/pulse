@@ -2,7 +2,7 @@
   /**
    * Utility functions exported for property-based testing (Properties 9, 10).
    */
-  import type { TopLatencyMonitor } from '$lib/types';
+  import type { TopLatencyMonitor } from '#lib/types.ts';
 
   /**
    * Truncates a monitor name to the given character limit, appending "…" if exceeded.
@@ -45,8 +45,8 @@
 
 <script lang="ts">
   import { resolve } from '$app/paths';
-  import { t, getLocale } from '$lib/i18n';
-  import type { FleetPeriod } from '$lib/types';
+  import { t, getLocale } from '#lib/i18n/index.ts';
+  import type { FleetPeriod } from '#lib/types.ts';
   import WidgetShell from './WidgetShell.svelte';
 
   let { monitors, period = '24h', loading, error, onRetry }: {

@@ -16,8 +16,8 @@
  */
 import { describe, it, expect, beforeEach } from 'vitest';
 import * as fc from 'fast-check';
-import type { WidgetId } from '$lib/types';
-import { dashboardStore } from '$lib/stores/dashboard.svelte';
+import type { WidgetId } from '#lib/types.ts';
+import { dashboardStore } from '#lib/stores/dashboard.svelte.ts';
 
 // --- Constants ---
 

@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen } from '@testing-library/svelte';
 import DataFreshness, { formatRelativeTime } from './DataFreshness.svelte';
 
-vi.mock('$lib/i18n', () => ({
+vi.mock('#lib/i18n/index.ts', () => ({
   t: (key: string, params?: Record<string, string>) => {
     const translations: Record<string, string> = {
       'dashboard.freshness.label': 'Last updated:',

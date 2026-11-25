@@ -11,9 +11,9 @@
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, cleanup, waitFor } from '@testing-library/svelte';
-import type { ProtoSourceMeta } from '$lib/types';
+import type { ProtoSourceMeta } from '#lib/types.ts';
 
-vi.mock('$lib/i18n', () => ({
+vi.mock('#lib/i18n/index.ts', () => ({
   t: (key: string, params?: Record<string, string | number>) => {
     let result = key;
     if (params) {
@@ -25,7 +25,7 @@ vi.mock('$lib/i18n', () => ({
   },
 }));
 
-vi.mock('$lib/api', () => ({
+vi.mock('#lib/api.ts', () => ({
   uploadProtoSource: vi.fn(),
   triggerReflection: vi.fn(),
   adHocReflect: vi.fn(),
@@ -45,7 +45,7 @@ vi.mock('$lib/api', () => ({
 }));
 
 import ProtoSourceUpload from './ProtoSourceUpload.svelte';
-import { uploadProtoSource, triggerReflection, adHocReflect, deleteProtoSource } from '$lib/api';
+import { uploadProtoSource, triggerReflection, adHocReflect, deleteProtoSource } from '#lib/api.ts';
 
 const mockUpload = vi.mocked(uploadProtoSource);
 const mockReflection = vi.mocked(triggerReflection);

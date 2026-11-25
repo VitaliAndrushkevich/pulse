@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, render, screen } from '@testing-library/svelte';
-import { setLocale, t } from '$lib/i18n';
+import { setLocale, t } from '#lib/i18n/index.ts';
 import IncidentsPanel, { formatDuration } from './IncidentsPanel.svelte';
 
 afterEach(() => { cleanup(); vi.useRealTimers(); });

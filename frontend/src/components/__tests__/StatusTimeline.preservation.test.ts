@@ -10,7 +10,7 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/svelte';
 import * as fc from 'fast-check';
-import type { HistoryPoint } from '$lib/types';
+import type { HistoryPoint } from '#lib/types.ts';
 import { buildSegments, computeUptimePercent, formatSegmentTooltip } from '../statusTimeline.utils';
 import StatusTimeline from '../StatusTimeline.svelte';
 

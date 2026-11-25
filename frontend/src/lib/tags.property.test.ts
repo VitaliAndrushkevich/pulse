@@ -13,9 +13,9 @@
  */
 import { describe, it, expect, beforeEach } from 'vitest';
 import * as fc from 'fast-check';
-import type { Monitor, Tag } from '$lib/types';
-import type { CreateMonitorRequest, UpdateMonitorRequest } from '$lib/api';
-import { monitorStore } from '$lib/stores/monitors.svelte';
+import type { Monitor, Tag } from '#lib/types.ts';
+import type { CreateMonitorRequest, UpdateMonitorRequest } from '#lib/api.ts';
+import { monitorStore } from '#lib/stores/monitors.svelte.ts';
 
 // --- Arbitraries ---
 

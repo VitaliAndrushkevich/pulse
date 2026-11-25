@@ -1,11 +1,11 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
   import { onMount } from 'svelte';
-  import { setupAdmin, getSetupStatus, ApiRequestError, NetworkError } from '$lib/api';
-  import { setSession } from '$lib/stores/auth.svelte';
-  import { validateEmail, validatePassword } from '$lib/validation';
+  import { setupAdmin, getSetupStatus, ApiRequestError, NetworkError } from '#lib/api.ts';
+  import { setSession } from '#lib/stores/auth.svelte.ts';
+  import { validateEmail, validatePassword } from '#lib/validation.ts';
   import BrandLockup from '../../components/BrandLockup.svelte';
-  import { t } from '$lib/i18n';
+  import { t } from '#lib/i18n/index.ts';
 
   let email = $state('');
   let password = $state('');

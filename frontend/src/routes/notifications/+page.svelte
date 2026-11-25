@@ -1,9 +1,9 @@
 <script lang="ts">
   import { untrack } from 'svelte';
-  import { notificationStore } from '$lib/stores/notifications.svelte';
-  import { toastStore } from '$lib/stores/toast.svelte';
+  import { notificationStore } from '#lib/stores/notifications.svelte.ts';
+  import { toastStore } from '#lib/stores/toast.svelte.ts';
   import Pagination from '../../components/Pagination.svelte';
-  import { t } from '$lib/i18n';
+  import { t } from '#lib/i18n/index.ts';
 
   let deleteConfirmId = $state<string | null>(null);
   let deleteConfirmName = $state<string>('');

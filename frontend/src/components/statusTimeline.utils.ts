@@ -2,7 +2,7 @@
  * Pure utility functions extracted from StatusTimeline.svelte
  * for property-based testing of segment-building logic.
  */
-import type { HistoryPoint } from '$lib/types';
+import type { HistoryPoint } from '#lib/types.ts';
 
 export interface FailureDetail {
   status_code: number | null;

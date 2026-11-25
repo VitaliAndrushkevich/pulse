@@ -1,8 +1,8 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { listMonitorDeliveryLogs, type DeliveryLogEntry } from '$lib/api';
-  import { t } from '$lib/i18n';
-  import { formatDate } from '$lib/format';
+  import { listMonitorDeliveryLogs, type DeliveryLogEntry } from '#lib/api.ts';
+  import { t } from '#lib/i18n/index.ts';
+  import { formatDate } from '#lib/format.ts';
   import Pagination from './Pagination.svelte';
 
   interface Props {

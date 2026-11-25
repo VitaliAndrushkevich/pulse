@@ -11,20 +11,20 @@ const mockClearToken = vi.fn(() => {
 	mockToken = null;
 });
 
-vi.mock('$lib/stores/auth.svelte', () => ({
+vi.mock('#lib/stores/auth.svelte.ts', () => ({
 	getToken: () => mockToken,
 	clearToken: () => mockClearToken()
 }));
 
 const mockApplyPatch = vi.fn();
-vi.mock('$lib/stores/monitors.svelte', () => ({
+vi.mock('#lib/stores/monitors.svelte.ts', () => ({
 	monitorStore: {
 		applyPatch: (...args: unknown[]) => mockApplyPatch(...args)
 	}
 }));
 
 const mockSetStatus = vi.fn();
-vi.mock('$lib/stores/connection.svelte', () => ({
+vi.mock('#lib/stores/connection.svelte.ts', () => ({
 	connectionStore: {
 		setStatus: (...args: unknown[]) => mockSetStatus(...args)
 	}

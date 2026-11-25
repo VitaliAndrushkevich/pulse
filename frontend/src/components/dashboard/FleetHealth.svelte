@@ -13,8 +13,8 @@
    * Big uptime percentage + "{down}/{total} down" summary underneath.
    * No donut, no legend — just the essentials.
    */
-  import type { HealthScoreData, StatusDistribution } from '$lib/types';
-  import { t } from '$lib/i18n';
+  import type { HealthScoreData, StatusDistribution } from '#lib/types.ts';
+  import { t } from '#lib/i18n/index.ts';
   import WidgetShell from './WidgetShell.svelte';
 
   interface Props {

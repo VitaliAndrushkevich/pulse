@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { filterSSLEntries, sortSSLEntries, getUrgencyTier } from './SSLWarnings.svelte';
-import type { SSLExpiryEntry } from '$lib/types';
+import type { SSLExpiryEntry } from '#lib/types.ts';
 
 describe('SSLWarnings', () => {
   describe('filterSSLEntries', () => {

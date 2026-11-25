@@ -1,5 +1,5 @@
 <script lang="ts" module>
-  import type { Tag } from '$lib/types';
+  import type { Tag } from '#lib/types.ts';
 
   export interface HeartbeatFormValues {
     name: string;
@@ -14,7 +14,7 @@
   import type { Snippet } from 'svelte';
   import SelectField from './SelectField.svelte';
   import TagEditor from './TagEditor.svelte';
-  import { t } from '$lib/i18n';
+  import { t } from '#lib/i18n/index.ts';
 
   interface Props {
     mode: 'create' | 'edit';

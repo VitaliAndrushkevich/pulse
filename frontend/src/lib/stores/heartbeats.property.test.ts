@@ -14,8 +14,8 @@
  */
 import { describe, it, expect, beforeEach } from 'vitest';
 import * as fc from 'fast-check';
-import type { Heartbeat, HeartbeatStatusPayload, HeartbeatState } from '$lib/types';
-import { applyHeartbeatPatch, heartbeatStore } from '$lib/stores/heartbeats.svelte';
+import type { Heartbeat, HeartbeatStatusPayload, HeartbeatState } from '#lib/types.ts';
+import { applyHeartbeatPatch, heartbeatStore } from '#lib/stores/heartbeats.svelte.ts';
 
 // --- Arbitraries ---
 

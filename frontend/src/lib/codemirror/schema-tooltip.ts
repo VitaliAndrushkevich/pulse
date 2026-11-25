@@ -1,5 +1,5 @@
 import { hoverTooltip } from '@codemirror/view';
-import type { ProtoMessageSchema, ProtoField } from '$lib/types';
+import type { ProtoMessageSchema, ProtoField } from '#lib/types.ts';
 
 const MAX_COMMENT_LENGTH = 256;
 

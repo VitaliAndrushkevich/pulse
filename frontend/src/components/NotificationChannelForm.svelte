@@ -12,7 +12,7 @@
     EmailChannelConfig,
     WebhookChannelConfig,
     TemplateVariableGroup,
-  } from '$lib/types';
+  } from '#lib/types.ts';
   import {
     createNotificationChannel,
     updateNotificationChannel,
@@ -20,8 +20,8 @@
     testNotificationChannelDraft,
     type CreateNotificationChannelRequest,
     type UpdateNotificationChannelRequest,
-  } from '$lib/api';
-  import { t } from '$lib/i18n';
+  } from '#lib/api.ts';
+  import { t } from '#lib/i18n/index.ts';
 
   // ---------------------------------------------------------------------------
   // Props

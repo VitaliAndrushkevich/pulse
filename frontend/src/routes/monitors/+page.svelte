@@ -1,13 +1,13 @@
 <script lang="ts">
-  import { isAdmin } from '$lib/stores/auth.svelte';
+  import { isAdmin } from '#lib/stores/auth.svelte.ts';
   import { untrack } from 'svelte';
-  import { getMonitors } from '$lib/api';
-  import type { Monitor, MonitorType, PaginatedList, Tag } from '$lib/types';
+  import { getMonitors } from '#lib/api.ts';
+  import type { Monitor, MonitorType, PaginatedList, Tag } from '#lib/types.ts';
   import PageHeader from '../../components/PageHeader.svelte';
   import MonitorRow from '../../components/MonitorRow.svelte';
   import Pagination from '../../components/Pagination.svelte';
   import FilterBar from '../../components/FilterBar.svelte';
-  import { t } from '$lib/i18n';
+  import { t } from '#lib/i18n/index.ts';
 
   let page = $state(1);
   let monitors = $state<Monitor[]>([]);

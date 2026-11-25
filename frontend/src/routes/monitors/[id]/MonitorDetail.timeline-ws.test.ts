@@ -13,8 +13,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, waitFor, cleanup } from '@testing-library/svelte';
 import fc from 'fast-check';
-import type { HistoryPoint, MonitorPatch, Monitor } from '$lib/types';
-import { patchBus } from '$lib/stores/patchBus.svelte';
+import type { HistoryPoint, MonitorPatch, Monitor } from '#lib/types.ts';
+import { patchBus } from '#lib/stores/patchBus.svelte.ts';
 
 // ---------------------------------------------------------------------------
 // DOM Stubs for uPlot (HistoryChart component uses canvas)
@@ -109,25 +109,23 @@ global.Path2D = class {
 // ---------------------------------------------------------------------------
 
 // Mock i18n to avoid $effect outside component context
-vi.mock('$lib/i18n', () => ({
+vi.mock('#lib/i18n/index.ts', () => ({
   t: (key: string) => key,
 }));
 
-vi.mock('$app/stores', () => {
-  const { readable } = require('svelte/store');
-  return {
-    page: readable({
-      url: new URL('http://localhost/monitors/test-monitor-123'),
-      params: { id: 'test-monitor-123' },
-      route: { id: '/monitors/[id]' },
-      status: 200,
-      error: null,
-      data: {},
-      form: null
-    }),
-    navigating: readable(null)
-  };
-});
+vi.mock('$app/state', () => ({
+  page: {
+    url: new URL('http://localhost/monitors/test-monitor-123'),
+    params: { id: 'test-monitor-123' },
+    route: { id: '/monitors/[id]' },
+    status: 200,
+    error: null,
+    data: {},
+    form: null,
+    state: {}
+  },
+  navigating: { current: null }
+}));
 
 // Use recent timestamps relative to Date.now() so the 24h pruning window doesn't discard them
 const now = Date.now();
@@ -157,7 +155,7 @@ const initialHistory: HistoryPoint[] = [
   { state: 'up', latency_ms: 95, status_code: 200, error: null, ssl_days_remaining: null, checked_at: recentTime(5) }
 ];
 
-vi.mock('$lib/api', () => ({
+vi.mock('#lib/api.ts', () => ({
   getMonitor: vi.fn(() => Promise.resolve(mockMonitor)),
   getMonitorHistory: vi.fn(() => Promise.resolve([...initialHistory])),
   getMonitorIncidents: vi.fn(() => Promise.resolve({ data: [], total: 0, page: 1, limit: 20, total_pages: 0 })),
@@ -173,7 +171,7 @@ vi.mock('$lib/api', () => ({
 }));
 
 const mockApplyPatch = vi.fn();
-vi.mock('$lib/stores/monitors.svelte', () => ({
+vi.mock('#lib/stores/monitors.svelte.ts', () => ({
   monitorStore: {
     getById: vi.fn(() => mockMonitor),
     updateMonitor: vi.fn(),
@@ -188,7 +186,7 @@ vi.mock('$lib/stores/monitors.svelte', () => ({
   }
 }));
 
-vi.mock('$lib/stores/auth.svelte', () => ({
+vi.mock('#lib/stores/auth.svelte.ts', () => ({
   getToken: vi.fn(() => 'test-token'),
   setToken: vi.fn(),
   isAdmin: vi.fn(() => true),
@@ -196,14 +194,14 @@ vi.mock('$lib/stores/auth.svelte', () => ({
   isAuthenticated: vi.fn(() => true)
 }));
 
-vi.mock('$lib/stores/connection.svelte', () => ({
+vi.mock('#lib/stores/connection.svelte.ts', () => ({
   connectionStore: {
     setStatus: vi.fn(),
     status: 'connected'
   }
 }));
 
-vi.mock('$lib/stores/toast.svelte', () => ({
+vi.mock('#lib/stores/toast.svelte.ts', () => ({
   toastStore: {
     addToast: vi.fn(),
     dismissToast: vi.fn()

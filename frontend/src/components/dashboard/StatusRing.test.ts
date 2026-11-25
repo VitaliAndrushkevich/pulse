@@ -2,9 +2,9 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/svelte';
 import StatusRing from './StatusRing.svelte';
 import { computeArcAngles, buildAriaDescription } from './StatusRing.svelte';
-import type { StatusDistribution } from '$lib/types';
+import type { StatusDistribution } from '#lib/types.ts';
 
-vi.mock('$lib/i18n', () => ({
+vi.mock('#lib/i18n/index.ts', () => ({
   t: (key: string, params?: Record<string, string | number>) => {
     const translations: Record<string, string> = {
       'common.loading': 'Loading...',

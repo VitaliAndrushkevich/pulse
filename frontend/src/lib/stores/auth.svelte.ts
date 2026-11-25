@@ -1,4 +1,4 @@
-import type { User } from '$lib/types';
+import type { User } from '#lib/types.ts';
 
 /**
  * AuthStore — JWT session management using Svelte 5 runes.

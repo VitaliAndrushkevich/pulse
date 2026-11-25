@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { toastStore } from '$lib/stores/toast.svelte';
-	import { t } from '$lib/i18n';
+	import { toastStore } from '#lib/stores/toast.svelte.ts';
+	import { t } from '#lib/i18n/index.ts';
 
 	function getBgClass(type: 'error' | 'success' | 'info'): string {
 		switch (type) {

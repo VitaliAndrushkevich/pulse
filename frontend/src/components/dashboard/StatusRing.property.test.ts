@@ -18,7 +18,7 @@
 import { describe, it, expect } from 'vitest';
 import * as fc from 'fast-check';
 import { computeArcAngles, buildAriaDescription } from './StatusRing.svelte';
-import type { StatusDistribution } from '$lib/types';
+import type { StatusDistribution } from '#lib/types.ts';
 
 // --- Arbitraries ---
 

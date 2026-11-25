@@ -1,8 +1,8 @@
 <script lang="ts">
   import SelectField from './SelectField.svelte';
-  import { getLocale, setLocale, t } from '$lib/i18n/locale.svelte';
-  import { SUPPORTED_LOCALES } from '$lib/i18n/config';
-  import type { LocaleCode } from '$lib/i18n/config';
+  import { getLocale, setLocale, t } from '#lib/i18n/locale.svelte.ts';
+  import { SUPPORTED_LOCALES } from '#lib/i18n/config.ts';
+  import type { LocaleCode } from '#lib/i18n/config.ts';
 
   let selected = $derived(getLocale());
 

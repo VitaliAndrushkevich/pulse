@@ -6,10 +6,10 @@
     deleteSMTPSettings,
     testSMTPSettings,
     ApiRequestError,
-  } from '$lib/api';
-  import type { SMTPSettings, SMTPSettingsRequest } from '$lib/types';
-  import { toastStore } from '$lib/stores/toast.svelte';
-  import { t } from '$lib/i18n/locale.svelte';
+  } from '#lib/api.ts';
+  import type { SMTPSettings, SMTPSettingsRequest } from '#lib/types.ts';
+  import { toastStore } from '#lib/stores/toast.svelte.ts';
+  import { t } from '#lib/i18n/locale.svelte.ts';
 
   // Current settings from API
   let settings = $state<SMTPSettings | null>(null);

@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/svelte';
 import Pagination from '../Pagination.svelte';
 
 // Mock i18n to avoid $effect outside component context
-vi.mock('$lib/i18n', () => ({
+vi.mock('#lib/i18n/index.ts', () => ({
   t: (key: string, params?: Record<string, string | number>) => {
     const translations: Record<string, string> = {
       'common.previous': 'Previous',

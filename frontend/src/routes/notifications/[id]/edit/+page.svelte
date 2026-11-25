@@ -2,17 +2,17 @@
   import { goto } from '$app/navigation';
   import { page } from '$app/state';
   import { untrack } from 'svelte';
-  import type { NotificationChannel } from '$lib/types';
-  import { notificationStore } from '$lib/stores/notifications.svelte';
+  import type { NotificationChannel } from '#lib/types.ts';
+  import { notificationStore } from '#lib/stores/notifications.svelte.ts';
   import NotificationChannelForm from '../../../../components/NotificationChannelForm.svelte';
-  import { t } from '$lib/i18n';
+  import { t } from '#lib/i18n/index.ts';
 
   let channel = $state<NotificationChannel | null>(null);
   let loading = $state(true);
   let error = $state<string | null>(null);
 
   $effect(() => {
-    const id = page.params.id;
+    const id = page.params.id ?? '';
     untrack(() => loadChannel(id));
   });
 

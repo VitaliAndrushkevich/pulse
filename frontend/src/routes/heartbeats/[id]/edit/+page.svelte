@@ -1,21 +1,21 @@
 <script lang="ts">
   import EditorPage from '../../../../components/EditorPage.svelte';
-  import { page } from '$app/stores';
+  import { page } from '$app/state';
   import { goto } from '$app/navigation';
   import { untrack } from 'svelte';
-  import { getHeartbeat, updateHeartbeat, ApiRequestError } from '$lib/api';
-  import { heartbeatStore } from '$lib/stores/heartbeats.svelte';
+  import { getHeartbeat, updateHeartbeat, ApiRequestError } from '#lib/api.ts';
+  import { heartbeatStore } from '#lib/stores/heartbeats.svelte.ts';
   import HeartbeatForm, { type HeartbeatFormValues } from '../../../../components/HeartbeatForm.svelte';
   import HeartbeatBindings from '../../../../components/HeartbeatBindings.svelte';
-  import type { Heartbeat } from '$lib/types';
-  import { t } from '$lib/i18n';
+  import type { Heartbeat } from '#lib/types.ts';
+  import { t } from '#lib/i18n/index.ts';
 
   let heartbeat = $state<Heartbeat | null>(null);
   let loading = $state(true);
   let error = $state<string | null>(null);
   let notFound = $state(false);
 
-  let heartbeatId = $derived($page.params.id);
+  let heartbeatId = $derived(page.params.id ?? '');
 
   async function fetchData() {
     loading = true;

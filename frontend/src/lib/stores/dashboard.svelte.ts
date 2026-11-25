@@ -12,10 +12,10 @@
  * Requirements: 8.3, 8.4, 8.6, 9.2
  */
 
-import { getDashboardSummary } from '$lib/api';
-import { t } from '$lib/i18n';
-import type { FleetPeriod } from '$lib/types';
-import { monitorStore } from '$lib/stores/monitors.svelte';
+import { getDashboardSummary } from '#lib/api.ts';
+import { t } from '#lib/i18n/index.ts';
+import type { FleetPeriod } from '#lib/types.ts';
+import { monitorStore } from '#lib/stores/monitors.svelte.ts';
 import type {
 	HealthScoreData,
  PeriodIncident,
@@ -27,7 +27,7 @@ import type {
 	RecentEvent,
 	MonitorPatch,
 	WidgetId
-} from '$lib/types';
+} from '#lib/types.ts';
 
 // --- Reactive state (Svelte 5 runes) ---
 

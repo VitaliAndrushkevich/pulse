@@ -5,8 +5,8 @@
    * Consolidates three separate dashboard sections into one compact card
    * with tab navigation for cleaner layout.
    */
-  import type { TopLatencyMonitor, SSLExpiryEntry, RecentEvent } from '$lib/types';
-  import { t } from '$lib/i18n';
+  import type { TopLatencyMonitor, SSLExpiryEntry, RecentEvent } from '#lib/types.ts';
+  import { t } from '#lib/i18n/index.ts';
   import WidgetShell from './WidgetShell.svelte';
   import { truncateMonitorName, formatLatency, selectTopMonitors } from './ResponseSparklines.svelte';
   import { filterSSLEntries, sortSSLEntries, getUrgencyTier } from './SSLWarnings.svelte';

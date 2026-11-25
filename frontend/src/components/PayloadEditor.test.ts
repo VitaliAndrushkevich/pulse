@@ -8,9 +8,9 @@
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, cleanup } from '@testing-library/svelte';
-import type { ProtoMessageSchema } from '$lib/types';
+import type { ProtoMessageSchema } from '#lib/types.ts';
 
-vi.mock('$lib/i18n', () => ({
+vi.mock('#lib/i18n/index.ts', () => ({
   t: (key: string) => key,
 }));
 

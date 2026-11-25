@@ -18,7 +18,7 @@
  */
 import { describe, it, expect } from 'vitest';
 import * as fc from 'fast-check';
-import type { TopLatencyMonitor } from '$lib/types';
+import type { TopLatencyMonitor } from '#lib/types.ts';
 import {
 	truncateMonitorName,
 	formatLatency,

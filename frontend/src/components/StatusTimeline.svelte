@@ -1,6 +1,6 @@
 <script lang="ts">
-  import type { HistoryPoint } from '$lib/types';
-  import { formatLatency } from '$lib/format';
+  import type { HistoryPoint } from '#lib/types.ts';
+  import { formatLatency } from '#lib/format.ts';
 
   interface Props {
     data: HistoryPoint[];

@@ -1,15 +1,15 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/svelte';
-import type { NotificationChannel } from '$lib/types';
+import type { NotificationChannel } from '#lib/types.ts';
 
-vi.mock('$lib/api', () => ({
+vi.mock('#lib/api.ts', () => ({
   createNotificationChannel: vi.fn(),
   updateNotificationChannel: vi.fn(),
   testNotificationChannelDraft: vi.fn(),
   getTemplateVariables: vi.fn().mockResolvedValue([]),
 }));
-vi.mock('$lib/i18n', () => ({ t: (key: string, params?: Record<string, string>) => params?.error ? `${key}: ${params.error}` : key }));
-import { createNotificationChannel, updateNotificationChannel, testNotificationChannelDraft } from '$lib/api';
+vi.mock('#lib/i18n', () => ({ t: (key: string, params?: Record<string, string>) => params?.error ? `${key}: ${params.error}` : key }));
+import { createNotificationChannel, updateNotificationChannel, testNotificationChannelDraft } from '#lib/api.ts';
 import NotificationChannelForm from './NotificationChannelForm.svelte';
 
 const webhook: NotificationChannel = {

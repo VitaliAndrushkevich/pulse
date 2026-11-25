@@ -1,27 +1,27 @@
 <script lang="ts">
   import '../app.css';
   import type { Snippet } from 'svelte';
-  import { isAuthenticated, clearToken, getUser, getToken, setUser, isAdmin, mustChangePassword } from '$lib/stores/auth.svelte';
+  import { isAuthenticated, clearToken, getUser, getToken, setUser, isAdmin, mustChangePassword } from '#lib/stores/auth.svelte.ts';
   import Toast from '../components/Toast.svelte';
   import ConnectionBadge from '../components/ConnectionBadge.svelte';
   import ThemeSwitcher from '../components/ThemeSwitcher.svelte';
   import BrandLockup from '../components/BrandLockup.svelte';
   import { goto } from '$app/navigation';
   import { resolve } from '$app/paths';
-  import { page } from '$app/stores';
-  import { createWsClient } from '$lib/ws';
-  import { canAccessRoute } from '$lib/access';
-  import { getMonitors, getCurrentUser } from '$lib/api';
-  import { monitorStore } from '$lib/stores/monitors.svelte';
+  import { page } from '$app/state';
+  import { createWsClient } from '#lib/ws.ts';
+  import { canAccessRoute } from '#lib/access.ts';
+  import { getMonitors, getCurrentUser } from '#lib/api.ts';
+  import { monitorStore } from '#lib/stores/monitors.svelte.ts';
   import { onMount, onDestroy } from 'svelte';
-  import { initLocale, t } from '$lib/i18n';
+  import { initLocale, t } from '#lib/i18n/index.ts';
 
   let { children }: { children: Snippet } = $props();
 
   // Initialize locale from localStorage before first render
   initLocale();
 
-  let currentPath = $derived($page.url.pathname);
+  let currentPath = $derived(page.url.pathname);
   let isPublicRoute = $derived(currentPath === '/login' || currentPath === '/setup');
   let authed = $derived(isAuthenticated());
   let sessionError = $state(false);
@@ -115,7 +115,7 @@
   // Redirect unauthenticated users to login
   $effect(() => {
     if (!isPublicRoute && !authed) {
-      goto(resolve('/login', {}));
+      goto(resolve('/login'));
     }
   });
 
@@ -134,7 +134,7 @@
   function logout() {
     wsClient.disconnect();
     clearToken();
-    goto(resolve('/login', {}));
+    goto(resolve('/login'));
   }
 </script>
 
@@ -155,7 +155,7 @@
     <a class="skip-link" href="#main-content">{t('shell.skipToContent')}</a>
     <aside class="navigation-rail">
       <div class="rail-top">
-        <a href={resolve('/', {})} aria-label={t('nav.home')} class="rail-brand">
+        <a href={resolve('/')} aria-label={t('nav.home')} class="rail-brand">
           <span class="full-brand"><BrandLockup size={36} variant="full" /></span>
           <span class="compact-brand"><BrandLockup size={32} variant="compact" /></span>
         </a>
@@ -168,21 +168,47 @@
           aria-controls="main-navigation"
           title={t(sidebarCollapsed ? 'shell.expandNavigation' : 'shell.collapseNavigation')}
         >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <rect x="3" y="4" width="18" height="16" rx="2" />
-            <path d="M9 4v16" />
-            <path d={sidebarCollapsed ? 'm13 9 3 3-3 3' : 'm16 9-3 3 3 3'} />
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <rect x="3" y="4" width="18" height="16" rx="2"></rect>
+            <path d="M9 4v16"></path>
+
+            <path
+              d={sidebarCollapsed ? 'm13 9 3 3-3 3' : 'm16 9-3 3 3 3'}
+            ></path>
           </svg>
         </button>
       </div>
       <div class="rail-caption">{t('shell.navigation')}</div>
       <nav id="main-navigation" aria-label={t('shell.navigation')} class="rail-links">
         {#each navLinks.filter((link) => link.href !== '/notifications' || isAdmin()) as link (link.href)}
-          {@const active = link.href === '/' ? currentPath === '/' : currentPath === link.href || currentPath.startsWith(link.href + '/')}
-          <a href={resolve(link.href, {})} class={['rail-link', { active }]} aria-label={t(link.key)} aria-current={active ? 'page' : undefined}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d={link.icon} />
-            </svg>
+          {@const active = link.href === '/'
+            ? currentPath === '/'
+            : currentPath === link.href || currentPath.startsWith(link.href + '/')}
+
+          <a
+            href={resolve(link.href)}
+            class={['rail-link', { active }]}
+            aria-label={t(link.key)}
+            aria-current={active ? 'page' : undefined}
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            ><path d={link.icon}></path></svg>
+
             <span class="link-label">{t(link.key)}</span>
             <span class="rail-tooltip" aria-hidden="true">{t(link.key)}</span>
           </a>
@@ -193,10 +219,24 @@
         <div class="rail-status"><ConnectionBadge compact={sidebarCollapsed} /></div>
         <div class="rail-actions">
           <ThemeSwitcher />
-          <button type="button" onclick={logout} class="logout-button" aria-label={t('nav.logout')} title={t('nav.logout')}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M9 4H4v16h5 M14 8l4 4-4 4 M8 12h13" />
-            </svg>
+
+          <button
+            type="button"
+            onclick={logout}
+            class="logout-button"
+            aria-label={t('nav.logout')}
+            title={t('nav.logout')}
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            ><path d="M9 4H4v16h5 M14 8l4 4-4 4 M8 12h13"></path></svg>
+
             <span class="logout-label">{t('nav.logout')}</span>
           </button>
         </div>
