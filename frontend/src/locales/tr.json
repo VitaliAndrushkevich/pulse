@@ -705,7 +705,9 @@
     "ehloDomainHelp": "EHLO selamlamasında kullanılan alan adı",
     "sslExpiryThreshold": "SSL Sona Erme Eşiği (gün)",
     "sslExpiryThresholdPlaceholder": "14",
-    "sslExpiryThresholdHelp": "Sertifika bu gün sayısı içinde sona erdiğinde uyar (0 = devre dışı)"
+    "sslExpiryThresholdHelp": "Sertifika bu gün sayısı içinde sona erdiğinde uyar (0 = devre dışı)",
+    "skipTlsVerify": "Disable certificate verification (skip TLS verification)",
+    "skipTlsVerifyHelp": "The monitor will skip TLS certificate chain and hostname verification. Use for self-signed certificates."
   },
   "payloadEditor": {
     "placeholder": "JSON veri yükü girin (ör. {\"name\": \"value\"})",

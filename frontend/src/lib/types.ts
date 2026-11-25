@@ -39,6 +39,7 @@ export interface SmtpSettings {
   starttls?: boolean;
   implicit_tls?: boolean;
   ehlo_domain?: string;
+  skip_tls_verify?: boolean;
   ssl_expiry_threshold?: number;
 }
 

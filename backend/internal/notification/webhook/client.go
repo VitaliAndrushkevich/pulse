@@ -48,6 +48,9 @@ func NewClient(secretKey []byte) *Client {
 	return &Client{
 		httpClient: &http.Client{
 			Timeout: requestTimeout,
+			// Never follow redirects: decrypted custom headers (API keys) must
+			// not be forwarded to a different URL chosen by the remote server.
+			CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse },
 		},
 		secretKey: secretKey,
 	}

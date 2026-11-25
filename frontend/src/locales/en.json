@@ -605,7 +605,9 @@
     "ehloDomainHelp": "Domain name used in the EHLO greeting",
     "sslExpiryThreshold": "SSL Expiry Threshold (days)",
     "sslExpiryThresholdPlaceholder": "14",
-    "sslExpiryThresholdHelp": "Alert when certificate expires within this many days (0 = disabled)"
+    "sslExpiryThresholdHelp": "Alert when certificate expires within this many days (0 = disabled)",
+    "skipTlsVerify": "Disable certificate verification (skip TLS verification)",
+    "skipTlsVerifyHelp": "The monitor will skip TLS certificate chain and hostname verification. Use for self-signed certificates."
   },
   "timeRange": {
     "custom": "Custom",

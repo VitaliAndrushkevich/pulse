@@ -705,7 +705,9 @@
     "ehloDomainHelp": "Даменнае імя, якое выкарыстоўваецца ў прывітанні EHLO",
     "sslExpiryThreshold": "Парог заканчэння SSL (дзён)",
     "sslExpiryThresholdPlaceholder": "14",
-    "sslExpiryThresholdHelp": "Папярэджваць, калі сертыфікат сканчаецца на працягу гэтых дзён (0 = адключана)"
+    "sslExpiryThresholdHelp": "Папярэджваць, калі сертыфікат сканчаецца на працягу гэтых дзён (0 = адключана)",
+    "skipTlsVerify": "Disable certificate verification (skip TLS verification)",
+    "skipTlsVerifyHelp": "The monitor will skip TLS certificate chain and hostname verification. Use for self-signed certificates."
   },
   "payloadEditor": {
     "placeholder": "Увядзіце JSON (напр. {\"name\": \"value\"})",

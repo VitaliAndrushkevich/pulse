@@ -24,6 +24,7 @@ type SMTPSettings struct {
 	ImplicitTLS        bool   `json:"implicit_tls"`         // default: false; port 465 SMTPS
 	EHLODomain         string `json:"ehlo_domain"`          // default: "pulse.local"
 	SSLExpiryThreshold int    `json:"ssl_expiry_threshold"` // default: 0 (disabled)
+	SkipTLSVerify      bool   `json:"skip_tls_verify"`      // default: false; opt-in for self-signed certs
 }
 
 // SMTPChecker implements the Checker interface for SMTP monitors.
@@ -71,7 +72,7 @@ func (c *SMTPChecker) Check(ctx context.Context, target string, settings json.Ra
 		} else {
 			tlsConn := tls.Client(conn, &tls.Config{
 				ServerName:         extractHost(address),
-				InsecureSkipVerify: true, //nolint:gosec // We inspect certs ourselves
+				InsecureSkipVerify: s.SkipTLSVerify, //nolint:gosec // skip_tls_verify is an explicit per-monitor opt-in
 			})
 			if err := tlsConn.HandshakeContext(ctx); err != nil {
 				result.State = "down"
@@ -173,7 +174,7 @@ func (c *SMTPChecker) Check(ctx context.Context, target string, settings json.Ra
 			// Real TLS upgrade.
 			tlsConn := tls.Client(conn, &tls.Config{
 				ServerName:         extractHost(address),
-				InsecureSkipVerify: true, //nolint:gosec // We inspect certs ourselves
+				InsecureSkipVerify: s.SkipTLSVerify, //nolint:gosec // skip_tls_verify is an explicit per-monitor opt-in
 			})
 
 			if err := tlsConn.HandshakeContext(ctx); err != nil {

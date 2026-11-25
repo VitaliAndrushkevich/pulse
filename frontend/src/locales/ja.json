@@ -705,7 +705,9 @@
     "ehloDomainHelp": "EHLOグリーティングで使用するドメイン名",
     "sslExpiryThreshold": "SSL有効期限しきい値（日）",
     "sslExpiryThresholdPlaceholder": "14",
-    "sslExpiryThresholdHelp": "証明書がこの日数内に期限切れになる場合にアラート（0 = 無効）"
+    "sslExpiryThresholdHelp": "証明書がこの日数内に期限切れになる場合にアラート（0 = 無効）",
+    "skipTlsVerify": "Disable certificate verification (skip TLS verification)",
+    "skipTlsVerifyHelp": "The monitor will skip TLS certificate chain and hostname verification. Use for self-signed certificates."
   },
   "payloadEditor": {
     "placeholder": "JSONペイロードを入力（例：{\"name\": \"value\"}）",
